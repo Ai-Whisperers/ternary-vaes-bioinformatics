@@ -22,9 +22,9 @@ import sys
 import math
 from collections import defaultdict
 
-sys.path.append(str(Path(__file__).parent.parent))
+sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
 
 
 def generate_all_ternary_operations():
