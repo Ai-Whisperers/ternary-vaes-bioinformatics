@@ -7,4 +7,16 @@ This module handles ternary operation data:
 - loaders: DataLoader creation and configuration
 """
 
-__all__ = []
+from .generation import (
+    generate_all_ternary_operations,
+    count_ternary_operations,
+    generate_ternary_operation_by_index
+)
+from .dataset import TernaryOperationDataset
+
+__all__ = [
+    'generate_all_ternary_operations',
+    'count_ternary_operations',
+    'generate_ternary_operation_by_index',
+    'TernaryOperationDataset'
+]

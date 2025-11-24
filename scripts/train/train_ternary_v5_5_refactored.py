@@ -23,32 +23,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
 from src.training import TernaryVAETrainer
-
-
-def generate_all_ternary_operations():
-    """Generate all 19,683 possible ternary operations."""
-    operations = []
-    for i in range(3**9):
-        op = []
-        num = i
-        for _ in range(9):
-            op.append(num % 3 - 1)
-            num //= 3
-        operations.append(op)
-    return np.array(operations, dtype=np.float32)
-
-
-class TernaryOperationDataset(Dataset):
-    """Dataset of ternary operations."""
-
-    def __init__(self, operations):
-        self.operations = torch.FloatTensor(operations)
-
-    def __len__(self):
-        return len(self.operations)
-
-    def __getitem__(self, idx):
-        return self.operations[idx]
+from src.data import generate_all_ternary_operations, TernaryOperationDataset
 
 
 def main():
