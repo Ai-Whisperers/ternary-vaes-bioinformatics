@@ -18,6 +18,7 @@ from collections import defaultdict
 from .schedulers import TemperatureScheduler, BetaScheduler, LearningRateScheduler
 from .monitor import TrainingMonitor
 from ..artifacts import CheckpointManager
+from ..losses import DualVAELoss
 
 
 class TernaryVAETrainer:
@@ -67,6 +68,12 @@ class TernaryVAETrainer:
         self.checkpoint_manager = CheckpointManager(
             Path(config['checkpoint_dir']),
             config['checkpoint_freq']
+        )
+
+        # Initialize loss function
+        self.loss_fn = DualVAELoss(
+            free_bits=config.get('free_bits', 0.0),
+            repulsion_sigma=0.5
         )
 
         # Cache phase 4 start for model updates
@@ -141,10 +148,19 @@ class TernaryVAETrainer:
 
             # Forward pass
             outputs = self.model(batch_data, temp_A, temp_B, beta_A, beta_B)
-            losses = self.model.loss_function(
+
+            # Compute losses using DualVAELoss
+            losses = self.loss_fn(
                 batch_data, outputs,
-                entropy_weight, repulsion_weight, free_bits
+                self.model.lambda1, self.model.lambda2, self.model.lambda3,
+                entropy_weight, repulsion_weight,
+                self.model.grad_norm_A_ema, self.model.grad_norm_B_ema,
+                self.model.gradient_balance, self.model.training
             )
+
+            # Add rho and phase to loss dict for logging
+            losses['rho'] = self.model.rho
+            losses['phase'] = self.model.current_phase
 
             # Apply StateNet corrections once per epoch
             if self.model.use_statenet and batch_idx == 0:
@@ -227,10 +243,19 @@ class TernaryVAETrainer:
             for batch_data in val_loader:
                 batch_data = batch_data.to(self.device)
                 outputs = self.model(batch_data, temp_A, temp_B, beta_A, beta_B)
-                losses = self.model.loss_function(
+
+                # Compute losses using DualVAELoss
+                losses = self.loss_fn(
                     batch_data, outputs,
-                    entropy_weight, repulsion_weight, free_bits
+                    self.model.lambda1, self.model.lambda2, self.model.lambda3,
+                    entropy_weight, repulsion_weight,
+                    self.model.grad_norm_A_ema, self.model.grad_norm_B_ema,
+                    self.model.gradient_balance, False  # training=False in validation
                 )
+
+                # Add rho and phase to loss dict for logging
+                losses['rho'] = self.model.rho
+                losses['phase'] = self.model.current_phase
 
                 for key, val in losses.items():
                     if isinstance(val, torch.Tensor):
