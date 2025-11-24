@@ -2,7 +2,8 @@
 
 **Analysis Date:** 2025-11-23
 **Codebase Version:** Ternary VAE v5.5
-**Status:** Recommendations for Implementation
+**Branch:** `refactor/srp-implementation`
+**Status:** Aggressive Refactoring (No Backward Compatibility)
 
 ---
 
@@ -14,6 +15,12 @@ The Ternary VAE v5.5 codebase has a **well-structured foundation** but contains 
 2. **Model architecture** from loss computation and gradient tracking
 3. **Raw training outputs** from validated/production models
 4. **Configuration management** from execution logic
+
+**Refactoring Approach:**
+- **Clean rewrite in dedicated branch** (`refactor/srp-implementation`)
+- **No backward compatibility patches** - aggressive, clean changes
+- **Complete restructuring** - no temporary dual implementations
+- **Merge to main when complete** - after full validation
 
 **Key Metrics:**
 
@@ -1240,188 +1247,239 @@ prod_dir = repo.promote_to_production(
 
 ---
 
-## Implementation Roadmap
+## Implementation Roadmap (Aggressive)
 
-### Phase 1: Foundation (Week 1)
-
-**Goal:** Extract core components with minimal disruption
-
-**Tasks:**
-1. Create new directory structure (`src/training/`, `src/artifacts/`, `src/losses/`)
-2. Implement `CheckpointManager` class
-3. Implement scheduler classes (`TemperatureScheduler`, `BetaScheduler`, `LearningRateScheduler`)
-4. Write unit tests for checkpointing and scheduling
-5. Update trainer to use new components
-
-**Expected Impact:**
-- Trainer: 350 → 250 lines (-28%)
-- New modules: ~400 lines
-- Tests: ~200 lines
-
-**Validation:**
-- Run existing training script with new components
-- Verify checkpoints are identical
-- Confirm training metrics unchanged
+**Branch Strategy:**
+- All work in `refactor/srp-implementation` branch
+- No backward compatibility - clean rewrite
+- Merge to `main` when complete and validated
+- Delete old code, no dual implementation period
 
 ---
 
-### Phase 2: Loss Refactoring (Week 2)
+### Phase 1: Core Extraction & New Structure (Days 1-5)
 
-**Goal:** Extract loss computation from model
-
-**Tasks:**
-1. Create `src/losses/` module structure
-2. Implement loss component classes
-3. Implement `DualVAELoss` aggregator
-4. Write unit tests for each loss component
-5. Update model to delegate to loss function
-6. Validate loss values are identical
-
-**Expected Impact:**
-- Model: 632 → 500 lines (-21%)
-- New loss modules: ~350 lines
-- Tests: ~250 lines
-
-**Validation:**
-- Run training with new loss function
-- Verify loss values match exactly
-- Confirm gradients are identical
-
----
-
-### Phase 3: Data & Metrics Split (Week 3)
-
-**Goal:** Organize utils modules by domain
+**Goal:** Create new structure and extract core components
 
 **Tasks:**
-1. Create `src/data/` and `src/metrics/` directories
-2. Split `data.py` into `generation.py`, `dataset.py`, `loaders.py`
-3. Split `metrics.py` into `coverage.py`, `entropy.py`, `tracking.py`
-4. Update imports across codebase
-5. Write unit tests for each module
-6. Add configuration validation schema
+1. **Day 1:** Create complete new directory structure
+   - `src/training/`, `src/artifacts/`, `src/losses/`, `src/data/`, `src/metrics/`
+   - `artifacts/raw/`, `artifacts/validated/`, `artifacts/production/`
+
+2. **Days 2-3:** Implement and test core components
+   - `CheckpointManager` class (full implementation)
+   - Scheduler classes (`TemperatureScheduler`, `BetaScheduler`, `LearningRateScheduler`)
+   - `TrainingMonitor` class
+   - Unit tests for all components
+
+3. **Days 4-5:** Refactor trainer
+   - Strip trainer to <200 lines (only training loop)
+   - Delegate to new components
+   - Remove all checkpoint, logging, scheduling logic
+   - Integration tests
 
 **Expected Impact:**
-- Utils: 475 → 0 lines (reorganized)
-- New modules: 6 files (~75 lines each)
+- Trainer: 350 → <180 lines (-49%)
+- New modules: ~500 lines
 - Tests: ~300 lines
 
 **Validation:**
-- Run all existing tests
-- Verify data generation is identical
-- Confirm metrics calculations unchanged
+- Run refactored trainer
+- Compare training curves (should match exactly)
+- Verify checkpoint loading/saving works
 
 ---
 
-### Phase 4: Artifact Management (Week 4)
+### Phase 2: Model & Loss Separation (Days 6-10)
 
-**Goal:** Implement artifact lifecycle management
+**Goal:** Clean model separation - architecture only
 
 **Tasks:**
-1. Create `artifacts/` directory structure (raw/validated/production)
-2. Implement `ArtifactRepository` class
-3. Add metadata tracking to checkpoints
-4. Create promotion workflow scripts
-5. Document artifact management process
-6. Migrate existing checkpoints
+1. **Days 6-7:** Extract loss computation
+   - Create complete `src/losses/` module
+   - Implement all loss components (reconstruction, KL, entropy, repulsion)
+   - Implement `DualVAELoss` aggregator
+   - Unit tests for each loss component
+
+2. **Days 8-9:** Refactor model class
+   - Remove all loss computation from model
+   - Remove gradient tracking (move to trainer/monitor)
+   - Extract encoder/decoder duplicates to base classes
+   - Keep only architecture and forward pass
+   - Model tests
+
+3. **Day 10:** Validation
+   - Run full training
+   - Verify loss values identical
+   - Check gradients match
+   - Performance profiling
 
 **Expected Impact:**
-- New repository module: ~400 lines
-- Documentation: ~200 lines
-- Migration scripts: ~100 lines
+- Model: 632 → <380 lines (-40%)
+- New loss modules: ~400 lines
+- Tests: ~350 lines
 
 **Validation:**
-- Promote a checkpoint through all stages
-- Verify metadata integrity
-- Confirm model loading works at each stage
+- Bit-identical loss values
+- Same gradient flow
+- No performance regression
 
 ---
 
-### Phase 5: Testing & Documentation (Week 5)
+### Phase 3: Utils Reorganization (Days 11-14)
 
-**Goal:** Comprehensive testing and documentation
-
-**Tasks:**
-1. Write integration tests for full training pipeline
-2. Add end-to-end validation tests
-3. Document module responsibilities
-4. Create refactoring guide for future contributors
-5. Add architecture decision records (ADRs)
-6. Update README with new structure
-
-**Expected Impact:**
-- Integration tests: ~500 lines
-- Documentation: ~1000 lines
-- ADRs: 5-7 documents
-
-**Validation:**
-- Run full test suite (unit + integration)
-- Code coverage > 80%
-- All documentation reviewed
-
----
-
-### Phase 6: Cleanup & Optimization (Week 6)
-
-**Goal:** Final cleanup and optimization
+**Goal:** Split and organize utility modules
 
 **Tasks:**
-1. Remove deprecated code
-2. Optimize imports
-3. Add type hints throughout
-4. Run code linters and formatters
-5. Performance profiling
-6. Final code review
+1. **Days 11-12:** Split data.py
+   - Create `src/data/` module
+   - `generation.py` - Ternary operation generation
+   - `validation.py` - Data validation
+   - `dataset.py` - Dataset classes
+   - `loaders.py` - DataLoader creation
+   - Delete old `utils/data.py`
+   - Unit tests
+
+2. **Days 13-14:** Split metrics.py
+   - Create `src/metrics/` module
+   - `coverage.py` - Coverage evaluation
+   - `entropy.py` - Entropy computation
+   - `reconstruction.py` - Accuracy metrics
+   - `tracking.py` - CoverageTracker class
+   - Delete old `utils/metrics.py`
+   - Delete entire `utils/` directory (no longer needed)
+   - Unit tests
 
 **Expected Impact:**
-- Code quality score improvement
-- Reduced coupling
-- Improved test coverage
+- Utils: 475 → 0 lines (deleted, replaced with focused modules)
+- New modules: 8 files (~60-80 lines each)
+- Tests: ~250 lines
 
 **Validation:**
 - All tests pass
-- No performance regression
-- Code review approved
+- Data generation identical
+- Metrics calculations unchanged
 
 ---
 
-## Migration Strategy
+### Phase 4: Artifact Management & Integration (Days 15-18)
 
-### Backward Compatibility
+**Goal:** Professional artifact lifecycle + full integration
 
-**Approach:** Maintain backward compatibility during transition
+**Tasks:**
+1. **Days 15-16:** Artifact repository
+   - Create `artifacts/` structure (raw/validated/production)
+   - Implement `ArtifactRepository` class
+   - Add metadata tracking
+   - Promotion workflow
+   - Migrate existing checkpoints from sandbox-training/
 
-1. **Dual Implementation Period (Weeks 1-3)**
-   - Keep old code alongside new implementations
-   - Add deprecation warnings to old code
-   - Run both paths in parallel for validation
+2. **Days 17-18:** Integration testing
+   - End-to-end training pipeline test
+   - Artifact promotion workflow test
+   - Checkpoint compatibility validation
+   - Full regression test suite
+   - Performance benchmarks
 
-2. **Gradual Cutover (Weeks 4-5)**
-   - Switch to new implementations by default
-   - Keep old code as fallback
-   - Monitor for issues
+**Expected Impact:**
+- New repository module: ~400 lines
+- Integration tests: ~400 lines
+- Migration complete
 
-3. **Cleanup (Week 6)**
-   - Remove deprecated code
-   - Finalize new structure
-   - Update all documentation
+**Validation:**
+- Train full model end-to-end
+- Promote through all artifact stages
+- All metrics match baseline
+
+---
+
+### Phase 5: Documentation & Finalization (Days 19-21)
+
+**Goal:** Complete documentation and final cleanup
+
+**Tasks:**
+1. **Day 19:** Module documentation
+   - Document all new modules
+   - Architecture decision records (ADRs)
+   - Module responsibility guide
+   - API documentation
+
+2. **Day 20:** Code quality
+   - Add type hints throughout
+   - Run black formatter
+   - Run pylint/flake8
+   - Fix all warnings
+   - Optimize imports
+
+3. **Day 21:** Final review
+   - Code review
+   - Test coverage check (target: >85%)
+   - Performance validation
+   - Update README
+   - Prepare merge to main
+
+**Expected Impact:**
+- Documentation: ~800 lines
+- Type hints added throughout
+- Code quality score: A+
+
+**Validation:**
+- All tests pass (>85% coverage)
+- No performance regression
+- Documentation complete
+
+---
+
+## Branch Workflow
+
+### Development Strategy
+
+**Approach:** Aggressive clean rewrite in dedicated branch
+
+1. **All work in `refactor/srp-implementation` branch**
+   - No backward compatibility layers
+   - Clean deletion of old code as we go
+   - No deprecation warnings needed
+   - No dual implementation periods
+
+2. **Continuous validation**
+   - Run tests after each phase
+   - Compare results to baseline (main branch)
+   - Track metrics in separate document
+   - Performance benchmarks against main
+
+3. **Merge when complete**
+   - All tests passing (>85% coverage)
+   - Performance validated (no regression)
+   - Documentation complete
+   - Full code review approved
+   - Squash merge or detailed commit history (TBD)
 
 ### Risk Mitigation
 
-**Checkpoints:**
-- Save checkpoint compatibility adapter
-- Validate new checkpoints can be loaded with old code
-- Create conversion scripts if needed
+**Checkpoint Compatibility:**
+- Training outputs go to new `artifacts/` structure
+- Old checkpoints in `sandbox-training/` remain untouched
+- Migration script to convert old → new format
+- Validation that old checkpoints load correctly
 
 **Configuration:**
-- Maintain config file compatibility
-- Add config version field
-- Support both old and new formats during transition
+- Config files remain compatible
+- Add schema validation
+- Any breaking changes documented
+- Migration guide for users
 
 **Testing:**
-- Regression test suite for critical paths
-- Side-by-side comparison of old vs new implementations
-- Performance benchmarks at each phase
+- Comprehensive regression suite
+- Compare training runs: main vs refactor branch
+- Bit-identical results for deterministic operations
+- Performance profiling at each phase
+
+**Rollback Plan:**
+- Keep main branch stable
+- Tag before merge: `v5.5-pre-refactor`
+- Can revert merge if issues found
+- Separate branch for any critical fixes
 
 ---
 
@@ -1459,30 +1517,51 @@ prod_dir = repo.promote_to_production(
 
 ## Conclusion
 
-This refactoring plan addresses critical SRP violations in the Ternary VAE codebase while maintaining backward compatibility and minimizing disruption. The phased approach allows for incremental improvements with validation at each step.
+This refactoring plan addresses critical SRP violations in the Ternary VAE codebase through an **aggressive, clean rewrite** in a dedicated branch. No backward compatibility cruft - just clean, well-structured code.
 
 **Key Benefits:**
 
-1. **Improved Testability:** Each component can be tested independently
+1. **Improved Testability:** Each component tested independently (>85% coverage)
 2. **Better Maintainability:** Clear module boundaries and responsibilities
-3. **Enhanced Extensibility:** Easy to add new features without modifying existing code
-4. **Clearer Architecture:** Separation of concerns makes codebase easier to understand
-5. **Professional Artifact Management:** Clear lifecycle from training to production
+3. **Enhanced Extensibility:** Easy to add features without modifying existing code
+4. **Clearer Architecture:** Separation of concerns throughout
+5. **Professional Artifact Management:** Clear lifecycle (raw → validated → production)
+6. **No Technical Debt:** Clean rewrite eliminates all compatibility patches
+
+**Aggressive Approach Advantages:**
+
+- **Faster:** 3 weeks vs 6 weeks (50% time savings)
+- **Cleaner:** No dual implementations or deprecation warnings
+- **Simpler:** Straightforward path - rewrite and validate
+- **Better quality:** No compromises for backward compatibility
+- **Branch safety:** Main branch remains stable during refactoring
 
 **Next Steps:**
 
-1. Review and approve this plan
-2. Set up project tracking (GitHub issues/project board)
-3. Begin Phase 1 implementation
-4. Schedule weekly progress reviews
+1. Review and approve this aggressive plan
+2. Begin Phase 1 in `refactor/srp-implementation` branch
+3. Track progress with daily commits
+4. Validate after each phase
+5. Merge to main when complete (3 weeks timeline)
+
+**Development Workflow:**
+
+```
+main branch (stable) ────────────────────────── merge (after validation)
+                 \                             /
+                  refactor/srp-implementation
+                  (aggressive changes, 21 days)
+```
 
 ---
 
-**Document Version:** 1.0
+**Document Version:** 2.0 (Aggressive)
 **Last Updated:** 2025-11-23
-**Status:** Ready for Implementation
-**Estimated Timeline:** 6 weeks
-**Estimated Effort:** 120-150 hours
+**Branch:** `refactor/srp-implementation`
+**Status:** Ready for Aggressive Implementation
+**Estimated Timeline:** 3 weeks (21 days)
+**Estimated Effort:** 80-100 hours
+**Approach:** Clean rewrite, no backward compatibility
 
 ---
 
