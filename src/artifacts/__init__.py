@@ -6,4 +6,8 @@ This module handles checkpoint and artifact lifecycle management:
 - Metadata: Checkpoint and model metadata handling
 """
 
-__all__ = []
+from .checkpoint_manager import CheckpointManager
+
+__all__ = [
+    'CheckpointManager'
+]
