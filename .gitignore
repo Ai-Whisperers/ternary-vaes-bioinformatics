@@ -55,7 +55,7 @@ wandb/
 Thumbs.db
 
 # Project specific
-data/
+/data/          # Ignore data/ at root level only (not src/data/)
 outputs/
 results/
 local/
