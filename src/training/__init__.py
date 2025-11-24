@@ -15,8 +15,10 @@ from .schedulers import (
     cyclic_schedule
 )
 from .monitor import TrainingMonitor
+from .trainer import TernaryVAETrainer
 
 __all__ = [
+    'TernaryVAETrainer',
     'TemperatureScheduler',
     'BetaScheduler',
     'LearningRateScheduler',

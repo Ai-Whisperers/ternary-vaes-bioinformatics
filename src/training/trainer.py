@@ -1,0 +1,323 @@
+"""Refactored trainer using modular components.
+
+This trainer delegates to specialized components for:
+- Scheduling: TemperatureScheduler, BetaScheduler, LearningRateScheduler
+- Monitoring: TrainingMonitor
+- Checkpointing: CheckpointManager
+
+Single responsibility: Orchestrate training loop only.
+"""
+
+import torch
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from pathlib import Path
+from typing import Dict, Any
+from collections import defaultdict
+
+from .schedulers import TemperatureScheduler, BetaScheduler, LearningRateScheduler
+from .monitor import TrainingMonitor
+from ..artifacts import CheckpointManager
+
+
+class TernaryVAETrainer:
+    """Refactored trainer with single responsibility: orchestrate training loop.
+
+    All scheduling, monitoring, and checkpoint management delegated to components.
+    """
+
+    def __init__(self, model: torch.nn.Module, config: Dict[str, Any], device: str = 'cuda'):
+        """Initialize trainer with model and config.
+
+        Args:
+            model: DualNeuralVAE model
+            config: Training configuration dict
+            device: Device to train on
+        """
+        self.model = model.to(device)
+        self.config = config
+        self.device = device
+        self.epoch = 0
+
+        # Initialize optimizer
+        self.optimizer = optim.AdamW(
+            self.model.parameters(),
+            lr=config['optimizer']['lr_start'],
+            weight_decay=config['optimizer'].get('weight_decay', 0.0001)
+        )
+
+        # Initialize components
+        self.temp_scheduler = TemperatureScheduler(
+            config,
+            config['phase_transitions']['ultra_exploration_start'],
+            config['controller']['temp_lag']
+        )
+
+        self.beta_scheduler = BetaScheduler(
+            config,
+            config['controller']['beta_phase_lag']
+        )
+
+        self.lr_scheduler = LearningRateScheduler(
+            config['optimizer']['lr_schedule']
+        )
+
+        self.monitor = TrainingMonitor(config['eval_num_samples'])
+
+        self.checkpoint_manager = CheckpointManager(
+            Path(config['checkpoint_dir']),
+            config['checkpoint_freq']
+        )
+
+        # Cache phase 4 start for model updates
+        self.phase_4_start = config['phase_transitions']['ultra_exploration_start']
+
+        # Print initialization summary
+        self._print_init_summary()
+
+    def _print_init_summary(self) -> None:
+        """Print initialization summary."""
+        print(f"\n{'='*80}")
+        print("DN-VAE v5.5 Initialized (Refactored)")
+        print(f"{'='*80}")
+        print(f"Total parameters: {sum(p.numel() for p in self.model.parameters()):,}")
+
+        if self.config['model'].get('use_statenet', True):
+            statenet_params = sum(p.numel() for p in self.model.state_net.parameters())
+            total_params = sum(p.numel() for p in self.model.parameters())
+            print(f"StateNet parameters: {statenet_params:,} ({statenet_params/total_params*100:.2f}%)")
+
+        print(f"Device: {self.device}")
+        print(f"Gradient balance: {self.config['model'].get('gradient_balance', True)}")
+        print(f"Adaptive scheduling: {self.config['model'].get('adaptive_scheduling', True)}")
+        print(f"StateNet enabled: {self.config['model'].get('use_statenet', True)}")
+
+    def _update_model_parameters(self, epoch: int) -> None:
+        """Update model's adaptive parameters for current epoch.
+
+        Args:
+            epoch: Current epoch
+        """
+        self.model.epoch = epoch
+        self.model.rho = self.model.compute_phase_scheduled_rho(epoch, self.phase_4_start)
+        self.model.lambda3 = self.model.compute_cyclic_lambda3(epoch, period=30)
+
+        grad_ratio = (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item()
+        self.model.update_adaptive_ema_momentum(grad_ratio)
+
+        if len(self.monitor.coverage_A_history) > 0:
+            coverage_A = self.monitor.coverage_A_history[-1]
+            coverage_B = self.monitor.coverage_B_history[-1]
+            self.model.update_adaptive_lambdas(grad_ratio, coverage_A, coverage_B)
+
+    def train_epoch(self, train_loader: DataLoader) -> Dict[str, Any]:
+        """Train for one epoch.
+
+        Args:
+            train_loader: Training data loader
+
+        Returns:
+            Dict of epoch losses and metrics
+        """
+        self.model.train()
+        self._update_model_parameters(self.epoch)
+
+        # Get scheduled parameters
+        temp_A = self.temp_scheduler.get_temperature(self.epoch, 'A')
+        temp_B = self.temp_scheduler.get_temperature(self.epoch, 'B')
+        beta_A = self.beta_scheduler.get_beta(self.epoch, 'A')
+        beta_B = self.beta_scheduler.get_beta(self.epoch, 'B')
+        lr_scheduled = self.lr_scheduler.get_lr(self.epoch)
+
+        entropy_weight = self.config['vae_b']['entropy_weight']
+        repulsion_weight = self.config['vae_b']['repulsion_weight']
+        free_bits = self.config.get('free_bits', 0.0)
+
+        epoch_losses = defaultdict(float)
+        num_batches = 0
+
+        for batch_idx, batch_data in enumerate(train_loader):
+            batch_data = batch_data.to(self.device)
+
+            # Forward pass
+            outputs = self.model(batch_data, temp_A, temp_B, beta_A, beta_B)
+            losses = self.model.loss_function(
+                batch_data, outputs,
+                entropy_weight, repulsion_weight, free_bits
+            )
+
+            # Apply StateNet corrections once per epoch
+            if self.model.use_statenet and batch_idx == 0:
+                corrected_lr, *deltas = self.model.apply_statenet_corrections(
+                    lr_scheduled,
+                    losses['H_A'].item() if torch.is_tensor(losses['H_A']) else losses['H_A'],
+                    losses['H_B'].item() if torch.is_tensor(losses['H_B']) else losses['H_B'],
+                    losses['kl_A'].item(),
+                    losses['kl_B'].item(),
+                    (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item()
+                )
+
+                for param_group in self.optimizer.param_groups:
+                    param_group['lr'] = corrected_lr
+
+                epoch_losses['lr_corrected'] = corrected_lr
+                epoch_losses['delta_lr'] = deltas[0]
+                epoch_losses['delta_lambda1'] = deltas[1]
+                epoch_losses['delta_lambda2'] = deltas[2]
+                epoch_losses['delta_lambda3'] = deltas[3]
+            else:
+                if batch_idx == 0:
+                    for param_group in self.optimizer.param_groups:
+                        param_group['lr'] = lr_scheduled
+
+            # Backward and optimize
+            self.optimizer.zero_grad()
+            losses['loss'].backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.config['grad_clip'])
+            self.model.update_gradient_norms()
+            self.optimizer.step()
+
+            # Accumulate losses
+            for key, val in losses.items():
+                if isinstance(val, torch.Tensor):
+                    epoch_losses[key] += val.item()
+                else:
+                    epoch_losses[key] += val
+
+            num_batches += 1
+
+        # Average losses
+        for key in epoch_losses:
+            if key not in ['lr_corrected', 'delta_lr', 'delta_lambda1', 'delta_lambda2', 'delta_lambda3']:
+                epoch_losses[key] /= num_batches
+
+        # Store schedule info
+        epoch_losses['temp_A'] = temp_A
+        epoch_losses['temp_B'] = temp_B
+        epoch_losses['beta_A'] = beta_A
+        epoch_losses['beta_B'] = beta_B
+        epoch_losses['lr_scheduled'] = lr_scheduled
+        epoch_losses['grad_ratio'] = (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item()
+        epoch_losses['ema_momentum'] = self.model.grad_ema_momentum
+
+        return epoch_losses
+
+    def validate(self, val_loader: DataLoader) -> Dict[str, Any]:
+        """Validation pass.
+
+        Args:
+            val_loader: Validation data loader
+
+        Returns:
+            Dict of validation losses
+        """
+        self.model.eval()
+        epoch_losses = defaultdict(float)
+        num_batches = 0
+
+        temp_A = self.temp_scheduler.get_temperature(self.epoch, 'A')
+        temp_B = self.temp_scheduler.get_temperature(self.epoch, 'B')
+        beta_A = self.beta_scheduler.get_beta(self.epoch, 'A')
+        beta_B = self.beta_scheduler.get_beta(self.epoch, 'B')
+        entropy_weight = self.config['vae_b']['entropy_weight']
+        repulsion_weight = self.config['vae_b']['repulsion_weight']
+        free_bits = self.config.get('free_bits', 0.0)
+
+        with torch.no_grad():
+            for batch_data in val_loader:
+                batch_data = batch_data.to(self.device)
+                outputs = self.model(batch_data, temp_A, temp_B, beta_A, beta_B)
+                losses = self.model.loss_function(
+                    batch_data, outputs,
+                    entropy_weight, repulsion_weight, free_bits
+                )
+
+                for key, val in losses.items():
+                    if isinstance(val, torch.Tensor):
+                        epoch_losses[key] += val.item()
+                    else:
+                        epoch_losses[key] += val
+
+                num_batches += 1
+
+        for key in epoch_losses:
+            epoch_losses[key] /= num_batches
+
+        return epoch_losses
+
+    def train(self, train_loader: DataLoader, val_loader: DataLoader) -> None:
+        """Main training loop.
+
+        Args:
+            train_loader: Training data loader
+            val_loader: Validation data loader
+        """
+        print(f"\n{'='*80}")
+        print("Starting DN-VAE v5.5 Training")
+        print(f"{'='*80}\n")
+
+        total_epochs = self.config['total_epochs']
+
+        for epoch in range(total_epochs):
+            self.epoch = epoch
+
+            # Train and validate
+            train_losses = self.train_epoch(train_loader)
+            val_losses = self.validate(val_loader)
+
+            # Check for best model
+            is_best = self.monitor.check_best(val_losses['loss'])
+
+            # Evaluate coverage
+            unique_A, cov_A = self.monitor.evaluate_coverage(
+                self.model, self.config['eval_num_samples'], self.device, 'A'
+            )
+            unique_B, cov_B = self.monitor.evaluate_coverage(
+                self.model, self.config['eval_num_samples'], self.device, 'B'
+            )
+
+            # Update histories
+            self.monitor.update_histories(
+                train_losses['H_A'], train_losses['H_B'],
+                unique_A, unique_B
+            )
+
+            # Log epoch
+            self.monitor.log_epoch(
+                epoch, total_epochs,
+                train_losses, val_losses,
+                unique_A, cov_A, unique_B, cov_B,
+                is_best,
+                self.model.use_statenet,
+                self.model.grad_balance_achieved
+            )
+
+            # Save checkpoint
+            metadata = {
+                **self.monitor.get_metadata(),
+                'lambda1': self.model.lambda1,
+                'lambda2': self.model.lambda2,
+                'lambda3': self.model.lambda3,
+                'rho': self.model.rho,
+                'phase': self.model.current_phase,
+                'grad_balance_achieved': self.model.grad_balance_achieved,
+                'grad_norm_A_ema': self.model.grad_norm_A_ema.item(),
+                'grad_norm_B_ema': self.model.grad_norm_B_ema.item(),
+                'grad_ema_momentum': self.model.grad_ema_momentum,
+                'statenet_enabled': self.model.use_statenet
+            }
+
+            if self.model.use_statenet:
+                metadata['statenet_corrections'] = self.model.statenet_corrections
+
+            self.checkpoint_manager.save_checkpoint(
+                epoch, self.model, self.optimizer, metadata, is_best
+            )
+
+            # Early stopping
+            if self.monitor.should_stop(self.config['patience']):
+                print(f"\n⚠️  Early stopping triggered (patience={self.config['patience']})")
+                break
+
+        # Print summary
+        self.monitor.print_training_summary()
