@@ -13,7 +13,7 @@ from collections import defaultdict
 import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data import generate_all_ternary_operations
 from src.artifacts import CheckpointManager
 
@@ -330,7 +330,7 @@ class CoupledSystemBenchmark:
 
 def main():
     # Load configuration
-    config_path = Path('configs/ternary_v5_5.yaml')
+    config_path = Path('configs/ternary_v5_6.yaml')
     with open(config_path) as f:
         config = yaml.safe_load(f)
 
@@ -353,7 +353,7 @@ def main():
     )
 
     # Load checkpoint
-    checkpoint_dir = Path('sandbox-training/checkpoints/v5_5')
+    checkpoint_dir = Path('sandbox-training/checkpoints/v5_6')
     checkpoint = None
     if checkpoint_dir.exists():
         try:

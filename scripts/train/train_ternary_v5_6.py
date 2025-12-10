@@ -1,10 +1,11 @@
-"""Training script for Ternary VAE v5.5 - Refactored with modular components.
+"""Training script for Ternary VAE v5.6 - Refactored with modular components.
 
 This is the refactored version using the new modular architecture:
 - Separate schedulers for temperature, beta, and learning rate
-- Dedicated TrainingMonitor for logging and metrics
+- Dedicated TrainingMonitor for logging and metrics (with TensorBoard)
 - CheckpointManager for artifact persistence
 - Clean TernaryVAETrainer that orchestrates training loop only
+- TorchInductor (torch.compile) support for 1.4-2x speedup
 
 Single Responsibility Principle: Each component has one clear responsibility.
 """
@@ -21,13 +22,13 @@ import sys
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.training import TernaryVAETrainer
 from src.data import generate_all_ternary_operations, TernaryOperationDataset
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train Ternary VAE v5.5 (Refactored)')
+    parser = argparse.ArgumentParser(description='Train Ternary VAE v5.6')
     parser.add_argument('--config', type=str, required=True, help='Path to config file')
     args = parser.parse_args()
 
@@ -36,7 +37,7 @@ def main():
         config = yaml.safe_load(f)
 
     print(f"{'='*80}")
-    print("Ternary VAE v5.5 - Refactored Implementation")
+    print("Ternary VAE v5.6 - Production Implementation")
     print(f"{'='*80}")
     print(f"Config: {args.config}")
 

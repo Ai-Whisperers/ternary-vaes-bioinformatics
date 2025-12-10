@@ -1,10 +1,10 @@
-"""Ternary VAE v5.5 - Production Package."""
+"""Ternary VAE v5.6 - Production Package."""
 
-__version__ = "5.5.0"
+__version__ = "5.6.0"
 __author__ = "AI Whisperers"
 __license__ = "MIT"
 
-from .models.ternary_vae_v5_5 import DualNeuralVAEV5
+from .models.ternary_vae_v5_6 import DualNeuralVAEV5
 from .utils.data import (
     generate_all_ternary_operations,
     TernaryOperationDataset,

@@ -1,4 +1,4 @@
-"""Utility functions for Ternary VAE v5.5."""
+"""Utility functions for Ternary VAE v5.6."""
 
 from .data import (
     generate_all_ternary_operations,

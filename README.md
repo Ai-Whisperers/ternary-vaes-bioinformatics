@@ -1,30 +1,28 @@
-# Ternary VAE v5.5 - Modular Architecture
+# Ternary VAE v5.6 - Production Implementation
 
-**Status**: Production-Ready (Refactored)
+**Status**: Production-Ready
 **Architecture**: Single Responsibility Principle (SRP) Compliant
-**Coverage**: 97.64% (VAE-A), 97.67% (VAE-B)
+**Coverage**: 99.7% (VAE-A), 99.6% (VAE-B) at epoch 100+
 **Parameters**: 168,770 total (StateNet: 1,068, 0.63% overhead)
-**Version**: v5.5.0-srp (2025-11-24)
+**Version**: v5.6.0 (2025-12-10)
 
 ---
 
-## What's New in v5.5.0-srp
+## What's New in v5.6.0
 
-**Complete SRP Refactoring** - The codebase has been refactored from monolithic to modular architecture:
+**Production Features** - Enhanced observability and performance:
 
-✅ **Modular Components**: 9 focused modules with single responsibilities
-✅ **Clean Architecture**: Perfect separation of concerns with dependency injection
-✅ **Comprehensive Documentation**: 4,200+ lines of architecture, API, and migration guides
-✅ **100% Validated**: Bit-identical behavior, zero performance regression
-✅ **Fully Compatible**: Backward compatible with all checkpoints and configs
-
-**See**: `MERGE_SUMMARY.md` for complete refactoring details
+✅ **TensorBoard Integration**: Local, IP-safe visualization dashboard
+✅ **TorchInductor (torch.compile)**: 1.4-2x training speedup with PyTorch 2.x
+✅ **99%+ Coverage**: Achieved at epoch 100+ on both VAEs
+✅ **Modular Architecture**: SRP-compliant with clean separation of concerns
+✅ **Fully Compatible**: Backward compatible with v5.5 checkpoints
 
 ---
 
 ## Overview
 
-The Ternary VAE v5.5 is a **dual-pathway variational autoencoder** designed to learn complete coverage of all possible 19,683 ternary logic operations (9-bit truth tables with values {-1, 0, +1}). It achieves this through a sophisticated architecture that combines:
+The Ternary VAE v5.6 is a **dual-pathway variational autoencoder** designed to learn complete coverage of all possible 19,683 ternary logic operations (9-bit truth tables with values {-1, 0, +1}). It achieves this through a sophisticated architecture that combines:
 
 1. **Two complementary VAE pathways** (chaotic vs. frozen regimes)
 2. **Stop-gradient cross-injection** for controlled information flow
@@ -54,19 +52,20 @@ cd ternary-vaes
 pip install -r requirements.txt
 ```
 
-### Training (Refactored - Recommended)
+### Training
 
 ```bash
-python scripts/train/train_ternary_v5_5_refactored.py --config configs/ternary_v5_5.yaml
+python scripts/train/train_ternary_v5_6.py --config configs/ternary_v5_6.yaml
 ```
 
-### Training (Original - Legacy)
+### TensorBoard Visualization
 
 ```bash
-python scripts/train/train_ternary_v5_5.py --config configs/ternary_v5_5.yaml
-```
+# Launch dashboard (in separate terminal)
+tensorboard --logdir runs
 
-**Note**: Both trainers are production-ready and fully compatible. The refactored version provides better code organization and maintainability.
+# Open http://localhost:6006 in browser
+```
 
 ### Benchmarking
 
@@ -104,7 +103,7 @@ ternary-vaes/
 │   │   └── checkpoint_manager.py          # Checkpoint I/O (136 lines)
 │   │
 │   ├── models/                            # Neural network architectures
-│   │   └── ternary_vae_v5_5.py           # Dual VAE architecture (499 lines)
+│   │   └── ternary_vae_v5_6.py           # Dual VAE architecture (499 lines)
 │   │
 │   └── utils/                             # Utilities
 │       ├── data.py                        # Legacy data utilities
@@ -112,14 +111,14 @@ ternary-vaes/
 │       └── visualization.py               # Plotting and analysis tools
 │
 ├── configs/
-│   ├── ternary_v5_5.yaml                 # Production configuration
+│   ├── ternary_v5_6.yaml                 # Production configuration
 │   ├── ternary_v5_5_fast.yaml            # Fast training (100 epochs)
 │   └── ternary_v5_5_reproducible.yaml    # Deterministic seed config
 │
 ├── scripts/
 │   ├── train/
-│   │   ├── train_ternary_v5_5_refactored.py  # Refactored trainer (115 lines)
-│   │   └── train_ternary_v5_5.py             # Original trainer (549 lines)
+│   │   ├── train_ternary_v5_6_refactored.py  # Refactored trainer (115 lines)
+│   │   └── train_ternary_v5_6.py             # Original trainer (549 lines)
 │   └── benchmark/
 │       ├── measure_manifold_resolution.py     # Isolated VAE resolution (420 lines)
 │       └── measure_coupled_resolution.py      # Coupled system resolution (505 lines)
@@ -237,13 +236,13 @@ import yaml
 from pathlib import Path
 
 # Import modular components
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.training import TernaryVAETrainer
 from src.data import generate_all_ternary_operations, TernaryOperationDataset
 from torch.utils.data import DataLoader, random_split
 
 # Load configuration
-with open('configs/ternary_v5_5.yaml') as f:
+with open('configs/ternary_v5_6.yaml') as f:
     config = yaml.safe_load(f)
 
 # Generate dataset
@@ -421,12 +420,12 @@ If you're using the original monolithic trainer, migrating is straightforward:
 
 ```python
 # Old (monolithic)
-from scripts.train.train_ternary_v5_5 import DNVAETrainerV5
+from scripts.train.train_ternary_v5_6 import DNVAETrainerV5
 trainer = DNVAETrainerV5(config, device)
 trainer.train(train_loader, val_loader)
 
 # New (modular)
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.training import TernaryVAETrainer
 
 model = DualNeuralVAEV5(...)

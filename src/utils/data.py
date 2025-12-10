@@ -1,4 +1,4 @@
-"""Data generation utilities for Ternary VAE v5.5."""
+"""Data generation utilities for Ternary VAE v5.6."""
 
 import torch
 import numpy as np

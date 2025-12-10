@@ -1,4 +1,4 @@
-"""Setup script for Ternary VAE v5.5."""
+"""Setup script for Ternary VAE v5.6."""
 
 from setuptools import setup, find_packages
 from pathlib import Path
@@ -9,7 +9,7 @@ long_description = readme_path.read_text(encoding="utf-8") if readme_path.exists
 
 setup(
     name="ternary-vae",
-    version="5.5.0",
+    version="5.6.0",
     description="Dual-Pathway Variational Autoencoder for Complete Ternary Operation Coverage",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -60,7 +60,7 @@ setup(
 
     entry_points={
         "console_scripts": [
-            "ternary-train=scripts.train.train_ternary_v5_5:main",
+            "ternary-train=scripts.train.train_ternary_v5_6:main",
             "ternary-eval=scripts.eval.evaluate_coverage:main",
             "ternary-benchmark=scripts.benchmark.run_benchmark:main",
         ],

@@ -1,4 +1,4 @@
-"""Test reproducibility of Ternary VAE v5.5."""
+"""Test reproducibility of Ternary VAE v5.6."""
 
 import pytest
 import torch
@@ -9,7 +9,7 @@ from pathlib import Path
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.utils.data import generate_all_ternary_operations, sample_operations
 
 

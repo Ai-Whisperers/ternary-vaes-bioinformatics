@@ -1,4 +1,4 @@
-"""Comprehensive benchmarking suite for Ternary VAE v5.5."""
+"""Comprehensive benchmarking suite for Ternary VAE v5.6."""
 
 import argparse
 import torch
@@ -16,13 +16,13 @@ from typing import Dict, List
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.utils.data import generate_all_ternary_operations, TernaryOperationDataset
 from src.utils.metrics import evaluate_coverage, compute_latent_entropy
 
 
 class TernaryVAEBenchmark:
-    """Benchmark suite for Ternary VAE v5.5."""
+    """Benchmark suite for Ternary VAE v5.6."""
 
     def __init__(self, config_path: str, checkpoint_path: str = None, device: str = 'cuda'):
         self.config_path = config_path
@@ -289,7 +289,7 @@ class TernaryVAEBenchmark:
             dict: All benchmark results
         """
         print(f"\n{'#'*80}")
-        print(f"# Ternary VAE v5.5 - Full Benchmark Suite")
+        print(f"# Ternary VAE v5.6 - Full Benchmark Suite")
         print(f"# Config: {self.config_path}")
         print(f"# Checkpoint: {self.checkpoint_path or 'None'}")
         print(f"# Device: {self.device}")
@@ -396,7 +396,7 @@ class TernaryVAEBenchmark:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Benchmark Ternary VAE v5.5')
+    parser = argparse.ArgumentParser(description='Benchmark Ternary VAE v5.6')
     parser.add_argument('--config', type=str, required=True, help='Path to config file')
     parser.add_argument('--checkpoint', type=str, required=True, help='Path to checkpoint (required)')
     parser.add_argument('--device', type=str, default='cuda', help='Device: cuda or cpu')

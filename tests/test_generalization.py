@@ -1,4 +1,4 @@
-"""Test generalization capabilities of Ternary VAE v5.5.
+"""Test generalization capabilities of Ternary VAE v5.6.
 
 This test suite implements the advanced tests from general.md to validate:
 1. Compositional generalization beyond memorization
@@ -22,7 +22,7 @@ import itertools
 # Add parent to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.utils.data import generate_all_ternary_operations, sample_operations
 
 
@@ -122,7 +122,7 @@ class TestGeneralization:
         set_seed(42)
 
         # Path to the trained checkpoint
-        checkpoint_path = Path(__file__).parent.parent / "sandbox-training" / "checkpoints" / "v5_5" / "latest.pt"
+        checkpoint_path = Path(__file__).parent.parent / "sandbox-training" / "checkpoints" / "v5_6" / "latest.pt"
 
         if not checkpoint_path.exists():
             pytest.skip(f"Checkpoint not found at {checkpoint_path}. Run training first.")

@@ -113,7 +113,7 @@ class TernaryVAETrainer:
     def _print_init_summary(self) -> None:
         """Print initialization summary."""
         print(f"\n{'='*80}")
-        print("DN-VAE v5.5 Initialized (Refactored)")
+        print("DN-VAE v5.6 Initialized")
         print(f"{'='*80}")
         print(f"Total parameters: {sum(p.numel() for p in self.model.parameters()):,}")
 
@@ -307,7 +307,7 @@ class TernaryVAETrainer:
             val_loader: Validation data loader
         """
         print(f"\n{'='*80}")
-        print("Starting DN-VAE v5.5 Training")
+        print("Starting DN-VAE v5.6 Training")
         print(f"{'='*80}\n")
 
         total_epochs = self.config['total_epochs']

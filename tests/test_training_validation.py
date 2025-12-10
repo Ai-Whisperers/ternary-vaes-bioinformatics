@@ -20,7 +20,7 @@ import hashlib
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.utils.data import generate_all_ternary_operations, sample_operations
 
 
@@ -33,7 +33,7 @@ def set_seed(seed: int = 42):
     torch.backends.cudnn.benchmark = False
 
 
-def load_latest_checkpoint(checkpoint_dir: str = "sandbox-training/checkpoints/v5_5"):
+def load_latest_checkpoint(checkpoint_dir: str = "sandbox-training/checkpoints/v5_6"):
     """Load the latest checkpoint from training."""
     checkpoint_path = Path(checkpoint_dir) / "latest.pt"
 
