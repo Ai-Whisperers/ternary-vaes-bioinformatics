@@ -19,6 +19,8 @@ import torch.nn.functional as F
 from typing import Dict, Any, Optional
 
 from .padic_losses import PAdicMetricLoss, PAdicRankingLoss, PAdicRankingLossV2, PAdicRankingLossHyperbolic, PAdicNormLoss
+from .hyperbolic_prior import HyperbolicPrior, HomeostaticHyperbolicPrior
+from .hyperbolic_recon import HyperbolicReconLoss, HomeostaticReconLoss, HyperbolicCentroidLoss
 
 
 class ReconstructionLoss(nn.Module):
@@ -225,6 +227,63 @@ class DualVAELoss(nn.Module):
             )
             self.ranking_hyperbolic_weight = hyp_config.get('weight', 0.5)
 
+        # v5.10: Pure Hyperbolic Geometry (modular replacements)
+        hyp_config_v10 = self.padic_config.get('hyperbolic_v10', {})
+
+        # Hyperbolic Prior (replaces Gaussian KL)
+        self.use_hyperbolic_prior = hyp_config_v10.get('use_hyperbolic_prior', False)
+        if self.use_hyperbolic_prior:
+            prior_config = hyp_config_v10.get('prior', {})
+            use_homeostatic = prior_config.get('homeostatic', True)
+            PriorClass = HomeostaticHyperbolicPrior if use_homeostatic else HyperbolicPrior
+            self.hyperbolic_prior_A = PriorClass(
+                latent_dim=prior_config.get('latent_dim', 16),
+                curvature=prior_config.get('curvature', 2.0),
+                prior_sigma=prior_config.get('prior_sigma', 1.0),
+                max_norm=prior_config.get('max_norm', 0.95)
+            )
+            self.hyperbolic_prior_B = PriorClass(
+                latent_dim=prior_config.get('latent_dim', 16),
+                curvature=prior_config.get('curvature', 2.0),
+                prior_sigma=prior_config.get('prior_sigma', 1.0),
+                max_norm=prior_config.get('max_norm', 0.95)
+            )
+
+        # Hyperbolic Reconstruction Loss (replaces or augments MSE)
+        self.use_hyperbolic_recon = hyp_config_v10.get('use_hyperbolic_recon', False)
+        if self.use_hyperbolic_recon:
+            recon_config = hyp_config_v10.get('recon', {})
+            use_homeostatic = recon_config.get('homeostatic', True)
+            ReconClass = HomeostaticReconLoss if use_homeostatic else HyperbolicReconLoss
+            self.hyperbolic_recon_A = ReconClass(
+                mode=recon_config.get('mode', 'hybrid'),
+                curvature=recon_config.get('curvature', 2.0),
+                max_norm=recon_config.get('max_norm', 0.95),
+                geodesic_weight=recon_config.get('geodesic_weight', 0.3),
+                radius_weighting=recon_config.get('radius_weighting', True),
+                radius_power=recon_config.get('radius_power', 2.0)
+            )
+            self.hyperbolic_recon_B = ReconClass(
+                mode=recon_config.get('mode', 'hybrid'),
+                curvature=recon_config.get('curvature', 2.0),
+                max_norm=recon_config.get('max_norm', 0.95),
+                geodesic_weight=recon_config.get('geodesic_weight', 0.3),
+                radius_weighting=recon_config.get('radius_weighting', True),
+                radius_power=recon_config.get('radius_power', 2.0)
+            )
+            self.hyperbolic_recon_weight = recon_config.get('weight', 0.5)
+
+        # Hyperbolic Centroid Loss (tree structure enforcement)
+        self.use_centroid_loss = hyp_config_v10.get('use_centroid_loss', False)
+        if self.use_centroid_loss:
+            centroid_config = hyp_config_v10.get('centroid', {})
+            self.centroid_loss = HyperbolicCentroidLoss(
+                max_level=centroid_config.get('max_level', 4),
+                curvature=centroid_config.get('curvature', 2.0),
+                max_norm=centroid_config.get('max_norm', 0.95)
+            )
+            self.centroid_loss_weight = centroid_config.get('weight', 0.2)
+
     def forward(
         self,
         x: torch.Tensor,
@@ -357,6 +416,66 @@ class DualVAELoss(nn.Module):
                 padic_hyp_B, metrics_hyp_B = self.padic_ranking_loss_hyperbolic(outputs['z_B'], batch_indices)
                 total_loss = total_loss + hyp_weight * (padic_hyp_A + padic_hyp_B)
 
+        # v5.10: Hyperbolic metrics initialization
+        hyp_v10_metrics = {}
+        hyp_kl_A = torch.tensor(0.0, device=x.device)
+        hyp_kl_B = torch.tensor(0.0, device=x.device)
+
+        # v5.10: Hyperbolic Centroid Loss (tree structure) - requires batch_indices
+        if batch_indices is not None and self.use_centroid_loss:
+            centroid_loss_A, centroid_metrics_A = self.centroid_loss(outputs['z_A'], batch_indices)
+            centroid_loss_B, centroid_metrics_B = self.centroid_loss(outputs['z_B'], batch_indices)
+            total_loss = total_loss + self.centroid_loss_weight * (centroid_loss_A + centroid_loss_B)
+            hyp_v10_metrics['centroid_loss_A'] = centroid_loss_A.item()
+            hyp_v10_metrics['centroid_loss_B'] = centroid_loss_B.item()
+
+        if self.use_hyperbolic_prior:
+            hyp_kl_A, z_hyp_A = self.hyperbolic_prior_A(outputs['mu_A'], outputs['logvar_A'])
+            hyp_kl_B, z_hyp_B = self.hyperbolic_prior_B(outputs['mu_B'], outputs['logvar_B'])
+
+            # Replace Euclidean KL in loss_A and loss_B
+            # Note: This modifies the already-computed total_loss
+            kl_replacement_A = outputs['beta_A'] * (hyp_kl_A - kl_A)
+            kl_replacement_B = outputs['beta_B'] * (hyp_kl_B - kl_B)
+            total_loss = total_loss + lambda1 * kl_replacement_A + lambda2 * kl_replacement_B
+
+            hyp_v10_metrics['hyp_kl_A'] = hyp_kl_A.item()
+            hyp_v10_metrics['hyp_kl_B'] = hyp_kl_B.item()
+
+            # Update homeostatic state if using homeostatic prior
+            if hasattr(self.hyperbolic_prior_A, 'update_homeostatic_state'):
+                self.hyperbolic_prior_A.update_homeostatic_state(z_hyp_A, hyp_kl_A)
+                self.hyperbolic_prior_B.update_homeostatic_state(z_hyp_B, hyp_kl_B)
+                hyp_v10_metrics.update({
+                    'prior_sigma_A': self.hyperbolic_prior_A.adaptive_sigma.item(),
+                    'prior_sigma_B': self.hyperbolic_prior_B.adaptive_sigma.item(),
+                    'prior_curvature_A': self.hyperbolic_prior_A.adaptive_curvature.item(),
+                    'prior_curvature_B': self.hyperbolic_prior_B.adaptive_curvature.item()
+                })
+
+        # v5.10: Hyperbolic Reconstruction Loss
+        hyp_recon_A = torch.tensor(0.0, device=x.device)
+        hyp_recon_B = torch.tensor(0.0, device=x.device)
+
+        if self.use_hyperbolic_recon:
+            hyp_recon_A, recon_metrics_A = self.hyperbolic_recon_A(
+                outputs['logits_A'], x, outputs['z_A']
+            )
+            hyp_recon_B, recon_metrics_B = self.hyperbolic_recon_B(
+                outputs['logits_B'], x, outputs['z_B']
+            )
+            total_loss = total_loss + self.hyperbolic_recon_weight * (hyp_recon_A + hyp_recon_B)
+
+            hyp_v10_metrics['hyp_recon_A'] = hyp_recon_A.item()
+            hyp_v10_metrics['hyp_recon_B'] = hyp_recon_B.item()
+            hyp_v10_metrics['mean_radius_A'] = recon_metrics_A.get('mean_radius', 0.0)
+            hyp_v10_metrics['mean_radius_B'] = recon_metrics_B.get('mean_radius', 0.0)
+
+            # Update homeostatic state if using homeostatic recon
+            if hasattr(self.hyperbolic_recon_A, 'update_homeostatic_state'):
+                self.hyperbolic_recon_A.update_homeostatic_state(hyp_recon_A, 0.0)
+                self.hyperbolic_recon_B.update_homeostatic_state(hyp_recon_B, 0.0)
+
         return {
             'loss': total_loss,
             'ce_A': ce_A,
@@ -395,5 +514,11 @@ class DualVAELoss(nn.Module):
             'hyp_violations': metrics_hyp_A.get('violations', 0) + metrics_hyp_B.get('violations', 0),
             'hyp_poincare_dist_mean': (metrics_hyp_A.get('poincare_dist_mean', 0) + metrics_hyp_B.get('poincare_dist_mean', 0)) / 2,
             'hyp_radial_loss': (metrics_hyp_A.get('radial_loss', 0) + metrics_hyp_B.get('radial_loss', 0)) / 2,
-            'hyp_ranking_loss': (metrics_hyp_A.get('ranking_loss', 0) + metrics_hyp_B.get('ranking_loss', 0)) / 2
+            'hyp_ranking_loss': (metrics_hyp_A.get('ranking_loss', 0) + metrics_hyp_B.get('ranking_loss', 0)) / 2,
+            # v5.10: Pure Hyperbolic metrics
+            'hyp_kl_A': hyp_kl_A.item() if torch.is_tensor(hyp_kl_A) else hyp_kl_A,
+            'hyp_kl_B': hyp_kl_B.item() if torch.is_tensor(hyp_kl_B) else hyp_kl_B,
+            'hyp_recon_A': hyp_recon_A.item() if torch.is_tensor(hyp_recon_A) else hyp_recon_A,
+            'hyp_recon_B': hyp_recon_B.item() if torch.is_tensor(hyp_recon_B) else hyp_recon_B,
+            **hyp_v10_metrics  # Spread all v5.10 homeostatic metrics
         }

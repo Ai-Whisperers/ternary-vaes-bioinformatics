@@ -8,12 +8,18 @@ This module contains loss computation separated from model architecture:
 - DualVAELoss: Aggregated loss for dual VAE system
 - PAdicMetricLoss: 3-adic metric alignment (Phase 1A)
 - PAdicRankingLossV2: Hard negative mining + hierarchical margin (v5.8)
+- PAdicRankingLossHyperbolic: Poincare distance ranking (v5.9)
 - PAdicNormLoss: MSB/LSB hierarchy regularizer (Phase 1B)
 - AdaptiveRankingLoss: Multi-scale ranking loss for ultrametric approximation
 - HierarchicalNormLoss: MSB/LSB variance hierarchy
 - CuriosityModule: Density-based exploration drive
 - SymbioticBridge: MI-based coupling between VAEs
 - AlgebraicClosureLoss: Homomorphism constraint
+- HyperbolicPrior: Wrapped normal on Poincare ball (v5.10)
+- HomeostaticHyperbolicPrior: Adaptive hyperbolic prior (v5.10)
+- HyperbolicReconLoss: Geodesic reconstruction loss (v5.10)
+- HomeostaticReconLoss: Adaptive reconstruction loss (v5.10)
+- HyperbolicCentroidLoss: Frechet mean clustering (v5.10)
 """
 
 from .dual_vae_loss import (
@@ -41,6 +47,17 @@ from .appetitive_losses import (
     ViolationBuffer
 )
 
+from .hyperbolic_prior import (
+    HyperbolicPrior,
+    HomeostaticHyperbolicPrior
+)
+
+from .hyperbolic_recon import (
+    HyperbolicReconLoss,
+    HomeostaticReconLoss,
+    HyperbolicCentroidLoss
+)
+
 __all__ = [
     'ReconstructionLoss',
     'KLDivergenceLoss',
@@ -57,5 +74,10 @@ __all__ = [
     'CuriosityModule',
     'SymbioticBridge',
     'AlgebraicClosureLoss',
-    'ViolationBuffer'
+    'ViolationBuffer',
+    'HyperbolicPrior',
+    'HomeostaticHyperbolicPrior',
+    'HyperbolicReconLoss',
+    'HomeostaticReconLoss',
+    'HyperbolicCentroidLoss'
 ]

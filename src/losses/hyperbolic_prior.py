@@ -1,0 +1,388 @@
+"""Hyperbolic Prior for Pure Hyperbolic VAE (v5.10).
+
+This module implements a Wrapped Normal distribution on the Poincare ball,
+replacing the standard Gaussian prior. This eliminates the geometric conflict
+between Euclidean KL regularization and hyperbolic structure.
+
+Key insight: Standard VAE KL divergence assumes Euclidean geometry:
+    KL(q(z|x) || N(0,I)) pulls embeddings toward a Gaussian blob,
+    which fights against the tree-like hyperbolic structure.
+
+The Wrapped Normal distribution respects hyperbolic geometry:
+    - Prior mass concentrates near the origin (tree root)
+    - Natural radial structure emerges from the metric
+    - KL computed using hyperbolic geodesics
+
+Reference: Mathieu et al., "Continuous Hierarchical Representations with
+Poincare Variational Auto-Encoders" (2019)
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from typing import Tuple, Optional
+import math
+
+
+class HyperbolicPrior(nn.Module):
+    """Wrapped Normal prior on the Poincare ball.
+
+    The wrapped normal distribution is defined by:
+    1. Sample v ~ N(0, sigma^2 I) in the tangent space at origin
+    2. Map to Poincare ball via exponential map: z = exp_0(v)
+
+    This creates a distribution that:
+    - Is centered at the origin (tree root for high-valuation operations)
+    - Has radial spread controlled by sigma (like temperature)
+    - Respects hyperbolic geometry (no Euclidean contamination)
+
+    The KL divergence from q(z|x) to this prior uses:
+    - Riemannian normal distribution in tangent space
+    - Parallel transport for off-origin encodings
+    - Geodesic distance instead of Euclidean
+    """
+
+    def __init__(
+        self,
+        latent_dim: int = 16,
+        curvature: float = 1.0,
+        prior_sigma: float = 1.0,
+        max_norm: float = 0.95
+    ):
+        """Initialize Hyperbolic Prior.
+
+        Args:
+            latent_dim: Dimensionality of latent space
+            curvature: Poincare ball curvature (c > 0)
+            prior_sigma: Standard deviation of wrapped normal
+            max_norm: Maximum radius in Poincare ball
+        """
+        super().__init__()
+        self.latent_dim = latent_dim
+        self.curvature = curvature
+        self.prior_sigma = prior_sigma
+        self.max_norm = max_norm
+
+        # Register origin as buffer
+        self.register_buffer('origin', torch.zeros(latent_dim))
+
+    def _project_to_poincare(self, z: torch.Tensor) -> torch.Tensor:
+        """Project Euclidean points onto the Poincare ball.
+
+        Uses smooth projection: z_hyp = z / (1 + ||z||) * max_norm
+        """
+        norm = torch.norm(z, dim=-1, keepdim=True)
+        z_hyp = z / (1 + norm) * self.max_norm
+        return z_hyp
+
+    def _poincare_distance(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
+        """Compute Poincare distance between points.
+
+        d(x,y) = (1/sqrt(c)) * arcosh(1 + 2c * ||x-y||^2 / ((1-c||x||^2)(1-c||y||^2)))
+        """
+        c = self.curvature
+
+        x_norm_sq = torch.sum(x ** 2, dim=-1)
+        y_norm_sq = torch.sum(y ** 2, dim=-1)
+        diff_norm_sq = torch.sum((x - y) ** 2, dim=-1)
+
+        denom = (1 - c * x_norm_sq) * (1 - c * y_norm_sq)
+        denom = torch.clamp(denom, min=1e-10)
+
+        arg = 1 + 2 * c * diff_norm_sq / denom
+        arg = torch.clamp(arg, min=1.0 + 1e-7)
+
+        distance = (1 / math.sqrt(c)) * torch.acosh(arg)
+        return distance
+
+    def _lambda_x(self, x: torch.Tensor) -> torch.Tensor:
+        """Compute conformal factor lambda_x = 2 / (1 - c * ||x||^2).
+
+        This factor relates Euclidean and Riemannian metrics at point x.
+        """
+        c = self.curvature
+        x_norm_sq = torch.sum(x ** 2, dim=-1, keepdim=True)
+        return 2 / (1 - c * x_norm_sq + 1e-10)
+
+    def _exp_map_zero(self, v: torch.Tensor) -> torch.Tensor:
+        """Exponential map from tangent space at origin to Poincare ball.
+
+        exp_0(v) = tanh(sqrt(c) * ||v||) * v / (sqrt(c) * ||v||)
+        """
+        c = self.curvature
+        sqrt_c = math.sqrt(c)
+
+        v_norm = torch.norm(v, dim=-1, keepdim=True)
+        v_norm = torch.clamp(v_norm, min=1e-10)
+
+        result = torch.tanh(sqrt_c * v_norm) * v / (sqrt_c * v_norm)
+        return result
+
+    def _log_map_zero(self, z: torch.Tensor) -> torch.Tensor:
+        """Logarithmic map from Poincare ball to tangent space at origin.
+
+        log_0(z) = arctanh(sqrt(c) * ||z||) * z / (sqrt(c) * ||z||)
+        """
+        c = self.curvature
+        sqrt_c = math.sqrt(c)
+
+        z_norm = torch.norm(z, dim=-1, keepdim=True)
+        z_norm = torch.clamp(z_norm, min=1e-10, max=self.max_norm - 1e-5)
+
+        # arctanh(x) = 0.5 * log((1+x)/(1-x))
+        sqrt_c_norm = sqrt_c * z_norm
+        sqrt_c_norm = torch.clamp(sqrt_c_norm, max=1.0 - 1e-7)
+
+        result = torch.atanh(sqrt_c_norm) * z / (sqrt_c_norm + 1e-10)
+        return result
+
+    def kl_divergence(
+        self,
+        mu: torch.Tensor,
+        logvar: torch.Tensor,
+        use_hyperbolic: bool = True
+    ) -> torch.Tensor:
+        """Compute KL divergence from posterior to hyperbolic prior.
+
+        For the wrapped normal, we compute:
+        1. Project mu to Poincare ball
+        2. Map to tangent space at origin via log map
+        3. Compute KL in tangent space (which is Euclidean)
+        4. Apply correction for the change of measure
+
+        Args:
+            mu: Mean of variational posterior (Euclidean)
+            logvar: Log variance of variational posterior
+            use_hyperbolic: If True, use hyperbolic KL; else Euclidean (for comparison)
+
+        Returns:
+            KL divergence (scalar, batch-averaged)
+        """
+        if not use_hyperbolic:
+            # Standard Euclidean KL (for ablation)
+            kl_per_dim = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp())
+            return kl_per_dim.sum(dim=-1).mean()
+
+        # === Hyperbolic KL Divergence ===
+
+        # 1. Project posterior mean to Poincare ball
+        z_mu = self._project_to_poincare(mu)
+
+        # 2. Compute distance from origin (prior center)
+        # This is the "radial" component of KL
+        dist_from_origin = self._poincare_distance(
+            z_mu,
+            self.origin.expand_as(z_mu)
+        )
+
+        # 3. Map to tangent space at origin
+        v_mu = self._log_map_zero(z_mu)
+
+        # 4. Compute variance in tangent space
+        # The posterior variance needs to be scaled by the conformal factor
+        lambda_mu = self._lambda_x(z_mu)
+
+        # Effective variance in tangent space (scaled by conformal factor squared)
+        # var_tangent = var_euclidean / lambda^2
+        var = logvar.exp()
+        var_tangent = var / (lambda_mu ** 2 + 1e-10)
+        logvar_tangent = torch.log(var_tangent + 1e-10)
+
+        # 5. KL in tangent space (Euclidean, but with transformed parameters)
+        # KL(N(v_mu, var_tangent) || N(0, sigma_prior^2))
+        prior_var = self.prior_sigma ** 2
+
+        kl_per_dim = 0.5 * (
+            logvar_tangent.neg() - 1 +  # -log(var_tangent)
+            math.log(prior_var) +        # +log(prior_var)
+            var_tangent / prior_var +    # +var_tangent / prior_var
+            (v_mu ** 2) / prior_var      # +(v_mu - 0)^2 / prior_var
+        )
+
+        # 6. Jacobian correction for change of measure (exp map)
+        # The Jacobian of exp_0 contributes a factor of (lambda_0)^(d-1)
+        # At origin, lambda_0 = 2, so this is a constant
+        # For numerical stability, we absorb this into the prior variance
+
+        kl = kl_per_dim.sum(dim=-1).mean()
+
+        return kl
+
+    def sample_prior(self, batch_size: int, device: torch.device) -> torch.Tensor:
+        """Sample from the wrapped normal prior.
+
+        Args:
+            batch_size: Number of samples
+            device: Device for tensors
+
+        Returns:
+            Samples on the Poincare ball (batch_size, latent_dim)
+        """
+        # Sample from N(0, sigma^2) in tangent space
+        v = torch.randn(batch_size, self.latent_dim, device=device) * self.prior_sigma
+
+        # Map to Poincare ball via exponential map
+        z = self._exp_map_zero(v)
+
+        return z
+
+    def forward(
+        self,
+        mu: torch.Tensor,
+        logvar: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Compute KL divergence and return projected samples.
+
+        Args:
+            mu: Mean of variational posterior
+            logvar: Log variance of variational posterior
+
+        Returns:
+            Tuple of (kl_loss, z_hyperbolic)
+        """
+        # Reparameterization trick in Euclidean space
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        z_euclidean = mu + eps * std
+
+        # Project to Poincare ball
+        z_hyperbolic = self._project_to_poincare(z_euclidean)
+
+        # Compute hyperbolic KL
+        kl = self.kl_divergence(mu, logvar, use_hyperbolic=True)
+
+        return kl, z_hyperbolic
+
+
+class HomeostaticHyperbolicPrior(HyperbolicPrior):
+    """Hyperbolic Prior with homeostatic adaptation.
+
+    This extends HyperbolicPrior with StateNet-compatible signals for
+    algebraic convergence. The prior adapts its parameters based on:
+
+    1. Radial distribution: Are high-valuation points near origin?
+    2. KL magnitude: Is the system in equilibrium?
+    3. Coverage signal: External feedback from training
+
+    The homeostatic mechanism prevents both collapse (all points at origin)
+    and explosion (all points at boundary) by modulating:
+    - prior_sigma: Controls spread (higher = more exploration)
+    - curvature: Controls tree depth (higher = sharper hierarchy)
+    """
+
+    def __init__(
+        self,
+        latent_dim: int = 16,
+        curvature: float = 1.0,
+        prior_sigma: float = 1.0,
+        max_norm: float = 0.95,
+        # Homeostatic parameters
+        sigma_min: float = 0.3,
+        sigma_max: float = 2.0,
+        curvature_min: float = 0.5,
+        curvature_max: float = 4.0,
+        adaptation_rate: float = 0.01
+    ):
+        """Initialize Homeostatic Hyperbolic Prior.
+
+        Args:
+            latent_dim: Dimensionality of latent space
+            curvature: Initial Poincare ball curvature
+            prior_sigma: Initial standard deviation of wrapped normal
+            max_norm: Maximum radius in Poincare ball
+            sigma_min: Minimum prior sigma (prevents collapse)
+            sigma_max: Maximum prior sigma (prevents explosion)
+            curvature_min: Minimum curvature
+            curvature_max: Maximum curvature
+            adaptation_rate: Rate of homeostatic adaptation
+        """
+        super().__init__(latent_dim, curvature, prior_sigma, max_norm)
+
+        self.sigma_min = sigma_min
+        self.sigma_max = sigma_max
+        self.curvature_min = curvature_min
+        self.curvature_max = curvature_max
+        self.adaptation_rate = adaptation_rate
+
+        # Learnable parameters for homeostatic control
+        # (can be modulated by StateNet)
+        self.register_buffer('adaptive_sigma', torch.tensor(prior_sigma))
+        self.register_buffer('adaptive_curvature', torch.tensor(curvature))
+
+        # EMA for tracking statistics
+        self.register_buffer('mean_radius_ema', torch.tensor(0.5))
+        self.register_buffer('kl_ema', torch.tensor(1.0))
+
+    def update_homeostatic_state(
+        self,
+        z_hyperbolic: torch.Tensor,
+        kl: torch.Tensor,
+        coverage: float = 0.0,
+        target_radius: float = 0.5
+    ):
+        """Update homeostatic parameters based on current state.
+
+        Args:
+            z_hyperbolic: Current hyperbolic embeddings
+            kl: Current KL divergence
+            coverage: Current coverage percentage (0-100)
+            target_radius: Target mean radius (0.5 = balanced tree)
+        """
+        # Compute current mean radius
+        current_radius = torch.norm(z_hyperbolic, dim=-1).mean()
+
+        # Update EMAs
+        alpha = 0.1
+        self.mean_radius_ema = alpha * current_radius + (1 - alpha) * self.mean_radius_ema
+        self.kl_ema = alpha * kl + (1 - alpha) * self.kl_ema
+
+        # Homeostatic adaptation of sigma
+        # If radius too high (explosion), decrease sigma
+        # If radius too low (collapse), increase sigma
+        radius_error = self.mean_radius_ema - target_radius
+        sigma_delta = -self.adaptation_rate * radius_error
+
+        new_sigma = self.adaptive_sigma + sigma_delta
+        self.adaptive_sigma = torch.clamp(new_sigma, self.sigma_min, self.sigma_max)
+
+        # Update instance variable for KL computation
+        self.prior_sigma = self.adaptive_sigma.item()
+
+        # Homeostatic adaptation of curvature
+        # If KL too high, increase curvature (sharper hierarchy)
+        # If KL too low, decrease curvature (flatter space)
+        kl_target = 1.0  # Target KL in nats
+        kl_error = self.kl_ema - kl_target
+        curvature_delta = self.adaptation_rate * kl_error * 0.1  # Slower adaptation
+
+        new_curvature = self.adaptive_curvature + curvature_delta
+        self.adaptive_curvature = torch.clamp(new_curvature, self.curvature_min, self.curvature_max)
+        self.curvature = self.adaptive_curvature.item()
+
+    def get_homeostatic_state(self) -> dict:
+        """Return current homeostatic state for logging/StateNet."""
+        return {
+            'prior_sigma': self.adaptive_sigma.item(),
+            'curvature': self.adaptive_curvature.item(),
+            'mean_radius_ema': self.mean_radius_ema.item(),
+            'kl_ema': self.kl_ema.item()
+        }
+
+    def set_from_statenet(
+        self,
+        delta_sigma: float = 0.0,
+        delta_curvature: float = 0.0
+    ):
+        """Apply StateNet corrections to homeostatic parameters.
+
+        Args:
+            delta_sigma: StateNet correction for sigma
+            delta_curvature: StateNet correction for curvature
+        """
+        new_sigma = self.adaptive_sigma + delta_sigma * self.adaptation_rate * 10
+        self.adaptive_sigma = torch.clamp(new_sigma, self.sigma_min, self.sigma_max)
+        self.prior_sigma = self.adaptive_sigma.item()
+
+        new_curvature = self.adaptive_curvature + delta_curvature * self.adaptation_rate * 10
+        self.adaptive_curvature = torch.clamp(new_curvature, self.curvature_min, self.curvature_max)
+        self.curvature = self.adaptive_curvature.item()

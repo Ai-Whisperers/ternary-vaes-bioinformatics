@@ -1,0 +1,281 @@
+# Ternary VAE v5.10 - Pure Hyperbolic Geometry
+# =============================================================================
+# Key innovations (modular replacements for complete hyperbolic consistency):
+#   1. HyperbolicPrior: Wrapped Normal on Poincare ball (replaces Gaussian KL)
+#   2. HyperbolicReconLoss: Radius-weighted CE (replaces flat MSE)
+#   3. HyperbolicCentroidLoss: Frechet mean tree structure enforcement
+#   4. HomeostaticAdaptation: Both VAEs self-regulate for algebraic convergence
+#   5. Disabled Euclidean norm_loss: radial_weight handles hierarchy
+#
+# Philosophy: "Let the hyperbolic geometry do the work"
+#   - No Euclidean contamination in the loss landscape
+#   - Prior, reconstruction, and ranking all use Poincare distance
+#   - Homeostatic mechanisms prevent collapse/explosion
+#   - StateNet v4: 18D input (adds hyperbolic state), 7D output (adds hyp params)
+#
+# Goal: r > 0.99, coverage > 99.7% via pure hyperbolic ultrametric embedding
+# =============================================================================
+
+# Model architecture (same backbone)
+model:
+  input_dim: 9
+  latent_dim: 16
+
+  # Adaptive latent permeability (phase-scheduled)
+  rho_min: 0.1
+  rho_max: 0.7
+
+  # Adaptive entropy alignment (cyclic)
+  lambda3_base: 0.3
+  lambda3_amplitude: 0.15
+
+  # Collapse threshold
+  eps_kl: 0.0005
+
+  # Enable adaptive features
+  gradient_balance: true
+  adaptive_scheduling: true
+
+  # StateNet v4 with hyperbolic homeostasis
+  use_statenet: true
+  statenet_lr_scale: 0.1
+  statenet_lambda_scale: 0.02
+  statenet_ranking_scale: 0.3
+  # v5.10: StateNet also modulates hyperbolic params
+  statenet_hyp_sigma_scale: 0.05      # Modulates prior_sigma
+  statenet_hyp_curvature_scale: 0.02  # Modulates curvature
+
+# Dataset generation
+ternary_dataset:
+  num_samples: 19683
+  exhaustive: true
+  seed: 42
+
+# Training configuration
+seed: 42
+batch_size: 256
+num_workers: 0
+total_epochs: 300
+
+# Unified optimizer
+optimizer:
+  type: adamw
+  lr_start: 0.001
+  weight_decay: 0.0001
+  lr_schedule:
+    - epoch: 0
+      lr: 0.001
+    - epoch: 100
+      lr: 0.0005
+    - epoch: 200
+      lr: 0.0003
+    - epoch: 270
+      lr: 0.0001
+
+# VAE-A parameters (chaotic, explores boundary of Poincare ball)
+vae_a:
+  beta_start: 0.3
+  beta_end: 0.8
+  beta_warmup_epochs: 50
+  temp_start: 1.0
+  temp_end: 0.3
+  temp_cyclic: true
+  temp_boost_amplitude: 0.5
+
+# VAE-B parameters (stable, anchors near origin of Poincare ball)
+vae_b:
+  beta_start: 0.0
+  beta_end: 0.5
+  beta_warmup_epochs: 50
+  temp_start: 0.9
+  temp_end: 0.2
+  temp_phase4: 0.3
+  entropy_weight: 0.05
+  repulsion_weight: 0.01
+
+# KL divergence free bits (lower with hyperbolic prior)
+free_bits: 0.3
+
+# =============================================================================
+# CONTINUOUS FEEDBACK (v5.10 - integrated with hyperbolic homeostasis)
+# =============================================================================
+continuous_feedback:
+  enabled: true
+  base_ranking_weight: 0.4
+  coverage_threshold: 92.0
+  coverage_sensitivity: 0.05
+  coverage_trend_sensitivity: 1.0
+  min_ranking_weight: 0.1
+  max_ranking_weight: 0.8
+  coverage_ema_alpha: 0.95
+
+# =============================================================================
+# PURE HYPERBOLIC p-ADIC LOSSES (v5.10 - complete geometric consistency)
+# =============================================================================
+padic_losses:
+  # DISABLED: Euclidean metric loss (conflicts with hyperbolic structure)
+  enable_metric_loss: false
+  metric_loss_weight: 0.0
+
+  # ENABLED: Hyperbolic Ranking Loss (v5.9 baseline)
+  enable_ranking_loss_hyperbolic: true
+  ranking_hyperbolic:
+    base_margin: 0.05
+    margin_scale: 0.15
+    n_triplets: 500
+    hard_negative_ratio: 0.5
+    curvature: 2.0             # INCREASED from 1.0 - sharper tree structure
+    radial_weight: 0.4         # INCREASED from 0.1 - stronger hierarchy
+    max_norm: 0.95
+    weight: 0.5
+
+  # DISABLED: Euclidean norm loss (radial hierarchy replaces this)
+  enable_norm_loss: false
+  norm_loss_weight: 0.0
+
+  # DISABLED: Legacy ranking losses
+  enable_ranking_loss_v2: false
+  enable_ranking_loss: false
+
+  # ==========================================================================
+  # v5.10 PURE HYPERBOLIC MODULES (new)
+  # ==========================================================================
+  hyperbolic_v10:
+    # Hyperbolic Prior: Wrapped Normal on Poincare ball
+    # Replaces KL(q || N(0,I)) with KL(q || WrappedNormal)
+    use_hyperbolic_prior: true
+    prior:
+      homeostatic: true        # Enable adaptive sigma/curvature
+      latent_dim: 16
+      curvature: 2.0           # Higher = sharper tree (homeostatic adapts)
+      prior_sigma: 1.0         # Spread in tangent space (homeostatic adapts)
+      max_norm: 0.95
+      # Homeostatic bounds (prevent collapse/explosion)
+      sigma_min: 0.3
+      sigma_max: 2.0
+      curvature_min: 0.5
+      curvature_max: 4.0
+      adaptation_rate: 0.01
+
+    # Hyperbolic Reconstruction: Radius-weighted cross-entropy
+    # Points near origin (high valuation) get higher weight
+    use_hyperbolic_recon: true
+    recon:
+      homeostatic: true
+      mode: weighted_ce        # 'geodesic', 'weighted_ce', or 'hybrid'
+      curvature: 2.0
+      max_norm: 0.95
+      geodesic_weight: 0.3     # For hybrid mode
+      radius_weighting: true   # Weight by hyperbolic position
+      radius_power: 2.0        # Higher = more emphasis on origin
+      weight: 0.5              # Weight in total loss
+      # Homeostatic bounds
+      geodesic_weight_min: 0.1
+      geodesic_weight_max: 0.8
+      radius_power_min: 1.0
+      radius_power_max: 4.0
+      adaptation_rate: 0.01
+
+    # Hyperbolic Centroid Loss: Enforce tree structure via Frechet means
+    # Points with same 3-adic prefix cluster around hyperbolic centroids
+    use_centroid_loss: true
+    centroid:
+      max_level: 4             # Tree depth to enforce (3^4 = 81 clusters)
+      curvature: 2.0
+      max_norm: 0.95
+      weight: 0.2              # Weight in total loss (lighter touch)
+      # Level weights: higher levels (finer clusters) get lower weight
+      # Default: exponential decay [0.5, 0.25, 0.125, 0.0625]
+
+# Controller parameters
+controller:
+  temp_lag: 30
+  beta_phase_lag: 0.785
+  entropy_ema_alpha: 0.9
+  dH_dt_threshold: 0.05
+
+# Training dynamics
+grad_clip: 1.0
+
+# Early stopping (relaxed for homeostatic exploration)
+patience: 150
+min_delta: 0.0001
+coverage_plateau_patience: 150
+min_coverage_delta: 0.001
+
+# Logging and checkpointing
+log_interval: 1
+checkpoint_freq: 10
+checkpoint_dir: sandbox-training/checkpoints/v5_10
+eval_num_samples: 50000
+eval_interval: 5
+coverage_check_interval: 5
+
+# TensorBoard
+tensorboard_dir: runs
+experiment_name: null
+
+# TorchInductor compilation
+torch_compile:
+  enabled: false
+  backend: inductor
+  mode: default
+  fullgraph: false
+
+# Data splits
+train_split: 0.8
+val_split: 0.1
+test_split: 0.1
+
+# Success metrics (ambitious targets)
+target_coverage_percent: 99.7
+target_kld_min: 0.3
+target_kld_max: 1.0
+target_recon_accuracy: 85.0
+target_ranking_correlation: 0.99
+
+# Phase transition epochs
+phase_transitions:
+  entropy_expansion_end: 40
+  consolidation_end: 120
+  resonant_coupling_end: 250
+  ultra_exploration_start: 250
+  statenet_warm_start: 20
+
+# =============================================================================
+# v5.10 Key Innovations over v5.9:
+# =============================================================================
+#
+# 1. HYPERBOLIC PRIOR (replaces Gaussian):
+#    - Wrapped Normal distribution on Poincare ball
+#    - KL computed in tangent space with change-of-measure correction
+#    - Prior mass concentrates at origin (tree root)
+#    - Eliminates Euclidean/hyperbolic conflict in regularization
+#
+# 2. HYPERBOLIC RECONSTRUCTION:
+#    - Radius-weighted cross-entropy: points near origin matter more
+#    - Natural curriculum: learns tree structure before leaves
+#    - Homeostatic adaptation of radius_power
+#
+# 3. CENTROID CLUSTERING:
+#    - Frechet mean (hyperbolic centroid) for each 3-adic prefix cluster
+#    - Enforces tree structure explicitly
+#    - Multi-level: root -> branches -> leaves
+#
+# 4. HOMEOSTATIC EMERGENCE:
+#    - Both VAEs have self-regulating hyperbolic parameters
+#    - prior_sigma adapts: prevents collapse (too small) or explosion (too big)
+#    - curvature adapts: controls tree sharpness
+#    - StateNet can override for global coordination
+#
+# 5. REMOVED EUCLIDEAN CONTAMINATION:
+#    - norm_loss: DISABLED (radial_weight handles hierarchy)
+#    - metric_loss: DISABLED (Poincare distance in ranking)
+#    - Gaussian KL: REPLACED by hyperbolic KL
+#
+# Expected Results:
+#    - Pure hyperbolic geometry should create natural ultrametric embedding
+#    - Homeostatic mechanisms prevent training instability
+#    - Target: r > 0.99, coverage > 99.7%
+#
+# =============================================================================
