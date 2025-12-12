@@ -627,6 +627,39 @@ class PAdicRankingLossHyperbolic(nn.Module):
 
         return distance * self.curvature
 
+    def _poincare_distance_matrix(self, z: torch.Tensor) -> torch.Tensor:
+        """Compute all pairwise Poincaré distances (vectorized).
+
+        Args:
+            z: Points in Poincaré ball (batch_size, latent_dim)
+
+        Returns:
+            Distance matrix (batch_size, batch_size)
+        """
+        # Squared norms for all points: (batch_size,)
+        z_norm_sq = torch.sum(z ** 2, dim=1)
+
+        # Pairwise squared Euclidean distances: (batch_size, batch_size)
+        # ||z_i - z_j||² = ||z_i||² + ||z_j||² - 2 * z_i · z_j
+        dot_products = torch.mm(z, z.t())  # (batch_size, batch_size)
+        diff_norm_sq = (
+            z_norm_sq.unsqueeze(1) + z_norm_sq.unsqueeze(0) - 2 * dot_products
+        )
+        diff_norm_sq = torch.clamp(diff_norm_sq, min=0.0)  # Numerical stability
+
+        # Denominators: (1 - ||z_i||²)(1 - ||z_j||²)
+        denom = (1 - z_norm_sq).unsqueeze(1) * (1 - z_norm_sq).unsqueeze(0)
+        denom = torch.clamp(denom, min=1e-10)
+
+        # Argument to arcosh
+        arg = 1 + 2 * diff_norm_sq / denom
+        arg = torch.clamp(arg, min=1.0 + 1e-7)
+
+        # arcosh(z) = log(z + sqrt(z² - 1))
+        distance = torch.log(arg + torch.sqrt(arg ** 2 - 1))
+
+        return distance * self.curvature
+
     def _compute_radial_loss(
         self,
         z_hyp: torch.Tensor,
@@ -798,14 +831,9 @@ class PAdicRankingLossHyperbolic(nn.Module):
         hard_v_pos = []
         hard_v_neg = []
 
-        # Compute pairwise Poincaré distances
+        # Compute pairwise Poincaré distances (vectorized)
         with torch.no_grad():
-            # For efficiency, compute distances in batches
-            d_poincare_matrix = torch.zeros(batch_size, batch_size, device=device)
-            for i in range(batch_size):
-                d_poincare_matrix[i] = self._poincare_distance(
-                    z_hyp[i:i+1].expand(batch_size, -1), z_hyp
-                )
+            d_poincare_matrix = self._poincare_distance_matrix(z_hyp)
 
         for anchor in anchor_candidates:
             if len(hard_anchors) >= n_hard:
@@ -813,18 +841,9 @@ class PAdicRankingLossHyperbolic(nn.Module):
 
             anchor_idx_val = batch_indices[anchor]
 
-            # Compute valuations from anchor to all
-            v_to_all = torch.zeros(batch_size, device=device)
-            for j in range(batch_size):
-                diff = abs(int(anchor_idx_val) - int(batch_indices[j]))
-                if diff == 0:
-                    v_to_all[j] = 9.0
-                else:
-                    v = 0
-                    while diff % 3 == 0 and diff > 0:
-                        v += 1
-                        diff //= 3
-                    v_to_all[j] = v
+            # Compute valuations from anchor to all (vectorized)
+            anchor_expanded = anchor_idx_val.expand(batch_size)
+            v_to_all = compute_3adic_valuation_batch(anchor_expanded, batch_indices)
 
             v_sorted_idx = torch.argsort(v_to_all, descending=True)
             v_sorted_idx = v_sorted_idx[v_sorted_idx != anchor]
