@@ -359,8 +359,9 @@ class TernaryVAETrainer:
 
                 num_batches += 1
 
-        for key in epoch_losses:
-            epoch_losses[key] /= num_batches
+        if num_batches > 0:
+            for key in epoch_losses:
+                epoch_losses[key] /= num_batches
 
         return epoch_losses
 

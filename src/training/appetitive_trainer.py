@@ -405,9 +405,10 @@ class AppetitiveVAETrainer:
             num_batches += 1
 
         # Average losses
-        for key in epoch_losses:
-            if key not in ['lr_corrected', 'delta_lr', 'delta_lambda1', 'delta_lambda2', 'delta_lambda3']:
-                epoch_losses[key] /= num_batches
+        if num_batches > 0:
+            for key in epoch_losses:
+                if key not in ['lr_corrected', 'delta_lr', 'delta_lambda1', 'delta_lambda2', 'delta_lambda3']:
+                    epoch_losses[key] /= num_batches
 
         # Store schedule info
         epoch_losses['temp_A'] = temp_A
@@ -472,8 +473,9 @@ class AppetitiveVAETrainer:
 
                 num_batches += 1
 
-        for key in epoch_losses:
-            epoch_losses[key] /= num_batches
+        if num_batches > 0:
+            for key in epoch_losses:
+                epoch_losses[key] /= num_batches
 
         return epoch_losses
 
@@ -538,10 +540,14 @@ class AppetitiveVAETrainer:
 
             # Train and validate
             train_losses = self.train_epoch(train_loader)
-            val_losses = self.validate(val_loader)
 
-            # Check for best model
-            is_best = self.monitor.check_best(val_losses['loss'])
+            # Validate only if val_loader is provided (not in manifold approach)
+            if val_loader is not None:
+                val_losses = self.validate(val_loader)
+                is_best = self.monitor.check_best(val_losses['loss'])
+            else:
+                val_losses = train_losses  # Use train losses for logging compatibility
+                is_best = self.monitor.check_best(train_losses['loss'])
 
             # Evaluate coverage
             unique_A, cov_A = self.monitor.evaluate_coverage(

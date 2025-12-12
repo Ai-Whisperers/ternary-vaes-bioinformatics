@@ -430,60 +430,26 @@ class AlgebraicClosureLoss(nn.Module):
     ) -> torch.Tensor:
         """Compute (a o b) indices.
 
-        Composition: (a o b)[i] = a[b[i]+1]
+        WARNING: Composition is NOT well-defined for ternary operations.
+
+        Ternary operations are functions {-1,0,1}^2 -> {-1,0,1}. True function
+        composition (a o b)(x,y) = a(b(x,y), ?) requires two inputs but b outputs
+        only one value. This method returns identity indices as a safe fallback.
+
+        The AlgebraicClosureLoss using this is disabled by default (appetite_closure=0.0).
+        Do not enable until proper composition semantics are defined.
 
         Args:
             a_idx: First operation indices
             b_idx: Second operation indices
 
         Returns:
-            Composed operation indices
+            Identity indices (composition not well-defined)
         """
+        # Return identity operation (index 9841) as safe fallback
+        # This ensures zero loss contribution: z_a + z_b - z_0 - z_identity ≈ z_a + z_b - z_0 - z_0
         device = a_idx.device
-        batch_size = a_idx.size(0)
-
-        a_lut = self._idx_to_lut(a_idx)  # (batch, 9)
-        b_lut = self._idx_to_lut(b_idx)  # (batch, 9)
-
-        # Compose: (a o b)[i] = a[b[i]+1]
-        composed_lut = torch.zeros_like(a_lut)
-        for i in range(9):
-            b_val = b_lut[:, i] + 1  # {0, 1, 2} - index into a's output for this input
-            # For each input position i, get the output position from b
-            # Then look up a's output at that position
-            # b_val tells us: for input i, b outputs position b_val
-            # Then a takes that as input (but a is also indexed 0-8)
-            # We need a[ f(b_val) ] where f maps output {-1,0,1} to input index {0,1,2}
-            # Since a_lut is indexed by input position (0-8) and outputs {-1,0,1}
-            # We need: composed[i] = a_output_for_input_that_gives_b_output_i
-            # Actually simpler: a_lut[:, k] gives a's output for input k (0-8 mapped to -1..1)
-            # b_lut[:, i] gives b's output for input i
-            # So (a o b)[i] = a[b[i]+1] means: a's output when input is (b's output + 1)
-            # But b's output is in {-1,0,1}, and a is indexed by position 0-8
-            # This doesn't quite work - let me reconsider
-
-            # Actually for LUT composition where both are 3^2 -> 3 functions:
-            # If we think of i in {0..8} as encoding (x,y) in {0,1,2}^2
-            # and each LUT entry gives output in {-1,0,1}
-            # Then (a o b)(x,y) = a(b(x,y), ?) - but this isn't well-defined
-
-            # For our case, ternary operations are functions {-1,0,1}^2 -> {-1,0,1}
-            # represented as 9-entry LUT indexed by (input1+1)*3 + (input2+1)
-            # Composition doesn't naturally apply here in the same way
-
-            # Let's use a simpler interpretation: element-wise composition
-            # where b_val gives the "selection" into a's possible outputs
-            # This is a form of function composition in a different sense
-
-            for j in range(batch_size):
-                # b_lut[j, i] is in {-1, 0, 1}
-                # Use it to index into a's outputs at positions 0, 4, 8 (the "diagonal")
-                # Or simpler: just use it to select which of a's values
-                select_idx = (b_lut[j, i] + 1).item()  # 0, 1, or 2
-                # Map to corresponding position (simplified)
-                composed_lut[j, i] = a_lut[j, select_idx * 3 + i % 3]
-
-        return self._lut_to_idx(composed_lut)
+        return torch.full_like(a_idx, self.identity_idx, device=device)
 
     def forward(
         self,
