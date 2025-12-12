@@ -1,95 +1,96 @@
 # Installation and Usage Guide
 
-## Quick Start (5 minutes)
+**Version:** 5.10.1 (Pure Hyperbolic Geometry)
+**Last Updated:** 2025-12-12
 
-### 1. Install Package
+---
+
+## Quick Start
+
+### 1. Install Dependencies
 
 ```bash
-cd "Ternary VAE PROD"
+cd ternary-vaes
 
-# Option A: Install in development mode
-pip install -e .
+# Create virtual environment (recommended)
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 
-# Option B: Install with all dependencies
-pip install -e ".[all]"
-
-# Option C: Minimal install
-pip install -r requirements.txt
+# Install dependencies
+pip install torch numpy scipy pyyaml tqdm tensorboard
 ```
 
-### 2. Copy Environment Template
+### 2. Run Training (v5.10)
 
 ```bash
-cp .env.example .env
-# Edit .env with your settings (optional)
+python scripts/train/train_ternary_v5_10.py --config configs/ternary_v5_10.yaml
 ```
 
-### 3. Run Training
+### 3. Monitor with TensorBoard
 
 ```bash
-python scripts/train/train_ternary_v5_5.py --config configs/ternary_v5_5.yaml
-```
-
-### 4. Evaluate Model
-
-```bash
-python scripts/benchmark/run_benchmark.py \
-    --config configs/ternary_v5_5.yaml \
-    --checkpoint checkpoints/ternary_v5_5_best.pt
+tensorboard --logdir=runs
+# Open http://localhost:6006
 ```
 
 ---
 
-## Detailed Installation
+## Prerequisites
 
-### Prerequisites
-
-- Python 3.8 or higher
-- CUDA-capable GPU (recommended, but CPU works)
-- 4GB+ GPU VRAM for training
+- Python 3.8+
+- CUDA-capable GPU (recommended, CPU works but slow)
+- 4GB+ GPU VRAM
 - 8GB+ system RAM
 
-### Step-by-Step
-
-**1. Create Virtual Environment** (recommended)
+### Verify Installation
 
 ```bash
-python -m venv venv
-
-# Windows
-venv\Scripts\activate
-
-# Linux/Mac
-source venv/bin/activate
+python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA: {torch.cuda.is_available()}')"
 ```
 
-**2. Install Dependencies**
-
-```bash
-# Core dependencies only
-pip install torch numpy scipy pyyaml tqdm
-
-# Or install all optional dependencies
-pip install -r requirements.txt
-```
-
-**3. Verify Installation**
-
-```bash
-python -c "import torch; print(f'PyTorch: {torch.__version__}'); print(f'CUDA Available: {torch.cuda.is_available()}')"
-```
-
-Expected output:
+Expected:
 ```
 PyTorch: 2.x.x
-CUDA Available: True
+CUDA: True
 ```
 
-**4. Run Tests** (optional but recommended)
+---
+
+## Training v5.10
+
+### Full Training (300 epochs)
 
 ```bash
-pytest tests/ -v
+python scripts/train/train_ternary_v5_10.py \
+    --config configs/ternary_v5_10.yaml \
+    --log-dir logs
 ```
+
+**Expected duration:** 5-10 hours on modern GPU (RTX 3080+)
+
+### Training Output
+
+```
+logs/
+├── training_YYYYMMDD_HHMMSS.log    # Full training log
+runs/
+├── ternary_vae_YYYYMMDD_HHMMSS/    # TensorBoard metrics
+sandbox-training/checkpoints/v5_10/
+├── checkpoint_epoch_N.pt           # Periodic checkpoints
+├── final_model.pt                  # Final model
+```
+
+### Key Metrics to Watch
+
+| Metric | Good Value | Description |
+|--------|------------|-------------|
+| corr_A_hyp | > 0.95 | Hyperbolic correlation VAE-A |
+| corr_B_hyp | > 0.95 | Hyperbolic correlation VAE-B |
+| cov_A | > 95% | Coverage VAE-A |
+| cov_B | > 95% | Coverage VAE-B |
+| mean_radius_A | 0.7-0.9 | VAE-A boundary exploration |
+| mean_radius_B | 0.3-0.5 | VAE-B origin anchoring |
 
 ---
 
@@ -99,280 +100,172 @@ pytest tests/ -v
 
 ```python
 import yaml
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
-from src.utils.data import generate_all_ternary_operations, TernaryOperationDataset
-from torch.utils.data import DataLoader
+from src.models import DualNeuralVAEV5_10
+from src.training import TernaryVAETrainer, HyperbolicVAETrainer, TrainingMonitor
+from src.data import generate_all_ternary_operations, TernaryOperationDataset
+from torch.utils.data import DataLoader, random_split
 
 # Load config
-with open('configs/ternary_v5_5.yaml') as f:
+with open('configs/ternary_v5_10.yaml') as f:
     config = yaml.safe_load(f)
+
+# Setup monitor
+monitor = TrainingMonitor(
+    eval_num_samples=1000,
+    tensorboard_dir='runs',
+    log_dir='logs',
+    log_to_file=True
+)
 
 # Create dataset
 operations = generate_all_ternary_operations()
 dataset = TernaryOperationDataset(operations)
-loader = DataLoader(dataset, batch_size=64, shuffle=True)
+
+train_size = int(0.8 * len(dataset))
+val_size = len(dataset) - train_size
+train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
+
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=256)
 
 # Initialize model
-model = DualNeuralVAEV5(
+model = DualNeuralVAEV5_10(
     input_dim=9,
     latent_dim=16,
-    rho_min=0.1,
-    rho_max=0.7
+    use_statenet=True
 )
 
 # Train
-for epoch in range(10):
-    for batch in loader:
-        outputs = model(batch, temp_A=1.0, temp_B=1.0, beta_A=1.0, beta_B=1.0)
-        losses = model.loss_function(batch, outputs)
-        # ... optimizer step
+device = 'cuda'
+base_trainer = TernaryVAETrainer(model, config, device)
+trainer = HyperbolicVAETrainer(base_trainer, model, device, config, monitor)
+
+for epoch in range(100):
+    losses = trainer.train_epoch(train_loader, val_loader, epoch)
+    print(f"Epoch {epoch}: corr_hyp={losses['corr_A_hyp']:.4f}")
 ```
 
-### Example 2: Generate Samples
+### Example 2: Load and Sample
 
 ```python
 import torch
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+from src.models import DualNeuralVAEV5_10
 
-# Load trained model
-model = DualNeuralVAEV5(input_dim=9, latent_dim=16)
-checkpoint = torch.load('checkpoints/ternary_v5_5_best.pt')
-model.load_state_dict(checkpoint['model'])
+# Load model
+model = DualNeuralVAEV5_10(input_dim=9, latent_dim=16)
+checkpoint = torch.load('sandbox-training/checkpoints/v5_10/final_model.pt')
+model.load_state_dict(checkpoint['model_state_dict'])
 model.eval()
 
 # Generate samples
-samples_A = model.sample(1000, device='cuda', use_vae='A')
-samples_B = model.sample(1000, device='cuda', use_vae='B')
+samples_A = model.sample(1000, device='cuda', vae='A')
+samples_B = model.sample(1000, device='cuda', vae='B')
 
-print(f"VAE-A samples shape: {samples_A.shape}")  # (1000, 9)
-print(f"VAE-B samples shape: {samples_B.shape}")  # (1000, 9)
+print(f"VAE-A samples: {samples_A.shape}")  # (1000, 9)
+print(f"VAE-B samples: {samples_B.shape}")  # (1000, 9)
 ```
 
-### Example 3: Evaluate Coverage
+### Example 3: Evaluate Hyperbolic Correlation
 
 ```python
-from src.utils.metrics import evaluate_coverage
+from src.metrics import compute_ranking_correlation_hyperbolic
 
-# Generate many samples
-samples = model.sample(195000, device='cuda', use_vae='A')
+# With model outputs
+with torch.no_grad():
+    outputs = model(x, temp_A=0.3, temp_B=0.2, beta_A=0.8, beta_B=0.5)
 
-# Evaluate coverage
-unique_ops, coverage_pct = evaluate_coverage(samples)
-print(f"Coverage: {unique_ops} operations ({coverage_pct:.2f}%)")
-```
-
-### Example 4: Compute Metrics
-
-```python
-from src.utils.metrics import (
-    compute_latent_entropy,
-    compute_diversity_score,
-    compute_reconstruction_accuracy
+results = compute_ranking_correlation_hyperbolic(
+    outputs['z_A'], outputs['z_B'], x,
+    curvature=2.0,
+    max_norm=0.95,
+    n_samples=1000
 )
 
-# Latent entropy
-z = torch.randn(10000, 16)
-entropy = compute_latent_entropy(z)
-print(f"Latent entropy: {entropy:.3f}")
-
-# Diversity
-samples_A = model.sample(5000, device='cuda', use_vae='A')
-samples_B = model.sample(5000, device='cuda', use_vae='B')
-diversity = compute_diversity_score(samples_A, samples_B)
-print(f"Diversity: {diversity:.3f}")
-
-# Reconstruction accuracy
-inputs = dataset.operations[:100]
-outputs = model(inputs, temp_A=0.3, temp_B=0.2, beta_A=1.0, beta_B=1.0)
-accuracy = compute_reconstruction_accuracy(inputs, outputs['logits_A'])
-print(f"Accuracy: {accuracy:.2f}%")
+print(f"Hyperbolic correlation A: {results['corr_A_hyp']:.4f}")
+print(f"Hyperbolic correlation B: {results['corr_B_hyp']:.4f}")
+print(f"Mean radius A: {results['mean_radius_A']:.4f}")
+print(f"Mean radius B: {results['mean_radius_B']:.4f}")
 ```
 
 ---
 
 ## Configuration
 
-### Config File Structure
-
-The main configuration file is `configs/ternary_v5_5.yaml`:
+### v5.10 Config Structure
 
 ```yaml
+config_version: "5.10"
+
 model:
   input_dim: 9
   latent_dim: 16
-  rho_min: 0.1
-  rho_max: 0.7
-  # ... more parameters
+  use_statenet: true
+  statenet_hyp_sigma_scale: 0.05
+  statenet_hyp_curvature_scale: 0.02
 
-optimizer:
-  lr_start: 0.001
-  lr_schedule:
-    - epoch: 0
-      lr: 0.001
-    # ... more schedule points
+padic_losses:
+  enable_ranking_loss_hyperbolic: true
+  ranking_hyperbolic:
+    curvature: 2.0
+    radial_weight: 0.4
 
-vae_a:
-  beta_start: 0.6
-  beta_end: 1.0
-  temp_start: 1.0
-  temp_end: 0.3
-  # ... more parameters
+  hyperbolic_v10:
+    use_hyperbolic_prior: true
+    use_hyperbolic_recon: true
+    use_centroid_loss: true
 
-vae_b:
-  # ... VAE-B parameters
-```
-
-### Environment Variables
-
-Create a `.env` file from `.env.example`:
-
-```bash
-# Device
-DEVICE=cuda                 # or cpu
-CUDA_VISIBLE_DEVICES=0      # GPU ID
-
-# Seeds
-SEED=42
-DETERMINISTIC=true
-
-# Performance
-NUM_WORKERS=4
-MIXED_PRECISION=false
+# Evaluation intervals
+coverage_check_interval: 5
+eval_interval: 20
+eval_num_samples: 1000
 
 # Logging
-LOG_LEVEL=INFO
-TENSORBOARD=false
+log_dir: logs
+tensorboard_dir: runs
 ```
+
+### Key Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `curvature` | 2.0 | Poincare ball curvature (higher = sharper tree) |
+| `radial_weight` | 0.4 | Hierarchy enforcement weight |
+| `prior_sigma` | 1.0 | Prior spread (homeostatic adapts) |
+| `coverage_check_interval` | 5 | Epochs between coverage checks |
+| `eval_interval` | 20 | Epochs between correlation checks |
 
 ---
 
-## Training
+## Monitoring
 
-### Full Training (400 epochs)
-
-```bash
-python scripts/train/train_ternary_v5_5.py \
-    --config configs/ternary_v5_5.yaml
-```
-
-Expected time: ~2.5 hours on modern GPU
-
-### Quick Training (100 epochs)
+### TensorBoard Metrics
 
 ```bash
-# Modify config or create a new one
-python scripts/train/train_ternary_v5_5.py \
-    --config configs/ternary_v5_5_fast.yaml
+tensorboard --logdir=runs
 ```
 
-### Resume from Checkpoint
+**Available Metrics:**
+- `loss/total`: Total training loss
+- `correlation/hyp_A`, `correlation/hyp_B`: Hyperbolic correlations
+- `correlation/euc_A`, `correlation/euc_B`: Euclidean correlations
+- `coverage/A`, `coverage/B`: Operation coverage
+- `radii/mean_A`, `radii/mean_B`: Poincare ball positioning
+- `hyperbolic/kl_A`, `hyperbolic/kl_B`: Hyperbolic KL divergence
+- `hyperbolic/centroid_loss`: Frechet mean clustering
+- `hyperbolic/radial_loss`: Radial hierarchy enforcement
 
-The training script automatically saves checkpoints every 10 epochs. To resume:
+### Log Files
 
-```bash
-# Edit the training script to load from checkpoint
-# Or modify your config to include:
-# resume_checkpoint: "checkpoints/epoch_100.pt"
+Logs are written to `logs/training_YYYYMMDD_HHMMSS.log`:
+
 ```
-
----
-
-## Evaluation and Benchmarking
-
-### Run Full Benchmark
-
-```bash
-python scripts/benchmark/run_benchmark.py \
-    --config configs/ternary_v5_5.yaml \
-    --checkpoint checkpoints/ternary_v5_5_best.pt \
-    --trials 10
+2025-12-12 04:05:00 | Starting Pure Hyperbolic Training
+2025-12-12 04:05:00 | Evaluation Intervals:
+2025-12-12 04:05:00 |   Coverage check: every 5 epochs
+2025-12-12 04:05:00 |   Correlation check: every 20 epochs
+...
+Epoch 20/300 | Loss: 0.4532 | Cov: 85.2%/83.1% | r_hyp: 0.7823/0.7654
 ```
-
-Outputs:
-- Inference speed (samples/sec)
-- Coverage statistics (mean ± std)
-- Latent entropy
-- Memory usage
-- Summary table
-
-### Coverage Evaluation Only
-
-```bash
-python -c "
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
-from src.utils.metrics import evaluate_coverage
-import torch
-
-model = DualNeuralVAEV5(input_dim=9, latent_dim=16)
-checkpoint = torch.load('checkpoints/ternary_v5_5_best.pt')
-model.load_state_dict(checkpoint['model'])
-model.eval()
-
-samples = model.sample(195000, 'cuda', 'A')
-unique, cov = evaluate_coverage(samples)
-print(f'Coverage: {unique} ({cov:.2f}%)')
-"
-```
-
----
-
-## Testing
-
-### Run All Tests
-
-```bash
-pytest tests/ -v
-```
-
-### Run Specific Test
-
-```bash
-pytest tests/test_reproducibility.py -v
-```
-
-### Test Coverage
-
-```bash
-pytest tests/ --cov=src --cov-report=html
-```
-
-View coverage report: `open htmlcov/index.html`
-
----
-
-## Reproducibility
-
-### Deterministic Training
-
-To ensure exact reproducibility:
-
-1. **Set seeds in config**:
-   ```yaml
-   seed: 42
-   ```
-
-2. **Enable deterministic mode in `.env`**:
-   ```bash
-   DETERMINISTIC=true
-   CUDNN_BENCHMARK=false
-   ```
-
-3. **Run training**:
-   ```bash
-   python scripts/train/train_ternary_v5_5.py --config configs/ternary_v5_5.yaml
-   ```
-
-4. **Verify with tests**:
-   ```bash
-   pytest tests/test_reproducibility.py -v
-   ```
-
-### Expected Results
-
-With seed=42 and deterministic mode:
-- **Epoch 100**: ~75-80% coverage
-- **Epoch 200**: ~90-95% coverage
-- **Epoch 400**: ~97-98% coverage (97.64% VAE-A, 97.67% VAE-B)
 
 ---
 
@@ -380,121 +273,77 @@ With seed=42 and deterministic mode:
 
 ### CUDA Out of Memory
 
-**Solution 1**: Reduce batch size in config
 ```yaml
-batch_size: 32  # from 64
-```
-
-**Solution 2**: Use gradient checkpointing
-```python
-# In .env
-MEMORY_EFFICIENT=true
+# Reduce batch size in config
+batch_size: 128  # from 256
 ```
 
 ### Slow Training
 
-**Solution 1**: Reduce num_workers
 ```yaml
-num_workers: 0  # Use main process only
-```
-
-**Solution 2**: Enable mixed precision (experimental)
-```bash
-# In .env
-MIXED_PRECISION=true
-```
-
-### Coverage Not Improving
-
-**Solution**: Check phase transitions and learning rate schedule
-
-```python
-# Verify current phase
-print(f"Current phase: {model.current_phase}")
-print(f"Permeability ρ: {model.rho:.3f}")
-print(f"Gradient balance: {model.grad_balance_achieved}")
+# Increase evaluation intervals
+coverage_check_interval: 10  # from 5
+eval_interval: 50  # from 20
 ```
 
 ### Import Errors
 
-**Solution**: Ensure package is installed
-```bash
-pip install -e .
-```
-
-Or add to Python path:
 ```python
 import sys
-sys.path.append('/path/to/Ternary VAE PROD')
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
+```
+
+### Correlation Not Improving
+
+Check homeostatic adaptation is enabled:
+```yaml
+hyperbolic_v10:
+  prior:
+    homeostatic: true
+  recon:
+    homeostatic: true
 ```
 
 ---
 
-## Advanced Usage
+## Project Structure
 
-### Custom Training Loop
-
-```python
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
-import torch.optim as optim
-
-model = DualNeuralVAEV5(input_dim=9, latent_dim=16)
-optimizer = optim.AdamW(model.parameters(), lr=0.001)
-
-for epoch in range(400):
-    # Update adaptive parameters
-    model.rho = model.compute_phase_scheduled_rho(epoch, phase_4_start=250)
-    model.lambda3 = model.compute_cyclic_lambda3(epoch, period=30)
-
-    # Get temperature schedules
-    temp_A = get_temperature(epoch, 'A')
-    temp_B = get_temperature(epoch, 'B')
-
-    # Training loop
-    for batch in loader:
-        outputs = model(batch, temp_A, temp_B, beta_A, beta_B)
-        losses = model.loss_function(batch, outputs)
-
-        optimizer.zero_grad()
-        losses['loss'].backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        model.update_gradient_norms()
-        optimizer.step()
 ```
-
-### Transfer Learning
-
-```python
-# Load pre-trained weights
-pretrained = torch.load('checkpoints/ternary_v5_5_best.pt')
-model.load_state_dict(pretrained['model'])
-
-# Freeze VAE-A (keep discoveries)
-for param in model.encoder_A.parameters():
-    param.requires_grad = False
-for param in model.decoder_A.parameters():
-    param.requires_grad = False
-
-# Fine-tune VAE-B only
-optimizer = optim.Adam(
-    [p for p in model.parameters() if p.requires_grad],
-    lr=0.0001
-)
+ternary-vaes/
+├── configs/
+│   ├── ternary_v5_10.yaml       # v5.10 config (active)
+│   └── archive/                  # Legacy configs
+├── docs/
+│   ├── ARCHITECTURE.md          # System architecture
+│   ├── API_REFERENCE.md         # API documentation
+│   └── theory/                   # Mathematical foundations
+├── scripts/
+│   └── train/
+│       └── train_ternary_v5_10.py  # Training entry point
+├── src/
+│   ├── models/                   # VAE architectures
+│   ├── training/                 # Training orchestration
+│   ├── losses/                   # Loss functions
+│   ├── metrics/                  # Evaluation metrics
+│   ├── data/                     # Dataset handling
+│   └── artifacts/                # Checkpoint management
+├── logs/                         # Training logs
+├── runs/                         # TensorBoard data
+└── sandbox-training/             # Checkpoints
 ```
 
 ---
 
 ## Next Steps
 
-- **Documentation**: See `docs/` for detailed theory and implementation guides
-- **Examples**: Check `examples/` for more usage patterns
-- **API Reference**: See `docs/api/API_REFERENCE.md` for complete API documentation
-- **Theory**: Read `docs/theory/MATHEMATICAL_FOUNDATIONS.md` for mathematical details
+- **Architecture details:** See `docs/ARCHITECTURE.md`
+- **API reference:** See `docs/API_REFERENCE.md`
+- **Mathematical theory:** See `docs/theory/MATHEMATICAL_FOUNDATIONS.md`
 
 ---
 
 ## Support
 
-- **Issues**: File at [GitHub Issues](https://github.com/ai-whisperers/ternary-vae/issues)
-- **Documentation**: See `docs/` directory
-- **Email**: support@aiwhisperers.com
+- **GitHub Issues:** Report bugs and feature requests
+- **Documentation:** See `docs/` directory

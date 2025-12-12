@@ -1,14 +1,16 @@
 # Ternary VAE Architecture Documentation
 
-**Version:** 5.5 (Refactored)
-**Last Updated:** 2025-11-24
+**Version:** 5.10.1 (Pure Hyperbolic Geometry)
+**Last Updated:** 2025-12-12
 **Status:** Production-ready
 
 ---
 
 ## Overview
 
-The Ternary VAE v5.5 implements a dual-pathway variational autoencoder for learning all 19,683 possible ternary operations (3^9 space). The architecture has been refactored following Single Responsibility Principle (SRP) for clean separation of concerns.
+The Ternary VAE v5.10 implements a dual-pathway variational autoencoder using pure hyperbolic geometry for learning all 19,683 ternary operations (3^9 space). The architecture embeds operations in a Poincare ball where 3-adic distance naturally maps to hyperbolic distance.
+
+**Key Innovation:** Complete geometric consistency - prior, reconstruction, and ranking all use Poincare distance with no Euclidean contamination.
 
 ---
 
@@ -19,28 +21,29 @@ The Ternary VAE v5.5 implements a dual-pathway variational autoencoder for learn
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                     Training Script                          │
-│  (scripts/train/train_ternary_v5_5_refactored.py)          │
+│          (scripts/train/train_ternary_v5_10.py)             │
 └─────────────────────────────────────────────────────────────┘
                           │
                           ▼
          ┌────────────────────────────────────┐
-         │      TernaryVAETrainer             │
-         │  (Orchestrates training loop)      │
+         │      HyperbolicVAETrainer          │
+         │  (Orchestrates hyperbolic training) │
          └────────────────────────────────────┘
                           │
          ┌────────────────┼────────────────┐
          │                │                │
          ▼                ▼                ▼
-  ┌──────────┐   ┌──────────────┐   ┌──────────┐
-  │Schedulers│   │ DualVAELoss  │   │ Monitor  │
-  └──────────┘   └──────────────┘   └──────────┘
+  ┌──────────┐   ┌──────────────┐   ┌──────────────┐
+  │Base      │   │ Hyperbolic   │   │ Training     │
+  │Trainer   │   │ Losses       │   │ Monitor      │
+  └──────────┘   └──────────────┘   └──────────────┘
          │                │                │
          └────────────────┼────────────────┘
                           │
                           ▼
               ┌───────────────────────┐
-              │   DualNeuralVAEV5     │
-              │  (Model architecture)  │
+              │   DualNeuralVAEV5_10  │
+              │  (StateNet v4 + Hyp)  │
               └───────────────────────┘
                           │
               ┌───────────┴───────────┐
@@ -48,494 +51,412 @@ The Ternary VAE v5.5 implements a dual-pathway variational autoencoder for learn
               ▼                       ▼
          ┌────────┐              ┌────────┐
          │ VAE-A  │              │ VAE-B  │
-         │Chaotic │              │Frozen  │
+         │Chaotic │              │Stable  │
+         │(boundary)             │(origin)│
          └────────┘              └────────┘
+```
+
+---
+
+## Codebase Statistics
+
+| Module | Files | Lines | Purpose |
+|--------|-------|-------|---------|
+| models/ | 5 | 2,312 | VAE architectures (v5.6, v5.7, v5.10, appetitive) |
+| training/ | 6 | 2,517 | Training orchestration + monitoring |
+| losses/ | 7 | 3,531 | Loss computations (23 distinct components) |
+| metrics/ | 2 | 232 | Evaluation metrics (hyperbolic geometry) |
+| data/ | 3 | 163 | Dataset generation and loading |
+| utils/ | 3 | 500 | Utility functions and helpers |
+| artifacts/ | 2 | 149 | Checkpoint management |
+| **Total** | **29** | **9,435** | Production-ready codebase |
+
+---
+
+## Model Lineage
+
+```
+ternary_vae_v5_6.py (Base Dual VAE - 538 lines)
+├── Dual encoder/decoder architecture
+├── Stop-gradient cross-injection
+├── Adaptive gradient balance
+└── StateNet v1 (12D → 4D)
+
+      ↓ extends
+
+ternary_vae_v5_7.py (Metric Attention - 625 lines)
+├── Inherits all v5.6 features
+├── StateNet v3 (14D → 5D, adds r_A, r_B, delta_ranking)
+└── Dynamic ranking weight modulation
+
+      ↓ extends
+
+ternary_vae_v5_10.py (Pure Hyperbolic - 822 lines)
+├── Inherits all v5.7 features
+├── StateNet v4 (18D → 7D, adds hyperbolic state)
+├── Pure hyperbolic geometry (no Euclidean contamination)
+└── Homeostatic parameter adaptation
 ```
 
 ---
 
 ## Module Responsibilities
 
-### 1. Training Module (`src/training/`)
+### 1. Training Module (`src/training/`) - 2,517 lines
 
 **Purpose:** Orchestrate training process with clean separation of concerns.
 
-#### TernaryVAETrainer (`trainer.py`)
+#### HyperbolicVAETrainer (`hyperbolic_trainer.py` - 495 lines)
 
-**Responsibility:** Training loop orchestration only
+**Responsibility:** v5.10 hyperbolic training orchestration
+
+**Key Features:**
+- Pure hyperbolic loss computation (prior, recon, centroid)
+- Continuous feedback for ranking weight adaptation
+- Homeostatic parameter modulation (prior_sigma, curvature)
+- Evaluation interval optimization (coverage every 5 epochs, correlation every 20)
+
+**Key Methods:**
+- `train_epoch(train_loader, val_loader, epoch)`: Execute one training epoch
+- `_compute_hyperbolic_losses()`: Compute all hyperbolic loss components
+- `_update_homeostatic_params()`: Adapt prior_sigma and curvature
+
+#### TernaryVAETrainer (`trainer.py` - 440 lines)
+
+**Responsibility:** Base training loop orchestration
 
 **Key Methods:**
 - `__init__(model, config, device)`: Initialize trainer with dependencies
 - `train_epoch(train_loader)`: Execute one training epoch
 - `validate(val_loader)`: Run validation
-- `train(train_loader, val_loader)`: Main training loop
 
 **Dependencies:**
-- Receives model, config, device via constructor
-- Uses TemperatureScheduler for temperature parameters
-- Uses BetaScheduler for KL weights
-- Uses LearningRateScheduler for optimizer LR
-- Uses TrainingMonitor for logging
-- Uses CheckpointManager for persistence
-- Uses DualVAELoss for loss computation
+- TemperatureScheduler, BetaScheduler, LearningRateScheduler
+- TrainingMonitor for logging
+- CheckpointManager for persistence
+- DualVAELoss for base loss computation
 
-**Does NOT:**
-- Compute losses (delegated to DualVAELoss)
-- Schedule parameters (delegated to Schedulers)
-- Log metrics (delegated to TrainingMonitor)
-- Save checkpoints (delegated to CheckpointManager)
+#### TrainingMonitor (`monitor.py` - 694 lines)
 
-#### Schedulers (`schedulers.py`)
-
-**Responsibility:** Parameter scheduling only
-
-**Classes:**
-
-1. **TemperatureScheduler**
-   - Linear annealing with optional cyclic modulation
-   - Phase 4 ultra-exploration boost
-   - Lag support for VAE-B
-
-2. **BetaScheduler**
-   - KL warmup to prevent posterior collapse
-   - Phase lag between VAE-A and VAE-B
-
-3. **LearningRateScheduler**
-   - Step-based learning rate scheduling
-   - Reads from config schedule
-
-**Utility Functions:**
-- `linear_schedule()`: Linear interpolation
-- `cyclic_schedule()`: Cosine-based oscillation
-
-#### TrainingMonitor (`monitor.py`)
-
-**Responsibility:** Monitoring and logging only
+**Responsibility:** Unified logging and metrics tracking
 
 **Key Methods:**
-- `update_histories()`: Track entropy and coverage
-- `check_best()`: Determine best validation loss
+- `log_epoch_summary()`: Comprehensive epoch metrics
+- `log_hyperbolic_epoch()`: v5.10 hyperbolic-specific metrics
+- `log_batch()`: Batch-level TensorBoard logging
 - `evaluate_coverage()`: Compute operation coverage
-- `log_epoch()`: Print epoch results
-- `get_metadata()`: Export tracking data
-- `print_training_summary()`: Final summary
+- `_log()`: Unified console + file logging
 
 **Tracks:**
-- Best validation loss
-- Entropy history (VAE-A, VAE-B)
-- Coverage history (VAE-A, VAE-B)
-- Patience counter for early stopping
+- Hyperbolic correlation (r_A_hyp, r_B_hyp)
+- Euclidean correlation (r_A_euc, r_B_euc)
+- Mean radii (boundary vs origin positioning)
+- Homeostatic metrics (prior_sigma, curvature)
+- Coverage and entropy history
+
+#### Schedulers (`schedulers.py` - 211 lines)
+
+**Classes:**
+1. **TemperatureScheduler**: Linear annealing with cyclic modulation
+2. **BetaScheduler**: KL warmup to prevent posterior collapse
+3. **LearningRateScheduler**: Step-based learning rate scheduling
 
 ---
 
-### 2. Loss Module (`src/losses/`)
+### 2. Loss Module (`src/losses/`) - 3,531 lines
 
 **Purpose:** All loss computation separated from model architecture.
 
-#### DualVAELoss (`dual_vae_loss.py`)
+#### Hyperbolic Losses (v5.10 - NEW)
 
-**Responsibility:** Compute complete loss for dual VAE system
+**HyperbolicPrior** (`hyperbolic_prior.py` - 387 lines)
+- Wrapped Normal distribution on Poincare ball
+- KL computed in tangent space with change-of-measure correction
+- Prior mass concentrates at origin (tree root)
 
-**Component Losses:**
+**HomeostaticHyperbolicPrior**
+- Extends HyperbolicPrior with adaptive sigma/curvature
+- Prevents collapse (sigma too small) or explosion (sigma too big)
 
-1. **ReconstructionLoss**
-   - Cross-entropy for ternary operations
-   - Converts {-1, 0, 1} to class indices {0, 1, 2}
+**HyperbolicReconLoss** (`hyperbolic_recon.py` - 546 lines)
+- Geodesic distance-based reconstruction
+- Radius-weighted cross-entropy (points near origin matter more)
+- Natural curriculum: learns tree structure before leaves
 
-2. **KLDivergenceLoss**
-   - KL divergence with free bits support
-   - Prevents posterior collapse
+**HomeostaticReconLoss**
+- Adaptive reconstruction with curriculum learning
+- radius_power adapts based on training progress
 
-3. **EntropyRegularization**
-   - Encourages output diversity
-   - Computed over batch-averaged distributions
+**HyperbolicCentroidLoss**
+- Frechet mean (hyperbolic centroid) for each 3-adic prefix cluster
+- Multi-level: root → branches → leaves (max_level=4 → 81 clusters)
 
-4. **RepulsionLoss**
-   - Encourages latent space diversity
-   - RBF kernel-based repulsion
+#### P-adic Losses (`padic_losses.py` - 1,047 lines)
 
-**Forward Method:**
-```python
-loss_dict = dual_vae_loss(
-    x,                      # Input data
-    outputs,                # Model outputs
-    lambda1, lambda2, lambda3,  # Loss weights
-    entropy_weight_B,       # VAE-B entropy weight
-    repulsion_weight_B,     # VAE-B repulsion weight
-    grad_norm_A_ema,        # Gradient norm for balancing
-    grad_norm_B_ema,
-    gradient_balance,       # Enable/disable balancing
-    training                # Training mode flag
-)
-```
+**PAdicRankingLossHyperbolic**
+- Triplet loss using Poincare distance
+- Radial weight for hierarchy enforcement
+- Hard negative mining
 
-**Returns:**
-- Complete loss dictionary with all components
-- Individual losses (ce_A, ce_B, kl_A, kl_B)
-- Regularization terms (entropy, repulsion, alignment)
-- Gradient scaling factors
-- Lambda values for logging
+**PAdicMetricLoss** (DISABLED in v5.10)
+- Euclidean metric alignment (conflicts with hyperbolic structure)
+
+**PAdicNormLoss** (DISABLED in v5.10)
+- Radial hierarchy now handled by radial_weight
+
+#### Base Losses (`dual_vae_loss.py` - 524 lines)
+
+- **ReconstructionLoss**: Cross-entropy for ternary operations
+- **KLDivergenceLoss**: KL divergence with free bits
+- **EntropyRegularization**: Output diversity
+- **RepulsionLoss**: RBF kernel-based latent repulsion
+- **DualVAELoss**: Unified loss computation
 
 ---
 
-### 3. Data Module (`src/data/`)
+### 3. Metrics Module (`src/metrics/`) - 232 lines
+
+**Purpose:** Hyperbolic evaluation metrics for 3-adic ranking correlation.
+
+#### Hyperbolic Metrics (`hyperbolic.py` - 209 lines)
+
+**Key Functions:**
+- `project_to_poincare(z, max_norm)`: Project latents to Poincare ball
+- `poincare_distance(u, v, c)`: Compute hyperbolic distance
+- `compute_3adic_valuation(x)`: 3-adic valuation for ultrametric
+- `compute_ranking_correlation_hyperbolic(z_A, z_B, x, curvature)`: Main evaluation metric
+
+**Returns:**
+- `corr_A_hyp`, `corr_B_hyp`: Hyperbolic correlation (target: r > 0.99)
+- `corr_A_euc`, `corr_B_euc`: Euclidean correlation (comparison baseline)
+- `mean_radius_A`, `mean_radius_B`: Position in Poincare ball
+
+---
+
+### 4. Models Module (`src/models/`) - 2,312 lines
+
+**Purpose:** Neural network architecture only.
+
+#### DualNeuralVAEV5_10 (`ternary_vae_v5_10.py` - 822 lines)
+
+**Key Components:**
+
+1. **StateNet v4** (18D input → 7D output)
+   - Inherits v5.7: H_A, H_B, KL_A, KL_B, grad_ratio, rho, lambda3, coverage_A, coverage_B, r_A, r_B, delta_ranking
+   - v5.10 adds: mean_radius_A, mean_radius_B, prior_sigma, curvature
+   - Outputs: lr_correction, lambda1-3 corrections, ranking_weight, delta_sigma, delta_curvature
+
+2. **VAE-A (Chaotic Regime)**
+   - Explores boundary of Poincare ball
+   - Higher temperature, variable beta
+   - Target: high coverage through exploration
+
+3. **VAE-B (Stable Regime)**
+   - Anchors near origin of Poincare ball
+   - Lower temperature, stabilizing influence
+   - Target: consistent tree structure
+
+**Architecture Details:**
+- Total parameters: ~170,000
+- VAE-A: ~50,000 params
+- VAE-B: ~118,000 params (residual blocks)
+- StateNet v4: ~1,500 params
+
+#### DualNeuralVAEV5_7 (`ternary_vae_v5_7.py` - 625 lines)
+
+- StateNet v3 with metric attention
+- Dynamic ranking weight modulation
+- Backward compatible with v5.6 checkpoints
+
+#### DualNeuralVAEV5 (`ternary_vae_v5_6.py` - 538 lines)
+
+- Base dual VAE architecture
+- Stop-gradient cross-injection
+- Adaptive gradient balance
+
+---
+
+### 5. Data Module (`src/data/`) - 163 lines
 
 **Purpose:** Data generation and loading.
 
-#### Generation (`generation.py`)
+#### Generation (`generation.py` - 62 lines)
 
-**Responsibility:** Generate ternary operations
-
-**Key Functions:**
 - `generate_all_ternary_operations()`: Generate all 19,683 operations
 - `count_ternary_operations()`: Return total count (3^9)
 - `generate_ternary_operation_by_index(idx)`: Generate specific operation
 
-**Operation Format:**
-- 9-element vectors with values in {-1, 0, 1}
-- Represents truth table for ternary logic function
-- Total space: 3^9 = 19,683 operations
+#### Dataset (`dataset.py` - 79 lines)
 
-#### Dataset (`dataset.py`)
-
-**Responsibility:** PyTorch dataset interface
-
-**TernaryOperationDataset:**
-- Wraps numpy/torch arrays as PyTorch Dataset
-- Validates shape and value ranges
-- Provides statistics via `get_statistics()`
+- `TernaryOperationDataset`: PyTorch dataset wrapper
+- Validates shape and value ranges ({-1, 0, 1})
 
 ---
 
-### 4. Artifacts Module (`src/artifacts/`)
+### 6. Artifacts Module (`src/artifacts/`) - 149 lines
 
-**Purpose:** Checkpoint and artifact lifecycle management.
+**Purpose:** Checkpoint lifecycle management.
 
-#### CheckpointManager (`checkpoint_manager.py`)
+#### CheckpointManager (`checkpoint_manager.py` - 136 lines)
 
-**Responsibility:** Checkpoint I/O only
-
-**Key Methods:**
-- `save_checkpoint(epoch, model, optimizer, metadata, is_best)`
-  - Saves latest.pt always
-  - Saves best.pt if is_best=True
-  - Saves epoch_N.pt at checkpoint_freq intervals
-
-- `load_checkpoint(model, optimizer, checkpoint_name, device)`
-  - Loads checkpoint and restores state
-  - Supports 'latest', 'best', or 'epoch_N'
-
+- `save_checkpoint()`: Saves latest.pt, best.pt, epoch_N.pt
+- `load_checkpoint()`: Restore state with metadata
 - `list_checkpoints()`: Enumerate available checkpoints
-- `get_latest_epoch()`: Get epoch of latest checkpoint
-
-**Artifact Lifecycle:**
-```
-Training → artifacts/raw/        (direct outputs)
-         ↓
-    Validation
-         ↓
-         artifacts/validated/    (passed validation)
-         ↓
-    Approval
-         ↓
-         artifacts/production/   (deployment-ready)
-```
 
 ---
 
-### 5. Model Module (`src/models/`)
-
-**Purpose:** Neural network architecture only.
-
-#### DualNeuralVAEV5 (`ternary_vae_v5_5.py`)
-
-**Responsibility:** Architecture definition and forward pass only
-
-**What it DOES:**
-- Define encoder/decoder architectures
-- Implement forward pass
-- Sample from latent space
-- Compute entropies
-- Track gradient norms (for balancing)
-- Manage adaptive parameters (lambda1, lambda2, lambda3, rho)
-- StateNet meta-controller
-
-**What it DOES NOT:**
-- ~~Compute losses~~ (delegated to DualVAELoss)
-- ~~Schedule parameters~~ (delegated to Schedulers)
-- ~~Log metrics~~ (delegated to TrainingMonitor)
-- ~~Save checkpoints~~ (delegated to CheckpointManager)
-
-**Key Components:**
-
-1. **VAE-A (Chaotic Regime)**
-   - TernaryEncoderA + TernaryDecoderA
-   - Exploratory pathway
-   - Higher temperature, variable beta
-
-2. **VAE-B (Frozen Regime)**
-   - TernaryEncoderB + TernaryDecoderB
-   - Conservative pathway with residual blocks
-   - Lower temperature, stabilizing influence
-
-3. **StateNet**
-   - Meta-controller for adaptive parameter tuning
-   - Adjusts lambda1, lambda2, lambda3, and learning rate
-   - Small overhead: 1,068 parameters (0.63% of total)
-
-**Architecture Details:**
-- Total parameters: 168,770
-- VAE-A: 50,203 params
-- VAE-B: 117,499 params
-- StateNet: 1,068 params
-
----
-
-## Training Flow
+## Training Flow (v5.10)
 
 ### Initialization
 
 ```python
 # 1. Load configuration
-config = yaml.safe_load('config.yaml')
+config = yaml.safe_load('configs/ternary_v5_10.yaml')
 
-# 2. Generate data
-operations = generate_all_ternary_operations()
-dataset = TernaryOperationDataset(operations)
-train_loader, val_loader = create_data_loaders(dataset)
-
-# 3. Initialize model
-model = DualNeuralVAEV5(
-    input_dim=9,
-    latent_dim=16,
-    ...
+# 2. Create monitor (unified logging)
+monitor = TrainingMonitor(
+    eval_num_samples=1000,
+    tensorboard_dir='runs',
+    log_dir='logs',
+    log_to_file=True
 )
 
-# 4. Initialize trainer (injects all dependencies)
-trainer = TernaryVAETrainer(model, config, device)
-# Trainer creates: schedulers, monitor, checkpoint_manager, loss_fn
+# 3. Generate data
+operations = generate_all_ternary_operations()
+dataset = TernaryOperationDataset(operations)
+train_loader, val_loader = create_data_loaders(dataset, config)
 
-# 5. Train
-trainer.train(train_loader, val_loader)
+# 4. Initialize model (v5.10 with StateNet v4)
+model = DualNeuralVAEV5_10(
+    input_dim=9, latent_dim=16,
+    use_statenet=True,
+    statenet_hyp_sigma_scale=0.05,
+    statenet_hyp_curvature_scale=0.02
+)
+
+# 5. Initialize trainers
+base_trainer = TernaryVAETrainer(model, config, device)
+trainer = HyperbolicVAETrainer(base_trainer, model, device, config, monitor)
+
+# 6. Train
+for epoch in range(300):
+    losses = trainer.train_epoch(train_loader, val_loader, epoch)
+    monitor.log_epoch_summary(epoch, ...)
 ```
 
 ### Training Loop (per epoch)
 
 ```python
 for epoch in range(total_epochs):
-    # 1. Update model parameters
-    trainer._update_model_parameters(epoch)
+    # 1. Forward pass with scheduled parameters
+    outputs = model(batch, temp_A, temp_B, beta_A, beta_B)
 
-    # 2. Get scheduled values
-    temp_A = temp_scheduler.get_temperature(epoch, 'A')
-    temp_B = temp_scheduler.get_temperature(epoch, 'B')
-    beta_A = beta_scheduler.get_beta(epoch, 'A')
-    beta_B = beta_scheduler.get_beta(epoch, 'B')
-    lr = lr_scheduler.get_lr(epoch)
+    # 2. Compute hyperbolic losses
+    hyp_kl_A = hyperbolic_prior(mu_A, logvar_A, z_A)
+    hyp_kl_B = hyperbolic_prior(mu_B, logvar_B, z_B)
+    centroid_loss = centroid_loss_fn(z_A, z_B, x)
+    ranking_loss = ranking_loss_hyperbolic(z_A, z_B, x)
 
-    for batch in train_loader:
-        # 3. Forward pass
-        outputs = model(batch, temp_A, temp_B, beta_A, beta_B)
+    # 3. Backward and optimize
+    total_loss.backward()
+    model.update_gradient_norms()
+    optimizer.step()
 
-        # 4. Compute losses
-        losses = loss_fn(
-            batch, outputs,
-            model.lambda1, model.lambda2, model.lambda3,
-            entropy_weight, repulsion_weight,
-            model.grad_norm_A_ema, model.grad_norm_B_ema,
-            model.gradient_balance, training=True
-        )
+    # 4. Homeostatic adaptation
+    if config['homeostatic']:
+        prior.adapt(mean_radius_A, mean_radius_B, ...)
 
-        # 5. Backward and optimize
-        optimizer.zero_grad()
-        losses['loss'].backward()
-        model.update_gradient_norms()
-        optimizer.step()
+    # 5. Evaluate (optimized intervals)
+    if epoch % 5 == 0:  # Coverage check
+        cov_A, cov_B = evaluate_coverage(...)
+    if epoch % 20 == 0:  # Correlation check
+        corr_A_hyp, corr_B_hyp = compute_ranking_correlation_hyperbolic(...)
 
-    # 6. Validate
-    val_losses = trainer.validate(val_loader)
-
-    # 7. Monitor
-    is_best = monitor.check_best(val_losses['loss'])
-    unique_A, cov_A = monitor.evaluate_coverage(model, ...)
-    monitor.log_epoch(epoch, train_losses, val_losses, ...)
-
-    # 8. Save checkpoint
-    checkpoint_manager.save_checkpoint(
-        epoch, model, optimizer, metadata, is_best
-    )
+    # 6. Log and checkpoint
+    monitor.log_epoch_summary(epoch, ...)
 ```
 
 ---
 
-## Dependency Injection
-
-The refactored architecture uses **constructor-based dependency injection**:
-
-```python
-# Trainer receives all dependencies
-trainer = TernaryVAETrainer(
-    model=model,           # Model to train
-    config=config,         # Training configuration
-    device=device          # Device (cuda/cpu)
-)
-
-# Internally, trainer creates:
-# - self.temp_scheduler = TemperatureScheduler(config, ...)
-# - self.beta_scheduler = BetaScheduler(config, ...)
-# - self.lr_scheduler = LearningRateScheduler(config['lr_schedule'])
-# - self.monitor = TrainingMonitor(config['eval_num_samples'])
-# - self.checkpoint_manager = CheckpointManager(config['checkpoint_dir'])
-# - self.loss_fn = DualVAELoss(config['free_bits'])
-```
-
-**Benefits:**
-- Easy to test (can mock dependencies)
-- Clear dependencies visible in constructor
-- Can swap implementations
-- No hidden global state
-
----
-
-## Configuration
-
-Training is configured via YAML files:
+## Configuration (v5.10)
 
 ```yaml
-# Model architecture
+config_version: "5.10"
+
 model:
   input_dim: 9
   latent_dim: 16
-  gradient_balance: true
   use_statenet: true
+  statenet_hyp_sigma_scale: 0.05
+  statenet_hyp_curvature_scale: 0.02
 
-# VAE-A parameters
-vae_a:
-  temp_start: 1.1
-  temp_end: 0.85
-  beta_start: 0.0
-  beta_end: 0.4
-  beta_warmup_epochs: 50
+padic_losses:
+  # DISABLED: Euclidean contamination
+  enable_metric_loss: false
+  enable_norm_loss: false
 
-# VAE-B parameters
-vae_b:
-  temp_start: 0.9
-  temp_end: 0.8
-  beta_start: 0.0
-  beta_end: 0.3
-  entropy_weight: 0.05
-  repulsion_weight: 0.01
+  # ENABLED: Pure hyperbolic
+  enable_ranking_loss_hyperbolic: true
+  ranking_hyperbolic:
+    curvature: 2.0
+    radial_weight: 0.4
+    max_norm: 0.95
 
-# Optimizer
-optimizer:
-  lr_start: 0.001
-  lr_schedule:
-    - {epoch: 0, lr: 0.001}
-    - {epoch: 50, lr: 0.0005}
+  hyperbolic_v10:
+    use_hyperbolic_prior: true
+    prior:
+      homeostatic: true
+      curvature: 2.0
+      prior_sigma: 1.0
+    use_hyperbolic_recon: true
+    use_centroid_loss: true
 
-# Training
-total_epochs: 400
-batch_size: 256
-checkpoint_freq: 10
-patience: 100
+# Evaluation intervals (optimized)
+coverage_check_interval: 5
+eval_interval: 20
+eval_num_samples: 1000
 ```
 
 ---
 
-## Testing
+## Target Metrics
 
-### Unit Testing
-
-Each component can be tested independently:
-
-```python
-# Test scheduler
-scheduler = TemperatureScheduler(config, phase_4_start=200, temp_lag=5)
-assert scheduler.get_temperature(0, 'A') == 1.1
-assert scheduler.get_temperature(100, 'A') < 1.1
-
-# Test loss
-loss_fn = DualVAELoss(free_bits=0.0)
-losses = loss_fn(x, outputs, lambda1, lambda2, lambda3, ...)
-assert 'loss' in losses
-assert losses['ce_A'] >= 0
-
-# Test dataset
-dataset = TernaryOperationDataset(operations)
-assert len(dataset) == 19683
-assert dataset[0].shape == (9,)
-```
-
-### Integration Testing
-
-```python
-# Run full training loop for N epochs
-trainer = TernaryVAETrainer(model, config, device)
-trainer.train(train_loader, val_loader)
-```
+| Metric | Target | Description |
+|--------|--------|-------------|
+| Hyperbolic Correlation | r > 0.99 | 3-adic ranking preserved in Poincare ball |
+| Coverage | > 99.7% | Operations discovered |
+| Mean Radius A | 0.7-0.9 | VAE-A explores boundary |
+| Mean Radius B | 0.3-0.5 | VAE-B anchors near origin |
 
 ---
 
-## Migration Guide
+## File Reference
 
-### From Original to Refactored
+### Core Files (v5.10)
 
-**Old code:**
-```python
-from scripts.train.train_ternary_v5_5 import DNVAETrainerV5
-trainer = DNVAETrainerV5(config, device)
-trainer.train(train_loader, val_loader)
-```
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/models/ternary_vae_v5_10.py` | 822 | Pure hyperbolic model with StateNet v4 |
+| `src/training/hyperbolic_trainer.py` | 495 | Hyperbolic training orchestration |
+| `src/losses/hyperbolic_prior.py` | 387 | Wrapped normal prior on Poincare ball |
+| `src/losses/hyperbolic_recon.py` | 546 | Geodesic reconstruction loss |
+| `src/metrics/hyperbolic.py` | 209 | Hyperbolic correlation metrics |
+| `scripts/train/train_ternary_v5_10.py` | 202 | Training entry point |
+| `configs/ternary_v5_10.yaml` | 285 | v5.10 configuration |
 
-**New code:**
-```python
-from src.training import TernaryVAETrainer
-from src.models.ternary_vae_v5_5 import DualNeuralVAEV5
+### Supporting Files
 
-model = DualNeuralVAEV5(...)
-trainer = TernaryVAETrainer(model, config, device)
-trainer.train(train_loader, val_loader)
-```
-
-**Key changes:**
-- Trainer is now a pure orchestrator
-- Model created separately and passed to trainer
-- Data generation moved to `src.data` module
-- Loss computation separated into `src.losses`
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/training/trainer.py` | 440 | Base trainer |
+| `src/training/monitor.py` | 694 | Unified logging |
+| `src/losses/padic_losses.py` | 1,047 | P-adic ranking losses |
+| `src/losses/dual_vae_loss.py` | 524 | Base VAE losses |
 
 ---
 
-## Performance
+## See Also
 
-**Validation Results:**
-- 50-epoch test completed successfully
-- Best validation loss: -0.2562 (epoch 6)
-- Coverage: 90%+ achievable
-- Training time: ~90 minutes for 50 epochs (CUDA)
-
-**No performance regression:**
-- Refactored code matches original implementation exactly
-- Same loss values
-- Same gradient flow
-- Same training curves
-
----
-
-## Future Enhancements
-
-Possible improvements maintaining SRP:
-
-1. **Metrics Module**: Extract coverage/entropy computation
-2. **Validation Module**: Separate validation logic
-3. **Callbacks**: Add training callbacks for extensibility
-4. **Artifact Repository**: Promotion workflow (raw → validated → production)
-5. **Experiment Tracking**: Integration with W&B/MLflow
-
----
-
-## References
-
-- **Original Paper**: Dual-Neural VAE architecture
-- **SRP Refactoring Plan**: `reports/SRP_REFACTORING_PLAN.md`
-- **Progress Report**: `reports/REFACTORING_PROGRESS.md`
-- **Training Report**: `reports/training_report_2025-11-23.md`
+- **API Reference:** `docs/API_REFERENCE.md`
+- **Mathematical Foundations:** `docs/theory/MATHEMATICAL_FOUNDATIONS.md`
+- **Installation:** `docs/INSTALLATION_AND_USAGE.md`
