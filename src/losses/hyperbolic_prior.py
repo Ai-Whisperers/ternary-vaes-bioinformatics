@@ -170,10 +170,9 @@ class HyperbolicPrior(nn.Module):
 
         # 2. Compute distance from origin (prior center)
         # This is the "radial" component of KL
-        dist_from_origin = self._poincare_distance(
-            z_mu,
-            self.origin.expand_as(z_mu)
-        )
+        # Create origin on same device as z_mu for CUDA compatibility
+        origin = torch.zeros_like(z_mu)
+        dist_from_origin = self._poincare_distance(z_mu, origin)
 
         # 3. Map to tangent space at origin
         v_mu = self._log_map_zero(z_mu)

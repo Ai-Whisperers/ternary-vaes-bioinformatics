@@ -340,9 +340,9 @@ class DualNeuralVAEV5_10(nn.Module):
 
         # StateNet v4: Hyperbolic-aware controller
         if use_statenet:
-            self.statenet = StateNetV4(state_dim=18, hidden_dim=64, latent_dim=12)
+            self.state_net = StateNetV4(state_dim=18, hidden_dim=64, latent_dim=12)
         else:
-            self.statenet = None
+            self.state_net = None
 
         # Gradient norm tracking (for adaptive balance)
         self.register_buffer('grad_norm_A_ema', torch.tensor(1.0))
@@ -358,6 +358,32 @@ class DualNeuralVAEV5_10(nn.Module):
         self.register_buffer('prior_sigma', torch.tensor(1.0))
         self.register_buffer('curvature', torch.tensor(2.0))
 
+        # Adaptive parameters (inherited from v5.6/v5.7)
+        self.rho = rho_min
+        self.lambda1 = 0.7
+        self.lambda2 = 0.7
+        self.lambda3 = lambda3_base
+        self.ranking_weight = 0.4  # Dynamic ranking weight (v5.7)
+
+        # EMA momentum parameters
+        self.r_ema_momentum = 0.95
+        self.grad_ema_momentum = 0.9
+
+        # State tracking
+        self.grad_balance_achieved = False
+        self.current_phase = 1
+
+        # StateNet correction history
+        self.statenet_corrections = {
+            'delta_lr': [],
+            'delta_lambda1': [],
+            'delta_lambda2': [],
+            'delta_lambda3': [],
+            'delta_ranking_weight': [],
+            'delta_sigma': [],
+            'delta_curvature': []
+        }
+
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
         """Reparameterization trick for sampling."""
         std = torch.exp(0.5 * logvar)
@@ -369,6 +395,128 @@ class DualNeuralVAEV5_10(nn.Module):
         probs = F.softmax(logits, dim=-1)
         entropy = -(probs * torch.log(probs + 1e-10)).sum(dim=-1).mean()
         return entropy
+
+    def compute_latent_entropy(self, z: torch.Tensor, num_bins: int = 50) -> torch.Tensor:
+        """Estimate latent entropy using histogram method."""
+        batch_size, latent_dim = z.shape
+
+        entropies = []
+        for i in range(latent_dim):
+            z_i = z[:, i]
+            hist = torch.histc(z_i, bins=num_bins, min=-3.0, max=3.0)
+            hist = hist / hist.sum()
+            hist = hist[hist > 0]
+            entropy = -(hist * torch.log(hist)).sum()
+            entropies.append(entropy)
+
+        return torch.stack(entropies).mean()
+
+    def compute_phase_scheduled_rho(self, epoch: int, phase_4_start: int = 250) -> float:
+        """Compute phase-scheduled latent permeability."""
+        if epoch < 40:
+            self.current_phase = 1
+            return self.rho_min
+        elif epoch < 120:
+            self.current_phase = 2
+            progress = (epoch - 40) / 80.0
+            return self.rho_min + progress * (0.3 - self.rho_min)
+        elif epoch < phase_4_start:
+            if self.grad_balance_achieved:
+                self.current_phase = 3
+                progress = min(1.0, (epoch - 120) / 80.0)
+                return 0.3 + progress * (self.rho_max - 0.3)
+            else:
+                return 0.3
+        else:
+            self.current_phase = 4
+            return self.rho_max
+
+    def compute_cyclic_lambda3(self, epoch: int, period: int = 30) -> float:
+        """Compute cyclic entropy alignment weight."""
+        phase = (epoch % period) / period * 2 * np.pi + np.pi / 2
+        return self.lambda3_base + self.lambda3_amplitude * np.cos(phase)
+
+    def update_adaptive_ema_momentum(self, grad_ratio: float):
+        """Update EMA momentum based on gradient balance."""
+        if self.adaptive_scheduling:
+            if 0.8 < grad_ratio < 1.2:
+                self.grad_ema_momentum = 0.95
+                self.grad_balance_achieved = True
+            else:
+                self.grad_ema_momentum = 0.5
+                self.grad_balance_achieved = False
+        else:
+            self.grad_ema_momentum = 0.9
+
+    def update_adaptive_lambdas(self, grad_ratio: float, coverage_A: int, coverage_B: int):
+        """Update lambda1 and lambda2 adaptively."""
+        if not self.adaptive_scheduling:
+            return
+
+        if grad_ratio < 0.8:
+            self.lambda1 = min(0.95, self.lambda1 + 0.02)
+            self.lambda2 = max(0.50, self.lambda2 - 0.02)
+        elif grad_ratio > 1.2:
+            self.lambda1 = max(0.50, self.lambda1 - 0.02)
+            self.lambda2 = min(0.95, self.lambda2 + 0.02)
+
+        if 0.8 < grad_ratio < 1.2 and coverage_A > 0 and coverage_B > 0:
+            cov_ratio = coverage_B / (coverage_A + 1e-6)
+
+            if cov_ratio > 1.5:
+                self.lambda1 = min(0.95, self.lambda1 * 1.05)
+                self.lambda2 = max(0.50, self.lambda2 * 0.95)
+            elif cov_ratio < 0.67:
+                self.lambda1 = max(0.50, self.lambda1 * 0.95)
+                self.lambda2 = min(0.95, self.lambda2 * 1.05)
+
+        self.lambda1 = max(0.5, min(0.95, self.lambda1))
+        self.lambda2 = max(0.5, min(0.95, self.lambda2))
+
+    def update_gradient_norms(self):
+        """Update EMA of gradient norms."""
+        if not self.training:
+            return
+
+        grad_norm_A = 0.0
+        for param in list(self.encoder_A.parameters()) + list(self.decoder_A.parameters()):
+            if param.grad is not None:
+                grad_norm_A += param.grad.norm().item() ** 2
+        grad_norm_A = math.sqrt(grad_norm_A)
+
+        grad_norm_B = 0.0
+        for param in list(self.encoder_B.parameters()) + list(self.decoder_B.parameters()):
+            if param.grad is not None:
+                grad_norm_B += param.grad.norm().item() ** 2
+        grad_norm_B = math.sqrt(grad_norm_B)
+
+        if grad_norm_A > 0:
+            self.grad_norm_A_ema = (self.grad_ema_momentum * self.grad_norm_A_ema +
+                                   (1 - self.grad_ema_momentum) * grad_norm_A)
+        if grad_norm_B > 0:
+            self.grad_norm_B_ema = (self.grad_ema_momentum * self.grad_norm_B_ema +
+                                   (1 - self.grad_ema_momentum) * grad_norm_B)
+
+    def get_ranking_weight(self) -> float:
+        """Get current effective ranking loss weight."""
+        return self.ranking_weight
+
+    def get_metric_state(self) -> dict:
+        """Get current metric-related state for logging."""
+        return {
+            'r_A_ema': self.r_A_ema.item() if torch.is_tensor(self.r_A_ema) else self.r_A_ema,
+            'r_B_ema': self.r_B_ema.item() if torch.is_tensor(self.r_B_ema) else self.r_B_ema,
+            'ranking_weight': self.ranking_weight,
+            'lambda1': self.lambda1,
+            'lambda2': self.lambda2,
+            'lambda3': self.lambda3,
+            'rho': self.rho,
+            'phase': self.current_phase,
+            'mean_radius_A': self.mean_radius_A.item() if torch.is_tensor(self.mean_radius_A) else self.mean_radius_A,
+            'mean_radius_B': self.mean_radius_B.item() if torch.is_tensor(self.mean_radius_B) else self.mean_radius_B,
+            'prior_sigma': self.prior_sigma.item() if torch.is_tensor(self.prior_sigma) else self.prior_sigma,
+            'curvature': self.curvature.item() if torch.is_tensor(self.curvature) else self.curvature
+        }
 
     def get_phase_params(self, epoch: int, total_epochs: int = 300) -> dict:
         """Get phase-scheduled parameters (from v5.6)."""
@@ -465,57 +613,106 @@ class DualNeuralVAEV5_10(nn.Module):
 
     def apply_statenet_corrections(
         self,
-        corrections: torch.Tensor,
-        base_lr: float,
-        lambda1: float,
-        lambda2: float,
-        lambda3: float,
-        ranking_weight: float,
-        prior_sigma: float,
-        curvature: float
-    ) -> dict:
-        """Apply StateNet v4 corrections to hyperparameters.
+        lr: float,
+        H_A: float,
+        H_B: float,
+        kl_A: float,
+        kl_B: float,
+        grad_ratio: float,
+        coverage_A: int = 0,
+        coverage_B: int = 0,
+        r_A: float = 0.5,
+        r_B: float = 0.5,
+        mean_radius_A: float = 0.5,
+        mean_radius_B: float = 0.5,
+        prior_sigma: float = 1.0,
+        curvature: float = 2.0
+    ) -> tuple:
+        """Apply StateNet v4 corrections including hyperbolic parameter modulation.
+
+        v4 UPGRADE: Extends v3 with hyperbolic state feedback for sigma/curvature.
+
+        Args:
+            lr: Current learning rate
+            H_A: VAE-A entropy
+            H_B: VAE-B entropy
+            kl_A: VAE-A KL divergence
+            kl_B: VAE-B KL divergence
+            grad_ratio: Gradient norm ratio (A/B)
+            coverage_A: VAE-A unique operations count (0-19683)
+            coverage_B: VAE-B unique operations count (0-19683)
+            r_A: VAE-A 3-adic ranking correlation (0-1)
+            r_B: VAE-B 3-adic ranking correlation (0-1)
+            mean_radius_A: VAE-A mean hyperbolic radius
+            mean_radius_B: VAE-B mean hyperbolic radius
+            prior_sigma: Current prior sigma
+            curvature: Current curvature
 
         Returns:
-            Dict with corrected values for all modulated params
+            Tuple of (corrected_lr, delta_lr, delta_lambda1, delta_lambda2,
+                     delta_lambda3, delta_ranking_weight, effective_ranking_weight)
         """
-        corrections = corrections.squeeze()
+        if not self.use_statenet or not self.training:
+            return lr, 0.0, 0.0, 0.0, 0.0, 0.0, self.ranking_weight
 
-        # Extract corrections (7D output)
-        delta_lr = corrections[0].item() * self.statenet_lr_scale
-        delta_lambda1 = corrections[1].item() * self.statenet_lambda_scale
-        delta_lambda2 = corrections[2].item() * self.statenet_lambda_scale
-        delta_lambda3 = corrections[3].item() * self.statenet_lambda_scale
-        delta_ranking = corrections[4].item() * self.statenet_ranking_scale
-        delta_sigma = corrections[5].item() * self.statenet_hyp_sigma_scale
-        delta_curvature = corrections[6].item() * self.statenet_hyp_curvature_scale
+        # Update ranking EMA
+        self.update_ranking_ema(r_A, r_B)
 
-        # Apply corrections with bounds
-        corrected_lr = base_lr * (1 + delta_lr)
-        corrected_lr = max(1e-5, min(0.01, corrected_lr))
+        # Normalize coverage values to [0, 1]
+        TOTAL_OPS = 19683
+        coverage_A_norm = coverage_A / TOTAL_OPS
+        coverage_B_norm = coverage_B / TOTAL_OPS
+        missing_ops_norm = (TOTAL_OPS - max(coverage_A, coverage_B)) / TOTAL_OPS
 
-        corrected_lambda1 = max(0.1, min(2.0, lambda1 + delta_lambda1))
-        corrected_lambda2 = max(0.1, min(2.0, lambda2 + delta_lambda2))
-        corrected_lambda3 = max(0.0, min(1.0, lambda3 + delta_lambda3))
-        corrected_ranking = max(0.1, min(0.8, ranking_weight + delta_ranking))
+        # Build 18D state vector (v4: with hyperbolic state)
+        state_vec = torch.tensor(
+            [H_A, H_B, kl_A, kl_B, grad_ratio, self.rho,
+             self.lambda1, self.lambda2, self.lambda3,
+             coverage_A_norm, coverage_B_norm, missing_ops_norm,
+             r_A, r_B,
+             mean_radius_A, mean_radius_B,
+             prior_sigma, curvature],
+            device=self.grad_norm_A_ema.device,
+            dtype=torch.float32
+        )
 
-        # Hyperbolic param corrections (v4)
-        corrected_sigma = max(0.3, min(2.0, prior_sigma + delta_sigma))
-        corrected_curvature = max(0.5, min(4.0, curvature + delta_curvature))
+        corrections, latent, attention = self.state_net(state_vec)
+        delta_lr = corrections[0, 0]
+        delta_lambda1 = corrections[0, 1]
+        delta_lambda2 = corrections[0, 2]
+        delta_lambda3 = corrections[0, 3]
+        delta_ranking_weight = corrections[0, 4]
+        delta_sigma = corrections[0, 5]
+        delta_curvature = corrections[0, 6]
 
-        return {
-            'lr': corrected_lr,
-            'lambda1': corrected_lambda1,
-            'lambda2': corrected_lambda2,
-            'lambda3': corrected_lambda3,
-            'ranking_weight': corrected_ranking,
-            'prior_sigma': corrected_sigma,
-            'curvature': corrected_curvature,
-            'delta_lr': delta_lr,
-            'delta_ranking': delta_ranking,
-            'delta_sigma': delta_sigma,
-            'delta_curvature': delta_curvature
-        }
+        # Apply learning rate correction
+        corrected_lr = lr * (1 + self.statenet_lr_scale * delta_lr.item())
+        corrected_lr = max(1e-6, min(0.01, corrected_lr))
+
+        # Apply lambda corrections
+        self.lambda1 = max(0.5, min(0.95, self.lambda1 + self.statenet_lambda_scale * delta_lambda1.item()))
+        self.lambda2 = max(0.5, min(0.95, self.lambda2 + self.statenet_lambda_scale * delta_lambda2.item()))
+        self.lambda3 = max(0.15, min(0.75, self.lambda3 + self.statenet_lambda_scale * delta_lambda3.item()))
+
+        # Apply ranking weight correction
+        effective_ranking_weight = self.ranking_weight * (
+            1 + self.statenet_ranking_scale * delta_ranking_weight.item()
+        )
+        effective_ranking_weight = max(0.1, min(1.5, effective_ranking_weight))
+        self.ranking_weight = effective_ranking_weight
+
+        # Record corrections
+        self.statenet_corrections['delta_lr'].append(delta_lr.item())
+        self.statenet_corrections['delta_lambda1'].append(delta_lambda1.item())
+        self.statenet_corrections['delta_lambda2'].append(delta_lambda2.item())
+        self.statenet_corrections['delta_lambda3'].append(delta_lambda3.item())
+        self.statenet_corrections['delta_ranking_weight'].append(delta_ranking_weight.item())
+        self.statenet_corrections['delta_sigma'].append(delta_sigma.item())
+        self.statenet_corrections['delta_curvature'].append(delta_curvature.item())
+
+        return (corrected_lr, delta_lr.item(), delta_lambda1.item(),
+                delta_lambda2.item(), delta_lambda3.item(),
+                delta_ranking_weight.item(), effective_ranking_weight)
 
     def update_ranking_ema(self, r_A: float, r_B: float, alpha: float = 0.95):
         """Update ranking correlation EMA (for StateNet v3/v4)."""
@@ -536,30 +733,20 @@ class DualNeuralVAEV5_10(nn.Module):
         self.prior_sigma = torch.tensor(prior_sigma)
         self.curvature = torch.tensor(curvature)
 
-    def forward(
-        self,
-        x: torch.Tensor,
-        beta_A: float,
-        beta_B: float,
-        temp_A: float,
-        temp_B: float,
-        rho: float = 0.5
-    ) -> dict:
+    def forward(self, x: torch.Tensor, temp_A: float = 1.0, temp_B: float = 1.0,
+                beta_A: float = 1.0, beta_B: float = 1.0) -> dict:
         """Forward pass through both VAEs with cross-injection.
 
         Args:
             x: Input ternary operations (batch_size, 9)
-            beta_A: KL weight for VAE-A
-            beta_B: KL weight for VAE-B
             temp_A: Temperature for VAE-A
             temp_B: Temperature for VAE-B
-            rho: Permeability for cross-injection
+            beta_A: KL weight for VAE-A
+            beta_B: KL weight for VAE-B
 
         Returns:
             Dict with all outputs and intermediate values
         """
-        batch_size = x.size(0)
-
         # Encode
         mu_A, logvar_A = self.encoder_A(x)
         mu_B, logvar_B = self.encoder_B(x)
@@ -568,9 +755,9 @@ class DualNeuralVAEV5_10(nn.Module):
         z_A = self.reparameterize(mu_A, logvar_A)
         z_B = self.reparameterize(mu_B, logvar_B)
 
-        # Cross-injection with stop-gradient
-        z_A_injected = (1 - rho) * z_A + rho * z_B.detach()
-        z_B_injected = (1 - rho) * z_B + rho * z_A.detach()
+        # Cross-injection with stop-gradient (using self.rho)
+        z_A_injected = (1 - self.rho) * z_A + self.rho * z_B.detach()
+        z_B_injected = (1 - self.rho) * z_B + self.rho * z_A.detach()
 
         # Decode
         logits_A = self.decoder_A(z_A_injected) / temp_A
@@ -597,8 +784,38 @@ class DualNeuralVAEV5_10(nn.Module):
             'beta_B': beta_B,
             'temp_A': temp_A,
             'temp_B': temp_B,
-            'rho': rho
+            'rho': self.rho
         }
+
+
+    def sample(self, num_samples: int, device: str = 'cpu',
+               use_vae: str = 'A') -> torch.Tensor:
+        """Sample from the learned manifold.
+
+        Args:
+            num_samples: Number of samples to generate
+            device: Device to generate samples on
+            use_vae: Which VAE to use ('A' or 'B')
+
+        Returns:
+            Sampled ternary operations (num_samples, 9)
+        """
+        self.eval()
+        with torch.no_grad():
+            z = torch.randn(num_samples, self.latent_dim, device=device)
+
+            if use_vae == 'A':
+                logits = self.decoder_A(z)
+            else:
+                logits = self.decoder_B(z)
+
+            # Use categorical sampling instead of expectation
+            dist = torch.distributions.Categorical(logits=logits)
+            indices = dist.sample()
+            values = torch.tensor([-1.0, 0.0, 1.0], device=device)
+            samples = values[indices]
+
+        return samples
 
 
 # Backward compatibility alias

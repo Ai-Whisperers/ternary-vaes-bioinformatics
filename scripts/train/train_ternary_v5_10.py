@@ -254,6 +254,22 @@ class PureHyperbolicTrainer:
         self.coverage_ema = None
         self.prev_coverage = None
 
+        # Evaluation intervals (now actually used!)
+        self.coverage_check_interval = config.get('coverage_check_interval', 5)
+        self.eval_interval = config.get('eval_interval', 20)
+
+        # Cached values for non-evaluation epochs
+        self.cached_cov_A = 0.0
+        self.cached_cov_B = 0.0
+        self.cached_unique_A = 0
+        self.cached_unique_B = 0
+        self.cached_corr_A_hyp = 0.5
+        self.cached_corr_B_hyp = 0.5
+        self.cached_corr_A_euc = 0.5
+        self.cached_corr_B_euc = 0.5
+        self.cached_mean_radius_A = 0.0
+        self.cached_mean_radius_B = 0.0
+
         # Tracking
         self.correlation_history_hyp = []
         self.correlation_history_euc = []
@@ -301,13 +317,28 @@ class PureHyperbolicTrainer:
 
     def train_epoch(self, train_loader, val_loader, epoch):
         """Train one epoch with pure hyperbolic geometry and homeostatic adaptation."""
-        # Get current coverage
-        unique_A, cov_A = self.base_trainer.monitor.evaluate_coverage(
-            self.model, self.config['eval_num_samples'], self.device, 'A'
-        )
-        unique_B, cov_B = self.base_trainer.monitor.evaluate_coverage(
-            self.model, self.config['eval_num_samples'], self.device, 'B'
-        )
+        # Coverage evaluation: only every coverage_check_interval epochs (or epoch 0)
+        should_check_coverage = (epoch == 0) or (epoch % self.coverage_check_interval == 0)
+
+        if should_check_coverage:
+            unique_A, cov_A = self.base_trainer.monitor.evaluate_coverage(
+                self.model, self.config['eval_num_samples'], self.device, 'A'
+            )
+            unique_B, cov_B = self.base_trainer.monitor.evaluate_coverage(
+                self.model, self.config['eval_num_samples'], self.device, 'B'
+            )
+            # Cache for non-evaluation epochs
+            self.cached_cov_A = cov_A
+            self.cached_cov_B = cov_B
+            self.cached_unique_A = unique_A
+            self.cached_unique_B = unique_B
+        else:
+            # Use cached values
+            cov_A = self.cached_cov_A
+            cov_B = self.cached_cov_B
+            unique_A = self.cached_unique_A
+            unique_B = self.cached_unique_B
+
         current_coverage = (cov_A + cov_B) / 2
 
         # Compute adaptive ranking weight
@@ -409,13 +440,31 @@ class PureHyperbolicTrainer:
         self.radial_loss_history.append(radial_loss)
         self.homeostatic_history.append(homeostatic_metrics)
 
-        # Compute ranking correlations
-        corr_A_hyp, corr_B_hyp, corr_A_euc, corr_B_euc, mean_radius_A, mean_radius_B = \
-            compute_ranking_correlation_hyperbolic(
-                self.model, self.device,
-                max_norm=self.max_norm,
-                curvature=self.curvature
-            )
+        # Correlation evaluation: only every eval_interval epochs (or epoch 0)
+        should_check_correlation = (epoch == 0) or (epoch % self.eval_interval == 0)
+
+        if should_check_correlation:
+            corr_A_hyp, corr_B_hyp, corr_A_euc, corr_B_euc, mean_radius_A, mean_radius_B = \
+                compute_ranking_correlation_hyperbolic(
+                    self.model, self.device,
+                    max_norm=self.max_norm,
+                    curvature=self.curvature
+                )
+            # Cache for non-evaluation epochs
+            self.cached_corr_A_hyp = corr_A_hyp
+            self.cached_corr_B_hyp = corr_B_hyp
+            self.cached_corr_A_euc = corr_A_euc
+            self.cached_corr_B_euc = corr_B_euc
+            self.cached_mean_radius_A = mean_radius_A
+            self.cached_mean_radius_B = mean_radius_B
+        else:
+            # Use cached values
+            corr_A_hyp = self.cached_corr_A_hyp
+            corr_B_hyp = self.cached_corr_B_hyp
+            corr_A_euc = self.cached_corr_A_euc
+            corr_B_euc = self.cached_corr_B_euc
+            mean_radius_A = self.cached_mean_radius_A
+            mean_radius_B = self.cached_mean_radius_B
 
         corr_mean_hyp = (corr_A_hyp + corr_B_hyp) / 2
         corr_mean_euc = (corr_A_euc + corr_B_euc) / 2
@@ -457,6 +506,8 @@ class PureHyperbolicTrainer:
             'coverage_ema': self.coverage_ema or current_coverage,
             'mean_radius_A': mean_radius_A,
             'mean_radius_B': mean_radius_B,
+            'coverage_evaluated': should_check_coverage,
+            'correlation_evaluated': should_check_correlation,
             **{f'ranking_{k}': v for k, v in ranking_metrics.items()},
             **{f'homeo_{k}': v for k, v in homeostatic_metrics.items()}
         }
@@ -576,7 +627,12 @@ def main():
 
     print(f"\n{'='*80}")
     print("Starting Pure Hyperbolic Training with Homeostatic Adaptation")
-    print(f"{'='*80}\n")
+    print(f"{'='*80}")
+    print(f"\nEvaluation Intervals (reduces ~10min/epoch to ~1-2min/epoch):")
+    print(f"  Coverage check: every {config.get('coverage_check_interval', 5)} epochs")
+    print(f"  Correlation check: every {config.get('eval_interval', 20)} epochs")
+    print(f"  Samples per check: {config.get('eval_num_samples', 1000)}")
+    print(f"  Training loss logged every batch (free convergence signal)\n")
 
     total_epochs = config['total_epochs']
 
@@ -595,11 +651,15 @@ def main():
         )
 
         # Print epoch summary
+        cov_status = "FRESH" if losses.get('coverage_evaluated', True) else "cached"
+        corr_status = "FRESH" if losses.get('correlation_evaluated', True) else "cached"
+
         print(f"\nEpoch {epoch}/{total_epochs}")
         print(f"  Loss: {losses['loss']:.4f} | Ranking Weight: {losses['ranking_weight']:.3f}")
-        print(f"  Coverage: A={losses['cov_A']:.1f}% B={losses['cov_B']:.1f}% (best={trainer.best_coverage:.1f}%)")
-        print(f"  3-Adic Correlation (Hyperbolic): A={losses['corr_A_hyp']:.3f} B={losses['corr_B_hyp']:.3f} (best={trainer.best_corr_hyp:.3f})")
-        print(f"  3-Adic Correlation (Euclidean):  A={losses['corr_A_euc']:.3f} B={losses['corr_B_euc']:.3f}")
+        print(f"  Coverage [{cov_status}]: A={losses['cov_A']:.1f}% B={losses['cov_B']:.1f}% (best={trainer.best_coverage:.1f}%)")
+        print(f"  3-Adic Correlation [{corr_status}] (Hyp): A={losses['corr_A_hyp']:.3f} B={losses['corr_B_hyp']:.3f} (best={trainer.best_corr_hyp:.3f})")
+        if losses.get('correlation_evaluated', True):
+            print(f"  3-Adic Correlation (Euclidean):  A={losses['corr_A_euc']:.3f} B={losses['corr_B_euc']:.3f}")
         print(f"  Mean Radius: A={losses['mean_radius_A']:.3f} B={losses['mean_radius_B']:.3f}")
 
         if losses.get('radial_loss', 0) > 0:
