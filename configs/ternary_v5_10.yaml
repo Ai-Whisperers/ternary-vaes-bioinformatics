@@ -1,20 +1,21 @@
-# Ternary VAE v5.10 - Pure Hyperbolic Geometry
+# Ternary VAE v5.10+ - Radial-First Curriculum Learning
 # =============================================================================
-config_version: "5.10"
-# Key innovations (modular replacements for complete hyperbolic consistency):
-#   1. HyperbolicPrior: Wrapped Normal on Poincare ball (replaces Gaussian KL)
-#   2. HyperbolicReconLoss: Radius-weighted CE (replaces flat MSE)
-#   3. HyperbolicCentroidLoss: Frechet mean tree structure enforcement
-#   4. HomeostaticAdaptation: Both VAEs self-regulate for algebraic convergence
-#   5. Disabled Euclidean norm_loss: radial_weight handles hierarchy
+config_version: "5.10.1"
+# Key innovations (StateNet v5 + curriculum-controlled radial stratification):
+#   1. RadialStratificationLoss: Enforces 3-adic tree structure via radial hierarchy
+#   2. ContinuousCurriculum: Differentiable tau blends radial -> ranking losses
+#   3. StateNet v5: 20D input (+radial_loss, tau), 8D output (+delta_curriculum)
+#   4. Emergent curriculum: StateNet learns optimal radial->ranking transition
+#   5. HyperbolicPrior: Wrapped Normal on Poincare ball (replaces Gaussian KL)
+#   6. HomeostaticAdaptation: Both VAEs self-regulate for algebraic convergence
 #
-# Philosophy: "Let the hyperbolic geometry do the work"
-#   - No Euclidean contamination in the loss landscape
-#   - Prior, reconstruction, and ranking all use Poincare distance
-#   - Homeostatic mechanisms prevent collapse/explosion
-#   - StateNet v4: 18D input (adds hyperbolic state), 7D output (adds hyp params)
+# Philosophy: "Learn radial hierarchy first, then angular discrimination"
+#   - tau=0: Pure radial learning (coarse tree structure)
+#   - tau=1: Pure ranking learning (fine angular discrimination)
+#   - StateNet controls curriculum via delta_curriculum output
+#   - No hard thresholds - curriculum pacing emerges from learning
 #
-# Goal: r > 0.99, coverage > 99.7% via pure hyperbolic ultrametric embedding
+# Goal: r > 0.95, coverage > 95% via radial-first curriculum
 # =============================================================================
 
 # Model architecture (same backbone)
@@ -37,16 +38,50 @@ model:
   gradient_balance: true
   adaptive_scheduling: true
 
-  # StateNet v4 with hyperbolic homeostasis (18D input, 7D output)
+  # StateNet v5 with curriculum control (20D input, 8D output)
   # Inherits v5.6 (12D: H, KL, grad, rho, lambda, coverage)
   # Inherits v5.7 (+2D: r_A, r_B ranking correlations, +1D: delta_ranking)
   # v5.10 adds (+4D: mean_radius_A/B, prior_sigma, curvature, +2D: delta_sigma, delta_curvature)
+  # v5 adds (+2D: radial_loss, curriculum_tau, +1D: delta_curriculum)
   use_statenet: true
+  statenet_version: 5                 # v5 enables curriculum control
   statenet_lr_scale: 0.1              # Learning rate correction scale
   statenet_lambda_scale: 0.02         # Lambda (1,2,3) correction scale
   statenet_ranking_scale: 0.3         # v5.7: ranking weight correction scale
   statenet_hyp_sigma_scale: 0.05      # v5.10: prior_sigma correction scale
   statenet_hyp_curvature_scale: 0.02  # v5.10: curvature correction scale
+  statenet_curriculum_scale: 0.1      # v5: curriculum advancement scale
+
+# =============================================================================
+# RADIAL STRATIFICATION (v5.10+ - enforces 3-adic tree structure)
+# =============================================================================
+# Maps 3-adic valuation to radial position in latent space:
+#   - High valuation (e.g., 81 = 3^4) -> small radius (near origin = tree root)
+#   - Low valuation (e.g., 1, 2, 4, 5) -> large radius (near boundary = leaves)
+# This creates concentric shells encoding tree depth.
+radial_stratification:
+  enabled: true
+  inner_radius: 0.1          # Target radius for highest valuation (tree root)
+  outer_radius: 0.85         # Target radius for lowest valuation (tree leaves)
+  max_valuation: 9           # log_3(19683) - maximum depth in 3-adic tree
+  valuation_weighting: true  # Weight high-valuation points more (rarer, important)
+  loss_type: smooth_l1       # 'smooth_l1' (robust) or 'mse' (sharp gradients)
+  base_weight: 0.3           # Base contribution to total loss
+
+# =============================================================================
+# CONTINUOUS CURRICULUM (v5.10+ - StateNet-driven radial->ranking transition)
+# =============================================================================
+# tau = 0: Pure radial learning (coarse tree structure)
+# tau = 1: Pure ranking learning (fine angular discrimination)
+# StateNet v5 learns optimal curriculum trajectory via delta_curriculum output.
+# No hard thresholds - fully emergent curriculum pacing.
+curriculum:
+  enabled: true
+  initial_tau: 0.0           # Start with pure radial focus
+  tau_min: 0.0               # Minimum tau bound
+  tau_max: 1.0               # Maximum tau bound
+  tau_scale: 0.1             # How much delta_curriculum affects tau per step
+  tau_momentum: 0.95         # EMA momentum for tau history tracking
 
 # Dataset generation
 ternary_dataset:
@@ -120,15 +155,15 @@ padic_losses:
   enable_metric_loss: false
   metric_loss_weight: 0.0
 
-  # ENABLED: Hyperbolic Ranking Loss (v5.9 baseline)
-  enable_ranking_loss_hyperbolic: true
+  # DISABLED: Hyperbolic Ranking Loss - hard negative mining too slow on RTX 3050
+  enable_ranking_loss_hyperbolic: false
   ranking_hyperbolic:
     base_margin: 0.05
     margin_scale: 0.15
-    n_triplets: 500
-    hard_negative_ratio: 0.5
-    curvature: 2.0             # INCREASED from 1.0 - sharper tree structure
-    radial_weight: 0.4         # INCREASED from 0.1 - stronger hierarchy
+    n_triplets: 100
+    hard_negative_ratio: 0.2
+    curvature: 2.0
+    radial_weight: 0.4
     max_norm: 0.95
     weight: 0.5
 
@@ -136,9 +171,12 @@ padic_losses:
   enable_norm_loss: false
   norm_loss_weight: 0.0
 
-  # Legacy ranking losses (disabled, kept as comments for reference)
-  # enable_ranking_loss_v2: false
-  # enable_ranking_loss: false
+  # ENABLED: Simple ranking loss (V1) - random triplet sampling, no hard mining
+  enable_ranking_loss: true
+  ranking_loss:
+    margin: 0.1
+    n_triplets: 500
+    weight: 0.3
 
   # ==========================================================================
   # v5.10 PURE HYPERBOLIC MODULES (new)
@@ -146,7 +184,8 @@ padic_losses:
   hyperbolic_v10:
     # Hyperbolic Prior: Wrapped Normal on Poincare ball
     # Replaces KL(q || N(0,I)) with KL(q || WrappedNormal)
-    use_hyperbolic_prior: true
+    # DISABLED: Causes training divergence, needs debugging
+    use_hyperbolic_prior: false
     prior:
       homeostatic: true        # Enable adaptive sigma/curvature
       latent_dim: 16
@@ -162,7 +201,8 @@ padic_losses:
 
     # Hyperbolic Reconstruction: Radius-weighted cross-entropy
     # Points near origin (high valuation) get higher weight
-    use_hyperbolic_recon: true
+    # DISABLED: Causes training divergence, needs debugging
+    use_hyperbolic_recon: false
     recon:
       homeostatic: true
       mode: weighted_ce        # 'geodesic', 'weighted_ce', or 'hybrid'
@@ -181,7 +221,8 @@ padic_losses:
 
     # Hyperbolic Centroid Loss: Enforce tree structure via Frechet means
     # Points with same 3-adic prefix cluster around hyperbolic centroids
-    use_centroid_loss: true
+    # DISABLED: O(n^2) computation too slow for RTX 3050, needs vectorization
+    use_centroid_loss: false
     centroid:
       max_level: 4             # Tree depth to enforce (3^4 = 81 clusters)
       curvature: 2.0
@@ -206,27 +247,27 @@ min_delta: 0.0001
 coverage_plateau_patience: 150
 min_coverage_delta: 0.001
 
-# Logging and checkpointing
-log_interval: 1
+# Logging and checkpointing (OPTIMIZED FOR SPEED)
+log_interval: 20                 # Batch logging every N batches (was 1)
 log_dir: logs
-checkpoint_freq: 10
+checkpoint_freq: 10              # Save checkpoint every 10 epochs
 checkpoint_dir: sandbox-training/checkpoints/v5_10
-eval_num_samples: 1000           # Reduced from 10000 for faster epochs
-eval_interval: 20                # Correlation check every N epochs
-coverage_check_interval: 5       # Coverage evaluation every N epochs (was unused, now active)
+eval_num_samples: 500            # Reduced for faster evaluation
+eval_interval: 25                # Correlation check every N epochs
+coverage_check_interval: 10      # Coverage evaluation every N epochs
 
-# TensorBoard
+# TensorBoard (MINIMAL - focus on checkpoints)
 tensorboard_dir: runs
 experiment_name: null
-histogram_interval: 10           # Weight/gradient histograms every N epochs
-embedding_interval: 50           # 3D embedding projections every N epochs (0 to disable)
-embedding_n_samples: 5000        # Samples for embedding visualization
+histogram_interval: 50           # Reduced frequency
+embedding_interval: 0            # DISABLED - use checkpoints for analysis
+embedding_n_samples: 0           # Not used when interval=0
 
-# TorchInductor compilation
+# TorchInductor compilation (DISABLED - triton not supported on Windows)
 torch_compile:
   enabled: false
   backend: inductor
-  mode: default
+  mode: reduce-overhead
   fullgraph: false
 
 # Data splits
@@ -250,39 +291,60 @@ phase_transitions:
   statenet_warm_start: 20
 
 # =============================================================================
-# v5.10 Key Innovations over v5.9:
+# v5.10.1 Key Innovations (over v5.10):
 # =============================================================================
 #
-# 1. HYPERBOLIC PRIOR (replaces Gaussian):
+# 1. RADIAL STRATIFICATION LOSS:
+#    - Explicit loss enforcing 3-adic tree structure via radial position
+#    - High valuation (e.g., 81 = 3^4) -> target radius near origin
+#    - Low valuation (e.g., 1, 2, 4, 5) -> target radius near boundary
+#    - Solves the core problem: all embeddings clustering at similar radii
+#
+# 2. CONTINUOUS CURRICULUM:
+#    - Differentiable tau in [0,1] blends radial and ranking losses
+#    - tau=0: Pure radial learning (learn tree structure first)
+#    - tau=1: Pure ranking learning (refine angular discrimination)
+#    - Loss = (1-tau)*L_radial + tau*L_ranking
+#
+# 3. STATENET V5 (extends v4):
+#    - Input: 20D (18D + radial_loss_norm + curriculum_tau)
+#    - Output: 8D (7D + delta_curriculum)
+#    - Curriculum attention head: learns what affects curriculum decisions
+#    - Fully emergent curriculum pacing - no hard thresholds
+#
+# 4. EMERGENT CURRICULUM TRAJECTORY:
+#    - StateNet observes radial_loss and outputs delta_curriculum
+#    - Early training: keeps tau low while radial structure is learned
+#    - Transition: increases tau as radial correlation improves
+#    - Late training: tau near 1.0 for angular refinement
+#    - Can retreat (negative delta) if radial structure degrades
+#
+# Expected Behavior:
+#    - Epoch 0-50: tau stays near 0, radial structure forms
+#    - Epoch 50-150: tau gradually increases as radial loss drops
+#    - Epoch 150+: tau approaches 1.0, fine-grained angular learning
+#    - StateNet can adapt this trajectory based on actual training dynamics
+#
+# Target Metrics:
+#    - Radial correlation > 0.90 (valuation predicts radius)
+#    - Ranking correlation > 0.95 (angular discrimination)
+#    - Coverage > 95% (manifold coverage)
+#
+# =============================================================================
+#
+# v5.10 Base Features (still active):
+# =============================================================================
+#
+# 1. HYPERBOLIC PRIOR (optional):
 #    - Wrapped Normal distribution on Poincare ball
-#    - KL computed in tangent space with change-of-measure correction
-#    - Prior mass concentrates at origin (tree root)
-#    - Eliminates Euclidean/hyperbolic conflict in regularization
+#    - Eliminates Euclidean/hyperbolic conflict
 #
-# 2. HYPERBOLIC RECONSTRUCTION:
-#    - Radius-weighted cross-entropy: points near origin matter more
-#    - Natural curriculum: learns tree structure before leaves
-#    - Homeostatic adaptation of radius_power
+# 2. HOMEOSTATIC EMERGENCE:
+#    - Both VAEs self-regulate hyperbolic parameters
+#    - prior_sigma and curvature adapt dynamically
 #
-# 3. CENTROID CLUSTERING:
-#    - Frechet mean (hyperbolic centroid) for each 3-adic prefix cluster
-#    - Enforces tree structure explicitly
-#    - Multi-level: root -> branches -> leaves
-#
-# 4. HOMEOSTATIC EMERGENCE:
-#    - Both VAEs have self-regulating hyperbolic parameters
-#    - prior_sigma adapts: prevents collapse (too small) or explosion (too big)
-#    - curvature adapts: controls tree sharpness
-#    - StateNet can override for global coordination
-#
-# 5. REMOVED EUCLIDEAN CONTAMINATION:
-#    - norm_loss: DISABLED (radial_weight handles hierarchy)
+# 3. REMOVED EUCLIDEAN CONTAMINATION:
+#    - norm_loss: DISABLED (radial stratification handles hierarchy)
 #    - metric_loss: DISABLED (Poincare distance in ranking)
-#    - Gaussian KL: REPLACED by hyperbolic KL
-#
-# Expected Results:
-#    - Pure hyperbolic geometry should create natural ultrametric embedding
-#    - Homeostatic mechanisms prevent training instability
-#    - Target: r > 0.99, coverage > 99.7%
 #
 # =============================================================================

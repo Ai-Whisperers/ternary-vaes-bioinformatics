@@ -20,6 +20,7 @@ This module contains loss computation separated from model architecture:
 - HyperbolicReconLoss: Geodesic reconstruction loss (v5.10)
 - HomeostaticReconLoss: Adaptive reconstruction loss (v5.10)
 - HyperbolicCentroidLoss: Frechet mean clustering (v5.10)
+- RadialStratificationLoss: Radial hierarchy enforcement (v5.10 curriculum)
 - ConsequencePredictor: Purpose feedback (experimental)
 """
 
@@ -59,6 +60,11 @@ from .hyperbolic_recon import (
     HyperbolicCentroidLoss
 )
 
+from .radial_stratification import (
+    RadialStratificationLoss,
+    compute_single_index_valuation
+)
+
 from .consequence_predictor import (
     ConsequencePredictor,
     evaluate_addition_accuracy
@@ -86,6 +92,8 @@ __all__ = [
     'HyperbolicReconLoss',
     'HomeostaticReconLoss',
     'HyperbolicCentroidLoss',
+    'RadialStratificationLoss',
+    'compute_single_index_valuation',
     'ConsequencePredictor',
     'evaluate_addition_accuracy'
 ]

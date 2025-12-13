@@ -20,7 +20,8 @@ import sys
 from .schedulers import TemperatureScheduler, BetaScheduler, LearningRateScheduler
 from .monitor import TrainingMonitor
 from ..artifacts import CheckpointManager
-from ..losses import DualVAELoss
+from ..losses import DualVAELoss, RadialStratificationLoss
+from ..models.curriculum import ContinuousCurriculumModule
 
 
 class TernaryVAETrainer:
@@ -105,6 +106,34 @@ class TernaryVAETrainer:
             padic_config=config.get('padic_losses', {})
         )
 
+        # Initialize radial stratification loss (for curriculum learning)
+        radial_config = config.get('radial_stratification', {})
+        if radial_config.get('enabled', False):
+            self.radial_loss_fn = RadialStratificationLoss(
+                inner_radius=radial_config.get('inner_radius', 0.1),
+                outer_radius=radial_config.get('outer_radius', 0.85),
+                max_valuation=radial_config.get('max_valuation', 9),
+                valuation_weighting=radial_config.get('valuation_weighting', True),
+                loss_type=radial_config.get('loss_type', 'smooth_l1')
+            )
+            self.radial_loss_weight = radial_config.get('base_weight', 0.3)
+        else:
+            self.radial_loss_fn = None
+            self.radial_loss_weight = 0.0
+
+        # Initialize curriculum module (StateNet v5 controlled)
+        curriculum_config = config.get('curriculum', {})
+        if curriculum_config.get('enabled', False):
+            self.curriculum = ContinuousCurriculumModule(
+                initial_tau=curriculum_config.get('initial_tau', 0.0),
+                tau_min=curriculum_config.get('tau_min', 0.0),
+                tau_max=curriculum_config.get('tau_max', 1.0),
+                tau_scale=curriculum_config.get('tau_scale', 0.1),
+                momentum=curriculum_config.get('tau_momentum', 0.95)
+            ).to(device)
+        else:
+            self.curriculum = None
+
         # Cache phase 4 start for model updates
         self.phase_4_start = config['phase_transitions']['ultra_exploration_start']
 
@@ -131,6 +160,21 @@ class TernaryVAETrainer:
         print(f"Adaptive scheduling: {self.config['model'].get('adaptive_scheduling', True)}")
         print(f"StateNet enabled: {self.config['model'].get('use_statenet', True)}")
         print(f"torch.compile: {'enabled' if self.compiled else 'disabled'}")
+
+        # Curriculum learning (v5.10+)
+        if self.curriculum is not None:
+            curriculum_config = self.config.get('curriculum', {})
+            print(f"\nCurriculum Learning (StateNet v5):")
+            print(f"  Initial tau: {curriculum_config.get('initial_tau', 0.0)}")
+            print(f"  tau_scale: {curriculum_config.get('tau_scale', 0.1)}")
+            print(f"  tau bounds: [{curriculum_config.get('tau_min', 0.0)}, {curriculum_config.get('tau_max', 1.0)}]")
+
+        if self.radial_loss_fn is not None:
+            radial_config = self.config.get('radial_stratification', {})
+            print(f"\nRadial Stratification Loss:")
+            print(f"  inner_radius: {radial_config.get('inner_radius', 0.1)}")
+            print(f"  outer_radius: {radial_config.get('outer_radius', 0.85)}")
+            print(f"  base_weight: {radial_config.get('base_weight', 0.3)}")
 
         # p-Adic losses (Phase 1A/1B)
         padic_config = self.config.get('padic_losses', {})
@@ -233,31 +277,92 @@ class TernaryVAETrainer:
             losses['rho'] = self.model.rho
             losses['phase'] = self.model.current_phase
 
-            # Apply StateNet v2 corrections once per epoch (with coverage feedback)
+            # Curriculum-controlled radial stratification loss (v5.10+)
+            radial_loss = torch.tensor(0.0, device=self.device)
+            curriculum_tau = 0.0
+
+            if self.radial_loss_fn is not None:
+                # Compute radial loss for both VAEs
+                radial_loss_A = self.radial_loss_fn(outputs['z_A'], batch_indices)
+                radial_loss_B = self.radial_loss_fn(outputs['z_B'], batch_indices)
+                radial_loss = radial_loss_A + radial_loss_B
+
+                # Get ranking loss from p-adic losses (if available)
+                ranking_loss = torch.tensor(0.0, device=self.device)
+                if 'padic_ranking_A' in losses and torch.is_tensor(losses['padic_ranking_A']):
+                    ranking_loss = losses['padic_ranking_A'] + losses.get('padic_ranking_B', 0.0)
+
+                # Use curriculum to blend radial and ranking losses
+                if self.curriculum is not None:
+                    curriculum_tau = self.curriculum.get_tau().item()
+                    structure_loss = self.curriculum.modulate_losses(radial_loss, ranking_loss)
+                    # Add curriculum-modulated structure loss to total
+                    losses['loss'] = losses['loss'] + self.radial_loss_weight * structure_loss
+                else:
+                    # No curriculum: just add weighted radial loss
+                    losses['loss'] = losses['loss'] + self.radial_loss_weight * radial_loss
+
+                # Log radial metrics
+                losses['radial_loss'] = radial_loss.item()
+                losses['curriculum_tau'] = curriculum_tau
+                radial_wt, ranking_wt = (1 - curriculum_tau, curriculum_tau) if self.curriculum else (1.0, 0.0)
+                losses['radial_weight'] = radial_wt
+                losses['ranking_weight_curriculum'] = ranking_wt
+
+            # Apply StateNet corrections once per epoch (with coverage feedback)
             if self.model.use_statenet and batch_idx == 0:
-                # Get latest coverage from monitor history for StateNet v2
+                # Get latest coverage from monitor history
                 coverage_A = self.monitor.coverage_A_history[-1] if self.monitor.coverage_A_history else 0
                 coverage_B = self.monitor.coverage_B_history[-1] if self.monitor.coverage_B_history else 0
 
-                corrected_lr, *deltas = self.model.apply_statenet_corrections(
-                    lr_scheduled,
-                    losses['H_A'].item() if torch.is_tensor(losses['H_A']) else losses['H_A'],
-                    losses['H_B'].item() if torch.is_tensor(losses['H_B']) else losses['H_B'],
-                    losses['kl_A'].item(),
-                    losses['kl_B'].item(),
-                    (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item(),
-                    coverage_A=coverage_A,
-                    coverage_B=coverage_B
-                )
+                # Use StateNet v5 if curriculum is enabled and model supports it
+                if self.curriculum is not None and hasattr(self.model, 'apply_statenet_v5_corrections'):
+                    corrections = self.model.apply_statenet_v5_corrections(
+                        lr_scheduled,
+                        losses['H_A'].item() if torch.is_tensor(losses['H_A']) else losses['H_A'],
+                        losses['H_B'].item() if torch.is_tensor(losses['H_B']) else losses['H_B'],
+                        losses['kl_A'].item(),
+                        losses['kl_B'].item(),
+                        (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item(),
+                        coverage_A=coverage_A,
+                        coverage_B=coverage_B,
+                        radial_loss=radial_loss.item() if torch.is_tensor(radial_loss) else radial_loss,
+                        curriculum_tau=curriculum_tau
+                    )
 
-                for param_group in self.optimizer.param_groups:
-                    param_group['lr'] = corrected_lr
+                    # Update curriculum tau from StateNet's delta_curriculum
+                    self.curriculum.update_tau(corrections['delta_curriculum'])
 
-                epoch_losses['lr_corrected'] = corrected_lr
-                epoch_losses['delta_lr'] = deltas[0]
-                epoch_losses['delta_lambda1'] = deltas[1]
-                epoch_losses['delta_lambda2'] = deltas[2]
-                epoch_losses['delta_lambda3'] = deltas[3]
+                    for param_group in self.optimizer.param_groups:
+                        param_group['lr'] = corrections['corrected_lr']
+
+                    epoch_losses['lr_corrected'] = corrections['corrected_lr']
+                    epoch_losses['delta_lr'] = corrections['delta_lr']
+                    epoch_losses['delta_lambda1'] = corrections['delta_lambda1']
+                    epoch_losses['delta_lambda2'] = corrections['delta_lambda2']
+                    epoch_losses['delta_lambda3'] = corrections['delta_lambda3']
+                    epoch_losses['delta_curriculum'] = corrections['delta_curriculum']
+                else:
+                    # Fall back to v4 corrections
+                    corrected_lr, *deltas = self.model.apply_statenet_corrections(
+                        lr_scheduled,
+                        losses['H_A'].item() if torch.is_tensor(losses['H_A']) else losses['H_A'],
+                        losses['H_B'].item() if torch.is_tensor(losses['H_B']) else losses['H_B'],
+                        losses['kl_A'].item(),
+                        losses['kl_B'].item(),
+                        (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item(),
+                        coverage_A=coverage_A,
+                        coverage_B=coverage_B
+                    )
+
+                    for param_group in self.optimizer.param_groups:
+                        param_group['lr'] = corrected_lr
+
+                    epoch_losses['lr_corrected'] = corrected_lr
+                    epoch_losses['delta_lr'] = deltas[0]
+                    epoch_losses['delta_lambda1'] = deltas[1]
+                    epoch_losses['delta_lambda2'] = deltas[2]
+                    epoch_losses['delta_lambda3'] = deltas[3]
             else:
                 if batch_idx == 0:
                     for param_group in self.optimizer.param_groups:
