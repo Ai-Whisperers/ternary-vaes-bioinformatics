@@ -22,7 +22,7 @@ import sys
 from .schedulers import TemperatureScheduler, BetaScheduler, LearningRateScheduler
 from .monitor import TrainingMonitor
 from ..artifacts import CheckpointManager
-from ..losses import DualVAELoss
+from ..losses import DualVAELoss, evaluate_addition_accuracy
 from ..models.appetitive_vae import AppetitiveDualVAE
 
 
@@ -593,10 +593,16 @@ class AppetitiveVAETrainer:
                 self.monitor.log_histograms(epoch, self.model)
 
             # Check phase transitions (metric-gated)
+            # Only compute addition_accuracy when in phase 4+ (needed for 4->5 transition)
+            add_acc = 0.0
+            if self.model.current_phase >= 4:
+                add_acc = evaluate_addition_accuracy(
+                    self.model, self.device, n_samples=100
+                )
             phase_metrics = {
                 'correlation': correlation_metrics['correlation_mean'],
                 'mi': train_losses.get('estimated_mi', 0.0),
-                'addition_accuracy': 0.0  # TODO: Implement addition accuracy evaluation
+                'addition_accuracy': add_acc
             }
             old_phase = self.model.current_phase
             self.model.update_phase(phase_metrics)

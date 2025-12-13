@@ -63,9 +63,6 @@ class HyperbolicPrior(nn.Module):
         self.prior_sigma = prior_sigma
         self.max_norm = max_norm
 
-        # Register origin as buffer
-        self.register_buffer('origin', torch.zeros(latent_dim))
-
     def _project_to_poincare(self, z: torch.Tensor) -> torch.Tensor:
         """Project Euclidean points onto the Poincare ball.
 
@@ -280,7 +277,10 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         sigma_max: float = 2.0,
         curvature_min: float = 0.5,
         curvature_max: float = 4.0,
-        adaptation_rate: float = 0.01
+        adaptation_rate: float = 0.01,
+        ema_alpha: float = 0.1,
+        kl_target: float = 1.0,
+        target_radius: float = 0.5
     ):
         """Initialize Homeostatic Hyperbolic Prior.
 
@@ -294,6 +294,9 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
             curvature_min: Minimum curvature
             curvature_max: Maximum curvature
             adaptation_rate: Rate of homeostatic adaptation
+            ema_alpha: EMA smoothing factor for statistics (0-1)
+            kl_target: Target KL divergence in nats
+            target_radius: Target mean radius in Poincare ball (0.5 = balanced tree)
         """
         super().__init__(latent_dim, curvature, prior_sigma, max_norm)
 
@@ -302,6 +305,9 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         self.curvature_min = curvature_min
         self.curvature_max = curvature_max
         self.adaptation_rate = adaptation_rate
+        self.ema_alpha = ema_alpha
+        self.kl_target = kl_target
+        self.target_radius = target_radius
 
         # Learnable parameters for homeostatic control
         # (can be modulated by StateNet)
@@ -316,8 +322,7 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         self,
         z_hyperbolic: torch.Tensor,
         kl: torch.Tensor,
-        coverage: float = 0.0,
-        target_radius: float = 0.5
+        coverage: float = 0.0
     ):
         """Update homeostatic parameters based on current state.
 
@@ -325,20 +330,19 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
             z_hyperbolic: Current hyperbolic embeddings
             kl: Current KL divergence
             coverage: Current coverage percentage (0-100)
-            target_radius: Target mean radius (0.5 = balanced tree)
         """
         # Compute current mean radius
         current_radius = torch.norm(z_hyperbolic, dim=-1).mean()
 
-        # Update EMAs
-        alpha = 0.1
+        # Update EMAs using configured alpha
+        alpha = self.ema_alpha
         self.mean_radius_ema = alpha * current_radius + (1 - alpha) * self.mean_radius_ema
         self.kl_ema = alpha * kl + (1 - alpha) * self.kl_ema
 
         # Homeostatic adaptation of sigma
         # If radius too high (explosion), decrease sigma
         # If radius too low (collapse), increase sigma
-        radius_error = self.mean_radius_ema - target_radius
+        radius_error = self.mean_radius_ema - self.target_radius
         sigma_delta = -self.adaptation_rate * radius_error
 
         new_sigma = self.adaptive_sigma + sigma_delta
@@ -350,8 +354,7 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         # Homeostatic adaptation of curvature
         # If KL too high, increase curvature (sharper hierarchy)
         # If KL too low, decrease curvature (flatter space)
-        kl_target = 1.0  # Target KL in nats
-        kl_error = self.kl_ema - kl_target
+        kl_error = self.kl_ema - self.kl_target
         curvature_delta = self.adaptation_rate * kl_error * 0.1  # Slower adaptation
 
         new_curvature = self.adaptive_curvature + curvature_delta

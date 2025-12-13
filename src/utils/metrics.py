@@ -22,13 +22,9 @@ def evaluate_coverage(
     # Round to nearest ternary value
     samples_rounded = torch.round(samples).long()
 
-    # Convert to set of tuples for uniqueness
-    unique_ops = set()
-    for i in range(samples_rounded.shape[0]):
-        lut = tuple(samples_rounded[i].cpu().tolist())
-        unique_ops.add(lut)
-
-    unique_count = len(unique_ops)
+    # Use vectorized torch.unique for efficiency
+    unique_samples = torch.unique(samples_rounded, dim=0)
+    unique_count = unique_samples.size(0)
     coverage_pct = (unique_count / total_operations) * 100
 
     return unique_count, coverage_pct
@@ -89,18 +85,20 @@ def compute_diversity_score(
     Returns:
         float: Diversity score in [0, 1]
     """
-    # Convert to sets of operations
-    ops_A = set()
-    ops_B = set()
-
+    # Round and get unique samples (vectorized)
     samples_A_rounded = torch.round(samples_A).long()
     samples_B_rounded = torch.round(samples_B).long()
 
-    for i in range(samples_A_rounded.shape[0]):
-        ops_A.add(tuple(samples_A_rounded[i].cpu().tolist()))
+    unique_A = torch.unique(samples_A_rounded, dim=0)
+    unique_B = torch.unique(samples_B_rounded, dim=0)
 
-    for i in range(samples_B_rounded.shape[0]):
-        ops_B.add(tuple(samples_B_rounded[i].cpu().tolist()))
+    # Convert to numpy for efficient set creation
+    np_A = unique_A.cpu().numpy()
+    np_B = unique_B.cpu().numpy()
+
+    # Use set comprehension with tobytes() for faster hashing
+    ops_A = {row.tobytes() for row in np_A}
+    ops_B = {row.tobytes() for row in np_B}
 
     # Compute Jaccard distance: 1 - |A ∩ B| / |A ∪ B|
     intersection = len(ops_A & ops_B)

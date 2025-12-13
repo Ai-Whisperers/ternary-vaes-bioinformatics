@@ -20,6 +20,7 @@ This module contains loss computation separated from model architecture:
 - HyperbolicReconLoss: Geodesic reconstruction loss (v5.10)
 - HomeostaticReconLoss: Adaptive reconstruction loss (v5.10)
 - HyperbolicCentroidLoss: Frechet mean clustering (v5.10)
+- ConsequencePredictor: Purpose feedback (experimental)
 """
 
 from .dual_vae_loss import (
@@ -58,6 +59,11 @@ from .hyperbolic_recon import (
     HyperbolicCentroidLoss
 )
 
+from .consequence_predictor import (
+    ConsequencePredictor,
+    evaluate_addition_accuracy
+)
+
 __all__ = [
     'ReconstructionLoss',
     'KLDivergenceLoss',
@@ -79,5 +85,7 @@ __all__ = [
     'HomeostaticHyperbolicPrior',
     'HyperbolicReconLoss',
     'HomeostaticReconLoss',
-    'HyperbolicCentroidLoss'
+    'HyperbolicCentroidLoss',
+    'ConsequencePredictor',
+    'evaluate_addition_accuracy'
 ]

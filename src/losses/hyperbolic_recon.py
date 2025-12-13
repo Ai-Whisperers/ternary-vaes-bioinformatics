@@ -453,18 +453,21 @@ class HyperbolicCentroidLoss(nn.Module):
         self,
         points: torch.Tensor,
         weights: Optional[torch.Tensor] = None,
-        n_iter: int = 5
+        n_iter: int = 10,
+        tol: float = 1e-6
     ) -> torch.Tensor:
         """Compute Frechet mean (hyperbolic centroid) of points.
 
         Uses iterative algorithm:
         1. Start with Euclidean mean projected to ball
         2. Iteratively refine using tangent space
+        3. Early exit on convergence
 
         Args:
             points: Points on Poincare ball (n, d)
             weights: Optional weights for each point
-            n_iter: Number of iterations
+            n_iter: Maximum number of iterations
+            tol: Convergence tolerance (stops when mean changes < tol)
 
         Returns:
             Frechet mean (d,)
@@ -477,14 +480,18 @@ class HyperbolicCentroidLoss(nn.Module):
         mean = (points * weights.unsqueeze(1)).sum(dim=0)
         mean = self._project_to_poincare(mean.unsqueeze(0)).squeeze(0)
 
-        # Iterative refinement (simplified - full algorithm would use log/exp maps)
+        # Iterative refinement with convergence check
         for _ in range(n_iter):
+            prev_mean = mean.clone()
             # Move mean toward weighted average of points
             direction = (points - mean.unsqueeze(0)) * weights.unsqueeze(1)
             direction = direction.sum(dim=0)
             mean = mean + 0.1 * direction
             # Re-project to ball
             mean = self._project_to_poincare(mean.unsqueeze(0)).squeeze(0)
+            # Check convergence
+            if torch.norm(mean - prev_mean) < tol:
+                break
 
         return mean
 
