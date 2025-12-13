@@ -302,12 +302,12 @@ class TernaryVAETrainer:
                     # No curriculum: just add weighted radial loss
                     losses['loss'] = losses['loss'] + self.radial_loss_weight * radial_loss
 
-                # Log radial metrics
-                losses['radial_loss'] = radial_loss.item()
+                # Log radial stratification metrics (named distinctly from hyperbolic radial_loss)
+                losses['radial_stratification_loss'] = radial_loss.item()
                 losses['curriculum_tau'] = curriculum_tau
                 radial_wt, ranking_wt = (1 - curriculum_tau, curriculum_tau) if self.curriculum else (1.0, 0.0)
-                losses['radial_weight'] = radial_wt
-                losses['ranking_weight_curriculum'] = ranking_wt
+                losses['curriculum_radial_weight'] = radial_wt
+                losses['curriculum_ranking_weight'] = ranking_wt
 
             # Apply StateNet corrections once per epoch (with coverage feedback)
             if self.model.use_statenet and batch_idx == 0:

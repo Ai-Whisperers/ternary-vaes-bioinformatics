@@ -115,14 +115,32 @@ def load_config(config_path: str) -> dict:
 def log_startup_info(monitor: TrainingMonitor, config: dict, config_path: str) -> None:
     """Log configuration summary at startup."""
     monitor._log(f"{'='*80}")
-    monitor._log("Ternary VAE v5.10 Training - PURE HYPERBOLIC GEOMETRY")
+    monitor._log("Ternary VAE v5.10.1 Training - RADIAL-FIRST CURRICULUM LEARNING")
     monitor._log(f"{'='*80}")
     monitor._log(f"Config: {config_path} (validated)")
 
+    # Curriculum and Radial Stratification (v5.10.1)
+    radial_config = config.get('radial_stratification', {})
+    curriculum_config = config.get('curriculum', {})
+    mc = config.get('model', {})
+
+    monitor._log(f"\nv5.10.1 Curriculum Learning:")
+    monitor._log(f"  StateNet Version: v{mc.get('statenet_version', 4)}")
+    monitor._log(f"  Radial Stratification: {'ENABLED' if radial_config.get('enabled') else 'DISABLED'}")
+    if radial_config.get('enabled'):
+        monitor._log(f"    inner_radius: {radial_config.get('inner_radius', 0.1)}")
+        monitor._log(f"    outer_radius: {radial_config.get('outer_radius', 0.85)}")
+        monitor._log(f"    base_weight: {radial_config.get('base_weight', 0.3)}")
+    monitor._log(f"  Curriculum Module: {'ENABLED' if curriculum_config.get('enabled') else 'DISABLED'}")
+    if curriculum_config.get('enabled'):
+        monitor._log(f"    initial_tau: {curriculum_config.get('initial_tau', 0.0)}")
+        monitor._log(f"    tau_scale: {curriculum_config.get('tau_scale', 0.1)}")
+
+    # Hyperbolic modules (v5.10 base)
     padic = config.get('padic_losses', {})
     hyp_v10 = padic.get('hyperbolic_v10', {})
 
-    monitor._log(f"\nv5.10 Modules:")
+    monitor._log(f"\nv5.10 Hyperbolic Modules:")
     monitor._log(f"  Hyperbolic Prior: {'ENABLED' if hyp_v10.get('use_hyperbolic_prior') else 'DISABLED'}")
     monitor._log(f"  Hyperbolic Recon: {'ENABLED' if hyp_v10.get('use_hyperbolic_recon') else 'DISABLED'}")
     monitor._log(f"  Centroid Loss: {'ENABLED' if hyp_v10.get('use_centroid_loss') else 'DISABLED'}")
@@ -152,11 +170,13 @@ def create_model(config: dict) -> DualNeuralVAEV5_10:
         gradient_balance=mc.get('gradient_balance', True),
         adaptive_scheduling=mc.get('adaptive_scheduling', True),
         use_statenet=mc.get('use_statenet', True),
+        statenet_version=mc.get('statenet_version', 4),
         statenet_lr_scale=mc.get('statenet_lr_scale', 0.1),
         statenet_lambda_scale=mc.get('statenet_lambda_scale', 0.02),
         statenet_ranking_scale=mc.get('statenet_ranking_scale', 0.3),
         statenet_hyp_sigma_scale=mc.get('statenet_hyp_sigma_scale', 0.05),
-        statenet_hyp_curvature_scale=mc.get('statenet_hyp_curvature_scale', 0.02)
+        statenet_hyp_curvature_scale=mc.get('statenet_hyp_curvature_scale', 0.02),
+        statenet_curriculum_scale=mc.get('statenet_curriculum_scale', 0.1)
     )
 
 

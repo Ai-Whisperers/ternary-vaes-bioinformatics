@@ -1,6 +1,6 @@
-"""Purposeful VAE Training: Backbone + Consequence Awareness.
+"""Purposeful VAE Training: Backbone + Consequence Awareness (v5.6 and v5.10).
 
-Uses the proven v5.6 backbone with ranking loss enabled, adding a
+Uses the proven VAE backbone with ranking loss enabled, adding a
 consequence predictor that learns WHY improving ranking matters.
 
 Key insight: Don't parallel the hunger, give it purpose.
@@ -8,9 +8,13 @@ The consequence predictor learns: ranking_correlation → addition_accuracy
 This teaches the model that better metric structure enables algebraic closure.
 
 Architecture:
-- Base: DualNeuralVAEV5 (unchanged)
-- Loss: DualVAELoss with enable_ranking_loss=true (unchanged)
-- Purpose: ConsequencePredictor observes and learns (new)
+- Base: DualNeuralVAEV5 (v5.6) or DualNeuralVAEV5_10 (v5.10)
+- Loss: DualVAELoss with enable_ranking_loss=true
+- Purpose: ConsequencePredictor observes and learns
+
+Usage:
+    python scripts/train/train_purposeful.py --config configs/ternary_v5_6.yaml
+    python scripts/train/train_purposeful.py --config configs/ternary_v5_10.yaml --model-version v5.10
 """
 
 import torch
@@ -26,12 +30,11 @@ import sys
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
+from src.models.ternary_vae_v5_10 import DualNeuralVAEV5_10
 from src.training import TernaryVAETrainer
 from src.data import generate_all_ternary_operations, TernaryOperationDataset
-from src.losses.consequence_predictor import (
-    ConsequencePredictor,
-    evaluate_addition_accuracy
-)
+from src.losses import ConsequencePredictor, evaluate_addition_accuracy
+from src.metrics import compute_ranking_correlation_hyperbolic
 
 
 def compute_ranking_correlation(model, device, n_samples=5000):
@@ -198,9 +201,11 @@ class PurposefulTrainer:
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Train Purposeful VAE')
+    parser = argparse.ArgumentParser(description='Train Purposeful VAE (v5.6 or v5.10)')
     parser.add_argument('--config', type=str, default='configs/ternary_v5_6.yaml',
                         help='Path to config file')
+    parser.add_argument('--model-version', type=str, default='v5.6', choices=['v5.6', 'v5.10'],
+                        help='Model version (default: v5.6)')
     parser.add_argument('--epochs', type=int, default=200,
                         help='Number of epochs')
     args = parser.parse_args()
@@ -215,13 +220,13 @@ def main():
     config['padic_losses']['ranking_n_triplets'] = 500
 
     # Override: use purposeful checkpoint dir
-    config['checkpoint_dir'] = 'sandbox-training/checkpoints/purposeful'
-    config['experiment_name'] = 'purposeful_vae'
+    config['checkpoint_dir'] = f'sandbox-training/checkpoints/purposeful_{args.model_version}'
+    config['experiment_name'] = f'purposeful_vae_{args.model_version}'
     config['total_epochs'] = args.epochs
 
     print(f"{'='*80}")
-    print("Purposeful VAE Training")
-    print("Backbone: v5.6 + Ranking Loss")
+    print(f"Purposeful VAE Training ({args.model_version})")
+    print(f"Backbone: {args.model_version} + Ranking Loss")
     print("Purpose: Consequence Predictor (r -> addition_accuracy)")
     print(f"{'='*80}")
     print(f"Config: {args.config}")
@@ -269,22 +274,46 @@ def main():
         num_workers=config['num_workers']
     )
 
-    # Initialize model
+    # Initialize model based on version
     model_config = config['model']
-    model = DualNeuralVAEV5(
-        input_dim=model_config['input_dim'],
-        latent_dim=model_config['latent_dim'],
-        rho_min=model_config['rho_min'],
-        rho_max=model_config['rho_max'],
-        lambda3_base=model_config['lambda3_base'],
-        lambda3_amplitude=model_config['lambda3_amplitude'],
-        eps_kl=model_config['eps_kl'],
-        gradient_balance=model_config.get('gradient_balance', True),
-        adaptive_scheduling=model_config.get('adaptive_scheduling', True),
-        use_statenet=model_config.get('use_statenet', True),
-        statenet_lr_scale=model_config.get('statenet_lr_scale', 0.05),
-        statenet_lambda_scale=model_config.get('statenet_lambda_scale', 0.01)
-    )
+
+    if args.model_version == 'v5.10':
+        model = DualNeuralVAEV5_10(
+            input_dim=model_config['input_dim'],
+            latent_dim=model_config['latent_dim'],
+            rho_min=model_config['rho_min'],
+            rho_max=model_config['rho_max'],
+            lambda3_base=model_config['lambda3_base'],
+            lambda3_amplitude=model_config['lambda3_amplitude'],
+            eps_kl=model_config['eps_kl'],
+            gradient_balance=model_config.get('gradient_balance', True),
+            adaptive_scheduling=model_config.get('adaptive_scheduling', True),
+            use_statenet=model_config.get('use_statenet', True),
+            statenet_version=model_config.get('statenet_version', 4),
+            statenet_lr_scale=model_config.get('statenet_lr_scale', 0.1),
+            statenet_lambda_scale=model_config.get('statenet_lambda_scale', 0.02),
+            statenet_ranking_scale=model_config.get('statenet_ranking_scale', 0.3),
+            statenet_hyp_sigma_scale=model_config.get('statenet_hyp_sigma_scale', 0.05),
+            statenet_hyp_curvature_scale=model_config.get('statenet_hyp_curvature_scale', 0.02),
+            statenet_curriculum_scale=model_config.get('statenet_curriculum_scale', 0.1)
+        )
+        print(f"Model: DualNeuralVAEV5_10 (Radial-First Curriculum Learning)")
+    else:
+        model = DualNeuralVAEV5(
+            input_dim=model_config['input_dim'],
+            latent_dim=model_config['latent_dim'],
+            rho_min=model_config['rho_min'],
+            rho_max=model_config['rho_max'],
+            lambda3_base=model_config['lambda3_base'],
+            lambda3_amplitude=model_config['lambda3_amplitude'],
+            eps_kl=model_config['eps_kl'],
+            gradient_balance=model_config.get('gradient_balance', True),
+            adaptive_scheduling=model_config.get('adaptive_scheduling', True),
+            use_statenet=model_config.get('use_statenet', True),
+            statenet_lr_scale=model_config.get('statenet_lr_scale', 0.05),
+            statenet_lambda_scale=model_config.get('statenet_lambda_scale', 0.01)
+        )
+        print(f"Model: DualNeuralVAEV5 (Legacy)")
 
     # Initialize base trainer
     base_trainer = TernaryVAETrainer(model, config, device)
