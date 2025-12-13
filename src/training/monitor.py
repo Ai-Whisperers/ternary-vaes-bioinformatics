@@ -408,6 +408,36 @@ class TrainingMonitor:
         """
         return self.patience_counter >= patience
 
+    def has_coverage_plateaued(
+        self,
+        patience: int = 50,
+        min_delta: float = 0.001
+    ) -> bool:
+        """Check if coverage improvement has plateaued.
+
+        Useful for manifold approach where 100% coverage is the goal.
+        Triggers when coverage improvement over `patience` epochs is below threshold.
+
+        Args:
+            patience: Number of epochs to check for improvement
+            min_delta: Minimum improvement fraction required (relative to 19683 total ops)
+
+        Returns:
+            True if coverage has plateaued, False otherwise
+        """
+        if len(self.coverage_A_history) < patience:
+            return False
+
+        # Use max of A and B as coverage metric
+        recent_A = self.coverage_A_history[-patience:]
+        recent_B = self.coverage_B_history[-patience:]
+        recent_max = [max(a, b) for a, b in zip(recent_A, recent_B)]
+
+        # Compute improvement as fraction of total operations
+        improvement = (recent_max[-1] - recent_max[0]) / 19683
+
+        return improvement < min_delta
+
     def evaluate_coverage(
         self,
         model: torch.nn.Module,

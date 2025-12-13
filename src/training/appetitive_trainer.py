@@ -643,9 +643,20 @@ class AppetitiveVAETrainer:
                 epoch, self.model, self.optimizer, metadata, is_best
             )
 
-            # Early stopping
+            # Early stopping (loss-based)
             if self.monitor.should_stop(self.config['patience']):
                 print(f"\nEarly stopping triggered (patience={self.config['patience']})")
+                break
+
+            # Coverage plateau detection (for manifold approach)
+            coverage_plateau_patience = self.config.get('coverage_plateau_patience', 100)
+            coverage_plateau_delta = self.config.get('coverage_plateau_min_delta', 0.0005)
+            if self.monitor.has_coverage_plateaued(coverage_plateau_patience, coverage_plateau_delta):
+                current_cov = max(
+                    self.monitor.coverage_A_history[-1] if self.monitor.coverage_A_history else 0,
+                    self.monitor.coverage_B_history[-1] if self.monitor.coverage_B_history else 0
+                )
+                print(f"\nCoverage plateaued at {current_cov/19683*100:.2f}% (no improvement for {coverage_plateau_patience} epochs)")
                 break
 
         # Print summary and cleanup

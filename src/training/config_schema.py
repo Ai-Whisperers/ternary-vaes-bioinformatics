@@ -203,9 +203,13 @@ class TrainingConfig:
     val_split: float = 0.1
     test_split: float = 0.1
 
-    # Early stopping
+    # Early stopping (loss-based)
     patience: int = 150
     min_delta: float = 0.0001
+
+    # Coverage plateau detection (for manifold approach)
+    coverage_plateau_patience: int = 100
+    coverage_plateau_min_delta: float = 0.0005
 
     # Evaluation intervals
     eval_num_samples: int = 1000
