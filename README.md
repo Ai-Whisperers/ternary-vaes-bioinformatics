@@ -111,10 +111,14 @@ cd ternary-vaes
 pip install -r requirements.txt
 ```
 
-### Training
+### Training (GPU-Optimized)
 
 ```bash
-python scripts/train/train_ternary_v5_10.py --config configs/ternary_v5_10.yaml
+# Recommended: GPU-resident dataset (zero CPU-GPU transfers)
+python scripts/train/train_purposeful.py --config configs/ternary_v5_10.yaml --model-version v5.10 --gpu-resident
+
+# Or use config default (gpu_resident: true in v5.10 config)
+python scripts/train/train_purposeful.py --config configs/ternary_v5_10.yaml --model-version v5.10
 ```
 
 ### TensorBoard Visualization
@@ -282,6 +286,29 @@ The refactored architecture follows Single Responsibility Principle:
 - Leverages complementary strengths: VAE-A (exploration), VAE-B (precision)
 - Cross-injection increases coverage: 84.80% vs 77.55% (best isolated)
 - Validated at epoch 3, maintains superiority throughout training
+
+### 7. GPU-First Training Optimizations (v5.10.2)
+
+**Zero-transfer architecture** for maximum GPU utilization:
+
+| Optimization | Before | After | Speedup |
+|--------------|--------|-------|---------|
+| **GPU-Resident Dataset** | 77 CPU→GPU transfers/epoch | 0 transfers | ~15% faster |
+| **Async Checkpoints** | Blocking I/O (3x per interval) | Background thread | Non-blocking |
+| **TensorBoard Flush** | Per-metric flush | Single epoch flush | -I/O overhead |
+| **Valuation LUT** | O(9) loop per index | O(1) tensor lookup | ~10x faster |
+| **Coverage Eval** | Python loop + CPU sync | torch.unique (GPU) | ~100x faster |
+
+**Key components:**
+- `src/core/ternary.py` - TERNARY singleton with precomputed LUTs
+- `src/data/gpu_resident.py` - GPU-resident dataset (~865 KB on GPU)
+- `src/artifacts/checkpoint_manager.py` - AsyncCheckpointSaver
+- `src/observability/` - Decoupled metrics layer
+
+**Enable via config:**
+```yaml
+gpu_resident: true  # All 19,683 samples on GPU
+```
 
 ---
 
@@ -498,6 +525,7 @@ trainer.train(train_loader, val_loader)
 
 ## Version History
 
+- **v5.10.2** (2025-12-14): GPU-first training optimizations (P0-P3 fixes), zero-transfer architecture
 - **v5.10.1** (2025-12-12): Pure Hyperbolic Geometry with homeostatic emergence, StateNet v4
 - **v5.10.0** (2025-12-11): HyperbolicVAETrainer, 3-adic ranking loss, Poincare ball embedding
 - **v5.7.0** (2025-12-10): Hyperbolic prior integration, Frechet centroids
