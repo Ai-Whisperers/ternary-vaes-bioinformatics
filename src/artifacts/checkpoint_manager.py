@@ -2,27 +2,129 @@
 
 This module handles saving and loading model checkpoints with metadata.
 
+P3 FIX: Async checkpoint saving to avoid blocking training.
+
 Single responsibility: Checkpoint persistence only.
 """
 
 import torch
 from pathlib import Path
 from typing import Dict, Any, Optional
+import threading
+import queue
+import copy
+
+
+class AsyncCheckpointSaver:
+    """Background thread for non-blocking checkpoint saves.
+
+    P3 FIX: torch.save() is blocking I/O that stalls training.
+    This class offloads saves to a background thread.
+
+    Usage:
+        saver = AsyncCheckpointSaver()
+        saver.save_async(checkpoint_dict, path)  # Returns immediately
+        saver.shutdown()  # Call before exit
+    """
+
+    def __init__(self, max_queue_size: int = 3):
+        """Initialize async saver.
+
+        Args:
+            max_queue_size: Max pending saves before blocking
+        """
+        self._queue = queue.Queue(maxsize=max_queue_size)
+        self._running = True
+        self._thread = threading.Thread(target=self._save_loop, daemon=True)
+        self._thread.start()
+        self._saves_completed = 0
+
+    def save_async(self, checkpoint: Dict[str, Any], path: Path) -> None:
+        """Queue a checkpoint for async saving.
+
+        Args:
+            checkpoint: Checkpoint dict to save
+            path: Destination path
+
+        Note:
+            If queue is full, this will block until space is available.
+            This provides backpressure if saves are slower than training.
+        """
+        # Deep copy state dicts to avoid race conditions
+        # Model/optimizer states are tensors that could be modified
+        checkpoint_copy = self._deep_copy_checkpoint(checkpoint)
+        self._queue.put((checkpoint_copy, path))
+
+    def _deep_copy_checkpoint(self, checkpoint: Dict[str, Any]) -> Dict[str, Any]:
+        """Deep copy checkpoint, handling tensor state dicts specially."""
+        result = {}
+        for key, value in checkpoint.items():
+            if isinstance(value, dict):
+                # State dicts need deep copy
+                result[key] = copy.deepcopy(value)
+            else:
+                # Scalar values can be shallow copied
+                result[key] = value
+        return result
+
+    def _save_loop(self) -> None:
+        """Background thread that processes save queue."""
+        while self._running or not self._queue.empty():
+            try:
+                checkpoint, path = self._queue.get(timeout=0.5)
+                torch.save(checkpoint, path)
+                self._saves_completed += 1
+            except queue.Empty:
+                continue
+            except Exception as e:
+                print(f"AsyncCheckpointSaver error: {e}")
+
+    def shutdown(self, timeout: float = 10.0) -> None:
+        """Shutdown the saver, waiting for pending saves.
+
+        Args:
+            timeout: Max seconds to wait for pending saves
+        """
+        self._running = False
+        self._thread.join(timeout=timeout)
+
+    @property
+    def pending_saves(self) -> int:
+        """Number of saves waiting in queue."""
+        return self._queue.qsize()
+
+    @property
+    def saves_completed(self) -> int:
+        """Total saves completed."""
+        return self._saves_completed
 
 
 class CheckpointManager:
-    """Manages saving and loading model checkpoints."""
+    """Manages saving and loading model checkpoints.
 
-    def __init__(self, checkpoint_dir: Path, checkpoint_freq: int = 10):
+    P3 FIX: Now supports async saving via background thread.
+    """
+
+    def __init__(
+        self,
+        checkpoint_dir: Path,
+        checkpoint_freq: int = 10,
+        async_save: bool = True
+    ):
         """Initialize checkpoint manager.
 
         Args:
             checkpoint_dir: Directory to save checkpoints
             checkpoint_freq: Frequency (in epochs) to save numbered checkpoints
+            async_save: Use async saving (default True for P3 optimization)
         """
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_freq = checkpoint_freq
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+
+        # P3 FIX: Async saver for non-blocking saves
+        self._async_save = async_save
+        self._async_saver = AsyncCheckpointSaver() if async_save else None
 
     def save_checkpoint(
         self,
@@ -33,6 +135,8 @@ class CheckpointManager:
         is_best: bool = False
     ) -> None:
         """Save checkpoint with model, optimizer, and metadata.
+
+        P3 FIX: Uses async saving by default to avoid blocking training.
 
         Args:
             epoch: Current epoch
@@ -48,16 +152,32 @@ class CheckpointManager:
             **metadata
         }
 
+        # Choose save method based on async setting
+        save_fn = self._save_async if self._async_save else self._save_sync
+
         # Always save latest
-        torch.save(checkpoint, self.checkpoint_dir / 'latest.pt')
+        save_fn(checkpoint, self.checkpoint_dir / 'latest.pt')
 
         # Save best if indicated
         if is_best:
-            torch.save(checkpoint, self.checkpoint_dir / 'best.pt')
+            save_fn(checkpoint, self.checkpoint_dir / 'best.pt')
 
         # Save numbered checkpoint at specified frequency
         if epoch % self.checkpoint_freq == 0:
-            torch.save(checkpoint, self.checkpoint_dir / f'epoch_{epoch}.pt')
+            save_fn(checkpoint, self.checkpoint_dir / f'epoch_{epoch}.pt')
+
+    def _save_sync(self, checkpoint: Dict[str, Any], path: Path) -> None:
+        """Synchronous (blocking) save."""
+        torch.save(checkpoint, path)
+
+    def _save_async(self, checkpoint: Dict[str, Any], path: Path) -> None:
+        """Asynchronous (non-blocking) save."""
+        self._async_saver.save_async(checkpoint, path)
+
+    def shutdown(self) -> None:
+        """Shutdown async saver, waiting for pending saves."""
+        if self._async_saver is not None:
+            self._async_saver.shutdown()
 
     def load_checkpoint(
         self,

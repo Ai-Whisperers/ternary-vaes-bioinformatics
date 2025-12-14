@@ -5,10 +5,11 @@ This module provides scheduling functionality for training parameters:
 - Beta (KL weight) scheduling with warmup
 - Learning rate scheduling
 
+P3 FIX: Replaced numpy with math module to avoid CPU-GPU sync issues.
+
 Single responsibility: Parameter scheduling logic only.
 """
 
-import numpy as np
 import math
 from typing import Dict, List, Any
 
@@ -37,6 +38,9 @@ def cyclic_schedule(epoch: int, base_val: float, amplitude: float,
                    period: int) -> float:
     """Cyclic scheduling: base ± amplitude with given period.
 
+    P3 FIX: Uses math.cos instead of numpy.cos to avoid potential
+    CPU-GPU sync issues when used with torch tensors.
+
     Args:
         epoch: Current epoch
         base_val: Base value
@@ -46,8 +50,8 @@ def cyclic_schedule(epoch: int, base_val: float, amplitude: float,
     Returns:
         Scheduled value
     """
-    phase = (epoch % period) / period * 2 * np.pi
-    return base_val + amplitude * np.cos(phase)
+    phase = (epoch % period) / period * 2 * math.pi
+    return base_val + amplitude * math.cos(phase)
 
 
 class TemperatureScheduler:
