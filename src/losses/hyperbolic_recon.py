@@ -25,6 +25,9 @@ import torch.nn.functional as F
 from typing import Tuple, Optional, Dict
 import math
 
+# P2 FIX: Use core module for vectorized prefix computation
+from ..core import TERNARY
+
 
 class HyperbolicReconLoss(nn.Module):
     """Hyperbolic-aware reconstruction loss.
@@ -517,11 +520,9 @@ class HyperbolicCentroidLoss(nn.Module):
         metrics = {}
 
         for level in range(1, self.max_level + 1):
-            # Group points by prefix at this level
-            prefixes = torch.tensor(
-                [self._get_prefix(int(idx), level) for idx in batch_indices],
-                device=device
-            )
+            # P2 FIX: Vectorized prefix computation using core module
+            # Instead of Python loop: [self._get_prefix(int(idx), level) for idx in batch_indices]
+            prefixes = TERNARY.prefix(batch_indices, level)
 
             unique_prefixes = torch.unique(prefixes)
             level_loss = torch.tensor(0.0, device=device)

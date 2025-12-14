@@ -4,6 +4,7 @@ This module handles ternary operation data:
 - generation: Generate all possible ternary operations
 - dataset: Dataset classes for ternary operations
 - loaders: DataLoader creation and configuration
+- gpu_resident: GPU-resident dataset for zero-transfer training (P2 optimization)
 """
 
 from .generation import (
@@ -13,6 +14,11 @@ from .generation import (
 )
 from .dataset import TernaryOperationDataset
 from .loaders import create_ternary_data_loaders, get_data_loader_info
+from .gpu_resident import (
+    GPUResidentTernaryDataset,
+    GPUBatchIterator,
+    create_gpu_resident_loaders
+)
 
 __all__ = [
     # Generation
@@ -21,7 +27,11 @@ __all__ = [
     'generate_ternary_operation_by_index',
     # Dataset
     'TernaryOperationDataset',
-    # Loaders
+    # Loaders (CPU-based, standard)
     'create_ternary_data_loaders',
     'get_data_loader_info',
+    # GPU-Resident (P2 optimization)
+    'GPUResidentTernaryDataset',
+    'GPUBatchIterator',
+    'create_gpu_resident_loaders',
 ]

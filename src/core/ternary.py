@@ -250,6 +250,65 @@ class TernarySpace:
         return torch.arange(self.N_OPERATIONS, device=device)
 
     # =========================================================================
+    # Batch Operations for GPU Efficiency
+    # =========================================================================
+
+    def all_ternary(self, device: Optional[torch.device] = None) -> torch.Tensor:
+        """Get all 19,683 ternary representations at once.
+
+        Useful for GPU-resident dataset - load once, index thereafter.
+
+        Args:
+            device: Device to place tensor on
+
+        Returns:
+            Tensor of shape (19683, 9) with all ternary representations
+        """
+        if device is None:
+            return self._ternary_lut.clone()
+        return self._get_cached_lut('ternary', self._ternary_lut, device)
+
+    def prefix(
+        self,
+        indices: torch.Tensor,
+        level: int
+    ) -> torch.Tensor:
+        """Compute tree prefix for given level (vectorized).
+
+        In the 3-adic tree, nodes at level k share the same prefix.
+        prefix(n, k) = n // 3^(9-k)
+
+        This is used by HyperbolicCentroidLoss for tree structure.
+
+        Args:
+            indices: Operation indices, any shape
+            level: Tree level (0 = root, 9 = leaves)
+
+        Returns:
+            Prefix indices, same shape as input
+        """
+        level = max(0, min(level, self.N_DIGITS))
+        divisor = 3 ** (self.N_DIGITS - level)
+        return indices.long() // divisor
+
+    def level_mask(
+        self,
+        indices: torch.Tensor,
+        level: int
+    ) -> torch.Tensor:
+        """Get mask for indices at specific tree level.
+
+        Args:
+            indices: Operation indices
+            level: Tree level
+
+        Returns:
+            Boolean mask where True = index is at this level
+        """
+        v = self.valuation(indices)
+        return v == level
+
+    # =========================================================================
     # Analysis Methods
     # =========================================================================
 

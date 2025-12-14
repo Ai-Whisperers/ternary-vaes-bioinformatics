@@ -24,6 +24,11 @@ from .ternary import (
     from_ternary,
 )
 
+# Constants exposed at module level for convenience
+N_OPERATIONS = TERNARY.N_OPERATIONS
+N_DIGITS = TERNARY.N_DIGITS
+MAX_VALUATION = TERNARY.MAX_VALUATION
+
 __all__ = [
     'TernarySpace',
     'TERNARY',
@@ -31,4 +36,7 @@ __all__ = [
     'distance',
     'to_ternary',
     'from_ternary',
+    'N_OPERATIONS',
+    'N_DIGITS',
+    'MAX_VALUATION',
 ]
