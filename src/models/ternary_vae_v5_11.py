@@ -1,0 +1,463 @@
+"""Ternary VAE v5.11 - Unified Hyperbolic Geometry with Frozen Coverage.
+
+V5.11 ARCHITECTURE:
+
+1. FROZEN v5.5 Encoder: 100% coverage preserved, no gradients
+2. Trainable HyperbolicProjection: Learns radial hierarchy
+3. DifferentiableController: Full gradient flow (no .item() calls)
+4. Unified PAdicGeodesicLoss: Hierarchy + correlation via geometry
+
+Key insight: v5.5 achieved 100% coverage but inverted radial hierarchy.
+V5.11 freezes the coverage and learns only the geometric projection.
+
+Architecture:
+```
+Input x ──► [FROZEN v5.5 Encoder] ──► z_euclidean (16D)
+                 (no gradients)
+
+         ──► [HyperbolicProjection] ──► z_hyp (Poincaré ball)
+                 (trainable)
+
+         ──► [DifferentiableController] ──► control signals
+                 (trainable, full gradient flow)
+
+         ──► [Unified PAdicGeodesicLoss]
+                 (single loss = hierarchy + correlation)
+```
+
+Single responsibility: V5.11 model architecture.
+"""
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from pathlib import Path
+from typing import Dict, Optional, Tuple
+
+from .hyperbolic_projection import HyperbolicProjection, DualHyperbolicProjection
+from .differentiable_controller import DifferentiableController, ThreeBodyController
+
+
+class FrozenEncoder(nn.Module):
+    """Frozen encoder from v5.5 checkpoint.
+
+    This encoder has achieved 100% coverage and NEVER trains.
+    We only use it to produce Euclidean latent codes for projection.
+    """
+
+    def __init__(self, input_dim: int = 9, latent_dim: int = 16):
+        super().__init__()
+
+        # Architecture must match v5.5 exactly
+        self.encoder = nn.Sequential(
+            nn.Linear(input_dim, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU()
+        )
+        self.fc_mu = nn.Linear(64, latent_dim)
+        self.fc_logvar = nn.Linear(64, latent_dim)
+
+        # FREEZE all parameters
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def forward(self, x: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Forward pass - deterministic, no gradients."""
+        h = self.encoder(x)
+        mu = self.fc_mu(h)
+        logvar = self.fc_logvar(h)
+        return mu, logvar
+
+    @classmethod
+    def from_v5_5_checkpoint(
+        cls,
+        checkpoint_path: Path,
+        encoder_prefix: str = 'encoder_A',
+        device: str = 'cpu'
+    ) -> 'FrozenEncoder':
+        """Load frozen encoder from v5.5 checkpoint.
+
+        Args:
+            checkpoint_path: Path to v5.5 checkpoint
+            encoder_prefix: Which encoder to load ('encoder_A' or 'encoder_B')
+            device: Device to load to
+
+        Returns:
+            FrozenEncoder with loaded weights
+        """
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        model_state = checkpoint['model']
+
+        # Create encoder
+        encoder = cls()
+
+        # Extract and load weights
+        encoder_state = {}
+        for key, value in model_state.items():
+            if key.startswith(f'{encoder_prefix}.'):
+                new_key = key[len(encoder_prefix) + 1:]  # Remove prefix
+                encoder_state[new_key] = value
+
+        encoder.load_state_dict(encoder_state)
+        encoder.to(device)
+
+        # Ensure frozen
+        for param in encoder.parameters():
+            param.requires_grad = False
+
+        return encoder
+
+
+class FrozenDecoder(nn.Module):
+    """Frozen decoder from v5.5 checkpoint.
+
+    Used for reconstruction verification (not training).
+    """
+
+    def __init__(self, latent_dim: int = 16, output_dim: int = 9):
+        super().__init__()
+        self.output_dim = output_dim
+
+        # Architecture must match v5.5 exactly (decoder_A style)
+        self.decoder = nn.Sequential(
+            nn.Linear(latent_dim, 32),
+            nn.ReLU(),
+            nn.Linear(32, 64),
+            nn.ReLU(),
+            nn.Linear(64, output_dim * 3)
+        )
+
+        # FREEZE
+        for param in self.parameters():
+            param.requires_grad = False
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        """Forward pass - produces logits."""
+        logits = self.decoder(z)
+        return logits.view(-1, self.output_dim, 3)
+
+    @classmethod
+    def from_v5_5_checkpoint(
+        cls,
+        checkpoint_path: Path,
+        decoder_prefix: str = 'decoder_A',
+        device: str = 'cpu'
+    ) -> 'FrozenDecoder':
+        """Load frozen decoder from v5.5 checkpoint."""
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        model_state = checkpoint['model']
+
+        decoder = cls()
+
+        decoder_state = {}
+        for key, value in model_state.items():
+            if key.startswith(f'{decoder_prefix}.'):
+                new_key = key[len(decoder_prefix) + 1:]
+                decoder_state[new_key] = value
+
+        decoder.load_state_dict(decoder_state)
+        decoder.to(device)
+
+        for param in decoder.parameters():
+            param.requires_grad = False
+
+        return decoder
+
+
+class TernaryVAEV5_11(nn.Module):
+    """Ternary VAE v5.11 with frozen coverage and trainable hyperbolic projection.
+
+    This model:
+    1. Uses frozen v5.5 encoder for 100% coverage (no training)
+    2. Projects Euclidean latents to Poincaré ball (trainable)
+    3. Uses differentiable controller for loss weighting (trainable)
+    4. Trains only for hyperbolic structure (geodesic loss)
+    """
+
+    def __init__(
+        self,
+        latent_dim: int = 16,
+        hidden_dim: int = 64,
+        max_radius: float = 0.95,
+        curvature: float = 1.0,
+        use_controller: bool = True,
+        use_dual_projection: bool = False
+    ):
+        """Initialize TernaryVAEV5_11.
+
+        Args:
+            latent_dim: Latent space dimension (must match v5.5)
+            hidden_dim: Hidden dimension for projection networks
+            max_radius: Maximum radius in Poincaré ball
+            curvature: Hyperbolic curvature parameter
+            use_controller: Whether to use differentiable controller
+            use_dual_projection: Whether to use separate A/B projections
+        """
+        super().__init__()
+
+        self.latent_dim = latent_dim
+        self.max_radius = max_radius
+        self.curvature = curvature
+        self.use_controller = use_controller
+        self.use_dual_projection = use_dual_projection
+
+        # Frozen encoders (will be loaded from checkpoint)
+        self.encoder_A = FrozenEncoder(latent_dim=latent_dim)
+        self.encoder_B = FrozenEncoder(latent_dim=latent_dim)
+
+        # Frozen decoder (for verification only)
+        self.decoder_A = FrozenDecoder(latent_dim=latent_dim)
+
+        # Trainable hyperbolic projection
+        if use_dual_projection:
+            self.projection = DualHyperbolicProjection(
+                latent_dim=latent_dim,
+                hidden_dim=hidden_dim,
+                max_radius=max_radius,
+                curvature=curvature
+            )
+        else:
+            self.projection = HyperbolicProjection(
+                latent_dim=latent_dim,
+                hidden_dim=hidden_dim,
+                max_radius=max_radius,
+                curvature=curvature
+            )
+
+        # Trainable controller
+        if use_controller:
+            self.controller = DifferentiableController(
+                input_dim=8,
+                hidden_dim=32
+            )
+        else:
+            self.controller = None
+
+        # Default control values (used when controller is disabled)
+        self.default_control = {
+            'rho': 0.0,  # No cross-injection for frozen model
+            'weight_geodesic': 1.0,
+            'weight_radial': 0.5,
+            'beta_A': 1.0,
+            'beta_B': 1.0,
+            'tau': 0.5
+        }
+
+    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = 'cpu'):
+        """Load frozen components from v5.5 checkpoint.
+
+        Args:
+            checkpoint_path: Path to v5.5 checkpoint file
+            device: Device to load to
+        """
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        model_state = checkpoint['model']
+
+        # Load encoder_A
+        enc_A_state = {
+            k.replace('encoder_A.', ''): v
+            for k, v in model_state.items()
+            if k.startswith('encoder_A.')
+        }
+        self.encoder_A.load_state_dict(enc_A_state)
+
+        # Load encoder_B
+        enc_B_state = {
+            k.replace('encoder_B.', ''): v
+            for k, v in model_state.items()
+            if k.startswith('encoder_B.')
+        }
+        self.encoder_B.load_state_dict(enc_B_state)
+
+        # Load decoder_A
+        dec_A_state = {
+            k.replace('decoder_A.', ''): v
+            for k, v in model_state.items()
+            if k.startswith('decoder_A.')
+        }
+        self.decoder_A.load_state_dict(dec_A_state)
+
+        # Move to device
+        self.to(device)
+
+        # Ensure frozen components stay frozen
+        for param in self.encoder_A.parameters():
+            param.requires_grad = False
+        for param in self.encoder_B.parameters():
+            param.requires_grad = False
+        for param in self.decoder_A.parameters():
+            param.requires_grad = False
+
+        print(f"Loaded v5.5 checkpoint from {checkpoint_path}")
+        print(f"  Epoch: {checkpoint.get('epoch', 'unknown')}")
+
+    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
+        """Reparameterization trick."""
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
+
+    def forward(
+        self,
+        x: torch.Tensor,
+        compute_control: bool = True
+    ) -> Dict[str, torch.Tensor]:
+        """Forward pass through the model.
+
+        Args:
+            x: Input ternary operations (batch, 9)
+            compute_control: Whether to compute controller outputs
+
+        Returns:
+            Dict with all outputs
+        """
+        # Frozen encoding (no gradients)
+        with torch.no_grad():
+            mu_A, logvar_A = self.encoder_A(x)
+            mu_B, logvar_B = self.encoder_B(x)
+            z_A_euc = self.reparameterize(mu_A, logvar_A)
+            z_B_euc = self.reparameterize(mu_B, logvar_B)
+
+        # Trainable projection to Poincaré ball
+        if self.use_dual_projection:
+            z_A_hyp, z_B_hyp = self.projection(z_A_euc, z_B_euc)
+        else:
+            z_A_hyp = self.projection(z_A_euc)
+            z_B_hyp = self.projection(z_B_euc)
+
+        # Compute control signals (if enabled)
+        if compute_control and self.controller is not None:
+            # Compute batch statistics (all tensors for gradient flow)
+            radius_A = torch.norm(z_A_hyp, dim=-1).mean()
+            radius_B = torch.norm(z_B_hyp, dim=-1).mean()
+
+            # Use mean embeddings for other stats
+            kl_A = -0.5 * (1 + logvar_A - mu_A.pow(2) - logvar_A.exp()).sum(dim=-1).mean()
+            kl_B = -0.5 * (1 + logvar_B - mu_B.pow(2) - logvar_B.exp()).sum(dim=-1).mean()
+
+            # Placeholder for loss-based stats (will be filled during training)
+            geo_loss_placeholder = torch.tensor(0.0, device=x.device)
+            rad_loss_placeholder = torch.tensor(0.0, device=x.device)
+
+            batch_stats = torch.stack([
+                radius_A, radius_B,
+                torch.tensor(1.0, device=x.device),  # H_A placeholder
+                torch.tensor(1.0, device=x.device),  # H_B placeholder
+                kl_A, kl_B,
+                geo_loss_placeholder,
+                rad_loss_placeholder
+            ])
+
+            control = self.controller(batch_stats)
+            # Squeeze batch dimension
+            control = {k: v.squeeze(0) for k, v in control.items()}
+        else:
+            control = {
+                k: torch.tensor(v, device=x.device)
+                for k, v in self.default_control.items()
+            }
+
+        # Verification reconstruction (no gradients, for monitoring only)
+        with torch.no_grad():
+            logits_A = self.decoder_A(z_A_euc)
+
+        return {
+            # Euclidean latents (from frozen encoder)
+            'z_A_euc': z_A_euc,
+            'z_B_euc': z_B_euc,
+            'mu_A': mu_A,
+            'mu_B': mu_B,
+            'logvar_A': logvar_A,
+            'logvar_B': logvar_B,
+
+            # Hyperbolic latents (from trainable projection)
+            'z_A_hyp': z_A_hyp,
+            'z_B_hyp': z_B_hyp,
+
+            # Control signals (from trainable controller)
+            'control': control,
+
+            # Reconstruction logits (for verification)
+            'logits_A': logits_A
+        }
+
+    def get_trainable_parameters(self):
+        """Get only trainable parameters (projection + controller)."""
+        params = list(self.projection.parameters())
+        if self.controller is not None:
+            params.extend(self.controller.parameters())
+        return params
+
+    def count_parameters(self) -> Dict[str, int]:
+        """Count parameters by component."""
+        frozen_params = sum(
+            p.numel() for p in self.encoder_A.parameters()
+        ) + sum(
+            p.numel() for p in self.encoder_B.parameters()
+        ) + sum(
+            p.numel() for p in self.decoder_A.parameters()
+        )
+
+        projection_params = sum(p.numel() for p in self.projection.parameters())
+
+        controller_params = 0
+        if self.controller is not None:
+            controller_params = sum(p.numel() for p in self.controller.parameters())
+
+        return {
+            'frozen': frozen_params,
+            'projection': projection_params,
+            'controller': controller_params,
+            'trainable': projection_params + controller_params,
+            'total': frozen_params + projection_params + controller_params
+        }
+
+
+class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
+    """V5.11 Option C: Partial freeze variant.
+
+    Inherits from V5.11 but allows optional unfreezing of encoder_B
+    for exploration while keeping encoder_A frozen for coverage.
+
+    This enables Three-Body dynamics where:
+    - VAE-A (frozen): Anchors coverage
+    - VAE-B (trainable): Explores structure
+    """
+
+    def __init__(
+        self,
+        freeze_encoder_b: bool = False,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.freeze_encoder_b = freeze_encoder_b
+
+    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = 'cpu'):
+        """Load checkpoint with optional encoder_B unfreezing."""
+        super().load_v5_5_checkpoint(checkpoint_path, device)
+
+        if not self.freeze_encoder_b:
+            # Unfreeze encoder_B for exploration
+            for param in self.encoder_B.parameters():
+                param.requires_grad = True
+            print("  encoder_B UNFROZEN for Option C training")
+
+    def get_trainable_parameters(self):
+        """Get trainable parameters including optionally unfrozen encoder_B."""
+        params = super().get_trainable_parameters()
+
+        if not self.freeze_encoder_b:
+            params.extend(self.encoder_B.parameters())
+
+        return params
+
+
+__all__ = [
+    'FrozenEncoder',
+    'FrozenDecoder',
+    'TernaryVAEV5_11',
+    'TernaryVAEV5_11_OptionC'
+]

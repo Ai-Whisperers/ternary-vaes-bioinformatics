@@ -69,6 +69,13 @@ from .radial_stratification import (
     compute_single_index_valuation
 )
 
+from .padic_geodesic import (
+    poincare_distance,
+    PAdicGeodesicLoss,
+    RadialHierarchyLoss,
+    CombinedGeodesicLoss
+)
+
 from .consequence_predictor import (
     ConsequencePredictor,
     evaluate_addition_accuracy,
@@ -124,6 +131,11 @@ __all__ = [
     'HyperbolicCentroidLoss',
     'RadialStratificationLoss',
     'compute_single_index_valuation',
+    # V5.11 Unified Geodesic Loss
+    'poincare_distance',
+    'PAdicGeodesicLoss',
+    'RadialHierarchyLoss',
+    'CombinedGeodesicLoss',
     'ConsequencePredictor',
     'evaluate_addition_accuracy',
     'PurposefulRankingLoss',
