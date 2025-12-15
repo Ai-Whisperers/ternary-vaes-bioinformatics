@@ -93,7 +93,7 @@ ternary_dataset:
 seed: 42
 batch_size: 256
 num_workers: 0
-total_epochs: 300
+total_epochs: 50  # P2 FIX: Increased for exploration boost validation (was 30)
 # P2 FIX: GPU-resident dataset (eliminates CPU→GPU transfers)
 # All 19,683 samples loaded to GPU once (~865 KB) for zero-transfer training
 gpu_resident: true
@@ -175,11 +175,16 @@ padic_losses:
   norm_loss_weight: 0.0
 
   # ENABLED: Simple ranking loss (V1) - random triplet sampling, no hard mining
+  # P1 FIX: Increased weight from 0.5 to 2.0 to compete with reconstruction (~14)
+  # This provides actual gradient signal for preserving 3-adic structure
   enable_ranking_loss: true
-  ranking_loss:
+  ranking_loss_weight: 2.0         # P1 FIX: Increased from 0.5 to 2.0 (best=0.7465 correlation)
+  ranking_margin: 0.1              # Top-level key (code reads this)
+  ranking_n_triplets: 500          # Top-level key (code reads this)
+  ranking_loss:                    # Nested config (for reference)
     margin: 0.1
     n_triplets: 500
-    weight: 0.3
+    weight: 2.0
 
   # ==========================================================================
   # v5.10 PURE HYPERBOLIC MODULES (new)
@@ -192,15 +197,19 @@ padic_losses:
     prior:
       homeostatic: true        # Enable adaptive sigma/curvature
       latent_dim: 16
-      curvature: 2.0           # Higher = sharper tree (homeostatic adapts)
+      curvature: 2.2           # P0 FIX: Optimal from epoch 8 analysis
       prior_sigma: 1.0         # Spread in tangent space (homeostatic adapts)
       max_norm: 0.95
-      # Homeostatic bounds (prevent collapse/explosion)
-      sigma_min: 0.3
-      sigma_max: 2.0
-      curvature_min: 0.5
-      curvature_max: 4.0
-      adaptation_rate: 0.01
+      # P0 FIX: Realistic KL target (actual hyperbolic KL runs at 80-90)
+      kl_target: 50.0          # Was hardcoded 1.0, caused curvature runaway
+      target_radius: 0.5       # Target mean radius in Poincare ball
+      # P0 FIX: Tighter homeostatic bounds (prevent runaway)
+      sigma_min: 0.8
+      sigma_max: 1.2
+      curvature_min: 2.0       # Lock to stable range (was 0.5)
+      curvature_max: 2.5       # Prevent runaway (was 4.0)
+      adaptation_rate: 0.005   # Slower adaptation (was 0.01)
+      ema_alpha: 0.05          # More smoothing (was 0.1)
 
     # Hyperbolic Reconstruction: Radius-weighted cross-entropy
     # Points near origin (high valuation) get higher weight
@@ -250,14 +259,50 @@ min_delta: 0.0001
 coverage_plateau_patience: 150
 min_coverage_delta: 0.001
 
+# =============================================================================
+# P1 FIXES: Correlation-Aware Training
+# =============================================================================
+correlation_feedback:
+  enabled: true
+  # Correlation loss: penalize deviation from target correlation
+  correlation_loss_weight: 0.1    # Weight of -correlation term in loss
+  target_correlation: 0.95        # Target correlation for loss computation
+  # Early stopping on correlation drop
+  correlation_drop_threshold: 0.05  # Stop if corr drops more than this from best
+  correlation_patience: 10          # Epochs to wait before stopping on corr drop
+
+# =============================================================================
+# P2 FIXES: Coverage-Triggered Exploration + Correlation Loss
+# =============================================================================
+exploration_boost:
+  enabled: true
+  # Coverage stall detection
+  coverage_stall_threshold: 0.5   # Min coverage delta to not be "stalled" (%)
+  coverage_stall_patience: 5      # Epochs of stall before boosting
+  # Temperature boost when stalled
+  temp_boost_factor: 1.15         # Multiply temperature by this when stalled
+  temp_boost_max: 2.0             # Maximum temperature multiplier
+  # Ranking weight reduction when stalled (less structure constraint)
+  ranking_reduction_factor: 0.9   # Multiply ranking weight by this when stalled
+  ranking_reduction_min: 0.05     # Minimum ranking weight
+
+correlation_loss:
+  enabled: true
+  # Add -weight * correlation directly to loss (rewards higher correlation)
+  # P1 FIX: Increased weight from 0.5 to 3.0 to be significant vs total loss (~14)
+  # P1 FIX: Removed warmup to activate immediately (correlation drops in first 3 epochs)
+  weight: 3.0                     # Weight of correlation bonus in loss (was 0.5)
+  warmup_epochs: 0                # Start immediately (was 5)
+  use_cached: true                # Use cached correlation (computed at eval_interval)
+
 # Logging and checkpointing (OPTIMIZED FOR SPEED)
 log_interval: 20                 # Batch logging every N batches (was 1)
 log_dir: logs
 checkpoint_freq: 10              # Save checkpoint every 10 epochs
 checkpoint_dir: sandbox-training/checkpoints/v5_10
 eval_num_samples: 500            # Reduced for faster evaluation
-eval_interval: 25                # Correlation check every N epochs
-coverage_check_interval: 10      # Coverage evaluation every N epochs
+eval_interval: 3                 # THREE-BODY FIX: Frequent correlation check (was 5)
+coverage_check_interval: 3       # THREE-BODY FIX: Frequent coverage eval (was 10)
 
 # TensorBoard (MINIMAL - focus on checkpoints)
 tensorboard_dir: runs

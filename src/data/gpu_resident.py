@@ -141,6 +141,10 @@ class GPUResidentTernaryDataset:
         """Get number of batches for a split."""
         return (self.get_split_size(split) + batch_size - 1) // batch_size
 
+    def __len__(self) -> int:
+        """Return total dataset size for compatibility with standard DataLoader pattern."""
+        return len(self.train_indices) + len(self.val_indices) + len(self.test_indices)
+
 
 class GPUBatchIterator:
     """Drop-in replacement for DataLoader iteration.

@@ -3,13 +3,15 @@
 This is a THIN orchestration script that wires together components from src/.
 All logic is delegated to src modules:
 - src.training: Trainers, monitoring, config validation
-- src.data: Data loading
+- src.data: Data loading (standard or GPU-resident)
 - src.utils: Reproducibility
 - src.artifacts: Checkpoint management
 - src.models: Model architecture
+- src.losses: Consequence predictor for purpose-aware training
 
 Usage:
     python scripts/train/train_ternary_v5_10.py --config configs/ternary_v5_10.yaml
+    python scripts/train/train_ternary_v5_10.py --config configs/ternary_v5_10.yaml --gpu-resident
     python scripts/train/train_ternary_v5_10.py --config configs/ternary_v5_10.yaml --strict
 """
 
@@ -17,10 +19,13 @@ import yaml
 import argparse
 from pathlib import Path
 import sys
+import torch
+import torch.optim as optim
 
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.models.ternary_vae_v5_10 import DualNeuralVAEV5_10
+from src.models.curriculum import ContinuousCurriculumModule  # v5.10.1: StateNet-driven curriculum
 from src.training import (
     TernaryVAETrainer,
     HyperbolicVAETrainer,
@@ -30,8 +35,15 @@ from src.training import (
     validate_environment
 )
 from src.data import create_ternary_data_loaders, get_data_loader_info
+from src.data import create_gpu_resident_loaders  # P2: GPU-resident dataset
 from src.utils import set_seed
 from src.artifacts import CheckpointManager
+from src.losses import (
+    ConsequencePredictor,           # Consequence awareness
+    evaluate_addition_accuracy,
+    RadialStratificationLoss,       # v5.10.1: 3-adic radial hierarchy
+    PurposefulRankingLoss           # Consequence-aware ranking
+)
 
 
 def main():
@@ -67,17 +79,31 @@ def main():
     monitor._log(f"\nDevice: {device}")
 
     # Create data loaders (from src.data)
-    monitor._log("\nCreating data loaders...")
-    train_loader, val_loader, _ = create_ternary_data_loaders(
-        batch_size=config['batch_size'],
-        train_split=config['train_split'],
-        val_split=config['val_split'],
-        test_split=config.get('test_split', 0.1),
-        num_workers=config['num_workers'],
-        seed=config.get('seed', 42)
-    )
-    monitor._log(f"Train: {get_data_loader_info(train_loader)['size']:,} samples")
-    monitor._log(f"Val: {get_data_loader_info(val_loader)['size']:,} samples")
+    # P2 FIX: Support GPU-resident dataset for zero CPU-GPU transfers
+    use_gpu_resident = args.gpu_resident or config.get('gpu_resident', False)
+    monitor._log(f"\nCreating data loaders (GPU-resident: {use_gpu_resident})...")
+
+    if use_gpu_resident and device == 'cuda':
+        train_loader, val_loader, _ = create_gpu_resident_loaders(
+            device=device,
+            batch_size=config['batch_size'],
+            train_split=config['train_split'],
+            val_split=config['val_split'],
+            seed=config.get('seed', 42)
+        )
+        monitor._log(f"Train: {len(train_loader.dataset.train_indices):,} samples (GPU-resident)")
+        monitor._log(f"Val: {len(train_loader.dataset.val_indices):,} samples (GPU-resident)")
+    else:
+        train_loader, val_loader, _ = create_ternary_data_loaders(
+            batch_size=config['batch_size'],
+            train_split=config['train_split'],
+            val_split=config['val_split'],
+            test_split=config.get('test_split', 0.1),
+            num_workers=config['num_workers'],
+            seed=config.get('seed', 42)
+        )
+        monitor._log(f"Train: {get_data_loader_info(train_loader)['size']:,} samples")
+        monitor._log(f"Val: {get_data_loader_info(val_loader)['size']:,} samples")
 
     # Create model
     model = create_model(config)
@@ -104,6 +130,8 @@ def parse_args():
                         help='Directory for log files')
     parser.add_argument('--strict', action='store_true',
                         help='Treat environment warnings as errors')
+    parser.add_argument('--gpu-resident', action='store_true',
+                        help='Use GPU-resident dataset (zero CPU-GPU transfers)')
     return parser.parse_args()
 
 
@@ -136,6 +164,13 @@ def log_startup_info(monitor: TrainingMonitor, config: dict, config_path: str) -
         monitor._log(f"    initial_tau: {curriculum_config.get('initial_tau', 0.0)}")
         monitor._log(f"    tau_scale: {curriculum_config.get('tau_scale', 0.1)}")
 
+    # GPU-resident dataset (P2 optimization)
+    monitor._log(f"\nData Pipeline:")
+    monitor._log(f"  GPU-Resident: {'ENABLED' if config.get('gpu_resident', False) else 'DISABLED'}")
+    if config.get('gpu_resident', False):
+        monitor._log(f"    Memory: ~865 KB (all 19,683 samples on GPU)")
+        monitor._log(f"    Benefit: Zero CPU→GPU transfers per batch")
+
     # Hyperbolic modules (v5.10 base)
     padic = config.get('padic_losses', {})
     hyp_v10 = padic.get('hyperbolic_v10', {})
@@ -144,6 +179,12 @@ def log_startup_info(monitor: TrainingMonitor, config: dict, config_path: str) -
     monitor._log(f"  Hyperbolic Prior: {'ENABLED' if hyp_v10.get('use_hyperbolic_prior') else 'DISABLED'}")
     monitor._log(f"  Hyperbolic Recon: {'ENABLED' if hyp_v10.get('use_hyperbolic_recon') else 'DISABLED'}")
     monitor._log(f"  Centroid Loss: {'ENABLED' if hyp_v10.get('use_centroid_loss') else 'DISABLED'}")
+
+    # Consequence predictor (purpose-aware training)
+    monitor._log(f"\nPurpose-Aware Training:")
+    monitor._log(f"  Consequence Predictor: ENABLED")
+    monitor._log(f"    Eval interval: every {config.get('consequence_eval_interval', 50)} epochs")
+    monitor._log(f"    Purpose: Predicts addition accuracy from ranking correlation")
 
     monitor._log(f"\nObservability:")
     monitor._log(f"  TensorBoard: {config.get('tensorboard_dir', 'runs')}/")
@@ -220,6 +261,24 @@ def run_training_loop(
             },
             is_best=is_best
         )
+
+        # P2 FIX: Log exploration boost when triggered
+        if losses.get('exploration_boosted', False):
+            trainer.monitor._log(
+                f"  [P2] Exploration boost: temp_mult={losses['temp_multiplier']:.2f}, "
+                f"ranking_mult={losses['ranking_multiplier']:.2f} (stall_counter={losses['coverage_stall_counter']})"
+            )
+
+        # P1 FIX: Check correlation early stopping
+        if losses.get('should_stop_correlation', False):
+            trainer.monitor._log(
+                f"\n[P1] Correlation early stopping triggered at epoch {epoch}"
+            )
+            trainer.monitor._log(
+                f"  Correlation dropped from {losses['best_correlation_for_stopping']:.4f} "
+                f"to {losses['corr_mean_hyp']:.4f} (threshold: {config.get('correlation_feedback', {}).get('correlation_drop_threshold', 0.05)})"
+            )
+            break
 
     # Training complete
     trainer.print_summary()

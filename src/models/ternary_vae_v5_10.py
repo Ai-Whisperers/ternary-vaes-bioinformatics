@@ -263,14 +263,16 @@ class StateNetV5(nn.Module):
     """Curriculum-Aware StateNet v5 for Radial-First Learning.
 
     v5 UPGRADE: Adds curriculum control for coordinated radial→ranking learning.
+    v5.1 UPGRADE (Gap 6 fix): Adds cross-VAE correlation r_AB to detect redundancy.
 
     Inherits from v4: hyperbolic state feedback, metric attention
     Adds: radial_loss feedback, curriculum_tau observation, delta_curriculum output
 
-    Input: state vector (20D):
+    Input: state vector (21D):
         [H_A, H_B, KL_A, KL_B, grad_ratio, rho, lambda1, lambda2, lambda3,
          coverage_A_norm, coverage_B_norm, missing_ops_norm,
          r_A, r_B,                          <- v3: ranking correlations
+         r_AB,                              <- v5.1: cross-VAE embedding correlation
          mean_radius_A, mean_radius_B,      <- v4: hyperbolic radii
          prior_sigma, curvature,            <- v4: hyperbolic params
          radial_loss_norm, curriculum_tau]  <- v5: curriculum state
@@ -283,7 +285,7 @@ class StateNetV5(nn.Module):
          delta_curriculum]                  <- v5: curriculum advancement signal
     """
 
-    def __init__(self, state_dim: int = 20, hidden_dim: int = 64, latent_dim: int = 14):
+    def __init__(self, state_dim: int = 21, hidden_dim: int = 64, latent_dim: int = 14):
         super().__init__()
 
         self.state_dim = state_dim
@@ -308,8 +310,9 @@ class StateNetV5(nn.Module):
         )
 
         # Metric-specific attention head (inherited from v4)
+        # v5.1: Expanded from 12 to 13 for r_AB dimension
         self.metric_attention = nn.Sequential(
-            nn.Linear(state_dim, 12),  # Expanded for curriculum dims
+            nn.Linear(state_dim, 13),  # +1 for r_AB
             nn.Softmax(dim=-1)
         )
 
@@ -326,10 +329,19 @@ class StateNetV5(nn.Module):
             nn.Softmax(dim=-1)
         )
 
+        # GAP 5 FIX: Learnable attention head scaling (dynamic architecture)
+        # These scalars learn which attention heads are most important
+        # Initialized to equal importance (1.0 each), learned through backprop
+        self.attention_head_scales = nn.ParameterDict({
+            'metric': nn.Parameter(torch.tensor(1.0)),
+            'hyperbolic': nn.Parameter(torch.tensor(1.0)),
+            'curriculum': nn.Parameter(torch.tensor(1.0))
+        })
+
     def forward(self, state: torch.Tensor) -> tuple:
         """
         Args:
-            state: Training state tensor [batch, 20] or [20]
+            state: Training state tensor [batch, 21] or [21] (v5.1: includes r_AB)
 
         Returns:
             corrections: [delta_lr, delta_lambda1-3, delta_ranking, delta_sigma, delta_curvature, delta_curriculum]
@@ -340,34 +352,50 @@ class StateNetV5(nn.Module):
         if state.dim() == 1:
             state = state.unsqueeze(0)
 
-        # Normalize state for stable gradients
+        # Normalize state for stable gradients (21D state vector for v5.1)
+        # Indices: [0-1: H_A/B, 2-3: kl_A/B, 4: grad_ratio, 5: rho, 6-8: lambdas,
+        #           9-11: coverage, 12-13: r_A/B, 14: r_AB, 15-16: radii, 17-18: hyp_params, 19-20: curriculum]
         normalized_state = state.clone()
         normalized_state[:, 0:2] = state[:, 0:2] / 3.0  # H_A, H_B typically 0-3
-        # r_A, r_B already in [0,1]
-        # mean_radius_A, mean_radius_B already in [0,1]
-        normalized_state[:, 16:17] = state[:, 16:17] / 2.0  # prior_sigma typically 0.3-2.0
-        normalized_state[:, 17:18] = state[:, 17:18] / 4.0  # curvature typically 0.5-4.0
-        # radial_loss_norm: normalize by expected range (0-1)
-        normalized_state[:, 18:19] = torch.clamp(state[:, 18:19], 0, 2) / 2.0
-        # curriculum_tau already in [0,1]
+        # r_A, r_B, r_AB already in [0,1] (indices 12-14)
+        # mean_radius_A, mean_radius_B already in [0,1] (indices 15-16)
+        normalized_state[:, 17:18] = state[:, 17:18] / 2.0  # prior_sigma typically 0.3-2.0
+        normalized_state[:, 18:19] = state[:, 18:19] / 4.0  # curvature typically 0.5-4.0
+        # radial_loss_norm: normalize by expected range (0-1), at index 19
+        normalized_state[:, 19:20] = torch.clamp(state[:, 19:20], 0, 2) / 2.0
+        # curriculum_tau already in [0,1] at index 20
 
         # Compute attention weights
         metric_attention = self.metric_attention(normalized_state)
         hyp_attention = self.hyperbolic_attention(normalized_state)
         curriculum_attention = self.curriculum_attention(normalized_state)
 
-        # Expand metric attention to match state dimensions (12 -> 20)
+        # GAP 5 FIX: Apply learnable attention head scaling (dynamic architecture)
+        # Scales are learned through backprop, allowing network to focus on important heads
+        metric_scale = torch.sigmoid(self.attention_head_scales['metric']) * 2.0  # Range [0, 2]
+        hyp_scale = torch.sigmoid(self.attention_head_scales['hyperbolic']) * 2.0
+        curriculum_scale = torch.sigmoid(self.attention_head_scales['curriculum']) * 2.0
+
+        # Scale attention outputs
+        metric_attention = metric_attention * metric_scale
+        hyp_attention = hyp_attention * hyp_scale
+        curriculum_attention = curriculum_attention * curriculum_scale
+
+        # Expand metric attention to match state dimensions (13 -> 21 for v5.1)
+        # 21D: [H_A, H_B, kl_A, kl_B, grad_ratio, rho, lambda1-3, coverage_A/B/missing,
+        #       r_A, r_B, r_AB, mean_radius_A/B, prior_sigma, curvature, radial_loss, tau]
         metric_attention_expanded = torch.cat([
-            metric_attention[:, 0:2].repeat(1, 1),   # For entropy (H_A, H_B)
-            metric_attention[:, 2:4].repeat(1, 1),   # For KL (kl_A, kl_B)
-            metric_attention[:, 4:5],                # For grad_ratio
-            metric_attention[:, 4:5],                # For rho
-            metric_attention[:, 5:6].repeat(1, 3),   # For lambdas
-            metric_attention[:, 6:7].repeat(1, 3),   # For coverage
-            metric_attention[:, 7:8].repeat(1, 2),   # For ranking (r_A, r_B)
-            metric_attention[:, 8:9].repeat(1, 2),   # For radii (mean_radius_A, mean_radius_B)
-            metric_attention[:, 9:10].repeat(1, 2),  # For hyperbolic params
-            metric_attention[:, 10:12],              # For curriculum (radial_loss, tau)
+            metric_attention[:, 0:2].repeat(1, 1),   # For entropy (H_A, H_B) - indices 0-1
+            metric_attention[:, 2:4].repeat(1, 1),   # For KL (kl_A, kl_B) - indices 2-3
+            metric_attention[:, 4:5],                # For grad_ratio - index 4
+            metric_attention[:, 4:5],                # For rho - index 5
+            metric_attention[:, 5:6].repeat(1, 3),   # For lambdas - indices 6-8
+            metric_attention[:, 6:7].repeat(1, 3),   # For coverage - indices 9-11
+            metric_attention[:, 7:8].repeat(1, 2),   # For ranking (r_A, r_B) - indices 12-13
+            metric_attention[:, 8:9],                # For r_AB - index 14 (v5.1 Gap 6)
+            metric_attention[:, 9:10].repeat(1, 2),  # For radii (mean_radius_A/B) - indices 15-16
+            metric_attention[:, 10:11].repeat(1, 2), # For hyperbolic params - indices 17-18
+            metric_attention[:, 11:13],              # For curriculum (radial_loss, tau) - indices 19-20
         ], dim=1)
 
         # Apply attention-weighted encoding
@@ -382,7 +410,11 @@ class StateNetV5(nn.Module):
         attention = {
             'metric': metric_attention,
             'hyperbolic': hyp_attention,
-            'curriculum': curriculum_attention
+            'curriculum': curriculum_attention,
+            # GAP 5 FIX: Include learned attention head scales for monitoring
+            'metric_scale': metric_scale.item(),
+            'hyperbolic_scale': hyp_scale.item(),
+            'curriculum_scale': curriculum_scale.item()
         }
 
         return corrections, latent, attention
@@ -477,9 +509,10 @@ class DualNeuralVAEV5_10(nn.Module):
         self.decoder_B = TernaryDecoderB(latent_dim, input_dim)
 
         # StateNet v4/v5: Hyperbolic-aware controller with optional curriculum
+        # v5.1: Gap 6 fix - added r_AB cross-VAE correlation (21D total)
         if use_statenet:
             if statenet_version == 5:
-                self.state_net = StateNetV5(state_dim=20, hidden_dim=64, latent_dim=14)
+                self.state_net = StateNetV5(state_dim=21, hidden_dim=64, latent_dim=14)
             else:
                 self.state_net = StateNetV4(state_dim=18, hidden_dim=64, latent_dim=12)
         else:
@@ -498,6 +531,13 @@ class DualNeuralVAEV5_10(nn.Module):
         self.register_buffer('mean_radius_B', torch.tensor(0.5))
         self.register_buffer('prior_sigma', torch.tensor(1.0))
         self.register_buffer('curvature', torch.tensor(2.0))
+
+        # GAP 4 FIX: Loss plateau detection for adaptive StateNet LR
+        # When VAEs converge (loss plateaus), StateNet needs higher LR to explore
+        self.register_buffer('loss_ema', torch.tensor(10.0))  # EMA of training loss
+        self.register_buffer('loss_prev', torch.tensor(10.0))  # Previous loss (for gradient)
+        self.register_buffer('loss_grad_ema', torch.tensor(1.0))  # EMA of |loss change|
+        self.statenet_lr_boost = 1.0  # Current adaptive boost (1.0 = no boost)
 
         # Adaptive parameters (inherited from v5.6/v5.7)
         self.rho = rho_min
@@ -869,6 +909,7 @@ class DualNeuralVAEV5_10(nn.Module):
         coverage_B: float = 0.0,
         r_A: float = 0.5,
         r_B: float = 0.5,
+        r_AB: float = 0.0,
         mean_radius_A: float = 0.5,
         mean_radius_B: float = 0.5,
         prior_sigma: float = 1.0,
@@ -876,9 +917,11 @@ class DualNeuralVAEV5_10(nn.Module):
         radial_loss: float = 0.0,
         curriculum_tau: float = 0.0
     ) -> torch.Tensor:
-        """Build 20D state vector for StateNet v5.
+        """Build 21D state vector for StateNet v5.1.
 
-        Extends v4 with radial_loss and curriculum_tau for curriculum control.
+        v5.1 (Gap 6 fix): Adds r_AB for cross-VAE embedding correlation.
+        High r_AB means both VAEs learn similar structure (redundancy).
+        Low r_AB means VAEs learn complementary representations.
         """
         device = self.grad_norm_A_ema.device
 
@@ -910,6 +953,7 @@ class DualNeuralVAEV5_10(nn.Module):
             missing_ops_norm,
             r_A,                 # v3: ranking correlation A
             r_B,                 # v3: ranking correlation B
+            r_AB,                # v5.1: cross-VAE embedding correlation (Gap 6 fix)
             mean_radius_A,       # v4: hyperbolic radius A
             mean_radius_B,       # v4: hyperbolic radius B
             prior_sigma,         # v4: current prior sigma
@@ -932,6 +976,7 @@ class DualNeuralVAEV5_10(nn.Module):
         coverage_B: int = 0,
         r_A: float = 0.5,
         r_B: float = 0.5,
+        r_AB: float = 0.0,
         mean_radius_A: float = 0.5,
         mean_radius_B: float = 0.5,
         prior_sigma: float = 1.0,
@@ -939,9 +984,10 @@ class DualNeuralVAEV5_10(nn.Module):
         radial_loss: float = 0.0,
         curriculum_tau: float = 0.0
     ) -> dict:
-        """Apply StateNet v5 corrections with curriculum control.
+        """Apply StateNet v5.1 corrections with curriculum control.
 
         v5 UPGRADE: Extends v4 with radial_loss observation and delta_curriculum output.
+        v5.1 UPGRADE (Gap 6 fix): Adds r_AB for cross-VAE embedding correlation.
 
         Args:
             lr: Current learning rate
@@ -954,6 +1000,7 @@ class DualNeuralVAEV5_10(nn.Module):
             coverage_B: VAE-B unique operations count (0-19683)
             r_A: VAE-A 3-adic ranking correlation (0-1)
             r_B: VAE-B 3-adic ranking correlation (0-1)
+            r_AB: Cross-VAE embedding correlation (0-1), high=redundancy
             mean_radius_A: VAE-A mean hyperbolic radius
             mean_radius_B: VAE-B mean hyperbolic radius
             prior_sigma: Current prior sigma
@@ -1001,11 +1048,11 @@ class DualNeuralVAEV5_10(nn.Module):
         # Update ranking EMA
         self.update_ranking_ema(r_A, r_B)
 
-        # Build 20D state vector
+        # Build 21D state vector (v5.1: includes r_AB for cross-VAE correlation)
         state_vec = self.build_state_vector_v5(
             H_A, H_B, kl_A, kl_B,
             self.rho, self.lambda1, self.lambda2, self.lambda3,
-            coverage_A, coverage_B, r_A, r_B,
+            coverage_A, coverage_B, r_A, r_B, r_AB,
             mean_radius_A, mean_radius_B, prior_sigma, curvature,
             radial_loss, curriculum_tau
         )
@@ -1020,8 +1067,10 @@ class DualNeuralVAEV5_10(nn.Module):
         delta_curvature = corrections[0, 6]
         delta_curriculum = corrections[0, 7]
 
-        # Apply learning rate correction
-        corrected_lr = lr * (1 + self.statenet_lr_scale * delta_lr.item())
+        # GAP 4 FIX: Apply learning rate correction with adaptive boost
+        # statenet_lr_boost increases when loss plateaus (more aggressive corrections)
+        effective_lr_scale = self.statenet_lr_scale * self.statenet_lr_boost
+        corrected_lr = lr * (1 + effective_lr_scale * delta_lr.item())
         corrected_lr = max(1e-6, min(0.01, corrected_lr))
 
         # Apply lambda corrections
@@ -1060,11 +1109,16 @@ class DualNeuralVAEV5_10(nn.Module):
             'effective_ranking_weight': effective_ranking_weight,
             'delta_sigma': delta_sigma.item(),
             'delta_curvature': delta_curvature.item(),
-            'delta_curriculum': delta_curriculum.item()
+            'delta_curriculum': delta_curriculum.item(),
+            'statenet_lr_boost': self.statenet_lr_boost  # GAP 4 FIX: Adaptive LR boost
         }
 
-    def update_ranking_ema(self, r_A: float, r_B: float, alpha: float = 0.95):
-        """Update ranking correlation EMA (for StateNet v3/v4)."""
+    def update_ranking_ema(self, r_A: float, r_B: float, alpha: float = 0.7):
+        """Update ranking correlation EMA (for StateNet v3/v4).
+
+        THREE-BODY FIX: Reduced alpha from 0.95 to 0.7 for faster response.
+        With alpha=0.7, correlation changes propagate in ~5 epochs vs ~20.
+        """
         self.r_A_ema = alpha * self.r_A_ema + (1 - alpha) * r_A
         self.r_B_ema = alpha * self.r_B_ema + (1 - alpha) * r_B
 
@@ -1074,13 +1128,54 @@ class DualNeuralVAEV5_10(nn.Module):
         mean_radius_B: float,
         prior_sigma: float,
         curvature: float,
-        alpha: float = 0.95
+        alpha: float = 0.7
     ):
         """Update hyperbolic state tracking (for StateNet v4)."""
         self.mean_radius_A = alpha * self.mean_radius_A + (1 - alpha) * mean_radius_A
         self.mean_radius_B = alpha * self.mean_radius_B + (1 - alpha) * mean_radius_B
         self.prior_sigma = torch.tensor(prior_sigma)
         self.curvature = torch.tensor(curvature)
+
+    def update_loss_plateau_detection(
+        self,
+        current_loss: float,
+        alpha: float = 0.9,
+        plateau_threshold: float = 0.05,
+        max_boost: float = 3.0
+    ):
+        """GAP 4 FIX: Update loss plateau detection and adaptive StateNet LR boost.
+
+        When loss plateaus (gradient near zero), increases StateNet's effective LR
+        to allow more aggressive exploration of hyperparameter corrections.
+
+        Args:
+            current_loss: Current epoch's training loss
+            alpha: EMA momentum for loss tracking
+            plateau_threshold: Loss gradient below which we consider plateau
+            max_boost: Maximum LR boost factor when fully plateaued
+
+        Returns:
+            Current boost factor for StateNet LR
+        """
+        # Update loss EMA
+        self.loss_ema = alpha * self.loss_ema + (1 - alpha) * current_loss
+
+        # Compute loss gradient (absolute change)
+        loss_grad = abs(current_loss - self.loss_prev.item())
+        self.loss_grad_ema = alpha * self.loss_grad_ema + (1 - alpha) * loss_grad
+        self.loss_prev = torch.tensor(current_loss, device=self.loss_prev.device)
+
+        # Compute plateau factor (0 = changing, 1 = fully plateaued)
+        # Normalized by loss magnitude to be scale-invariant
+        normalized_grad = self.loss_grad_ema.item() / (self.loss_ema.item() + 1e-6)
+        plateau_factor = max(0.0, 1.0 - normalized_grad / plateau_threshold)
+
+        # Boost StateNet LR when plateaued (linear interpolation)
+        # At plateau_factor=0: boost=1.0 (no boost)
+        # At plateau_factor=1: boost=max_boost
+        self.statenet_lr_boost = 1.0 + (max_boost - 1.0) * plateau_factor
+
+        return self.statenet_lr_boost
 
     def forward(self, x: torch.Tensor, temp_A: float = 1.0, temp_B: float = 1.0,
                 beta_A: float = 1.0, beta_B: float = 1.0) -> dict:

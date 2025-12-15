@@ -71,7 +71,8 @@ from .radial_stratification import (
 
 from .consequence_predictor import (
     ConsequencePredictor,
-    evaluate_addition_accuracy
+    evaluate_addition_accuracy,
+    PurposefulRankingLoss
 )
 
 # New structural components (LossRegistry pattern)
@@ -125,6 +126,7 @@ __all__ = [
     'compute_single_index_valuation',
     'ConsequencePredictor',
     'evaluate_addition_accuracy',
+    'PurposefulRankingLoss',
     # New structural components (LossRegistry pattern)
     'LossResult',
     'LossComponent',

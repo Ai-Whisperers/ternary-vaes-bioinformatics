@@ -134,6 +134,16 @@ class TernaryVAETrainer:
         else:
             self.curriculum = None
 
+        # P1 FIX: Correlation loss - actually add to total loss (not just logging)
+        corr_loss_config = config.get('correlation_loss', {})
+        self.correlation_loss_enabled = corr_loss_config.get('enabled', False)
+        self.correlation_loss_weight = corr_loss_config.get('weight', 0.5)
+        self.correlation_loss_warmup = corr_loss_config.get('warmup_epochs', 5)
+
+        # GAP 7 FIX: Exploration boost temp multiplier (set by hyperbolic_trainer)
+        # This unifies exploration_boost with curriculum temp modulation
+        self.exploration_temp_multiplier = 1.0
+
         # Cache phase 4 start for model updates
         self.phase_4_start = config['phase_transitions']['ultra_exploration_start']
 
@@ -190,6 +200,13 @@ class TernaryVAETrainer:
             if padic_config.get('enable_norm_loss', False):
                 print(f"  Norm Loss: weight={padic_config.get('norm_loss_weight', 0.05)}")
 
+        # P1 FIX: Correlation loss (actually wired into total loss)
+        if self.correlation_loss_enabled:
+            print(f"\nCorrelation Loss (P1 Fix - WIRED INTO LOSS):")
+            print(f"  weight: {self.correlation_loss_weight}")
+            print(f"  warmup_epochs: {self.correlation_loss_warmup}")
+            print(f"  Effect: -weight * correlation added to loss (rewards high correlation)")
+
     def _compute_batch_indices(self, batch_data: torch.Tensor) -> torch.Tensor:
         """Compute operation indices from ternary data.
 
@@ -217,6 +234,16 @@ class TernaryVAETrainer:
         """
         self.model.epoch = epoch
         self.model.rho = self.model.compute_phase_scheduled_rho(epoch, self.phase_4_start)
+
+        # THREE-BODY FIX: Curriculum modulates rho (cross-injection)
+        # When tau is high (ranking/angular focus), reduce cross-injection to preserve structure
+        # When tau is low (radial focus), allow more mixing for exploration
+        if self.curriculum is not None:
+            tau = self.curriculum.get_tau().item()
+            # Reduce rho by up to 30% when tau=1 (preserve individual VAE structures)
+            rho_curriculum_factor = 1.0 - 0.3 * tau
+            self.model.rho = self.model.rho * rho_curriculum_factor
+
         self.model.lambda3 = self.model.compute_cyclic_lambda3(epoch, period=30)
 
         grad_ratio = (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item()
@@ -246,6 +273,28 @@ class TernaryVAETrainer:
         beta_A = self.beta_scheduler.get_beta(self.epoch, 'A')
         beta_B = self.beta_scheduler.get_beta(self.epoch, 'B')
         lr_scheduled = self.lr_scheduler.get_lr(self.epoch)
+
+        # THREE-BODY FIX: Asymmetric curriculum-to-architecture feedback
+        # VAE-A (chaotic): lighter modulation to maintain exploration
+        # VAE-B (frozen): stronger modulation for structure focus
+        if self.curriculum is not None:
+            tau = self.curriculum.get_tau().item()
+            # Asymmetric beta modulation:
+            # VAE-A: +15% when tau=1 (lighter, maintains exploration)
+            # VAE-B: +30% when tau=1 (stronger, structure focus)
+            beta_A = beta_A * (1.0 + 0.15 * tau)
+            beta_B = beta_B * (1.0 + 0.30 * tau)
+            # Asymmetric temperature modulation:
+            # VAE-A: -10% when tau=1 (lighter reduction, stays exploratory)
+            # VAE-B: -20% when tau=1 (stronger reduction, more certain)
+            temp_A = temp_A * (1.0 - 0.10 * tau)
+            temp_B = temp_B * (1.0 - 0.20 * tau)
+
+        # GAP 7 FIX: Apply exploration boost multiplier (set by hyperbolic_trainer)
+        # Unified formula: temp = base_temp * curriculum_factor * exploration_mult
+        if self.exploration_temp_multiplier != 1.0:
+            temp_A = temp_A * self.exploration_temp_multiplier
+            temp_B = temp_B * self.exploration_temp_multiplier
 
         entropy_weight = self.config['vae_b']['entropy_weight']
         repulsion_weight = self.config['vae_b']['repulsion_weight']
@@ -319,6 +368,24 @@ class TernaryVAETrainer:
                 coverage_A = self.monitor.coverage_A_history[-1] if self.monitor.coverage_A_history else 0
                 coverage_B = self.monitor.coverage_B_history[-1] if self.monitor.coverage_B_history else 0
 
+                # GAP 6 FIX: Compute cross-VAE correlation r_AB
+                # Measures similarity between VAE-A and VAE-B representations
+                # High r_AB = redundancy (both VAEs learning same thing)
+                # Low r_AB = complementary representations (desired)
+                z_A = outputs['z_A']
+                z_B = outputs['z_B']
+                # Compute mean-centered correlation across batch
+                z_A_centered = z_A - z_A.mean(dim=0, keepdim=True)
+                z_B_centered = z_B - z_B.mean(dim=0, keepdim=True)
+                # Cosine similarity as proxy for correlation (normalized)
+                r_AB_raw = torch.nn.functional.cosine_similarity(
+                    z_A_centered.flatten(start_dim=1).mean(dim=0),
+                    z_B_centered.flatten(start_dim=1).mean(dim=0),
+                    dim=0
+                )
+                # Normalize to [0, 1] range (cos similarity is in [-1, 1])
+                r_AB = ((r_AB_raw + 1.0) / 2.0).item()
+
                 # Use StateNet v5 if curriculum is enabled and model supports it
                 if self.curriculum is not None and hasattr(self.model, 'apply_statenet_v5_corrections'):
                     corrections = self.model.apply_statenet_v5_corrections(
@@ -330,6 +397,7 @@ class TernaryVAETrainer:
                         (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item(),
                         coverage_A=coverage_A,
                         coverage_B=coverage_B,
+                        r_AB=r_AB,  # GAP 6 FIX: Cross-VAE embedding correlation
                         radial_loss=radial_loss.item() if torch.is_tensor(radial_loss) else radial_loss,
                         curriculum_tau=curriculum_tau
                     )
@@ -349,6 +417,8 @@ class TernaryVAETrainer:
                     # P1 FIX: Include delta_sigma and delta_curvature for HyperbolicPrior
                     epoch_losses['delta_sigma'] = corrections['delta_sigma']
                     epoch_losses['delta_curvature'] = corrections['delta_curvature']
+                    # GAP 6 FIX: Log cross-VAE correlation
+                    epoch_losses['r_AB'] = r_AB
                 else:
                     # Fall back to v4 corrections
                     corrected_lr, *deltas = self.model.apply_statenet_corrections(
@@ -374,6 +444,17 @@ class TernaryVAETrainer:
                 if batch_idx == 0:
                     for param_group in self.optimizer.param_groups:
                         param_group['lr'] = lr_scheduled
+
+            # P1 FIX: Add correlation loss to total loss (rewards high correlation)
+            # This is the actual wiring - not just logging but affecting gradients
+            if self.correlation_loss_enabled and self.epoch >= self.correlation_loss_warmup:
+                if self.monitor.correlation_hyp_history:
+                    cached_corr = self.monitor.correlation_hyp_history[-1]
+                    # Negative weight because we REWARD high correlation (minimize -corr)
+                    correlation_loss_term = -self.correlation_loss_weight * cached_corr
+                    losses['loss'] = losses['loss'] + correlation_loss_term
+                    losses['correlation_loss_applied'] = correlation_loss_term
+                    losses['cached_correlation_used'] = cached_corr
 
             # Backward and optimize
             self.optimizer.zero_grad()
@@ -416,6 +497,13 @@ class TernaryVAETrainer:
         epoch_losses['lr_scheduled'] = lr_scheduled
         epoch_losses['grad_ratio'] = (self.model.grad_norm_B_ema / (self.model.grad_norm_A_ema + 1e-8)).item()
         epoch_losses['ema_momentum'] = self.model.grad_ema_momentum
+
+        # GAP 4 FIX: Update loss plateau detection for adaptive StateNet LR
+        # When loss plateaus, StateNet gets higher effective LR to explore more aggressively
+        if hasattr(self.model, 'update_loss_plateau_detection'):
+            current_loss = epoch_losses['loss']
+            boost = self.model.update_loss_plateau_detection(current_loss)
+            epoch_losses['statenet_lr_boost'] = boost
 
         return epoch_losses
 

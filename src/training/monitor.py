@@ -209,7 +209,7 @@ class TrainingMonitor:
             self.writer.add_scalar('Batch/HypKL_A', hyp_kl_A, self.global_step)
             self.writer.add_scalar('Batch/HypKL_B', hyp_kl_B, self.global_step)
             self.writer.add_scalar('Batch/CentroidLoss', centroid_loss, self.global_step)
-            self.writer.flush()
+            # P0 FIX: Removed per-call flush() - will flush once at epoch end
 
     def log_hyperbolic_epoch(
         self,
@@ -301,7 +301,7 @@ class TrainingMonitor:
                         'VAE_B': homeostatic_metrics.get('prior_curvature_B', 2.0)
                     }, epoch)
 
-            self.writer.flush()
+            # P0 FIX: Removed per-call flush() - will flush once at epoch end
 
     def log_epoch_summary(
         self,
@@ -447,6 +447,9 @@ class TrainingMonitor:
     ) -> tuple[int, float]:
         """Evaluate operation coverage.
 
+        P0 FIX: Vectorized implementation using torch.unique instead of Python loops.
+        Reduces 500+ GPU syncs to 1 sync per batch.
+
         Args:
             model: Model to evaluate
             num_samples: Number of samples to generate
@@ -457,23 +460,25 @@ class TrainingMonitor:
             Tuple of (unique_count, coverage_percentage)
         """
         model.eval()
-        unique_ops = set()
 
         with torch.no_grad():
             batch_size = 1000
-            num_batches = num_samples // batch_size
+            num_batches = max(1, num_samples // batch_size)
 
+            # Collect all samples first (on GPU)
+            all_samples = []
             for _ in range(num_batches):
                 samples = model.sample(batch_size, device, vae)
                 samples_rounded = torch.round(samples).long()
+                all_samples.append(samples_rounded)
 
-                for i in range(batch_size):
-                    lut = samples_rounded[i]
-                    lut_tuple = tuple(lut.cpu().tolist())
-                    unique_ops.add(lut_tuple)
+            # Concatenate and find unique (vectorized, single GPU→CPU transfer)
+            all_samples = torch.cat(all_samples, dim=0)
+            unique_samples = torch.unique(all_samples, dim=0)
+            unique_count = unique_samples.size(0)
 
-        coverage_pct = (len(unique_ops) / 19683) * 100
-        return len(unique_ops), coverage_pct
+        coverage_pct = (unique_count / 19683) * 100
+        return unique_count, coverage_pct
 
     def log_epoch(
         self,
@@ -653,7 +658,8 @@ class TrainingMonitor:
                     'VAE_B': train_losses.get('padic_norm_B', 0)
                 }, epoch)
 
-        # Flush to ensure real-time visibility in dashboard
+        # P0 FIX: Single flush per epoch (was 3-5 flushes before)
+        # This is the ONLY flush point for epoch-level metrics
         self.writer.flush()
 
     def log_histograms(
@@ -676,8 +682,7 @@ class TrainingMonitor:
                 if param.grad is not None:
                     self.writer.add_histogram(f'Gradients/{name}', param.grad, epoch)
 
-        # Flush histograms immediately
-        self.writer.flush()
+        # P0 FIX: Removed immediate flush - will flush with epoch end or close()
 
     def log_manifold_embedding(
         self,
