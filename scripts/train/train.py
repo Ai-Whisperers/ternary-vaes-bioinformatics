@@ -11,11 +11,19 @@ Usage:
     python scripts/train/train.py --config configs/ternary.yaml
     python scripts/train/train.py --epochs 100 --lr 1e-3
 
+    # With adaptive curriculum (default)
+    python scripts/train/train.py --option_c --dual_projection
+
+    # Disable adaptive curriculum
+    python scripts/train/train.py --option_c --dual_projection --no_adaptive
+
 Key features:
 - Option C architecture: frozen coverage + trainable structure
 - Dual projection: separate hyperbolic projection per VAE
 - Stratified sampling: ensures high-valuation points in batches
-- Early stopping recommended at ~2000-4000 steps
+- Adaptive curriculum (v1.1): tau freezes when hierarchy threshold reached
+- Early stopping: stops when no improvement for patience epochs
+- Composite scoring: best model selected by hierarchy + loss balance
 """
 
 import argparse
@@ -36,7 +44,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC
-from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, CombinedGeodesicLoss
+from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, CombinedGeodesicLoss, GlobalRankLoss
 from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
 
@@ -78,7 +86,126 @@ def parse_args():
                         help='Learning rate scale for encoder_B in Option C')
     parser.add_argument('--dual_projection', action='store_true', default=False,
                         help='Use separate projections for VAE-A and VAE-B')
+    # Adaptive curriculum termination (v1.1)
+    parser.add_argument('--hierarchy_threshold', type=float, default=-0.70,
+                        help='Radial hierarchy threshold to freeze tau (default: -0.70)')
+    parser.add_argument('--patience', type=int, default=20,
+                        help='Early stopping patience (epochs without improvement)')
+    parser.add_argument('--min_epochs', type=int, default=30,
+                        help='Minimum epochs before early stopping can trigger')
+    parser.add_argument('--no_adaptive', action='store_true', default=False,
+                        help='Disable adaptive curriculum (use fixed tau schedule)')
+    # Projection layer capacity (v1.2)
+    parser.add_argument('--projection_hidden_dim', type=int, default=64,
+                        help='Hidden dimension for projection networks (default: 64)')
+    parser.add_argument('--projection_layers', type=int, default=1,
+                        help='Number of hidden layers in projection (1=shallow, 2+=deep)')
+    # Structural constraints (v1.3)
+    parser.add_argument('--weight_decay', type=float, default=1e-3,
+                        help='Weight decay for optimizer (default: 1e-3)')
+    parser.add_argument('--projection_dropout', type=float, default=0.1,
+                        help='Dropout rate in projection networks (default: 0.1)')
+    parser.add_argument('--rank_loss_weight', type=float, default=1.0,
+                        help='Weight for global rank loss (default: 1.0)')
+    parser.add_argument('--no_rank_loss', action='store_true', default=False,
+                        help='Disable global rank loss')
     return parser.parse_args()
+
+
+class AdaptiveCurriculum:
+    """Adaptive curriculum with threshold-based tau freezing and early stopping.
+
+    Key features:
+    1. Tau freezes when hierarchy threshold is reached (stops pushing curriculum)
+    2. Early stopping triggers after patience epochs without improvement
+    3. Best model selected by composite score (hierarchy + loss balance)
+    """
+
+    def __init__(self,
+                 hierarchy_threshold: float = -0.62,
+                 patience: int = 20,
+                 min_epochs: int = 30,
+                 n_epochs: int = 100,
+                 enabled: bool = True):
+        self.hierarchy_threshold = hierarchy_threshold
+        self.patience = patience
+        self.min_epochs = min_epochs
+        self.n_epochs = n_epochs
+        self.enabled = enabled
+
+        # State
+        self.tau_frozen = False
+        self.frozen_tau = None
+        self.frozen_epoch = None
+        self.best_score = float('-inf')  # Higher is better (composite)
+        self.best_epoch = 0
+        self.epochs_without_improvement = 0
+        self.should_stop = False
+
+    def compute_tau(self, epoch: int) -> float:
+        """Compute tau for current epoch, respecting frozen state."""
+        if self.tau_frozen and self.frozen_tau is not None:
+            return self.frozen_tau
+        # Default schedule: 0 -> 1 over 70% of training
+        return min(1.0, epoch / (self.n_epochs * 0.7))
+
+    def compute_composite_score(self, radial_corr: float, loss: float) -> float:
+        """Compute composite score balancing hierarchy and loss.
+
+        Score = -radial_corr - 0.5 * loss
+
+        - radial_corr is negative (more negative = better), so -radial_corr is positive
+        - loss is positive (lower = better), so we subtract it
+        - 0.5 weight balances the two (tunable)
+        """
+        return -radial_corr - 0.5 * loss
+
+    def update(self, epoch: int, radial_corr: float, loss: float) -> dict:
+        """Update curriculum state based on current metrics.
+
+        Returns dict with status info.
+        """
+        if not self.enabled:
+            return {'tau_frozen': False, 'should_stop': False}
+
+        status = {
+            'tau_frozen': self.tau_frozen,
+            'frozen_tau': self.frozen_tau,
+            'should_stop': False,
+            'new_best': False,
+            'triggered_freeze': False,
+            'triggered_stop': False
+        }
+
+        # Check if we should freeze tau
+        if not self.tau_frozen and radial_corr <= self.hierarchy_threshold:
+            self.tau_frozen = True
+            self.frozen_tau = self.compute_tau(epoch)
+            self.frozen_epoch = epoch
+            status['triggered_freeze'] = True
+            status['tau_frozen'] = True
+            status['frozen_tau'] = self.frozen_tau
+
+        # Compute composite score
+        score = self.compute_composite_score(radial_corr, loss)
+
+        # Check for improvement
+        if score > self.best_score:
+            self.best_score = score
+            self.best_epoch = epoch
+            self.epochs_without_improvement = 0
+            status['new_best'] = True
+        else:
+            self.epochs_without_improvement += 1
+
+        # Check for early stopping
+        if (epoch >= self.min_epochs and
+            self.epochs_without_improvement >= self.patience):
+            self.should_stop = True
+            status['should_stop'] = True
+            status['triggered_stop'] = True
+
+        return status
 
 
 def load_config(config_path: str) -> dict:
@@ -242,7 +369,8 @@ def compute_metrics(model, x, indices, geodesic_loss_fn, radial_loss_fn, device)
 
 
 def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
-                batch_size, epoch, tau, radial_weight, device, use_stratified=True):
+                batch_size, epoch, tau, radial_weight, device, use_stratified=True,
+                rank_loss_fn=None, rank_loss_weight=1.0):
     """Train one epoch.
 
     V5.11.1 FIX: Changed loss composition to always include radial loss.
@@ -252,6 +380,10 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
     V5.11.2 FIX: Added stratified sampling to ensure high-valuation points
     are represented in every batch. Without this, v≥7 points (only ~9 in dataset)
     may never appear in most batches.
+
+    V5.11.3 FIX: Added global rank loss to enforce monotonic radius ordering.
+    This structural constraint forces the projection to learn hierarchy rather
+    than fit noise when given extra capacity.
 
     tau now controls geodesic weight, but radial is always active.
     """
@@ -272,6 +404,7 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
     total_loss = 0.0
     total_geo = 0.0
     total_rad = 0.0
+    total_rank = 0.0
 
     for i in range(n_batches):
         if use_stratified:
@@ -301,12 +434,19 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
         geo_loss = geo_loss_A + geo_loss_B
         rad_loss = rad_loss_A + rad_loss_B
 
+        # V5.11.3: Global rank loss for structural constraint
+        rank_loss = torch.tensor(0.0, device=device)
+        if rank_loss_fn is not None:
+            rank_loss_A, rank_metrics_A = rank_loss_fn(z_A_hyp, idx_batch)
+            rank_loss_B, rank_metrics_B = rank_loss_fn(z_B_hyp, idx_batch)
+            rank_loss = rank_loss_A + rank_loss_B
+
         # V5.11.1 FIX: Always include both losses
         # Radial loss is ALWAYS active (weighted by radial_weight)
         # Geodesic loss ramps up with tau
         # Early: low tau = focus on radial, some geodesic
         # Late: high tau = more geodesic, but radial still active
-        total_batch_loss = tau * geo_loss + radial_weight * rad_loss
+        total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
 
         # Backward and optimize
         total_batch_loss.backward()
@@ -316,11 +456,13 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
         total_loss += total_batch_loss.item()
         total_geo += geo_loss.item()
         total_rad += rad_loss.item()
+        total_rank += rank_loss.item()
 
     return {
         'loss': total_loss / n_batches,
         'geo_loss': total_geo / n_batches,
-        'rad_loss': total_rad / n_batches
+        'rad_loss': total_rad / n_batches,
+        'rank_loss': total_rank / n_batches
     }
 
 
@@ -366,29 +508,37 @@ def main():
 
     # Create model (Option A or Option C, with optional dual projection)
     encoder_b_lr_scale = config.get('encoder_b_lr_scale', 0.1)
+    proj_hidden_dim = config.get('projection_hidden_dim', 64)
+    proj_layers = config.get('projection_layers', 1)
+    proj_dropout = config.get('projection_dropout', 0.0)
 
     dual_str = " + DUAL PROJECTION" if use_dual_proj else ""
+    capacity_str = f" (hidden={proj_hidden_dim}, layers={proj_layers}, dropout={proj_dropout})"
     if use_option_c:
-        print(f"\n=== Creating V5.11 Model (OPTION C: encoder_B trainable{dual_str}) ===")
+        print(f"\n=== Creating V5.11 Model (OPTION C: encoder_B trainable{dual_str}{capacity_str}) ===")
         model = TernaryVAEV5_11_OptionC(
             latent_dim=16,
-            hidden_dim=config.get('hidden_dim', 64),
+            hidden_dim=proj_hidden_dim,
             max_radius=config.get('max_radius', 0.95),
             curvature=config.get('curvature', 1.0),
             use_controller=config.get('use_controller', False),
             use_dual_projection=use_dual_proj,
+            n_projection_layers=proj_layers,
+            projection_dropout=proj_dropout,
             freeze_encoder_b=False,  # Key difference: encoder_B trains
             encoder_b_lr_scale=encoder_b_lr_scale
         )
     else:
-        print(f"\n=== Creating V5.11 Model (OPTION A: all encoders frozen{dual_str}) ===")
+        print(f"\n=== Creating V5.11 Model (OPTION A: all encoders frozen{dual_str}{capacity_str}) ===")
         model = TernaryVAEV5_11(
             latent_dim=16,
-            hidden_dim=config.get('hidden_dim', 64),
+            hidden_dim=proj_hidden_dim,
             max_radius=config.get('max_radius', 0.95),
             curvature=config.get('curvature', 1.0),
             use_controller=config.get('use_controller', False),
-            use_dual_projection=use_dual_proj
+            use_dual_projection=use_dual_proj,
+            n_projection_layers=proj_layers,
+            projection_dropout=proj_dropout
         )
 
     # Load v5.5 checkpoint
@@ -427,9 +577,19 @@ def main():
         use_margin_loss=True
     ).to(device)
 
+    # Global rank loss (v1.3: structural constraint)
+    use_rank_loss = not config.get('no_rank_loss', False)
+    rank_loss_fn = GlobalRankLoss(
+        temperature=0.1,
+        n_pairs=2000
+    ).to(device) if use_rank_loss else None
+    rank_loss_weight = config.get('rank_loss_weight', 1.0)
+
     # Radial weight (always active, not curriculum-blended)
     radial_weight = config.get('radial_weight', 2.0)
     print(f"\nLoss weights: radial={radial_weight}, margin={config.get('margin_weight', 1.0)}")
+    if use_rank_loss:
+        print(f"  Global rank loss: weight={rank_loss_weight}")
 
     # Create optimizer (only trainable parameters)
     base_lr = config.get('lr', 1e-3)
@@ -464,18 +624,35 @@ def main():
     use_stratified = not config.get('no_stratified', False)
     print(f"Stratified sampling: {use_stratified}")
 
+    # Adaptive curriculum (v1.1)
+    use_adaptive = not config.get('no_adaptive', False)
+    curriculum = AdaptiveCurriculum(
+        hierarchy_threshold=config.get('hierarchy_threshold', -0.62),
+        patience=config.get('patience', 20),
+        min_epochs=config.get('min_epochs', 30),
+        n_epochs=n_epochs,
+        enabled=use_adaptive
+    )
+    if use_adaptive:
+        print(f"Adaptive curriculum: threshold={curriculum.hierarchy_threshold}, patience={curriculum.patience}")
+    else:
+        print("Adaptive curriculum: DISABLED (fixed tau schedule)")
+
     best_radial_corr = float('inf')  # Want negative, so lower is better
+    best_composite_score = float('-inf')
 
     for epoch in range(n_epochs):
-        # Curriculum: tau goes from 0 (radial focus) to 1 (geodesic focus)
-        tau = min(1.0, epoch / (n_epochs * 0.7))
+        # Curriculum: tau from adaptive curriculum (may freeze)
+        tau = curriculum.compute_tau(epoch)
 
         # Train
         train_metrics = train_epoch(
             model, optimizer, x, indices,
             geodesic_loss_fn, radial_loss_fn,
             batch_size, epoch, tau, radial_weight, device,
-            use_stratified=use_stratified
+            use_stratified=use_stratified,
+            rank_loss_fn=rank_loss_fn,
+            rank_loss_weight=rank_loss_weight
         )
 
         # Evaluate
@@ -487,11 +664,20 @@ def main():
         # Update scheduler
         scheduler.step()
 
+        # Update adaptive curriculum
+        curriculum_status = curriculum.update(
+            epoch,
+            eval_metrics['radial_corr_A'],
+            train_metrics['loss']
+        )
+
         # Log to TensorBoard
         writer.add_scalar('Train/loss', train_metrics['loss'], epoch)
         writer.add_scalar('Train/geo_loss', train_metrics['geo_loss'], epoch)
         writer.add_scalar('Train/rad_loss', train_metrics['rad_loss'], epoch)
+        writer.add_scalar('Train/rank_loss', train_metrics['rank_loss'], epoch)
         writer.add_scalar('Train/tau', tau, epoch)
+        writer.add_scalar('Train/tau_frozen', 1.0 if curriculum.tau_frozen else 0.0, epoch)
         writer.add_scalar('Eval/coverage', eval_metrics['coverage'], epoch)
         writer.add_scalar('Eval/radial_corr_A', eval_metrics['radial_corr_A'], epoch)
         writer.add_scalar('Eval/radial_corr_B', eval_metrics['radial_corr_B'], epoch)
@@ -501,31 +687,49 @@ def main():
         writer.add_scalar('Eval/radius_range_A', eval_metrics['radius_range_A'], epoch)
         writer.add_scalar('Eval/radius_v0', eval_metrics['radius_v0'], epoch)
         writer.add_scalar('Eval/radius_v9', eval_metrics['radius_v9'], epoch)
+        writer.add_scalar('Eval/composite_score', curriculum.compute_composite_score(
+            eval_metrics['radial_corr_A'], train_metrics['loss']), epoch)
         writer.add_scalar('LR', optimizer.param_groups[0]['lr'], epoch)
 
         # Print progress
         if epoch % 5 == 0 or epoch == n_epochs - 1:
             print(f"\nEpoch {epoch}/{n_epochs}")
-            print(f"  Loss: {train_metrics['loss']:.4f} (geo: {train_metrics['geo_loss']:.4f}, rad: {train_metrics['rad_loss']:.4f})")
+            rank_str = f", rank: {train_metrics['rank_loss']:.4f}" if rank_loss_fn else ""
+            print(f"  Loss: {train_metrics['loss']:.4f} (geo: {train_metrics['geo_loss']:.4f}, rad: {train_metrics['rad_loss']:.4f}{rank_str})")
             print(f"  Coverage: {eval_metrics['coverage']*100:.1f}%")
             print(f"  Radial Hierarchy: A={eval_metrics['radial_corr_A']:.3f}, B={eval_metrics['radial_corr_B']:.3f}")
             print(f"  Radius Range: [{eval_metrics['radius_min_A']:.3f}, {eval_metrics['radius_max_A']:.3f}] (range={eval_metrics['radius_range_A']:.3f})")
             print(f"  Radius v=0: {eval_metrics['radius_v0']:.3f}, v=9: {eval_metrics['radius_v9']:.3f} (target: 0.85, 0.10)")
             print(f"  Distance Corr: A={eval_metrics['distance_corr_A']:.3f}")
-            print(f"  tau: {tau:.3f}, LR: {optimizer.param_groups[0]['lr']:.2e}")
+            tau_status = f"tau: {tau:.3f}"
+            if curriculum.tau_frozen:
+                tau_status += " [FROZEN]"
+            print(f"  {tau_status}, LR: {optimizer.param_groups[0]['lr']:.2e}")
 
-        # Save best model (best = most negative radial correlation)
-        if eval_metrics['radial_corr_A'] < best_radial_corr:
+        # Handle curriculum events
+        if curriculum_status.get('triggered_freeze'):
+            print(f"  [TAU FROZEN] Hierarchy threshold {curriculum.hierarchy_threshold} reached at tau={curriculum.frozen_tau:.3f}")
+
+        # Save best model (best = highest composite score: hierarchy + low loss)
+        composite_score = curriculum.compute_composite_score(
+            eval_metrics['radial_corr_A'], train_metrics['loss']
+        )
+        if composite_score > best_composite_score:
+            best_composite_score = composite_score
             best_radial_corr = eval_metrics['radial_corr_A']
             checkpoint = {
                 'epoch': epoch,
                 'model_state': model.state_dict(),
                 'optimizer_state': optimizer.state_dict(),
                 'metrics': eval_metrics,
+                'train_metrics': train_metrics,
+                'composite_score': composite_score,
+                'tau': tau,
+                'tau_frozen': curriculum.tau_frozen,
                 'config': config
             }
             torch.save(checkpoint, save_dir / 'best.pt')
-            print(f"  [NEW BEST] Radial hierarchy: {best_radial_corr:.4f}")
+            print(f"  [NEW BEST] Composite: {composite_score:.4f} (hierarchy: {eval_metrics['radial_corr_A']:.4f}, loss: {train_metrics['loss']:.4f})")
 
         # Periodic checkpoint
         if epoch % 20 == 0:
@@ -537,9 +741,16 @@ def main():
                 'config': config
             }, save_dir / f'epoch_{epoch}.pt')
 
+        # Early stopping check
+        if curriculum_status.get('triggered_stop'):
+            print(f"\n[EARLY STOPPING] No improvement for {curriculum.patience} epochs")
+            print(f"  Best epoch: {curriculum.best_epoch}, Best score: {curriculum.best_score:.4f}")
+            break
+
     # Final checkpoint
+    final_epoch = epoch  # May be less than n_epochs if early stopped
     torch.save({
-        'epoch': n_epochs - 1,
+        'epoch': final_epoch,
         'model_state': model.state_dict(),
         'optimizer_state': optimizer.state_dict(),
         'metrics': eval_metrics,
@@ -550,14 +761,28 @@ def main():
     print("\n" + "=" * 60)
     print("TRAINING COMPLETE")
     print("=" * 60)
-    print(f"\nFinal Metrics:")
+    print(f"\nFinal Metrics (epoch {final_epoch}):")
     print(f"  Coverage: {eval_metrics['coverage']*100:.1f}%")
     print(f"  Radial Hierarchy: A={eval_metrics['radial_corr_A']:.3f}, B={eval_metrics['radial_corr_B']:.3f}")
     print(f"  Radius Range: [{eval_metrics['radius_min_A']:.3f}, {eval_metrics['radius_max_A']:.3f}]")
     print(f"  Radius v=0: {eval_metrics['radius_v0']:.3f} (target: 0.85)")
     print(f"  Radius v=9: {eval_metrics['radius_v9']:.3f} (target: 0.10)")
     print(f"  Distance Correlation: A={eval_metrics['distance_corr_A']:.3f}")
-    print(f"\nBest Radial Hierarchy: {best_radial_corr:.4f}")
+
+    print(f"\nBest Model (epoch {curriculum.best_epoch}):")
+    print(f"  Composite Score: {best_composite_score:.4f}")
+    print(f"  Radial Hierarchy: {best_radial_corr:.4f}")
+
+    if curriculum.tau_frozen:
+        print(f"\nAdaptive Curriculum:")
+        print(f"  Tau frozen at epoch {curriculum.frozen_epoch} (tau={curriculum.frozen_tau:.3f})")
+        print(f"  Hierarchy threshold: {curriculum.hierarchy_threshold}")
+
+    if curriculum.should_stop:
+        print(f"\nEarly Stopping:")
+        print(f"  Triggered after {curriculum.patience} epochs without improvement")
+        print(f"  Saved {n_epochs - final_epoch - 1} epochs of compute")
+
     print(f"\nCheckpoints saved to: {save_dir}")
     print(f"TensorBoard logs: {log_dir}")
 

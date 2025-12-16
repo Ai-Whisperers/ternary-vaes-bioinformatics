@@ -40,7 +40,9 @@ class HyperbolicProjection(nn.Module):
         hidden_dim: int = 64,
         max_radius: float = 0.95,
         curvature: float = 1.0,
-        init_identity: bool = True
+        init_identity: bool = True,
+        n_layers: int = 1,
+        dropout: float = 0.0
     ):
         """Initialize HyperbolicProjection.
 
@@ -50,30 +52,86 @@ class HyperbolicProjection(nn.Module):
             max_radius: Maximum radius in Poincaré ball (must be < 1)
             curvature: Hyperbolic curvature parameter
             init_identity: If True, initialize direction_net as identity
+            n_layers: Number of hidden layers (1=shallow, 2+=deep)
+            dropout: Dropout rate for regularization (default: 0.0)
         """
         super().__init__()
         self.latent_dim = latent_dim
         self.hidden_dim = hidden_dim
         self.max_radius = max_radius
         self.curvature = curvature
+        self.n_layers = n_layers
+        self.dropout_rate = dropout
 
         # Direction network: learns angular structure
         # Output is a residual added to input, then normalized
-        self.direction_net = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim),
-            nn.LayerNorm(hidden_dim),
-            nn.SiLU(),
-            nn.Linear(hidden_dim, latent_dim)
-        )
+        if n_layers == 1:
+            # Original shallow network
+            layers = [
+                nn.Linear(latent_dim, hidden_dim),
+                nn.LayerNorm(hidden_dim),
+                nn.SiLU()
+            ]
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            layers.append(nn.Linear(hidden_dim, latent_dim))
+            self.direction_net = nn.Sequential(*layers)
+        else:
+            # Deeper network with residual-friendly structure
+            layers = [
+                nn.Linear(latent_dim, hidden_dim),
+                nn.LayerNorm(hidden_dim),
+                nn.SiLU()
+            ]
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            for _ in range(n_layers - 1):
+                layers.extend([
+                    nn.Linear(hidden_dim, hidden_dim),
+                    nn.LayerNorm(hidden_dim),
+                    nn.SiLU()
+                ])
+                if dropout > 0:
+                    layers.append(nn.Dropout(dropout))
+            layers.append(nn.Linear(hidden_dim, latent_dim))
+            self.direction_net = nn.Sequential(*layers)
 
         # Radius network: learns radial hierarchy
         # Output is in [0, 1], scaled to [0, max_radius]
-        self.radius_net = nn.Sequential(
-            nn.Linear(latent_dim, hidden_dim // 2),
-            nn.SiLU(),
-            nn.Linear(hidden_dim // 2, 1),
-            nn.Sigmoid()  # Output in [0, 1]
-        )
+        radius_hidden = max(32, hidden_dim // 2)
+        if n_layers == 1:
+            # Original shallow network
+            layers = [
+                nn.Linear(latent_dim, radius_hidden),
+                nn.SiLU()
+            ]
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            layers.extend([
+                nn.Linear(radius_hidden, 1),
+                nn.Sigmoid()
+            ])
+            self.radius_net = nn.Sequential(*layers)
+        else:
+            # Deeper radius network
+            layers = [
+                nn.Linear(latent_dim, radius_hidden),
+                nn.SiLU()
+            ]
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            for _ in range(n_layers - 1):
+                layers.extend([
+                    nn.Linear(radius_hidden, radius_hidden),
+                    nn.SiLU()
+                ])
+                if dropout > 0:
+                    layers.append(nn.Dropout(dropout))
+            layers.extend([
+                nn.Linear(radius_hidden, 1),
+                nn.Sigmoid()
+            ])
+            self.radius_net = nn.Sequential(*layers)
 
         # Initialize for stability
         if init_identity:
@@ -148,7 +206,9 @@ class DualHyperbolicProjection(nn.Module):
         hidden_dim: int = 64,
         max_radius: float = 0.95,
         curvature: float = 1.0,
-        share_direction: bool = False
+        share_direction: bool = False,
+        n_layers: int = 1,
+        dropout: float = 0.0
     ):
         """Initialize DualHyperbolicProjection.
 
@@ -158,28 +218,40 @@ class DualHyperbolicProjection(nn.Module):
             max_radius: Maximum Poincaré ball radius
             curvature: Hyperbolic curvature
             share_direction: If True, share direction_net between A and B
+            n_layers: Number of hidden layers in projection networks
+            dropout: Dropout rate for regularization (default: 0.0)
         """
         super().__init__()
         self.share_direction = share_direction
+        self.n_layers = n_layers
+        self.dropout_rate = dropout
 
         # VAE-A projection (chaotic, explores boundary)
         self.proj_A = HyperbolicProjection(
-            latent_dim, hidden_dim, max_radius, curvature
+            latent_dim, hidden_dim, max_radius, curvature,
+            n_layers=n_layers, dropout=dropout
         )
 
         if share_direction:
             # VAE-B shares direction but has own radius
-            self.proj_B_radius = nn.Sequential(
-                nn.Linear(latent_dim, hidden_dim // 2),
-                nn.SiLU(),
-                nn.Linear(hidden_dim // 2, 1),
+            radius_hidden = max(32, hidden_dim // 2)
+            layers = [
+                nn.Linear(latent_dim, radius_hidden),
+                nn.SiLU()
+            ]
+            if dropout > 0:
+                layers.append(nn.Dropout(dropout))
+            layers.extend([
+                nn.Linear(radius_hidden, 1),
                 nn.Sigmoid()
-            )
+            ])
+            self.proj_B_radius = nn.Sequential(*layers)
             self.max_radius = max_radius
         else:
             # VAE-B has completely separate projection
             self.proj_B = HyperbolicProjection(
-                latent_dim, hidden_dim, max_radius, curvature
+                latent_dim, hidden_dim, max_radius, curvature,
+                n_layers=n_layers, dropout=dropout
             )
 
     def forward(

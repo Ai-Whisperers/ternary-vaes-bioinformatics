@@ -381,9 +381,142 @@ class CombinedGeodesicLoss(nn.Module):
         return total_loss, metrics
 
 
+class GlobalRankLoss(nn.Module):
+    """Global Rank Loss - enforces monotonic radius ordering by valuation.
+
+    Unlike RadialHierarchyLoss which uses point-wise MSE and sampled pair margins,
+    this loss directly optimizes the global ranking of radii.
+
+    Key insight: We want radius to be monotonically decreasing with valuation.
+    This is a differentiable surrogate for Spearman correlation.
+
+    The loss penalizes ALL pairs where the ordering is violated:
+    - If v_i > v_j (i has higher valuation), then r_i should be < r_j
+    - Violation: r_i >= r_j when v_i > v_j
+
+    Uses soft ranking via sigmoid for differentiability.
+    """
+
+    def __init__(
+        self,
+        temperature: float = 0.1,
+        n_pairs: int = 2000,
+        use_all_pairs: bool = False
+    ):
+        """Initialize GlobalRankLoss.
+
+        Args:
+            temperature: Softness of the ranking (lower = sharper)
+            n_pairs: Number of pairs to sample (if not using all pairs)
+            use_all_pairs: If True, use all O(n²) pairs (expensive but exact)
+        """
+        super().__init__()
+        self.temperature = temperature
+        self.n_pairs = n_pairs
+        self.use_all_pairs = use_all_pairs
+
+    def forward(
+        self,
+        z_hyp: torch.Tensor,
+        batch_indices: torch.Tensor
+    ) -> Tuple[torch.Tensor, dict]:
+        """Compute global rank loss.
+
+        Args:
+            z_hyp: Points in Poincaré ball (batch, latent_dim)
+            batch_indices: Operation indices (batch,)
+
+        Returns:
+            Tuple of (loss, metrics_dict)
+        """
+        device = z_hyp.device
+        batch_size = z_hyp.size(0)
+
+        if batch_size < 2:
+            return torch.tensor(0.0, device=device), {'n_violations': 0}
+
+        # Get valuations and radii
+        valuations = TERNARY.valuation(batch_indices).float()
+        radii = torch.norm(z_hyp, dim=1)
+
+        if self.use_all_pairs:
+            # All pairs (expensive: O(n²))
+            i_idx = torch.arange(batch_size, device=device).unsqueeze(1).expand(-1, batch_size).reshape(-1)
+            j_idx = torch.arange(batch_size, device=device).unsqueeze(0).expand(batch_size, -1).reshape(-1)
+        else:
+            # Sample pairs
+            n_pairs = min(self.n_pairs, batch_size * (batch_size - 1))
+            i_idx = torch.randint(0, batch_size, (n_pairs,), device=device)
+            j_idx = torch.randint(0, batch_size, (n_pairs,), device=device)
+
+            # Avoid self-pairs
+            same = i_idx == j_idx
+            j_idx[same] = (j_idx[same] + 1) % batch_size
+
+        # Get valuations and radii for pairs
+        v_i = valuations[i_idx]
+        v_j = valuations[j_idx]
+        r_i = radii[i_idx]
+        r_j = radii[j_idx]
+
+        # Valuation difference: positive means i has higher valuation
+        v_diff = v_i - v_j
+
+        # Only consider pairs where valuations differ
+        diff_mask = v_diff != 0
+        if not diff_mask.any():
+            return torch.tensor(0.0, device=device), {'n_violations': 0, 'n_pairs': 0}
+
+        v_diff = v_diff[diff_mask]
+        r_i = r_i[diff_mask]
+        r_j = r_j[diff_mask]
+
+        # For pairs where v_i > v_j (v_diff > 0), we want r_i < r_j
+        # i.e., r_j - r_i > 0
+        # For pairs where v_i < v_j (v_diff < 0), we want r_i > r_j
+        # i.e., r_i - r_j > 0, or -(r_j - r_i) > 0
+
+        # Normalize: if v_diff > 0, expect r_diff = r_j - r_i > 0
+        #            if v_diff < 0, expect r_diff = r_j - r_i < 0
+        # So: sign(v_diff) * (r_j - r_i) should be > 0
+
+        r_diff = r_j - r_i
+        expected_sign = torch.sign(v_diff)
+
+        # Signed radius difference: should be positive if ordering is correct
+        signed_r_diff = expected_sign * r_diff
+
+        # Soft violation: sigmoid(-signed_r_diff / temperature)
+        # When signed_r_diff > 0 (correct), sigmoid → 0
+        # When signed_r_diff < 0 (violation), sigmoid → 1
+        violations = torch.sigmoid(-signed_r_diff / self.temperature)
+
+        # Weight by valuation difference magnitude (larger gaps more important)
+        weights = torch.abs(v_diff)
+        weighted_violations = violations * weights
+
+        loss = weighted_violations.mean()
+
+        # Metrics
+        with torch.no_grad():
+            hard_violations = (signed_r_diff < 0).float().sum().item()
+            n_pairs_used = len(v_diff)
+            violation_rate = hard_violations / n_pairs_used if n_pairs_used > 0 else 0
+
+        metrics = {
+            'n_pairs': n_pairs_used,
+            'n_violations': int(hard_violations),
+            'violation_rate': violation_rate,
+            'mean_signed_diff': signed_r_diff.mean().item()
+        }
+
+        return loss, metrics
+
+
 __all__ = [
     'poincare_distance',
     'PAdicGeodesicLoss',
     'RadialHierarchyLoss',
-    'CombinedGeodesicLoss'
+    'CombinedGeodesicLoss',
+    'GlobalRankLoss'
 ]

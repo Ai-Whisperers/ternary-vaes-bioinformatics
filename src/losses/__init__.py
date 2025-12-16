@@ -73,7 +73,8 @@ from .padic_geodesic import (
     poincare_distance,
     PAdicGeodesicLoss,
     RadialHierarchyLoss,
-    CombinedGeodesicLoss
+    CombinedGeodesicLoss,
+    GlobalRankLoss
 )
 
 from .consequence_predictor import (
@@ -136,6 +137,7 @@ __all__ = [
     'PAdicGeodesicLoss',
     'RadialHierarchyLoss',
     'CombinedGeodesicLoss',
+    'GlobalRankLoss',
     'ConsequencePredictor',
     'evaluate_addition_accuracy',
     'PurposefulRankingLoss',

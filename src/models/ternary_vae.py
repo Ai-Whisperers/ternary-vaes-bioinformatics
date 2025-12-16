@@ -184,7 +184,9 @@ class TernaryVAEV5_11(nn.Module):
         max_radius: float = 0.95,
         curvature: float = 1.0,
         use_controller: bool = True,
-        use_dual_projection: bool = False
+        use_dual_projection: bool = False,
+        n_projection_layers: int = 1,
+        projection_dropout: float = 0.0
     ):
         """Initialize TernaryVAEV5_11.
 
@@ -195,14 +197,19 @@ class TernaryVAEV5_11(nn.Module):
             curvature: Hyperbolic curvature parameter
             use_controller: Whether to use differentiable controller
             use_dual_projection: Whether to use separate A/B projections
+            n_projection_layers: Number of hidden layers in projection (1=shallow, 2+=deep)
+            projection_dropout: Dropout rate for projection networks (default: 0.0)
         """
         super().__init__()
 
         self.latent_dim = latent_dim
+        self.hidden_dim = hidden_dim
         self.max_radius = max_radius
         self.curvature = curvature
         self.use_controller = use_controller
         self.use_dual_projection = use_dual_projection
+        self.n_projection_layers = n_projection_layers
+        self.projection_dropout = projection_dropout
 
         # Frozen encoders (will be loaded from checkpoint)
         self.encoder_A = FrozenEncoder(latent_dim=latent_dim)
@@ -217,14 +224,18 @@ class TernaryVAEV5_11(nn.Module):
                 latent_dim=latent_dim,
                 hidden_dim=hidden_dim,
                 max_radius=max_radius,
-                curvature=curvature
+                curvature=curvature,
+                n_layers=n_projection_layers,
+                dropout=projection_dropout
             )
         else:
             self.projection = HyperbolicProjection(
                 latent_dim=latent_dim,
                 hidden_dim=hidden_dim,
                 max_radius=max_radius,
-                curvature=curvature
+                curvature=curvature,
+                n_layers=n_projection_layers,
+                dropout=projection_dropout
             )
 
         # Trainable controller
