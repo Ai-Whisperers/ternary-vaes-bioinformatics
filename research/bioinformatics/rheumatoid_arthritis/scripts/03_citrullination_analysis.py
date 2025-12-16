@@ -499,12 +499,15 @@ def main():
 
     # Paths
     script_dir = Path(__file__).parent
-    results_dir = script_dir / 'results'
+    results_dir = script_dir.parent / 'results'
     results_dir.mkdir(exist_ok=True)
 
     # Load encoder
     print("\nLoading codon encoder...")
-    encoder_path = results_dir / 'codon_encoder.pt'
+    research_dir = script_dir.parent.parent.parent  # research/
+    encoder_path = research_dir / 'genetic_code' / 'data' / 'codon_encoder.pt'
+    if not encoder_path.exists():
+        encoder_path = script_dir.parent / 'data' / 'codon_encoder.pt'
     encoder = CodonEncoder()
     checkpoint = torch.load(encoder_path, map_location='cpu', weights_only=False)
     encoder.load_state_dict(checkpoint['model_state'])

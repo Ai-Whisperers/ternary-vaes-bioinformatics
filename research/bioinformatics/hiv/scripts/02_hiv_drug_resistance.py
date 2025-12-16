@@ -517,9 +517,10 @@ def main():
     results_dir.mkdir(exist_ok=True)
 
     # Load encoder
+    research_dir = base_dir.parent  # research/
     encoder_paths = [
-        base_dir / 'results' / 'codon_encoder.pt',
-        base_dir / 'RA_analysis' / 'data' / 'codon_encoder.pt',
+        research_dir / 'genetic_code' / 'data' / 'codon_encoder.pt',
+        base_dir / 'rheumatoid_arthritis' / 'data' / 'codon_encoder.pt',
     ]
 
     encoder_path = None
@@ -540,7 +541,7 @@ def main():
     encoder.eval()
 
     # Load mapping and build codon->cluster
-    mapping_path = base_dir / 'results' / 'learned_codon_mapping.json'
+    mapping_path = research_dir / 'genetic_code' / 'data' / 'learned_codon_mapping.json'
     with open(mapping_path) as f:
         mapping_data = json.load(f)
 

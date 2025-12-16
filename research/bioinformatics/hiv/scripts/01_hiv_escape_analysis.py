@@ -551,9 +551,10 @@ def main():
     results_dir.mkdir(exist_ok=True)
 
     # Load codon encoder
+    research_dir = base_dir.parent  # research/
     encoder_paths = [
-        base_dir / 'results' / 'codon_encoder.pt',
-        base_dir / 'RA_analysis' / 'data' / 'codon_encoder.pt',
+        research_dir / 'genetic_code' / 'data' / 'codon_encoder.pt',
+        base_dir / 'rheumatoid_arthritis' / 'data' / 'codon_encoder.pt',
         script_dir.parent / 'data' / 'codon_encoder.pt'
     ]
 
@@ -577,8 +578,8 @@ def main():
 
     # Load codon mapping
     mapping_paths = [
-        base_dir / 'results' / 'learned_codon_mapping.json',
-        base_dir / 'RA_analysis' / 'data' / 'learned_codon_mapping.json',
+        research_dir / 'genetic_code' / 'data' / 'learned_codon_mapping.json',
+        base_dir / 'rheumatoid_arthritis' / 'data' / 'learned_codon_mapping.json',
         script_dir.parent / 'data' / 'learned_codon_mapping.json'
     ]
 

@@ -495,16 +495,26 @@ def main():
 
     # Paths
     script_dir = Path(__file__).parent
-    results_dir = script_dir / 'results'
+    results_dir = script_dir.parent / 'results'
     results_dir.mkdir(exist_ok=True)
 
-    # Load codon encoder
+    # Load codon encoder from genetic_code or local data
     print("\nLoading codon encoder...")
-    encoder_path = results_dir / 'codon_encoder.pt'
+    research_dir = script_dir.parent.parent.parent  # research/
+    encoder_paths = [
+        research_dir / 'genetic_code' / 'data' / 'codon_encoder.pt',
+        script_dir.parent / 'data' / 'codon_encoder.pt',
+    ]
 
-    if not encoder_path.exists():
-        print(f"  ERROR: Codon encoder not found at {encoder_path}")
-        print("  Please run 08_learn_codon_mapping.py first")
+    encoder_path = None
+    for path in encoder_paths:
+        if path.exists():
+            encoder_path = path
+            break
+
+    if encoder_path is None:
+        print(f"  ERROR: Codon encoder not found!")
+        print("  Please run genetic_code/scripts/06_learn_codon_mapping.py first")
         return
 
     encoder = CodonEncoder()
