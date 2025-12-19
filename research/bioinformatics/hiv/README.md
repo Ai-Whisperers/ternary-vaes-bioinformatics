@@ -1,12 +1,12 @@
 # HIV Analysis using P-Adic Geometry
 
-**Doc-Type:** Project Index · Version 1.0 · Updated 2025-12-16
+**Doc-Type:** Project Index · Version 1.1 · Updated 2025-12-18
 
 ---
 
 ## Overview
 
-This directory contains analysis of HIV-1 sequences using p-adic geometric methods derived from the Ternary VAE v1.1.0 model. The analysis examines:
+This directory contains analysis of HIV-1 sequences using p-adic geometric methods derived from the 3-adic codon encoder (trained on V5.11.3 embeddings). The analysis examines:
 
 1. **CTL Escape Mutations** - How immune escape variants travel in p-adic space
 2. **Drug Resistance** - Geometric organization of resistance mutations by drug class
@@ -14,14 +14,14 @@ This directory contains analysis of HIV-1 sequences using p-adic geometric metho
 
 ---
 
-## Key Findings Summary
+## Key Findings Summary (3-Adic Encoder)
 
 | Discovery | Metric | Significance |
 |-----------|--------|--------------|
-| **Distance-Fitness Correlation** | r = 0.24 | Larger p-adic jumps cost more fitness |
-| **INSTI Constraint** | d = 4.30 | Integrase active site most constrained |
-| **NNRTI Flexibility** | d = 3.59 | Allosteric pocket most permissive |
-| **HLA-B27 Protection** | d = 4.40 | Escape requires high fitness cost |
+| **NRTI Most Constrained** | d = 6.05 | RT active site highly conserved |
+| **PI Most Flexible** | d = 3.60 | Protease tolerates substitutions |
+| **HLA-B27 Protection** | d = 7.38 | Escape requires major geometric jump |
+| **Boundary Crossing** | 100% | All AA changes cross p-adic boundaries |
 
 ---
 
@@ -71,14 +71,14 @@ python scripts/01_hiv_escape_analysis.py
 
 Analysis of 18 drug resistance mutations across 4 drug classes.
 
-**Key Results:**
+**Key Results (3-Adic Encoder):**
 
 | Drug Class | Mean Distance | Interpretation |
 |------------|---------------|----------------|
-| INSTI | 4.30 ± 0.55 | Most constrained |
-| NRTI | 4.06 ± 0.41 | High constraint |
-| NNRTI | 3.59 ± 0.03 | Most flexible |
-| PI | 3.52 ± 0.34 | Moderate flexibility |
+| NRTI | 6.05 ± 1.28 | Most constrained (RT active site) |
+| INSTI | 5.16 ± 1.45 | High constraint (integrase) |
+| NNRTI | 5.34 ± 1.40 | Moderate (allosteric pocket) |
+| PI | 3.60 ± 2.01 | Most flexible (protease) |
 
 **Run:**
 ```bash
@@ -89,25 +89,25 @@ python scripts/02_hiv_drug_resistance.py
 
 ## Epitopes Analyzed
 
-### CTL Epitopes
+### CTL Epitopes (3-Adic Results)
 
 | Epitope | Protein | HLA | Wild-Type | Key Escape |
 |---------|---------|-----|-----------|------------|
-| SL9 | Gag p17 | A*02:01 | SLYNTVATL | Y79F (d=3.68) |
-| KK10 | Gag p24 | B*27:05 | KRWIILGLNK | R264K (d=4.40) |
-| TW10 | Gag p24 | B*57:01 | TSTLQEQIGW | T242N (d=4.18) |
-| FL8 | Nef | A*24:02 | FLKEKGGL | K94R (d=4.41) |
-| IV9 | RT | A*02:01 | ILKEPVHGV | V181I (d=3.89) |
-| RL9 | Env | B*08:01 | RLRDLLLIW | D314N (d=3.53) |
+| SL9 | Gag p17 | A*02:01 | SLYNTVATL | Y79F (d=5.27) |
+| KK10 | Gag p24 | B*27:05 | KRWIILGLNK | R264K (d=7.38) |
+| TW10 | Gag p24 | B*57:01 | TSTLQEQIGW | T242N (d=6.34) |
+| FL8 | Nef | A*24:02 | FLKEKGGL | K94R (d=7.37) |
+| IV9 | RT | A*02:01 | ILKEPVHGV | V181I (d=4.10) |
+| RL9 | Env | B*08:01 | RLRDLLLIW | D314N (d=4.96) |
 
-### Drug Resistance Mutations
+### Drug Resistance Mutations (3-Adic Results)
 
 **Highest Distance (Most Constrained):**
-1. Y143R (INSTI): d = 5.08 - Raltegravir escape
-2. K65R (NRTI): d = 4.41 - Tenofovir resistance
-3. K70R (NRTI): d = 4.41 - TAM pathway
-4. R263K (INSTI): d = 4.40 - Dolutegravir resistance
-5. N155H (INSTI): d = 4.19 - Major INSTI mutation
+1. K65R/K70R (NRTI): d = 7.41 - Tenofovir/AZT resistance
+2. R263K (INSTI): d = 7.41 - Dolutegravir resistance
+3. K103N (NNRTI): d = 6.89 - Efavirenz resistance
+4. T215Y (NRTI): d = 6.06 - TAM pathway
+5. Y143R (INSTI): d = 5.72 - Raltegravir escape
 
 ---
 
@@ -179,7 +179,7 @@ scipy           # Statistical tests
 matplotlib      # Visualization
 ```
 
-Uses codon encoder from `../RA_analysis/data/` or `../results/`.
+Uses 3-adic codon encoder from `../../genetic_code/data/codon_encoder_3adic.pt` (via shared `hyperbolic_utils.py` from RA pipeline).
 
 ---
 
@@ -209,10 +209,10 @@ python 02_hiv_drug_resistance.py
 
 | Component | HIV Application |
 |-----------|-----------------|
-| VAE v1.1.0 | Defines p-adic cluster structure |
-| Codon Encoder | Maps mutations to embedding space |
+| VAE V5.11.3 | Defines p-adic cluster structure |
+| 3-Adic Codon Encoder | Maps mutations to hyperbolic embedding space |
 | 21 Clusters | Match amino acid groups |
-| Wobble Pattern | Explains synonymous tolerance |
+| Hyperbolic Geometry | Captures hierarchical codon organization |
 
 ---
 
@@ -220,8 +220,9 @@ python 02_hiv_drug_resistance.py
 
 | Date | Version | Description |
 |------|---------|-------------|
+| 2025-12-18 | 1.1 | Updated to 3-adic encoder, expanded epitope/mutation datasets |
 | 2025-12-16 | 1.0 | Initial implementation |
 
 ---
 
-**Status:** Complete analysis pipeline, ready for dataset expansion
+**Status:** Analysis pipeline validated with 3-adic encoder, ready for dataset expansion
