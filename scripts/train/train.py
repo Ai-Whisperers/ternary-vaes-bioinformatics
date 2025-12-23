@@ -87,8 +87,8 @@ def parse_args():
     parser.add_argument('--dual_projection', action='store_true', default=False,
                         help='Use separate projections for VAE-A and VAE-B')
     # Adaptive curriculum termination (v1.1)
-    parser.add_argument('--hierarchy_threshold', type=float, default=-0.70,
-                        help='Radial hierarchy threshold to freeze tau (default: -0.70)')
+    parser.add_argument('--hierarchy_threshold', type=float, default=-0.725,
+                        help='Radial hierarchy threshold to freeze tau (default: -0.725)')
     parser.add_argument('--patience', type=int, default=20,
                         help='Early stopping patience (epochs without improvement)')
     parser.add_argument('--min_epochs', type=int, default=30,
