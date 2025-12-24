@@ -1,0 +1,16 @@
+---
+description: PyTorch Best Practices for Ternary VAEs
+globs: *.py
+---
+# PyTorch Coding Standards
+
+- **Version Compatibility**: Target PyTorch 2.0+ (utilize `torch.compile` where appropriate).
+- **Type Safety**: Use `torch.Tensor` type hints throughout.
+- **Tensors**:
+  - Always verify shapes using `assert tensor.shape == (...)` or `einops` checks before complex operations.
+  - Use `device=device` kwarg for all tensor creations to ensure device agnosticism.
+- **Modules**:
+  - Inherit from `nn.Module`.
+  - Type-hint `forward` methods.
+- **Validation**:
+  - Check for `NaN` or `Inf` in potential instability regions (e.g., hyperbolic embeddings).

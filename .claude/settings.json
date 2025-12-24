@@ -1,0 +1,90 @@
+{
+    "$schema": "https://json.schemastore.org/claude-code-settings.json",
+    "name": "Ternary VAEs Bioinformatics",
+    "description": "Bioinformatics research using Ternary VAEs, Hyperbolic Geometry, and 3-adic Numbers.",
+    "context": {
+        "alwaysInclude": [
+            "DOCUMENTATION/README.md"
+        ],
+        "onDemand": [
+            "requirements.txt",
+            "setup.py"
+        ]
+    },
+    "codeStyle": {
+        "language": "python",
+        "framework": "pytorch",
+        "styling": "pep8",
+        "testFramework": "pytest"
+    },
+    "conventions": {
+        "scripts": "snake_case.py",
+        "classes": "PascalCase",
+        "functions": "snake_case",
+        "constants": "UPPER_CASE"
+    },
+    "warnings": [
+        "NEVER use untyped tensors - always specify dtype or shape hints",
+        "ALWAYS use PyTorch 2.0+ conventions (e.g. torch.compile where appropriate)",
+        "NEVER swallow exceptions without logging"
+    ],
+    "patterns": {
+        "bioinformatics": {
+            "tensor_shapes": "Batch x Channels x SeqLen",
+            "precision": "float32 (default) or float16 (amp)",
+            "geometry": "Hyperbolic (Poincare Ball)"
+        }
+    },
+    "directories": {
+        "src": "Source code",
+        "scripts": "Utility and experiment scripts",
+        "DOCUMENTATION": "Project knowledge base"
+    },
+    "mcpServers": {
+        "filesystem": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-filesystem",
+                "."
+            ]
+        },
+        "terminal": {
+            "command": "python",
+            "args": [
+                "-m",
+                "mcp_server_terminal"
+            ]
+        },
+        "brave-search": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-brave-search"
+            ]
+        },
+        "git": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-git"
+            ]
+        },
+        "sqlite": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-sqlite",
+                "--db-path",
+                "./web/db/dev.db"
+            ]
+        },
+        "memory": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@modelcontextprotocol/server-memory"
+            ]
+        }
+    }
+}
