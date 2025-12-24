@@ -53,7 +53,7 @@ The Ternary VAE v5.10.1 is a **dual-pathway variational autoencoder** that embed
 
 The **3^9 = 19,683 operations** are the complete set of binary functions over the ternary field:
 
-```
+```text
 f: Z₃ × Z₃ → Z₃   where Z₃ = {-1, 0, +1}
 ```
 
@@ -65,7 +65,7 @@ Each operation is a **lookup table (LUT)** of 9 values—one output for each of 
 
 Each operation is indexed by `i ∈ [0, 19682]` via its **base-3 representation**:
 
-```
+```text
 i = Σₖ (digit_k + 1) × 3^k   where digit_k ∈ {-1, 0, +1}
 ```
 
@@ -73,7 +73,7 @@ i = Σₖ (digit_k + 1) × 3^k   where digit_k ∈ {-1, 0, +1}
 
 This indexing naturally endows the operation space with a **3-adic ultrametric**:
 
-```
+```text
 d(i, j) = 3^(-v₃(|i-j|))
 ```
 
@@ -94,7 +94,7 @@ This makes the space **isomorphic to Z/3⁹Z** with p-adic topology—a **9-leve
 
 The **ternary manifold** is the image of this discrete ultrametric space under the VAE encoder:
 
-```
+```text
 Encoder: Z₃⁹ → B¹⁶_Poincare   (19,683 points → 16D Poincare ball)
 ```
 
@@ -152,28 +152,25 @@ python scripts/benchmark/measure_manifold_resolution.py
 ```
 ternary-vaes/
 ├── README.md                      # This file
-├── guides/                        # 📚 EXPLANATIONS & GUIDES
-│   ├── shared/                    # Core Concepts (Ternary Logic, Research Overview)
-│   ├── biologists/                # Biology context (Codons, Viruses)
-│   ├── mathematicians/            # Math context (Hyperbolic Geometry)
-│   └── developers/                # Setup & API Docs
+├── DOCUMENTATION/                 # 📚 KNOWLEDGE BASE
+│   ├── 01_GUIDES/                 # Explanations & Guides (Biologists, Mathematicians, Developers)
+│   ├── 02_THEORY_AND_RESEARCH/    # Theory, Reports, Analysis
+│   ├── 03_EXPERIMENTS_AND_LABS/   # Experimental Code (Bioinformatics, Mathematics)
+│   ├── 04_PROJECT_MANAGEMENT/     # Plans & Archives
+│   ├── 05_PRESENTATION/           # Pitch Decks
+│   └── 06_LEGAL/                  # Legal
 │
 ├── src/                           # 🧠 LOGIC (Production Code)
 │   ├── training/                  # Training components
 │   ├── models/                    # Neural architectures
 │   └── ...
 │
-├── experiments/                   # 🧪 EXPERIMENTAL CODE
-│   ├── bioinformatics/            # Codon research scripts
-│   └── mathematics/               # Spectral analysis scripts
+
 │
 ├── results/                       # 📊 RESULTS & OUTPUTS
 │   ├── benchmarks/                # Performance metrics
 │   ├── discoveries/               # Key findings (e.g., HIV, Glycan Shield)
 │   └── training_runs/             # Tensorboard logs
-│
-├── docs/                          # 🔧 TECHNICAL SPECS
-│   └── ...                        # Architecture & Migration guides
 │
 ├── configs/                       # ⚙️ CONFIGURATION
 └── tests/                         # Test suite
@@ -466,16 +463,18 @@ The core Python package.
 
 - `models/`: v5.11 Frozen Encoder + Hyperbolic Projection.
 - `training/`: Specialized hyperbolic trainers.
-- [Codebase Structure Guide](guides/developers/CODEBASE_STRUCTURE.md)
+- [Codebase Structure Guide](DOCUMENTATION/01_GUIDES/developers/CODEBASE_STRUCTURE.md)
 
-### `guides/` - Documentation
+### `DOCUMENTATION/` - Knowledge Base
 
-- **[Developers](guides/developers/)**: Setup, Architecture, APIs.
-  - [Setup & Dependencies](guides/developers/SETUP_AND_DEPENDENCIES.md)
-  - [Workflows & Scripts](guides/developers/WORKFLOWS_AND_SCRIPTS.md)
-  - [Testing Strategy](guides/developers/TESTING.md)
-- **[Mathematicians](guides/mathematicians/)**: 3-adic numbers, Poincare geometry.
-- **[Biologists](guides/biologists/)**: Codon encodings, HIV shielding.
+- **[01_GUIDES](DOCUMENTATION/01_GUIDES/)**: Explanations & Guides.
+  - [Setup & Dependencies](DOCUMENTATION/01_GUIDES/developers/SETUP_AND_DEPENDENCIES.md)
+  - [Workflows & Scripts](DOCUMENTATION/01_GUIDES/developers/WORKFLOWS_AND_SCRIPTS.md)
+  - [Testing Strategy](DOCUMENTATION/01_GUIDES/developers/TESTING.md)
+- **[02_THEORY](DOCUMENTATION/02_THEORY_AND_RESEARCH/)**: Mathematical foundations and analysis.
+- **[03_EXPERIMENTS](DOCUMENTATION/03_EXPERIMENTS_AND_LABS/)**: Research scripts and labs.
+  - Contains `bioinformatics/` and `mathematics/` experiments.
+- **[05_PRESENTATION](DOCUMENTATION/05_PRESENTATION/)**: Pitch decks and summaries.
 
 ### `results/` - Data & Outputs
 
@@ -483,13 +482,13 @@ The core Python package.
 - `training_runs/`: TensorBoard logs.
 - `alphafold_predictions/`: Protein structure data.
 
-### `experiments/`
+### `DOCUMENTATION/03_EXPERIMENTS_AND_LABS/`
 
 Sandbox for research scripts. Contains no heavy data.
 
-### `docs/presentation/`
+### `DOCUMENTATION/05_PRESENTATION/`
 
-- **[Executive Summary (PITCH)](docs/presentation/PITCH.md)**: For Investors & Lab Directors.
+- **[Executive Summary (PITCH)](DOCUMENTATION/05_PRESENTATION/PITCH.md)**: For Investors & Lab Directors.
 
 ---
 
@@ -499,22 +498,22 @@ Comprehensive documentation is available:
 
 ### Architecture & API
 
-- **ARCHITECTURE.md** (`guides/developers/ARCHITECTURE.md`) - Complete system architecture
-- **API_REFERENCE.md** (`guides/developers/API_REFERENCE.md`) - Complete API documentation
-- **REFACTORING_SUMMARY.md** (`guides/developers/REFACTORING_SUMMARY.md`) - Refactoring overview
+- **ARCHITECTURE.md** (`DOCUMENTATION/01_GUIDES/developers/ARCHITECTURE.md`) - Complete system architecture
+- **API_REFERENCE.md** (`DOCUMENTATION/01_GUIDES/developers/API_REFERENCE.md`) - Complete API documentation
+- **REFACTORING_SUMMARY.md** (`DOCUMENTATION/01_GUIDES/developers/REFACTORING_SUMMARY.md`) - Refactoring overview
 
 ### Validation & Reports
 
-- **REFACTORING_VALIDATION_REVIEW.md** (`docs/reports/REFACTORING_VALIDATION_REVIEW.md`) - Comprehensive validation
-- **REFACTORING_SESSION_SUMMARY.md** (`docs/reports/REFACTORING_SESSION_SUMMARY.md`) - Complete session summary
+- **REFACTORING_VALIDATION_REVIEW.md** (`DOCUMENTATION/04_PROJECT_MANAGEMENT/reports/REFACTORING_VALIDATION_REVIEW.md`) - Comprehensive validation
+- **REFACTORING_SESSION_SUMMARY.md** (`DOCUMENTATION/04_PROJECT_MANAGEMENT/reports/REFACTORING_SESSION_SUMMARY.md`) - Complete session summary
 - **MERGE_SUMMARY.md** - Deployment summary
 
 ### Theory
 
-- **MATHEMATICAL_FOUNDATIONS.md** (`guides/shared/MATHEMATICAL_FOUNDATIONS.md`) - Mathematical foundations
-- **DUAL_VAE_ARCHITECTURE.md** (`docs/theory/DUAL_VAE_ARCHITECTURE.md`) - Architecture details
-- **STATENET_CONTROLLER.md** (`docs/theory/STATENET_CONTROLLER.md`) - StateNet explanation
-- **PHASE_TRANSITIONS.md** (`docs/theory/PHASE_TRANSITIONS.md`) - Training phases
+- **MATHEMATICAL_FOUNDATIONS.md** (`DOCUMENTATION/01_GUIDES/shared/MATHEMATICAL_FOUNDATIONS.md`) - Mathematical foundations
+- **DUAL_VAE_ARCHITECTURE.md** (`DOCUMENTATION/02_THEORY_AND_RESEARCH/theory/DUAL_VAE_ARCHITECTURE.md`) - Architecture details
+- **STATENET_CONTROLLER.md** (`DOCUMENTATION/02_THEORY_AND_RESEARCH/theory/STATENET_CONTROLLER.md`) - StateNet explanation
+- **PHASE_TRANSITIONS.md** (`DOCUMENTATION/02_THEORY_AND_RESEARCH/theory/PHASE_TRANSITIONS.md`) - Training phases
 
 ---
 
@@ -539,7 +538,7 @@ trainer = TernaryVAETrainer(model, config, device)
 trainer.train(train_loader, val_loader)
 ```
 
-**See**: `guides/developers/MIGRATION_GUIDE.md` for complete instructions
+**See**: `DOCUMENTATION/01_GUIDES/developers/MIGRATION_GUIDE.md` for complete instructions
 
 ---
 
@@ -598,10 +597,10 @@ See `guides/developers/ARCHITECTURE.md` for architecture details.
 For questions, issues, or contributions:
 
 - GitHub Issues: [Create an issue](https://github.com/gesttaltt/ternary-vaes/issues)
-- Documentation: See `guides/` directory
-- Architecture: `guides/developers/ARCHITECTURE.md`
-- Migration: `guides/developers/MIGRATION_GUIDE.md`
-- API: `guides/developers/API_REFERENCE.md`
+- Documentation: See `DOCUMENTATION/01_GUIDES/` directory
+- Architecture: `DOCUMENTATION/01_GUIDES/developers/ARCHITECTURE.md`
+- Migration: `DOCUMENTATION/01_GUIDES/developers/MIGRATION_GUIDE.md`
+- API: `DOCUMENTATION/01_GUIDES/developers/API_REFERENCE.md`
 
 ---
 
@@ -621,7 +620,7 @@ For questions, issues, or contributions:
 
 The **3-adic ranking loss** explicitly trains for isometric embedding:
 
-```
+```text
 For triplets (anchor, positive, negative) where d_3adic(a,p) < d_3adic(a,n):
     Enforce: d_poincare(z_a, z_p) < d_poincare(z_a, z_n)
 ```
@@ -630,14 +629,14 @@ Combined with **hyperbolic KL divergence** against a **wrapped normal prior** on
 
 ### Current Status vs. Requirements
 
-| Requirement            | Status             | Implementation                          |
-| ---------------------- | ------------------ | --------------------------------------- |
-| Complete coverage      | ✅ 99.7%           | Dual-VAE with cross-injection           |
-| 3-adic structure       | ✅ Ranking loss    | `src/metrics/hyperbolic.py`             |
-| Hyperbolic embedding   | ✅ Poincare ball   | `project_to_poincare()`                 |
-| Homeostatic prior      | ✅ Self-regulating | `HomeostaticHyperbolicPrior`            |
-| Manifold visualization | ❌ Scalars only    | See `guides/developers/ARCHITECTURE.md` |
-| Algebraic closure      | ❌ Not attempted   | Future research target                  |
+| Requirement            | Status             | Implementation                                           |
+| ---------------------- | ------------------ | -------------------------------------------------------- |
+| Complete coverage      | ✅ 99.7%           | Dual-VAE with cross-injection                            |
+| 3-adic structure       | ✅ Ranking loss    | `src/metrics/hyperbolic.py`                              |
+| Hyperbolic embedding   | ✅ Poincare ball   | `project_to_poincare()`                                  |
+| Homeostatic prior      | ✅ Self-regulating | `HomeostaticHyperbolicPrior`                             |
+| Manifold visualization | ❌ Scalars only    | See `DOCUMENTATION/01_GUIDES/developers/ARCHITECTURE.md` |
+| Algebraic closure      | ❌ Not attempted   | Future research target                                   |
 
 ### Known Gap: Manifold Observability
 
