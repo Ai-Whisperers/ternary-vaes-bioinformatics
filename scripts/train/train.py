@@ -111,6 +111,8 @@ def parse_args():
                         help='Disable global rank loss')
     parser.add_argument('--n_pairs', type=int, default=2000,
                         help='Number of pairs for geodesic loss (default: 2000)')
+    parser.add_argument('--learnable_weights', action='store_true', default=False,
+                        help='Use controller-learned loss weights (requires --use_controller)')
     return parser.parse_args()
 
 
@@ -372,7 +374,7 @@ def compute_metrics(model, x, indices, geodesic_loss_fn, radial_loss_fn, device)
 
 def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
                 batch_size, epoch, tau, radial_weight, device, use_stratified=True,
-                rank_loss_fn=None, rank_loss_weight=1.0):
+                rank_loss_fn=None, rank_loss_weight=1.0, use_learnable_weights=False):
     """Train one epoch.
 
     V5.11.1 FIX: Changed loss composition to always include radial loss.
@@ -386,6 +388,11 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
     V5.11.3 FIX: Added global rank loss to enforce monotonic radius ordering.
     This structural constraint forces the projection to learn hierarchy rather
     than fit noise when given extra capacity.
+
+    V5.11.4 FIX: Learnable loss weights via controller.
+    When use_learnable_weights=True, tau and radial_weight come from the
+    controller's outputs, allowing the model to learn optimal capacity
+    allocation on the Pareto frontier dynamically.
 
     tau now controls geodesic weight, but radial is always active.
     """
@@ -448,7 +455,16 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
         # Geodesic loss ramps up with tau
         # Early: low tau = focus on radial, some geodesic
         # Late: high tau = more geodesic, but radial still active
-        total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
+
+        # V5.11.4: Use learnable weights from controller if enabled
+        if use_learnable_weights and 'control' in outputs:
+            ctrl = outputs['control']
+            # Controller outputs are [batch, 1] tensors, take mean for scalar weight
+            learned_tau = ctrl['tau'].mean()
+            learned_radial = ctrl['weight_radial'].mean()
+            total_batch_loss = learned_tau * geo_loss + learned_radial * rad_loss + rank_loss_weight * rank_loss
+        else:
+            total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
 
         # Backward and optimize
         total_batch_loss.backward()
@@ -640,6 +656,13 @@ def main():
     else:
         print("Adaptive curriculum: DISABLED (fixed tau schedule)")
 
+    # Learnable weights (v1.4)
+    use_learnable_weights = config.get('learnable_weights', False)
+    if use_learnable_weights:
+        if not config.get('use_controller', False):
+            print("WARNING: --learnable_weights requires --use_controller, enabling controller")
+        print("Learnable weights: ENABLED (controller learns tau and radial_weight)")
+
     best_radial_corr = float('inf')  # Want negative, so lower is better
     best_composite_score = float('-inf')
 
@@ -654,7 +677,8 @@ def main():
             batch_size, epoch, tau, radial_weight, device,
             use_stratified=use_stratified,
             rank_loss_fn=rank_loss_fn,
-            rank_loss_weight=rank_loss_weight
+            rank_loss_weight=rank_loss_weight,
+            use_learnable_weights=use_learnable_weights
         )
 
         # Evaluate
