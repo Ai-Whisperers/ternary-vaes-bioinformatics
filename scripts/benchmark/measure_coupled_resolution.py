@@ -15,22 +15,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data import generate_all_ternary_operations
 from src.artifacts import CheckpointManager
-
-
-def convert_to_python_types(obj):
-    """Convert numpy types to native Python types for JSON serialization"""
-    if isinstance(obj, dict):
-        return {k: convert_to_python_types(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_to_python_types(v) for v in obj]
-    elif isinstance(obj, np.integer):
-        return int(obj)
-    elif isinstance(obj, np.floating):
-        return float(obj)
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    else:
-        return obj
+from src.benchmark import convert_to_python_types
 
 
 class CoupledSystemBenchmark:
