@@ -43,7 +43,7 @@ from scipy.stats import spearmanr
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC
+from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC, HomeostasisController
 from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, CombinedGeodesicLoss, GlobalRankLoss
 from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
@@ -111,6 +111,35 @@ def parse_args():
                         help='Disable global rank loss')
     parser.add_argument('--n_pairs', type=int, default=2000,
                         help='Number of pairs for geodesic loss (default: 2000)')
+    parser.add_argument('--learnable_weights', action='store_true', default=False,
+                        help='Use controller-learned loss weights (requires --use_controller)')
+    # Progressive unfreezing (v5.11.6)
+    parser.add_argument('--progressive_unfreeze', action='store_true', default=False,
+                        help='Progressively unfreeze encoder_A during training')
+    parser.add_argument('--unfreeze_start_epoch', type=int, default=5,
+                        help='Epoch to start unfreezing encoder_A (default: 5)')
+    parser.add_argument('--unfreeze_warmup_epochs', type=int, default=5,
+                        help='Epochs to ramp up encoder_A LR from 0 to target (default: 5)')
+    parser.add_argument('--encoder_a_lr_scale', type=float, default=0.05,
+                        help='Final LR scale for encoder_A (default: 0.05)')
+    # Homeostatic control (v5.11.7)
+    parser.add_argument('--homeostasis', action='store_true', default=False,
+                        help='Enable hierarchical homeostatic freeze/unfreeze control')
+    parser.add_argument('--coverage_freeze_threshold', type=float, default=0.995,
+                        help='Freeze encoder_A when coverage drops below this (default: 0.995)')
+    parser.add_argument('--homeostasis_warmup', type=int, default=5,
+                        help='Epochs before homeostasis activates (default: 5)')
+    parser.add_argument('--hysteresis_epochs', type=int, default=3,
+                        help='Minimum epochs between freeze state changes (default: 3)')
+    # Q-gated annealing (v5.11.8)
+    parser.add_argument('--enable_annealing', action='store_true', default=True,
+                        help='Enable Q-gated threshold annealing (default: True)')
+    parser.add_argument('--no_annealing', action='store_true', default=False,
+                        help='Disable Q-gated threshold annealing')
+    parser.add_argument('--annealing_step', type=float, default=0.005,
+                        help='How much to relax thresholds per successful cycle (default: 0.005)')
+    parser.add_argument('--coverage_floor', type=float, default=0.95,
+                        help='Never relax coverage threshold below this (default: 0.95)')
     return parser.parse_args()
 
 
@@ -372,7 +401,7 @@ def compute_metrics(model, x, indices, geodesic_loss_fn, radial_loss_fn, device)
 
 def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
                 batch_size, epoch, tau, radial_weight, device, use_stratified=True,
-                rank_loss_fn=None, rank_loss_weight=1.0):
+                rank_loss_fn=None, rank_loss_weight=1.0, use_learnable_weights=False):
     """Train one epoch.
 
     V5.11.1 FIX: Changed loss composition to always include radial loss.
@@ -386,6 +415,11 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
     V5.11.3 FIX: Added global rank loss to enforce monotonic radius ordering.
     This structural constraint forces the projection to learn hierarchy rather
     than fit noise when given extra capacity.
+
+    V5.11.4 FIX: Learnable loss weights via controller.
+    When use_learnable_weights=True, tau and radial_weight come from the
+    controller's outputs, allowing the model to learn optimal capacity
+    allocation on the Pareto frontier dynamically.
 
     tau now controls geodesic weight, but radial is always active.
     """
@@ -448,7 +482,37 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
         # Geodesic loss ramps up with tau
         # Early: low tau = focus on radial, some geodesic
         # Late: high tau = more geodesic, but radial still active
-        total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
+
+        # V5.11.4: Use learnable weights from controller if enabled
+        if use_learnable_weights and 'control' in outputs:
+            ctrl = outputs['control']
+            # Controller outputs are [batch, 1] tensors, take mean for scalar weight
+            learned_tau = ctrl['tau'].mean()
+            learned_radial = ctrl['weight_radial'].mean()
+            learned_geo = ctrl['weight_geodesic'].mean()
+
+            # Core loss with learned weights
+            core_loss = learned_tau * geo_loss + learned_radial * rad_loss + rank_loss_weight * rank_loss
+
+            # V5.11.5: Q-preservation regularization
+            # Prevent controller from collapsing to "easy path" (radial-only)
+            # Constraint 1: tau must stay above minimum (ensure geodesic learning)
+            tau_min = 0.3
+            tau_penalty = torch.relu(tau_min - learned_tau) ** 2
+
+            # Constraint 2: radial/geodesic ratio must stay bounded
+            # This prevents radial from dominating even when tau is reasonable
+            max_ratio = 3.0
+            ratio = learned_radial / (learned_geo + 1e-6)
+            ratio_penalty = torch.relu(ratio - max_ratio) ** 2
+
+            # Regularization weight (tunable)
+            q_reg_weight = 1.0
+            q_regularization = q_reg_weight * (tau_penalty + ratio_penalty)
+
+            total_batch_loss = core_loss + q_regularization
+        else:
+            total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
 
         # Backward and optimize
         total_batch_loss.backward()
@@ -640,12 +704,84 @@ def main():
     else:
         print("Adaptive curriculum: DISABLED (fixed tau schedule)")
 
+    # Learnable weights (v1.4)
+    use_learnable_weights = config.get('learnable_weights', False)
+    if use_learnable_weights:
+        if not config.get('use_controller', False):
+            print("WARNING: --learnable_weights requires --use_controller, enabling controller")
+        print("Learnable weights: ENABLED (controller learns tau and radial_weight)")
+
+    # Progressive unfreezing (v5.11.6)
+    progressive_unfreeze = config.get('progressive_unfreeze', False)
+    unfreeze_start = config.get('unfreeze_start_epoch', 5)
+    unfreeze_warmup = config.get('unfreeze_warmup_epochs', 5)
+    encoder_a_target_lr = config.get('encoder_a_lr_scale', 0.05)
+    if progressive_unfreeze:
+        print(f"Progressive unfreezing: start={unfreeze_start}, warmup={unfreeze_warmup}, target_lr_scale={encoder_a_target_lr}")
+
+    # Homeostatic control (v5.11.7 + v5.11.8 Q-gated annealing)
+    use_homeostasis = config.get('homeostasis', False)
+    homeostasis = None
+    if use_homeostasis:
+        enable_annealing = not config.get('no_annealing', False)
+        homeostasis = HomeostasisController(
+            coverage_freeze_threshold=config.get('coverage_freeze_threshold', 0.995),
+            warmup_epochs=config.get('homeostasis_warmup', 5),
+            hysteresis_epochs=config.get('hysteresis_epochs', 3),
+            enable_annealing=enable_annealing,
+            annealing_step=config.get('annealing_step', 0.005),
+            coverage_floor=config.get('coverage_floor', 0.95),
+        )
+        print(f"Homeostasis: ENABLED (coverage_freeze={homeostasis.coverage_freeze_threshold}, warmup={homeostasis.warmup_epochs})")
+        if enable_annealing:
+            print(f"  Q-gated annealing: step={homeostasis.annealing_step}, floor={homeostasis.coverage_floor}")
+        # Track previous freeze state for optimizer rebuild
+        prev_freeze_state = {
+            'encoder_a': True,
+            'encoder_b': False,
+            'controller': False
+        }
+
     best_radial_corr = float('inf')  # Want negative, so lower is better
     best_composite_score = float('-inf')
 
     for epoch in range(n_epochs):
         # Curriculum: tau from adaptive curriculum (may freeze)
         tau = curriculum.compute_tau(epoch)
+
+        # Progressive unfreezing of encoder_A (v5.11.6)
+        if progressive_unfreeze and hasattr(model, 'set_encoder_a_unfreeze'):
+            if epoch < unfreeze_start:
+                # Keep frozen
+                current_lr_scale = 0.0
+            elif epoch < unfreeze_start + unfreeze_warmup:
+                # Linear warmup
+                progress = (epoch - unfreeze_start) / unfreeze_warmup
+                current_lr_scale = progress * encoder_a_target_lr
+            else:
+                # Fully unfrozen
+                current_lr_scale = encoder_a_target_lr
+
+            # Check if this is the first unfreeze (need to add params to optimizer)
+            encoder_a_in_optimizer = any(
+                pg.get('name') == 'encoder_A' for pg in optimizer.param_groups
+            )
+
+            if current_lr_scale > 0 and not encoder_a_in_optimizer:
+                # First time unfreezing - add encoder_A to optimizer
+                model.set_encoder_a_unfreeze(current_lr_scale)
+                optimizer.add_param_group({
+                    'params': list(model.encoder_A.parameters()),
+                    'lr': base_lr * current_lr_scale,
+                    'name': 'encoder_A'
+                })
+                print(f"  [UNFREEZE] encoder_A added to optimizer at epoch {epoch}, lr_scale={current_lr_scale:.4f}")
+            elif encoder_a_in_optimizer:
+                # Update existing param group LR
+                model.set_encoder_a_unfreeze(current_lr_scale)
+                for param_group in optimizer.param_groups:
+                    if param_group.get('name') == 'encoder_A':
+                        param_group['lr'] = base_lr * current_lr_scale
 
         # Train
         train_metrics = train_epoch(
@@ -654,7 +790,8 @@ def main():
             batch_size, epoch, tau, radial_weight, device,
             use_stratified=use_stratified,
             rank_loss_fn=rank_loss_fn,
-            rank_loss_weight=rank_loss_weight
+            rank_loss_weight=rank_loss_weight,
+            use_learnable_weights=use_learnable_weights
         )
 
         # Evaluate
@@ -672,6 +809,57 @@ def main():
             eval_metrics['radial_corr_A'],
             train_metrics['loss']
         )
+
+        # Homeostatic control (v5.11.7 + v5.11.8 Q-gated annealing)
+        if use_homeostasis and homeostasis is not None:
+            # Compute controller gradient norm
+            controller_grad_norm = None
+            if model.controller is not None:
+                total_norm = 0.0
+                for p in model.controller.parameters():
+                    if p.grad is not None:
+                        total_norm += p.grad.data.norm(2).item() ** 2
+                controller_grad_norm = total_norm ** 0.5
+
+            # Update homeostasis state (now with Q tracking)
+            homeo_state = homeostasis.update(
+                epoch=epoch,
+                coverage=eval_metrics['coverage'],
+                hierarchy_A=eval_metrics['radial_corr_A'],
+                hierarchy_B=eval_metrics['radial_corr_B'],
+                dist_corr_A=eval_metrics['distance_corr_A'],
+                controller_grad_norm=controller_grad_norm
+            )
+
+            # Check if freeze states changed
+            state_changed = (
+                homeo_state['encoder_a_frozen'] != prev_freeze_state['encoder_a'] or
+                homeo_state['encoder_b_frozen'] != prev_freeze_state['encoder_b'] or
+                homeo_state['controller_frozen'] != prev_freeze_state['controller']
+            )
+
+            if state_changed:
+                # Apply new freeze states to model
+                model.apply_homeostasis_state(homeo_state)
+
+                # Rebuild optimizer with new param groups
+                optimizer = model.rebuild_optimizer(optimizer, base_lr)
+
+                # Re-create scheduler for new optimizer
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+                    optimizer, T_0=20, T_mult=2
+                )
+
+                # Update previous state
+                prev_freeze_state = {
+                    'encoder_a': homeo_state['encoder_a_frozen'],
+                    'encoder_b': homeo_state['encoder_b_frozen'],
+                    'controller': homeo_state['controller_frozen']
+                }
+
+                # Log events
+                for event in homeo_state.get('events', []):
+                    print(f"  [HOMEOSTASIS] {event}")
 
         # Log to TensorBoard
         writer.add_scalar('Train/loss', train_metrics['loss'], epoch)
@@ -693,6 +881,16 @@ def main():
             eval_metrics['radial_corr_A'], train_metrics['loss']), epoch)
         writer.add_scalar('LR', optimizer.param_groups[0]['lr'], epoch)
 
+        # Log homeostasis states and Q
+        if use_homeostasis and homeostasis is not None:
+            writer.add_scalar('Homeostasis/encoder_a_frozen', 1.0 if homeostasis.encoder_a_frozen else 0.0, epoch)
+            writer.add_scalar('Homeostasis/encoder_b_frozen', 1.0 if homeostasis.encoder_b_frozen else 0.0, epoch)
+            writer.add_scalar('Homeostasis/controller_frozen', 1.0 if homeostasis.controller_frozen else 0.0, epoch)
+            writer.add_scalar('Homeostasis/current_Q', homeo_state.get('current_Q', 0), epoch)
+            writer.add_scalar('Homeostasis/best_Q', homeo_state.get('best_Q', 0), epoch)
+            writer.add_scalar('Homeostasis/coverage_freeze_threshold', homeostasis.coverage_freeze_threshold, epoch)
+            writer.add_scalar('Homeostasis/total_cycles', sum(homeostasis.cycle_count.values()), epoch)
+
         # Print progress
         if epoch % 5 == 0 or epoch == n_epochs - 1:
             print(f"\nEpoch {epoch}/{n_epochs}")
@@ -706,7 +904,10 @@ def main():
             tau_status = f"tau: {tau:.3f}"
             if curriculum.tau_frozen:
                 tau_status += " [FROZEN]"
-            print(f"  {tau_status}, LR: {optimizer.param_groups[0]['lr']:.2e}")
+            homeo_status = ""
+            if use_homeostasis and homeostasis is not None:
+                homeo_status = f" | {homeostasis.get_state_summary()}"
+            print(f"  {tau_status}, LR: {optimizer.param_groups[0]['lr']:.2e}{homeo_status}")
 
         # Handle curriculum events
         if curriculum_status.get('triggered_freeze'):
