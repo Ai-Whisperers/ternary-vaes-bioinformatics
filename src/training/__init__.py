@@ -1,6 +1,7 @@
 """Training orchestration components.
 
 This module contains components for managing the training process:
+- BaseTrainer: Abstract base with defensive patterns (safe division, val_loader guards)
 - TernaryVAETrainer: Main training loop (single responsibility)
 - HyperbolicVAETrainer: Hyperbolic geometry trainer (canonical)
 - Schedulers: Parameter scheduling (temperature, beta, learning rate)
@@ -9,6 +10,7 @@ This module contains components for managing the training process:
 - Environment: Pre-training environment checks
 """
 
+from .base import BaseTrainer, STATENET_KEYS
 from .schedulers import (
     TemperatureScheduler,
     BetaScheduler,
@@ -33,6 +35,9 @@ from .environment import (
 )
 
 __all__ = [
+    # Base trainer
+    'BaseTrainer',
+    'STATENET_KEYS',
     # Trainers
     'TernaryVAETrainer',
     'HyperbolicVAETrainer',

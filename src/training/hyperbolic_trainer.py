@@ -561,11 +561,10 @@ class HyperbolicVAETrainer:
                 self.model, self.device, n_samples=500
             )
 
-        # Validate only if val_loader is provided (not in manifold approach)
-        if val_loader is not None:
-            self.base_trainer.validate(val_loader)
-        else:
-            pass  # Use train losses for compatibility
+        # D2.2 FIX: Removed wasted validation call
+        # The hyperbolic_trainer uses train_losses for all metrics (line 624).
+        # Calling validate() here was wasted computation since val_losses was discarded.
+        # The base_trainer.train() method handles validation properly if used directly.
 
         # Compute hyperbolic losses and metrics
         hyperbolic_metrics = self._compute_hyperbolic_losses(

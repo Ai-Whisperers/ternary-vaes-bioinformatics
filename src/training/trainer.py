@@ -7,6 +7,10 @@ This trainer delegates to specialized components for:
 - Compilation: torch.compile (TorchInductor) for 1.4-2x speedup
 
 Single responsibility: Orchestrate training loop only.
+
+Inherits from BaseTrainer for:
+- Safe division helpers (prevents P0 division-by-zero bugs)
+- Validation guards (handles optional val_loader)
 """
 
 import torch
@@ -16,6 +20,7 @@ from pathlib import Path
 from typing import Dict, Any
 from collections import defaultdict
 
+from .base import BaseTrainer, STATENET_KEYS
 from .schedulers import TemperatureScheduler, BetaScheduler, LearningRateScheduler
 from .monitor import TrainingMonitor
 from ..artifacts import CheckpointManager
@@ -23,7 +28,7 @@ from ..losses import DualVAELoss, RadialStratificationLoss
 from ..models.curriculum import ContinuousCurriculumModule
 
 
-class TernaryVAETrainer:
+class TernaryVAETrainer(BaseTrainer):
     """Refactored trainer with single responsibility: orchestrate training loop.
 
     All scheduling, monitoring, and checkpoint management delegated to components.
@@ -37,10 +42,7 @@ class TernaryVAETrainer:
             config: Training configuration dict
             device: Device to train on
         """
-        self.model = model.to(device)
-        self.config = config
-        self.device = device
-        self.epoch = 0
+        super().__init__(model, config, device)
 
         # TorchInductor compilation (PyTorch 2.x)
         self.compiled = False
@@ -205,6 +207,17 @@ class TernaryVAETrainer:
             print(f"  weight: {self.correlation_loss_weight}")
             print(f"  warmup_epochs: {self.correlation_loss_warmup}")
             print("  Effect: -weight * correlation added to loss (rewards high correlation)")
+
+    def _check_best(self, losses: Dict[str, Any]) -> bool:
+        """Check if current losses represent best model.
+
+        Args:
+            losses: Current validation/training losses
+
+        Returns:
+            True if this is the best model so far
+        """
+        return self.monitor.check_best(losses['loss'])
 
     def _compute_batch_indices(self, batch_data: torch.Tensor) -> torch.Tensor:
         """Compute operation indices from ternary data.

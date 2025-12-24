@@ -203,26 +203,38 @@ class CoverageTracker:
         self.best_coverage = 0
         self.best_epoch = 0
 
-    def update(self, epoch: int, coverage_A: int, coverage_B: int):
+    def update(
+        self,
+        epoch: int,
+        coverage_A: int,
+        coverage_B: int,
+        intersection: int = None
+    ):
         """Update coverage history.
 
         Args:
             epoch: Current epoch
-            coverage_A: Coverage for VAE-A
-            coverage_B: Coverage for VAE-B
+            coverage_A: Coverage for VAE-A (unique operations covered)
+            coverage_B: Coverage for VAE-B (unique operations covered)
+            intersection: Number of operations covered by BOTH VAE-A and VAE-B.
+                         If provided, computes true union. Otherwise uses max as estimate.
         """
         self.history['epoch'].append(epoch)
         self.history['coverage_A'].append(coverage_A)
         self.history['coverage_B'].append(coverage_B)
 
-        # Note: True union requires tracking actual operation sets.
-        # Using max as lower bound; actual union >= max(A, B).
-        # For accurate union, pass intersection count or use set-based tracking.
-        coverage_best = max(coverage_A, coverage_B)
-        self.history['coverage_union'].append(coverage_best)
+        # A8.1 FIX: Compute true union when intersection is available
+        # Union formula: |A ∪ B| = |A| + |B| - |A ∩ B|
+        if intersection is not None:
+            coverage_union = coverage_A + coverage_B - intersection
+        else:
+            # Fallback: max is a lower bound (actual union >= max)
+            coverage_union = max(coverage_A, coverage_B)
 
-        if coverage_best > self.best_coverage:
-            self.best_coverage = coverage_best
+        self.history['coverage_union'].append(coverage_union)
+
+        if coverage_union > self.best_coverage:
+            self.best_coverage = coverage_union
             self.best_epoch = epoch
 
     def get_statistics(self) -> Dict:
