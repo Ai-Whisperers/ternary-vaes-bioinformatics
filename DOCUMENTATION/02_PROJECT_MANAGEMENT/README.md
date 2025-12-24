@@ -46,7 +46,8 @@ Live documents tracking the current execution strategy.
 
 Snapshots of codebase health and audit results.
 
-- **[Code Health Dashboard](02_CODE_HEALTH_METRICS/CODE_HEALTH_DASHBOARD.md)**: Latest linting & type check status.
+- **[Code Health Summary](02_CODE_HEALTH_METRICS/SUMMARY_CODE_HEALTH.md)**: High-level status & action items.
+- **[Full Dashboard](02_CODE_HEALTH_METRICS/_raw_data/CODE_HEALTH_DASHBOARD.md)**: Raw linting logs.
 - **[Duplication Report](02_CODE_HEALTH_METRICS/DUPLICATION_REPORT.md)**: Code redundancy analysis.
 - **[Codebase Analysis](02_CODE_HEALTH_METRICS/CODEBASE_ANALYSIS.md)**: Deep architectural review.
 - **[External Tools](02_CODE_HEALTH_METRICS/EXTERNAL_TOOLS_REPORT.md)**: Dependency usage.

@@ -59,7 +59,14 @@ We replace "Validation Loss" with a Composite Score for model selection:
 - [ ] **Hyperparameter Pareto**: Use `hiplot` to visualize `LR` vs `Rho` vs `Coverage`.
 - [ ] **Embedding Viz**: Since TensorBoard fails for 16D, generate static PCA/UMAP plots of the Poincaré disk (using `hyperbolic-tsne` if available).
 
-## 4. Execution Roadmap
+## 4. Execution Tools & Checklist
+
+- [ ] **Download**: `benchmarks/download_proteingym.sh`
+- [ ] **Download**: `benchmarks/get_viral_datasets.py` (GISAID/NCBI API)
+- [ ] **Run**: `verify_40_pathogens.sh`
+- [ ] **Report**: `generate_massive_report.ipynb`
+
+## 5. Execution Roadmap
 
 | Phase       | Goal           | Key Tasks                                                             |
 | :---------- | :------------- | :-------------------------------------------------------------------- |

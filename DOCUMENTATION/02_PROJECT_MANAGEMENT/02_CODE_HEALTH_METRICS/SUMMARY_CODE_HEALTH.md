@@ -1,6 +1,7 @@
-# Comprehensive Code Health Report
+# Summary Code Health Report
 
 **Generated:** 2025-12-24 00:25
+**Full Data**: [View Raw Dashboard](./_raw_data/CODE_HEALTH_DASHBOARD.md)
 
 ## 1. Tool Status Summary
 
