@@ -483,10 +483,11 @@ class TernaryVAETrainer:
                 else:
                     epoch_losses[key] += val
 
-        # Average losses
-        for key in epoch_losses:
-            if key not in ['lr_corrected', 'delta_lr', 'delta_lambda1', 'delta_lambda2', 'delta_lambda3']:
-                epoch_losses[key] /= num_batches
+        # Average losses (guard against empty loader)
+        if num_batches > 0:
+            for key in epoch_losses:
+                if key not in ['lr_corrected', 'delta_lr', 'delta_lambda1', 'delta_lambda2', 'delta_lambda3']:
+                    epoch_losses[key] /= num_batches
 
         # Store schedule info
         epoch_losses['temp_A'] = temp_A
@@ -586,10 +587,15 @@ class TernaryVAETrainer:
 
             # Train and validate
             train_losses = self.train_epoch(train_loader)
-            val_losses = self.validate(val_loader)
 
-            # Check for best model
-            is_best = self.monitor.check_best(val_losses['loss'])
+            # Validate only if val_loader is provided
+            if val_loader is not None:
+                val_losses = self.validate(val_loader)
+                is_best = self.monitor.check_best(val_losses['loss'])
+            else:
+                # Use train losses for manifold approach
+                val_losses = train_losses
+                is_best = self.monitor.check_best(train_losses['loss'])
 
             # Evaluate coverage
             unique_A, cov_A = self.monitor.evaluate_coverage(
