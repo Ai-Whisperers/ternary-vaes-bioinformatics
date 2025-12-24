@@ -143,27 +143,6 @@ src/
 3. **Hyperbolic Geometry**: All latent operations use Poincare ball
 4. **Reproducibility**: Deterministic seeds and checkpointing
 
-## Code of Conduct
-
-### Our Standards
-
-- Be respectful and inclusive
-- Welcome newcomers
-- Accept constructive criticism
-- Focus on what's best for the community
-- Show empathy towards others
-
-### Unacceptable Behavior
-
-- Harassment or discrimination
-- Trolling or insulting comments
-- Publishing others' private information
-- Other unprofessional conduct
-
-### Enforcement
-
-Violations may be reported to support@aiwhisperers.com. All complaints will be reviewed and investigated.
-
 ## Questions?
 
 - Open a GitHub issue for technical questions
