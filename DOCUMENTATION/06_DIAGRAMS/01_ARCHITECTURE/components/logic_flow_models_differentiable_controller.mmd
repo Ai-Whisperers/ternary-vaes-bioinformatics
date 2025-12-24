@@ -1,0 +1,5 @@
+flowchart TD
+    Start[Start models.differentiable_controller] --> Process[Process Data]
+    Process --> Decision{"Valid?"}
+    Decision -- Yes --> Output
+    Decision -- No --> Error
