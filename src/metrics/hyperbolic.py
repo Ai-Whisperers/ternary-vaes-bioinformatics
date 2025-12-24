@@ -9,56 +9,19 @@ Key metrics:
 - Mean radius: Distribution of points in hyperbolic space
 
 Single responsibility: Hyperbolic geometry evaluation metrics only.
+
+Note: Uses geoopt backend when available for numerical stability.
 """
 
 import torch
-import numpy as np
 from typing import Tuple
 
-
-def project_to_poincare(z: torch.Tensor, max_norm: float = 0.95) -> torch.Tensor:
-    """Project points onto Poincare ball.
-
-    Maps Euclidean coordinates to the Poincare ball model of hyperbolic space
-    using a normalization that keeps points within the ball boundary.
-
-    Args:
-        z: Latent vectors of shape (batch_size, latent_dim)
-        max_norm: Maximum norm for projected points (must be < 1.0)
-
-    Returns:
-        Projected points on Poincare ball, shape (batch_size, latent_dim)
-    """
-    norm = torch.norm(z, dim=1, keepdim=True)
-    return z / (1 + norm) * max_norm
-
-
-def poincare_distance(x: torch.Tensor, y: torch.Tensor, c: float = 1.0) -> torch.Tensor:
-    """Compute Poincare distance between points.
-
-    The Poincare distance is the geodesic distance in the Poincare ball model
-    of hyperbolic space. It grows logarithmically near the boundary, making it
-    suitable for representing hierarchical structures.
-
-    Args:
-        x: First set of points, shape (batch_size, latent_dim)
-        y: Second set of points, shape (batch_size, latent_dim)
-        c: Curvature parameter (c > 0 for hyperbolic space)
-
-    Returns:
-        Poincare distances, shape (batch_size,)
-    """
-    x_norm_sq = torch.sum(x ** 2, dim=1)
-    y_norm_sq = torch.sum(y ** 2, dim=1)
-    diff_norm_sq = torch.sum((x - y) ** 2, dim=1)
-
-    denom = (1 - c * x_norm_sq) * (1 - c * y_norm_sq)
-    denom = torch.clamp(denom, min=1e-10)
-
-    arg = 1 + 2 * c * diff_norm_sq / denom
-    arg = torch.clamp(arg, min=1.0 + 1e-7)
-
-    return (1 / np.sqrt(c)) * torch.acosh(arg)
+# Use geoopt-backed geometry module
+from src.geometry import (
+    project_to_poincare,
+    poincare_distance,
+    GEOOPT_AVAILABLE
+)
 
 
 def compute_3adic_valuation(diff: torch.Tensor, max_depth: int = 10) -> torch.Tensor:
@@ -205,5 +168,6 @@ __all__ = [
     'project_to_poincare',
     'poincare_distance',
     'compute_3adic_valuation',
-    'compute_ranking_correlation_hyperbolic'
+    'compute_ranking_correlation_hyperbolic',
+    'GEOOPT_AVAILABLE'
 ]

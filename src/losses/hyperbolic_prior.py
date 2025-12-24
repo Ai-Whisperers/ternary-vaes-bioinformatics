@@ -15,6 +15,8 @@ The Wrapped Normal distribution respects hyperbolic geometry:
 
 Reference: Mathieu et al., "Continuous Hierarchical Representations with
 Poincare Variational Auto-Encoders" (2019)
+
+Note: Uses geoopt backend when available for numerical stability.
 """
 
 import torch
@@ -22,6 +24,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Optional
 import math
+
+# Import from geometry module for stable operations
+from src.geometry import (
+    poincare_distance,
+    project_to_poincare,
+    exp_map_zero,
+    log_map_zero,
+    lambda_x,
+    GEOOPT_AVAILABLE
+)
 
 
 class HyperbolicPrior(nn.Module):
@@ -66,72 +78,37 @@ class HyperbolicPrior(nn.Module):
     def _project_to_poincare(self, z: torch.Tensor) -> torch.Tensor:
         """Project Euclidean points onto the Poincare ball.
 
-        Uses smooth projection: z_hyp = z / (1 + ||z||) * max_norm
+        Uses geoopt when available for numerical stability.
         """
-        norm = torch.norm(z, dim=-1, keepdim=True)
-        z_hyp = z / (1 + norm) * self.max_norm
-        return z_hyp
+        return project_to_poincare(z, self.max_norm, self.curvature)
 
     def _poincare_distance(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Compute Poincare distance between points.
 
-        d(x,y) = (1/sqrt(c)) * arcosh(1 + 2c * ||x-y||^2 / ((1-c||x||^2)(1-c||y||^2)))
+        Uses geoopt when available for numerical stability.
         """
-        c = self.curvature
-
-        x_norm_sq = torch.sum(x ** 2, dim=-1)
-        y_norm_sq = torch.sum(y ** 2, dim=-1)
-        diff_norm_sq = torch.sum((x - y) ** 2, dim=-1)
-
-        denom = (1 - c * x_norm_sq) * (1 - c * y_norm_sq)
-        denom = torch.clamp(denom, min=1e-10)
-
-        arg = 1 + 2 * c * diff_norm_sq / denom
-        arg = torch.clamp(arg, min=1.0 + 1e-7)
-
-        distance = (1 / math.sqrt(c)) * torch.acosh(arg)
-        return distance
+        return poincare_distance(x, y, self.curvature)
 
     def _lambda_x(self, x: torch.Tensor) -> torch.Tensor:
         """Compute conformal factor lambda_x = 2 / (1 - c * ||x||^2).
 
-        This factor relates Euclidean and Riemannian metrics at point x.
+        Uses geoopt when available for numerical stability.
         """
-        c = self.curvature
-        x_norm_sq = torch.sum(x ** 2, dim=-1, keepdim=True)
-        return 2 / (1 - c * x_norm_sq + 1e-10)
+        return lambda_x(x, self.curvature, keepdim=True)
 
     def _exp_map_zero(self, v: torch.Tensor) -> torch.Tensor:
         """Exponential map from tangent space at origin to Poincare ball.
 
-        exp_0(v) = tanh(sqrt(c) * ||v||) * v / (sqrt(c) * ||v||)
+        Uses geoopt when available for numerical stability.
         """
-        c = self.curvature
-        sqrt_c = math.sqrt(c)
-
-        v_norm = torch.norm(v, dim=-1, keepdim=True)
-        v_norm = torch.clamp(v_norm, min=1e-10)
-
-        result = torch.tanh(sqrt_c * v_norm) * v / (sqrt_c * v_norm)
-        return result
+        return exp_map_zero(v, self.curvature)
 
     def _log_map_zero(self, z: torch.Tensor) -> torch.Tensor:
         """Logarithmic map from Poincare ball to tangent space at origin.
 
-        log_0(z) = arctanh(sqrt(c) * ||z||) * z / (sqrt(c) * ||z||)
+        Uses geoopt when available for numerical stability.
         """
-        c = self.curvature
-        sqrt_c = math.sqrt(c)
-
-        z_norm = torch.norm(z, dim=-1, keepdim=True)
-        z_norm = torch.clamp(z_norm, min=1e-10, max=self.max_norm - 1e-5)
-
-        # arctanh(x) = 0.5 * log((1+x)/(1-x))
-        sqrt_c_norm = sqrt_c * z_norm
-        sqrt_c_norm = torch.clamp(sqrt_c_norm, max=1.0 - 1e-7)
-
-        result = torch.atanh(sqrt_c_norm) * z / (sqrt_c_norm + 1e-10)
-        return result
+        return log_map_zero(z, self.curvature, self.max_norm)
 
     def kl_divergence(
         self,
