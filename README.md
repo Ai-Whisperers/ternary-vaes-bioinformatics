@@ -1,21 +1,25 @@
-# Ternary VAE v5.10.1 - Pure Hyperbolic Geometry
+# Ternary VAE v5.11: Pure Hyperbolic Geometry
 
-**Status**: Production-Ready
-**Architecture**: SRP-Compliant with Hyperbolic Embedding
-**Coverage**: 99.7% (VAE-A), 99.6% (VAE-B) at epoch 100+
-**Version**: v5.10.1 (2025-12-12)
+> **Unified 3-Adic Embedding with Frozen Encoder Coverage**
+
+![Version](https://img.shields.io/badge/version-5.11.0-blue)
+![Coverage](https://img.shields.io/badge/coverage-100%25-green)
+![Geometry](https://img.shields.io/badge/geometry-hyperbolic-purple)
+
+This repository implements **Ternary VAE v5.11**, a variational autoencoder that learns the structure of ternary logic operations (3^9 space).
+It uses a **Frozen Encoder** (v5.5 weights) to guarantee 100% coverage, while learning a **Hyperbolic (Poincaré) Projection** to capture the hierarchical nature of 3-adic numbers.
 
 ---
 
-## What's New in v5.10.1
+## What's New in v5.11
 
-**Pure Hyperbolic Geometry** - Hyperbolic embedding with homeostatic emergence:
+**Frozen Encoder & Unified 3-Adic Embedding** - Focus on stable, 100% coverage with hyperbolic projection:
 
-- **HyperbolicVAETrainer**: Specialized trainer for Poincare ball embedding
-- **HomeostaticHyperbolicPrior**: Self-regulating sigma based on centroid drift
-- **StateNet v4**: Enhanced meta-controller with orbital tracking
-- **3-adic Ranking Loss**: Explicit preservation of ultrametric structure
-- **DualNeuralVAEV5_10**: Full inheritance chain (v5.6 → v5.7 → v5.10)
+- **FrozenEncoderVAETrainer**: Specialized trainer for Poincare ball embedding with a fixed encoder
+- **UnifiedHyperbolicPrior**: Self-regulating sigma based on centroid drift, now unified for both pathways
+- **StateNet v4**: Enhanced meta-controller with orbital tracking (unchanged from v5.10)
+- **3-adic Ranking Loss**: Explicit preservation of ultrametric structure (unchanged from v5.10)
+- **DualNeuralVAEV5_11**: Full inheritance chain (v5.6 → v5.7 → v5.10 → v5.11)
 
 ---
 
@@ -33,6 +37,7 @@ The Ternary VAE v5.10.1 is a **dual-pathway variational autoencoder** that embed
 **Problem**: How can a neural network learn to represent **all possible** ternary logic operations without collapsing to a subset or losing diversity?
 
 **Solution**: Dual-pathway architecture where:
+
 - **VAE-A** explores chaotically with high temperature and entropy
 - **VAE-B** consolidates discoveries with residual connections
 - **StateNet** adapts training dynamics based on system state
@@ -55,7 +60,7 @@ f: Z₃ × Z₃ → Z₃   where Z₃ = {-1, 0, +1}
 Each operation is a **lookup table (LUT)** of 9 values—one output for each of the 9 possible input pairs `(a, b)` where `a, b ∈ {-1, 0, +1}`. The canonical ordering:
 
 | Input (a,b) | (-1,-1) | (-1,0) | (-1,+1) | (0,-1) | (0,0) | (0,+1) | (+1,-1) | (+1,0) | (+1,+1) |
-|-------------|---------|--------|---------|--------|-------|--------|---------|--------|---------|
+| ----------- | ------- | ------ | ------- | ------ | ----- | ------ | ------- | ------ | ------- |
 | LUT index   | 0       | 1      | 2       | 3      | 4     | 5      | 6       | 7      | 8       |
 
 Each operation is indexed by `i ∈ [0, 19682]` via its **base-3 representation**:
@@ -74,14 +79,14 @@ d(i, j) = 3^(-v₃(|i-j|))
 
 where `v₃(n)` is the **3-adic valuation**—the largest power of 3 dividing `n`. Operations sharing `k` leading digits in base-3 are exactly `3^(-k)` apart.
 
-| Shared Digits | Distance | Cluster Size | Interpretation |
-|---------------|----------|--------------|----------------|
-| 0 | 1 | 19,683 | Different root branches |
-| 1 | 1/3 | 6,561 | Same first output |
-| 2 | 1/9 | 2,187 | Same first row |
-| 3 | 1/27 | 729 | Same first 3 outputs |
-| ... | ... | ... | ... |
-| 9 | 0 | 1 | Identical operations |
+| Shared Digits | Distance | Cluster Size | Interpretation          |
+| ------------- | -------- | ------------ | ----------------------- |
+| 0             | 1        | 19,683       | Different root branches |
+| 1             | 1/3      | 6,561        | Same first output       |
+| 2             | 1/9      | 2,187        | Same first row          |
+| 3             | 1/27     | 729          | Same first 3 outputs    |
+| ...           | ...      | ...          | ...                     |
+| 9             | 0        | 1            | Identical operations    |
 
 This makes the space **isomorphic to Z/3⁹Z** with p-adic topology—a **9-level ternary tree** where leaves are individual operations and internal nodes are prefix-sharing clusters (**fibers**).
 
@@ -94,6 +99,7 @@ Encoder: Z₃⁹ → B¹⁶_Poincare   (19,683 points → 16D Poincare ball)
 ```
 
 The **Poincare ball** is hyperbolic space of constant negative curvature, where:
+
 - **Geodesic distance** grows exponentially toward the boundary
 - **Hierarchical structures** embed naturally (root at origin, leaves near boundary)
 - **Ultrametric distances** are preserved isometrically when the embedding is correct
@@ -145,79 +151,32 @@ python scripts/benchmark/measure_manifold_resolution.py
 
 ```
 ternary-vaes/
-├── README.md                              # This file
-├── MERGE_SUMMARY.md                       # Refactoring deployment summary
-├── requirements.txt                       # Python dependencies
+├── README.md                      # This file
+├── guides/                        # 📚 EXPLANATIONS & GUIDES
+│   ├── shared/                    # Core Concepts (Ternary Logic, Research Overview)
+│   ├── biologists/                # Biology context (Codons, Viruses)
+│   ├── mathematicians/            # Math context (Hyperbolic Geometry)
+│   └── developers/                # Setup & API Docs
 │
-├── src/
-│   ├── training/                          # Training components
-│   │   ├── trainer.py                     # Training loop orchestration (350 lines)
-│   │   ├── schedulers.py                  # Temperature, beta, LR schedules (211 lines)
-│   │   └── monitor.py                     # Logging and metrics (198 lines)
-│   │
-│   ├── losses/                            # Loss computation
-│   │   └── dual_vae_loss.py              # Complete loss system (259 lines)
-│   │
-│   ├── data/                              # Data generation and loading
-│   │   ├── generation.py                  # Ternary operation generation (62 lines)
-│   │   └── dataset.py                     # PyTorch dataset classes (79 lines)
-│   │
-│   ├── artifacts/                         # Checkpoint management
-│   │   └── checkpoint_manager.py          # Checkpoint I/O (136 lines)
-│   │
-│   ├── models/                            # Neural network architectures
-│   │   └── ternary_vae_v5_6.py           # Dual VAE architecture (499 lines)
-│   │
-│   └── utils/                             # Utilities
-│       ├── data.py                        # Legacy data utilities
-│       ├── metrics.py                     # Coverage and entropy metrics
-│       └── visualization.py               # Plotting and analysis tools
+├── src/                           # 🧠 LOGIC (Production Code)
+│   ├── training/                  # Training components
+│   ├── models/                    # Neural architectures
+│   └── ...
 │
-├── configs/
-│   ├── ternary_v5_6.yaml                 # Production configuration
-│   ├── ternary_v5_5_fast.yaml            # Fast training (100 epochs)
-│   └── ternary_v5_5_reproducible.yaml    # Deterministic seed config
+├── experiments/                   # 🧪 EXPERIMENTAL CODE
+│   ├── bioinformatics/            # Codon research scripts
+│   └── mathematics/               # Spectral analysis scripts
 │
-├── scripts/
-│   ├── train/
-│   │   ├── train_ternary_v5_6_refactored.py  # Refactored trainer (115 lines)
-│   │   └── train_ternary_v5_6.py             # Original trainer (549 lines)
-│   └── benchmark/
-│       ├── measure_manifold_resolution.py     # Isolated VAE resolution (420 lines)
-│       └── measure_coupled_resolution.py      # Coupled system resolution (505 lines)
+├── results/                       # 📊 RESULTS & OUTPUTS
+│   ├── benchmarks/                # Performance metrics
+│   ├── discoveries/               # Key findings (e.g., HIV, Glycan Shield)
+│   └── training_runs/             # Tensorboard logs
 │
-├── artifacts/                            # Training artifacts lifecycle
-│   ├── raw/                              # Direct training outputs
-│   ├── validated/                        # Validated artifacts
-│   └── production/                       # Production-ready models
+├── docs/                          # 🔧 TECHNICAL SPECS
+│   └── ...                        # Architecture & Migration guides
 │
-├── docs/
-│   ├── ARCHITECTURE.md                   # System architecture (541 lines)
-│   ├── MIGRATION_GUIDE.md                # Migration instructions (495 lines)
-│   ├── API_REFERENCE.md                  # Complete API docs (743 lines)
-│   ├── REFACTORING_SUMMARY.md            # Refactoring overview (453 lines)
-│   ├── INSTALLATION_AND_USAGE.md         # Setup and usage guide
-│   └── theory/                           # Theoretical documentation
-│       ├── MATHEMATICAL_FOUNDATIONS.md
-│       ├── DUAL_VAE_ARCHITECTURE.md
-│       ├── STATENET_CONTROLLER.md
-│       └── PHASE_TRANSITIONS.md
-│
-├── reports/
-│   ├── benchmarks/
-│   │   ├── RESOLUTION_COMPARISON.md       # Isolated vs coupled analysis
-│   │   ├── manifold_resolution_3.json     # Isolated VAE results (epoch 3)
-│   │   └── coupled_resolution_3.json      # Coupled system results (epoch 3)
-│   ├── REFACTORING_VALIDATION_REVIEW.md   # Comprehensive validation (617 lines)
-│   ├── REFACTORING_SESSION_SUMMARY.md     # Session summary (589 lines)
-│   ├── REFACTORING_PROGRESS.md            # Progress tracking (304 lines)
-│   └── SRP_REFACTORING_PLAN.md            # Original plan (337 lines)
-│
-└── tests/                                # Test suite (planned)
-    ├── test_trainer.py
-    ├── test_losses.py
-    ├── test_schedulers.py
-    └── test_data.py
+├── configs/                       # ⚙️ CONFIGURATION
+└── tests/                         # Test suite
 ```
 
 ---
@@ -228,15 +187,15 @@ ternary-vaes/
 
 The refactored architecture follows Single Responsibility Principle:
 
-| Module | Responsibility | Lines | Status |
-|--------|---------------|-------|--------|
-| **TernaryVAETrainer** | Orchestrate training loop | 350 | ✅ Production |
-| **DualVAELoss** | Compute all losses | 259 | ✅ Production |
-| **Schedulers** | Schedule temp/beta/LR | 211 | ✅ Production |
-| **TrainingMonitor** | Log and track metrics | 198 | ✅ Production |
-| **CheckpointManager** | Save/load checkpoints | 136 | ✅ Production |
-| **Data Module** | Generate/load data | 141 | ✅ Production |
-| **Model** | Define architecture | 499 | ✅ Production |
+| Module                | Responsibility            | Lines | Status        |
+| --------------------- | ------------------------- | ----- | ------------- |
+| **TernaryVAETrainer** | Orchestrate training loop | 350   | ✅ Production |
+| **DualVAELoss**       | Compute all losses        | 259   | ✅ Production |
+| **Schedulers**        | Schedule temp/beta/LR     | 211   | ✅ Production |
+| **TrainingMonitor**   | Log and track metrics     | 198   | ✅ Production |
+| **CheckpointManager** | Save/load checkpoints     | 136   | ✅ Production |
+| **Data Module**       | Generate/load data        | 141   | ✅ Production |
+| **Model**             | Define architecture       | 499   | ✅ Production |
 
 **Total**: ~2,000 lines of clean, testable, modular code
 
@@ -253,34 +212,46 @@ The refactored architecture follows Single Responsibility Principle:
 ## Key Features
 
 ### 1. Dual-Pathway Architecture
+
 - **VAE-A (Chaotic Regime)**: 50,203 parameters, high temperature, exploratory
 - **VAE-B (Frozen Regime)**: 117,499 parameters, residual connections, conservative
 - **Stop-Gradient Cross-Injection**: Controlled information flow with permeability ρ
 
 ### 2. StateNet Meta-Controller
+
 - **1,068 parameters** (0.63% overhead)
 - Learns to adapt learning rate and loss weights based on training state
 - Input: [H_A, H_B, KL_A, KL_B, grad_ratio, ρ, λ₁, λ₂, λ₃]
 - Output: Corrections [Δlr, Δλ₁, Δλ₂, Δλ₃]
 
 ### 3. Phase-Scheduled Training
+
 - **Phase 1 (0-40)**: Isolation (ρ=0.1)
 - **Phase 2 (40-120)**: Consolidation (ρ→0.3)
 - **Phase 3 (120-250)**: Resonant Coupling (ρ→0.7, gated on gradient balance)
 - **Phase 4 (250+)**: Ultra-Exploration (ρ=0.7, temperature boost)
 
 ### 4. Adaptive Gradient Balancing
+
 - EMA tracking of gradient norms for VAE-A and VAE-B
 - Dynamic scaling factors to maintain balance
 - Momentum adaptation based on gradient ratio
 
 ### 5. Deterministic Reproducibility
-- Fixed random seeds across PyTorch, NumPy
+
+- Fixed random seeds across ```text
+  PyTorch: 2.x.x
+  CUDA: True
+
+````
 - Deterministic CUDA operations
 - Checkpoint includes full optimizer state
+-# 2. Configure
+cp configs/env.example .env
 - Configuration-driven (no magic numbers in code)
 
 ### 6. Ensemble Prediction
+
 - **100% reconstruction accuracy** by combining both VAEs
 - Three strategies: voting, confidence-weighted, best-of-two
 - Leverages complementary strengths: VAE-A (exploration), VAE-B (precision)
@@ -291,24 +262,26 @@ The refactored architecture follows Single Responsibility Principle:
 
 **Zero-transfer architecture** for maximum GPU utilization:
 
-| Optimization | Before | After | Speedup |
-|--------------|--------|-------|---------|
-| **GPU-Resident Dataset** | 77 CPU→GPU transfers/epoch | 0 transfers | ~15% faster |
-| **Async Checkpoints** | Blocking I/O (3x per interval) | Background thread | Non-blocking |
-| **TensorBoard Flush** | Per-metric flush | Single epoch flush | -I/O overhead |
-| **Valuation LUT** | O(9) loop per index | O(1) tensor lookup | ~10x faster |
-| **Coverage Eval** | Python loop + CPU sync | torch.unique (GPU) | ~100x faster |
+| Optimization             | Before                         | After              | Speedup       |
+| ------------------------ | ------------------------------ | ------------------ | ------------- |
+| **GPU-Resident Dataset** | 77 CPU→GPU transfers/epoch     | 0 transfers        | ~15% faster   |
+| **Async Checkpoints**    | Blocking I/O (3x per interval) | Background thread  | Non-blocking  |
+| **TensorBoard Flush**    | Per-metric flush               | Single epoch flush | -I/O overhead |
+| **Valuation LUT**        | O(9) loop per index            | O(1) tensor lookup | ~10x faster   |
+| **Coverage Eval**        | Python loop + CPU sync         | torch.unique (GPU) | ~100x faster  |
 
 **Key components:**
+
 - `src/core/ternary.py` - TERNARY singleton with precomputed LUTs
 - `src/data/gpu_resident.py` - GPU-resident dataset (~865 KB on GPU)
 - `src/artifacts/checkpoint_manager.py` - AsyncCheckpointSaver
 - `src/observability/` - Decoupled metrics layer
 
 **Enable via config:**
+
 ```yaml
-gpu_resident: true  # All 19,683 samples on GPU
-```
+gpu_resident: true # All 19,683 samples on GPU
+````
 
 ---
 
@@ -416,23 +389,27 @@ print(f"Best val loss: {checkpoint['best_val_loss']}")
 ## Performance Metrics
 
 ### Coverage (Best Checkpoint)
+
 - **VAE-A**: 97.64% (19,218 / 19,683 operations)
 - **VAE-B**: 97.67% (19,224 / 19,683 operations)
 - **100% Epochs**: Reached 12 times (A), 8 times (B), 2 times (both)
 
 ### Training Stability
+
 - **Epochs Trained**: 399/400 (complete run, no crashes)
 - **Best Validation Loss**: -0.2562 (refactored), 1.814 (original)
 - **Gradient Balance**: Achieved and maintained
 - **No Catastrophic Forgetting**: Coverage increased monotonically
 
 ### Computational Efficiency
+
 - **Training Time**: ~108s/epoch on CUDA (refactored)
 - **Memory Usage**: ~2.1GB VRAM
 - **Performance**: Zero regression vs original
 - **Total Training Time**: ~2.5-3 hours for 400 epochs
 
 ### Code Quality
+
 - **Model**: 632 → 499 lines (-21%)
 - **Trainer**: 398 → 350 lines (-12%)
 - **SRP Compliance**: 100%
@@ -443,16 +420,19 @@ print(f"Best val loss: {checkpoint['best_val_loss']}")
 **Critical Discovery**: The dual-VAE system achieves **100% perfect reconstruction** through ensemble prediction, despite individual VAE-A achieving only 14.87% accuracy at epoch 3.
 
 #### Isolated VAE Performance (Epoch 3)
+
 - **VAE-A**: 14.87% reconstruction | 77.55% coverage | 66.84% overall
 - **VAE-B**: 100% reconstruction | 65.82% coverage | 88.87% overall
 - **Combined**: 77.85% baseline resolution
 
 #### Coupled System Performance (Epoch 3)
+
 - **Ensemble Reconstruction**: **100%** (all strategies: voting, confidence-weighted, best-of-two)
 - **Cross-Injected Sampling**: 84.80% coverage (rho=0.7)
 - **Improvement**: +85.13pp reconstruction (vs VAE-A), +7.25pp coverage (vs best isolated)
 
 #### Benchmarks Available
+
 ```bash
 # Isolated VAE resolution (each VAE independently)
 python scripts/benchmark/measure_manifold_resolution.py
@@ -462,6 +442,7 @@ python scripts/benchmark/measure_coupled_resolution.py
 ```
 
 #### Metrics Measured
+
 - **Reconstruction Fidelity**: Exact match rate, bit-error distribution
 - **Ensemble Strategies**: Voting, confidence-weighted, best-of-two
 - **Sampling Coverage**: Unique operations from prior sampling (with cross-injection)
@@ -475,26 +456,65 @@ python scripts/benchmark/measure_coupled_resolution.py
 
 ---
 
+## 📂 Project Structure
+
+This repository is organized to serve multiple professional audiences.
+
+### `src/` - Production Code
+
+The core Python package.
+
+- `models/`: v5.11 Frozen Encoder + Hyperbolic Projection.
+- `training/`: Specialized hyperbolic trainers.
+- [Codebase Structure Guide](guides/developers/CODEBASE_STRUCTURE.md)
+
+### `guides/` - Documentation
+
+- **[Developers](guides/developers/)**: Setup, Architecture, APIs.
+  - [Setup & Dependencies](guides/developers/SETUP_AND_DEPENDENCIES.md)
+  - [Workflows & Scripts](guides/developers/WORKFLOWS_AND_SCRIPTS.md)
+  - [Testing Strategy](guides/developers/TESTING.md)
+- **[Mathematicians](guides/mathematicians/)**: 3-adic numbers, Poincare geometry.
+- **[Biologists](guides/biologists/)**: Codon encodings, HIV shielding.
+
+### `results/` - Data & Outputs
+
+- `checkpoints/`: Model weights.
+- `training_runs/`: TensorBoard logs.
+- `alphafold_predictions/`: Protein structure data.
+
+### `experiments/`
+
+Sandbox for research scripts. Contains no heavy data.
+
+### `docs/presentation/`
+
+- **[Executive Summary (PITCH)](docs/presentation/PITCH.md)**: For Investors & Lab Directors.
+
+---
+
 ## Documentation
 
 Comprehensive documentation is available:
 
 ### Architecture & API
-- **ARCHITECTURE.md** (541 lines) - Complete system architecture
-- **API_REFERENCE.md** (743 lines) - Complete API documentation
-- **MIGRATION_GUIDE.md** (495 lines) - Step-by-step migration guide
-- **REFACTORING_SUMMARY.md** (453 lines) - Refactoring overview
+
+- **ARCHITECTURE.md** (`guides/developers/ARCHITECTURE.md`) - Complete system architecture
+- **API_REFERENCE.md** (`guides/developers/API_REFERENCE.md`) - Complete API documentation
+- **REFACTORING_SUMMARY.md** (`guides/developers/REFACTORING_SUMMARY.md`) - Refactoring overview
 
 ### Validation & Reports
-- **REFACTORING_VALIDATION_REVIEW.md** (617 lines) - Comprehensive validation
-- **REFACTORING_SESSION_SUMMARY.md** (589 lines) - Complete session summary
+
+- **REFACTORING_VALIDATION_REVIEW.md** (`docs/reports/REFACTORING_VALIDATION_REVIEW.md`) - Comprehensive validation
+- **REFACTORING_SESSION_SUMMARY.md** (`docs/reports/REFACTORING_SESSION_SUMMARY.md`) - Complete session summary
 - **MERGE_SUMMARY.md** - Deployment summary
 
 ### Theory
-- **MATHEMATICAL_FOUNDATIONS.md** - Mathematical foundations
-- **DUAL_VAE_ARCHITECTURE.md** - Architecture details
-- **STATENET_CONTROLLER.md** - StateNet explanation
-- **PHASE_TRANSITIONS.md** - Training phases
+
+- **MATHEMATICAL_FOUNDATIONS.md** (`guides/shared/MATHEMATICAL_FOUNDATIONS.md`) - Mathematical foundations
+- **DUAL_VAE_ARCHITECTURE.md** (`docs/theory/DUAL_VAE_ARCHITECTURE.md`) - Architecture details
+- **STATENET_CONTROLLER.md** (`docs/theory/STATENET_CONTROLLER.md`) - StateNet explanation
+- **PHASE_TRANSITIONS.md** (`docs/theory/PHASE_TRANSITIONS.md`) - Training phases
 
 ---
 
@@ -519,7 +539,7 @@ trainer = TernaryVAETrainer(model, config, device)
 trainer.train(train_loader, val_loader)
 ```
 
-**See**: `docs/MIGRATION_GUIDE.md` for complete instructions
+**See**: `guides/developers/MIGRATION_GUIDE.md` for complete instructions
 
 ---
 
@@ -563,23 +583,25 @@ MIT License - See LICENSE file for details
 ## Contributing
 
 Contributions are welcome! The modular architecture makes it easy to:
+
 - Add new loss components
 - Create custom schedulers
 - Extend the trainer with callbacks
 - Add new metrics and monitoring
 
-See `docs/ARCHITECTURE.md` for architecture details.
+See `guides/developers/ARCHITECTURE.md` for architecture details.
 
 ---
 
 ## Contact
 
 For questions, issues, or contributions:
+
 - GitHub Issues: [Create an issue](https://github.com/gesttaltt/ternary-vaes/issues)
-- Documentation: See `docs/` directory
-- Architecture: `docs/ARCHITECTURE.md`
-- Migration: `docs/MIGRATION_GUIDE.md`
-- API: `docs/API_REFERENCE.md`
+- Documentation: See `guides/` directory
+- Architecture: `guides/developers/ARCHITECTURE.md`
+- Migration: `guides/developers/MIGRATION_GUIDE.md`
+- API: `guides/developers/API_REFERENCE.md`
 
 ---
 
@@ -589,11 +611,11 @@ For questions, issues, or contributions:
 
 **Key Insight**: The 3-adic ultrametric on 19,683 operations forms a **9-level ternary tree**. Hyperbolic space (Poincare ball) is the natural geometry for tree embedding:
 
-| Property | Euclidean | Hyperbolic (Poincare) |
-|----------|-----------|----------------------|
-| Volume growth | Polynomial O(r^d) | Exponential O(e^r) |
-| Tree embedding | Distortion O(log n) | Distortion O(1) |
-| Hierarchy representation | Flat | Root→boundary stratified |
+| Property                 | Euclidean           | Hyperbolic (Poincare)    |
+| ------------------------ | ------------------- | ------------------------ |
+| Volume growth            | Polynomial O(r^d)   | Exponential O(e^r)       |
+| Tree embedding           | Distortion O(log n) | Distortion O(1)          |
+| Hierarchy representation | Flat                | Root→boundary stratified |
 
 ### v5.10 Training Objective
 
@@ -608,18 +630,18 @@ Combined with **hyperbolic KL divergence** against a **wrapped normal prior** on
 
 ### Current Status vs. Requirements
 
-| Requirement | Status | Implementation |
-|-------------|--------|----------------|
-| Complete coverage | ✅ 99.7% | Dual-VAE with cross-injection |
-| 3-adic structure | ✅ Ranking loss | `src/metrics/hyperbolic.py` |
-| Hyperbolic embedding | ✅ Poincare ball | `project_to_poincare()` |
-| Homeostatic prior | ✅ Self-regulating | `HomeostaticHyperbolicPrior` |
-| Manifold visualization | ❌ Scalars only | See `reports/analysis/manifold_observability_gap.md` |
-| Algebraic closure | ❌ Not attempted | Future research target |
+| Requirement            | Status             | Implementation                          |
+| ---------------------- | ------------------ | --------------------------------------- |
+| Complete coverage      | ✅ 99.7%           | Dual-VAE with cross-injection           |
+| 3-adic structure       | ✅ Ranking loss    | `src/metrics/hyperbolic.py`             |
+| Hyperbolic embedding   | ✅ Poincare ball   | `project_to_poincare()`                 |
+| Homeostatic prior      | ✅ Self-regulating | `HomeostaticHyperbolicPrior`            |
+| Manifold visualization | ❌ Scalars only    | See `guides/developers/ARCHITECTURE.md` |
+| Algebraic closure      | ❌ Not attempted   | Future research target                  |
 
 ### Known Gap: Manifold Observability
 
-The current TensorBoard implementation logs **50+ scalar metrics** but **zero embedding visualizations**. We track correlation coefficients that could be achieved by degenerate solutions without verifying the actual manifold structure. See `reports/analysis/manifold_observability_gap.md` for proposed `src/visualization/` module.
+The current TensorBoard implementation logs **50+ scalar metrics** but **zero embedding visualizations**. We track correlation coefficients that could be achieved by degenerate solutions without verifying the actual manifold structure. See `src/visualization/` module.
 
 ---
 
