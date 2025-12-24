@@ -107,3 +107,25 @@ _Reports and automated audits._
 ### `03_ARCHIVE/`
 
 _Deprecated plans._
+
+---
+
+## 💻 Branch 3: Codebase Map
+
+**Philosophy**: "Executable Truth". The implementation of the theory.
+
+| Directory  | Purpose                                                |
+| :--------- | :----------------------------------------------------- |
+| `src/`     | **Core Library**. The reusable `ternary_vae` package.  |
+| `scripts/` | **Labs**. Experiments and analysis scripts.            |
+| `results/` | **Evidence**. Generated artifacts (Checkpoints, Logs). |
+| `tests/`   | **Guardrails**. Unit and Integration tests.            |
+
+---
+
+## 🔬 Branch 4: Validation (New)
+
+| Folder                     | Purpose                                    |
+| :------------------------- | :----------------------------------------- |
+| `05_VALIDATION/01_PLANS/`  | **Strategy**. Master Plan, CI/CD.          |
+| `05_VALIDATION/02_SUITES/` | **Design**. Test cases (Unit, Scientific). |
