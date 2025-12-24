@@ -4,21 +4,29 @@
 
 ## 🧬 Domain: Bioinformatics
 
-| Research Area         | Key Theory (Papers)                                     | Active Lab Directory                                                                                                           | Status              |
-| :-------------------- | :------------------------------------------------------ | :----------------------------------------------------------------------------------------------------------------------------- | :------------------ |
-| **Genetic Code**      | _Dragovich et al. (2010)_ "p-Adic Modelling"            | [`bioinformatics/genetic_code/`](./bioinformatics/genetic_code/)                                                               | 🟢 **Stable**       |
-| **Viral Evolution**   | _Frazer et al. (2021)_ "EVE"; _Obermeyer (2022)_ "PyR0" | [`bioinformatics/codon_encoder_research/sars_cov_2/`](./bioinformatics/codon_encoder_research/sars_cov_2/)                     | 🟡 **Active**       |
-| **Glycan Shielding**  | _PeSTo-Carbs_; _Torres et al._                          | [`bioinformatics/codon_encoder_research/hiv/`](./bioinformatics/codon_encoder_research/hiv/)                                   | 🟡 **Active**       |
-| **Autoimmunity**      | _MHC-II HLA interactions_                               | [`bioinformatics/codon_encoder_research/rheumatoid_arthritis/`](./bioinformatics/codon_encoder_research/rheumatoid_arthritis/) | 🔴 **Experimental** |
-| **Neurodegeneration** | _Ternary Logic in Cognition_                            | [`bioinformatics/codon_encoder_research/neurodegeneration/`](./bioinformatics/codon_encoder_research/neurodegeneration/)       | ⚪ **Planned**      |
+| Research Area         | Key Theory (Papers)                                     | Active Lab Directory                                                                                   | Status              |
+| :-------------------- | :------------------------------------------------------ | :----------------------------------------------------------------------------------------------------- | :------------------ |
+| **Genetic Code**      | _Dragovich et al. (2010)_ "p-Adic Modelling"            | [`scripts/analysis/`](../../../../scripts/analysis/)                                                   | 🟢 **Stable**       |
+| **Viral Evolution**   | _Frazer et al. (2021)_ "EVE"; _Obermeyer (2022)_ "PyR0" | [`scripts/train/`](../../../../scripts/train/)                                                         | 🟡 **Active**       |
+| **Glycan Shielding**  | _PeSTo-Carbs_; _Torres et al._                          | [`scripts/benchmark/`](../../../../scripts/benchmark/)                                                 | 🟡 **Active**       |
+| **Autoimmunity**      | _MHC-II HLA interactions_                               | [`scripts/analysis/analyze_zero_structure.py`](../../../../scripts/analysis/analyze_zero_structure.py) | 🔴 **Experimental** |
+| **Neurodegeneration** | _Ternary Logic in Cognition_                            | [Planned]                                                                                              | ⚪ **Planned**      |
 
 ## 📐 Domain: Mathematics & Geometry
 
-| Research Area             | Key Theory (Papers)                           | Active Lab Directory                                                                               | Status        |
-| :------------------------ | :-------------------------------------------- | :------------------------------------------------------------------------------------------------- | :------------ |
-| **Hyperbolic Embeddings** | _Nickel & Kiela (2017)_ "Poincaré Embeddings" | [`mathematics/hyperbolic_geodesics/`](./mathematics/)                                              | 🟢 **Stable** |
-| **3-adic Numbers**        | _Khrennikov (2004)_ "p-adic Information"      | [`bioinformatics/genetic_code/scripts/`](./bioinformatics/genetic_code/scripts/)                   | 🟢 **Stable** |
-| **Spectral Analysis**     | _Smita Krishnaswamy_ "Geometric Scattering"   | [`bioinformatics/spectral_analysis_over_models/`](./bioinformatics/spectral_analysis_over_models/) | 🟡 **Active** |
+| Research Area             | Key Theory (Papers)                           | Active Lab Directory                                                                                           | Status        |
+| :------------------------ | :-------------------------------------------- | :------------------------------------------------------------------------------------------------------------- | :------------ |
+| **Hyperbolic Embeddings** | _Nickel & Kiela (2017)_ "Poincaré Embeddings" | [`tests/suites/unit/test_geometry.py`](../../../../tests/suites/unit/test_geometry.py)                         | 🟢 **Stable** |
+| **3-adic Numbers**        | _Khrennikov (2004)_ "p-adic Information"      | [`scripts/analysis/verify_mathematical_proofs.py`](../../../../scripts/analysis/verify_mathematical_proofs.py) | 🟢 **Stable** |
+| **Spectral Analysis**     | _Smita Krishnaswamy_ "Geometric Scattering"   | [`scripts/visualization/`](../../../../scripts/visualization/)                                                 | 🟡 **Active** |
+
+## 🏗️ Repository Health & Analysis
+
+| Analysis Type         | Purpose                                    | Active Script                                                                                        |
+| :-------------------- | :----------------------------------------- | :--------------------------------------------------------------------------------------------------- |
+| **Code Audits**       | Track technical debt and file stats.       | [`scripts/analysis/audit_repo.py`](../../../../scripts/analysis/audit_repo.py)                       |
+| **Metric Generation** | Generate complexity and coverage metrics.  | [`scripts/analysis/run_metrics.py`](../../../../scripts/analysis/run_metrics.py)                     |
+| **Reports**           | Synthesize all findings into final report. | [`scripts/analysis/generate_final_report.py`](../../../../scripts/analysis/generate_final_report.py) |
 
 ## 🧪 Workflow Guides
 

@@ -14,13 +14,14 @@ The v5.10 training pipeline and all experimental tooling properly consume the re
 
 ## Configs Status
 
-| Config | Location | Status |
-|:-------|:---------|:-------|
-| `ternary_v5_10.yaml` | `configs/` | **ACTIVE** |
-| `appetitive_vae.yaml` | `configs/` | Active (experimental) |
-| v5.6-v5.9 configs | `configs/archive/` | Archived |
+| Config                | Location           | Status                |
+| :-------------------- | :----------------- | :-------------------- |
+| `ternary_v5_10.yaml`  | `configs/`         | **ACTIVE**            |
+| `appetitive_vae.yaml` | `configs/`         | Active (experimental) |
+| v5.6-v5.9 configs     | `configs/archive/` | Archived              |
 
 **v5.10 Config Highlights:**
+
 - TensorBoard: `tensorboard_dir: runs`
 - Hyperbolic modules: all enabled (`use_hyperbolic_prior`, `use_hyperbolic_recon`, `use_centroid_loss`)
 - Observability intervals: `histogram_interval: 10`, `log_interval: 10`, `eval_interval: 20`
@@ -31,38 +32,108 @@ The v5.10 training pipeline and all experimental tooling properly consume the re
 
 ### Training Scripts
 
-| Script | Imports From | Status |
-|:-------|:-------------|:-------|
-| `train_ternary_v5_10.py` | `src.models`, `src.training`, `src.data` | **OK** |
-| `train_appetitive_vae.py` | `src.models`, `src.training`, `src.data` | OK |
-| `train_purposeful.py` | `src.models`, `src.training`, `src.data`, `src.losses` | OK |
-| v5.5-v5.9 scripts | `scripts/train/archive/` | Archived |
+| Script                    | Imports From                                           | Status   |
+| :------------------------ | :----------------------------------------------------- | :------- |
+| `train_ternary_v5_10.py`  | `src.models`, `src.training`, `src.data`               | **OK**   |
+| `train_appetitive_vae.py` | `src.models`, `src.training`, `src.data`               | OK       |
+| `train_purposeful.py`     | `src.models`, `src.training`, `src.data`, `src.losses` | OK       |
+| v5.5-v5.9 scripts         | `scripts/train/archive/`                               | Archived |
 
 ### Benchmark Scripts
 
-| Script | Import | v5.10 Support | Status |
-|:-------|:-------|:--------------|:-------|
-| `run_benchmark.py` | `src.data`, `src.models`, `src.metrics` | `--model-version v5.10` | **OK** |
-| `measure_coupled_resolution.py` | `src.models` | - | OK |
-| `measure_manifold_resolution.py` | `src.models` | - | OK |
+| Script                           | Import                                  | v5.10 Support           | Status |
+| :------------------------------- | :-------------------------------------- | :---------------------- | :----- |
+| `run_benchmark.py`               | `src.data`, `src.models`, `src.metrics` | `--model-version v5.10` | **OK** |
+| `measure_coupled_resolution.py`  | `src.models`                            | -                       | OK     |
+| `measure_manifold_resolution.py` | `src.models`                            | -                       | OK     |
 
 **New v5.10 Benchmark Features:**
+
 - `--model-version` flag (v5.6 or v5.10)
 - Hyperbolic 3-adic correlation benchmark (v5.10 only)
 - Hyp/Euc advantage ratio in summary
 
 ### Visualization Scripts
 
-| Script | v5.10 Support | Status |
-|:-------|:--------------|:-------|
-| `visualize_ternary_manifold.py` | `--model-version v5.10` | **OK** |
-| Other viz scripts | Legacy (v5.6 checkpoints) | OK |
+| Script                          | v5.10 Support             | Status |
+| :------------------------------ | :------------------------ | :----- |
+| `visualize_ternary_manifold.py` | `--model-version v5.10`   | **OK** |
+| Other viz scripts               | Legacy (v5.6 checkpoints) | OK     |
 
 ---
 
 ## TensorBoard Integration
 
 ### Flow Architecture
+
+<!-- embed: DOCUMENTATION/06_DIAGRAMS/03_WORKFLOWS/training_flow_v5_10.mmd -->
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+sequenceDiagram
+    participant Script as train_ternary_v5_10.py
+    participant Trainer as HyperbolicVAETrainer
+    participant Monitor as TrainingMonitor
+    participant TB as TensorBoard
+    participant Console
+
+    Script->>Trainer: train_epoch(loader)
+    activate Trainer
+    
+    loop Every Batch
+        Trainer->>Trainer: Compute Losses (Recon, KL, Rank)
+    end
+
+    Trainer->>Trainer: update_monitor_state(losses)
+    
+    Trainer->>Monitor: log_epoch(epoch, losses)
+    activate Monitor
+    
+    par Logging Streams
+        Monitor->>Console: log_epoch_summary()
+        Monitor->>TB: log_hyperbolic_epoch() (Hyp Metrics)
+        Monitor->>TB: _log_standard_tensorboard() (VAE Metrics)
+    end
+    
+    opt Every Histogram Interval
+        Monitor->>TB: log_histograms()
+    end
+    
+    deactivate Monitor
+    deactivate Trainer
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+sequenceDiagram
+    participant Script as train_ternary_v5_10.py
+    participant Trainer as HyperbolicVAETrainer
+    participant Monitor as TrainingMonitor
+    participant TB as TensorBoard
+    participant Console
+
+    Script->>Trainer: train_epoch(loader)
+    activate Trainer
+    
+    loop Every Batch
+        Trainer->>Trainer: Compute Losses (Recon, KL, Rank)
+    end
+
+    Trainer->>Trainer: update_monitor_state(losses)
+    
+    Trainer->>Monitor: log_epoch(epoch, losses)
+    activate Monitor
+    
+    par Logging Streams
+        Monitor->>Console: log_epoch_summary()
+        Monitor->>TB: log_hyperbolic_epoch() (Hyp Metrics)
+        Monitor->>TB: _log_standard_tensorboard() (VAE Metrics)
+    end
+    
+    opt Every Histogram Interval
+        Monitor->>TB: log_histograms()
+    end
+    
+    deactivate Monitor
+    deactivate Trainer
+```
 
 ```
 train_ternary_v5_10.py
@@ -83,10 +154,12 @@ train_ternary_v5_10.py
 ### TensorBoard Metrics Logged
 
 **Batch-Level (every `log_interval` batches):**
+
 - `Loss/Batch`, `Loss/ReconA`, `Loss/ReconB`, `Loss/KL_A`, `Loss/KL_B`
 - `Loss/Ranking`, `Dynamics/Lambda3`
 
 **Epoch-Level:**
+
 - `Loss/Total`, `Loss/VAE_Total`, `Loss/Padic`
 - `VAE_A/*`, `VAE_B/*`, `Compare/*`
 - `Dynamics/Lambda3`, `Dynamics/Temperature`, `Dynamics/Beta`, `Dynamics/LR`
@@ -112,30 +185,31 @@ No duplicate logging. No orphaned TensorBoard calls in script.
 
 ## Module Consumption Matrix
 
-| Consumer | src.models | src.training | src.data | src.losses | src.metrics |
-|:---------|:----------:|:------------:|:--------:|:----------:|:-----------:|
-| train_v5_10.py | v5_10 | Hyp+Base+Mon | OK | | |
-| train_appetitive.py | v5_6, App | Appetitive | OK | | |
-| train_purposeful.py | v5_6/v5_10 | Base | OK | consequence | hyp_corr |
-| run_benchmark.py | v5_6/v5_10 | | OK | | hyp_corr |
-| visualize_ternary_manifold.py | v5_6/v5_10 | | OK | | |
+| Consumer                      | src.models | src.training | src.data | src.losses  | src.metrics |
+| :---------------------------- | :--------: | :----------: | :------: | :---------: | :---------: |
+| train_v5_10.py                |   v5_10    | Hyp+Base+Mon |    OK    |             |             |
+| train_appetitive.py           | v5_6, App  |  Appetitive  |    OK    |             |             |
+| train_purposeful.py           | v5_6/v5_10 |     Base     |    OK    | consequence |  hyp_corr   |
+| run_benchmark.py              | v5_6/v5_10 |              |    OK    |             |  hyp_corr   |
+| visualize_ternary_manifold.py | v5_6/v5_10 |              |    OK    |             |             |
 
 ---
 
 ## Experimental Tooling Updates
 
-| Script | Changes Made |
-|:-------|:-------------|
-| `run_benchmark.py` | Added `--model-version` flag, v5.10 model support, hyperbolic correlation benchmark |
-| `visualize_ternary_manifold.py` | Added `--model-version` flag, v5.10 model loading |
-| `train_purposeful.py` | Added `--model-version` flag, v5.10 model support |
-| `src/losses/__init__.py` | Exported `ConsequencePredictor`, `evaluate_addition_accuracy` |
+| Script                          | Changes Made                                                                        |
+| :------------------------------ | :---------------------------------------------------------------------------------- |
+| `run_benchmark.py`              | Added `--model-version` flag, v5.10 model support, hyperbolic correlation benchmark |
+| `visualize_ternary_manifold.py` | Added `--model-version` flag, v5.10 model loading                                   |
+| `train_purposeful.py`           | Added `--model-version` flag, v5.10 model support                                   |
+| `src/losses/__init__.py`        | Exported `ConsequencePredictor`, `evaluate_addition_accuracy`                       |
 
 ---
 
 ## Conclusion
 
 The v5.10 refactoring successfully unified:
+
 - Model instantiation through `src.models.ternary_vae_v5_10`
 - Training logic through `src.training.HyperbolicVAETrainer`
 - Data loading through `src.data`

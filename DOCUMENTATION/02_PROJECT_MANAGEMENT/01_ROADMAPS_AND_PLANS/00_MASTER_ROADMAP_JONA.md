@@ -6,18 +6,21 @@ This folder contains the "Blue Ocean" research plan to take the project beyond i
 
 ---
 
-## 🏗️ Phase 1: Tooling Upgrade (The "Now")
+## 🏗️ Phase 1: The Hyperbolic Manifold Pivot (Q1 2025)
 
-_Goal: Fix numerical instability and improve visualization._
+> **Core Directive**: Transition from "Generalization" to "Exhaustive Manifold Mapping". See [`2025_HYPERBOLIC_MANIFOLD_STRATEGY.md`](./2025_HYPERBOLIC_MANIFOLD_STRATEGY.md).
 
-1.  **[Suggested Libraries](SUGGESTED_LIBRARIES.md)**
+**Goal:** Train on 100% of the finite 3-adic space (19,683 ops) to ensure perfect structural preservation.
 
-    - **Action:** Refactor `models/layers.py` to use `geoopt` (Code provided).
-    - **Action:** Switch to `scanpy` for data loading to handle 1M+ sequences.
+1.  **[Tooling Upgrade (Immediate)]**
 
-2.  **[Relevant Repositories](RELEVANT_REPOS.md)**
-    - **Action:** Copy the `mig.py` metric from Google to prove disentanglement.
-    - **Action:** Study `HazyResearch` for robust hyperbolic layers.
+    - **Action:** Refactor `models/layers.py` to use `geoopt`.
+    - **Action:** Switch to `scanpy` for data loading.
+
+2.  **[Manifold Implementation]**
+    - **Action:** Update `src/data/loaders.py` to handle `val_split=0` (Full Manifold Mode).
+    - **Action:** Implement "Coverage-Based" Early Stopping in `monitor.py`.
+    - **Action:** Establish `verify_mathematical_proofs.py` as the daily regression test.
 
 ## 🔬 Phase 2: Scientific Expansion (The "Next")
 

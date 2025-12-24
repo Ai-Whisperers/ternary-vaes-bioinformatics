@@ -9,11 +9,116 @@
 ## Core Thesis
 
 Current computing is constrained by:
+
 1. **Binary representation** - 1 bit per symbol (suboptimal information density)
 2. **Euclidean geometry** - Linear scaling of distance computation
 3. **Flat memory** - No hierarchical structure exploitation
 
+<!-- embed: DOCUMENTATION/06_DIAGRAMS/02_SCIENTIFIC_THEORY/algebra/ternary_addition.mmd -->
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+classDiagram
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    note "Z3 Group Helper"
+
+    class TernaryOps {
+        +add(a, b)
+        +mul(a, b)
+    }
+    class AdditionTable {
+        + 0 + 0 = 0
+        + 0 + 1 = 1
+        + 0 + -1 = -1
+        + 1 + 0 = 1
+        + 1 + 1 = -1
+        + 1 + -1 = 0
+        + -1 + 0 = -1
+        + -1 + 1 = 0
+        + -1 + -1 = 1
+    }
+    note for AdditionTable "Modulo 3 arithmetic on balanced ternary {-1, 0, 1}"
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+classDiagram
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    note "Z3 Group Helper"
+
+    class TernaryOps {
+        +add(a, b)
+        +mul(a, b)
+    }
+    class AdditionTable {
+        + 0 + 0 = 0
+        + 0 + 1 = 1
+        + 0 + -1 = -1
+        + 1 + 0 = 1
+        + 1 + 1 = -1
+        + 1 + -1 = 0
+        + -1 + 0 = -1
+        + -1 + 1 = 0
+        + -1 + -1 = 1
+    }
+    note for AdditionTable "Modulo 3 arithmetic on balanced ternary {-1, 0, 1}"
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+classDiagram
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    note "Z3 Group Helper"
+
+    class TernaryOps {
+        +add(a, b)
+        +mul(a, b)
+    }
+    class AdditionTable {
+        + 0 + 0 = 0
+        + 0 + 1 = 1
+        + 0 + -1 = -1
+        + 1 + 0 = 1
+        + 1 + 1 = -1
+        + 1 + -1 = 0
+        + -1 + 0 = -1
+        + -1 + 1 = 0
+        + -1 + -1 = 1
+    }
+    note for AdditionTable "Modulo 3 arithmetic on balanced ternary {-1, 0, 1}"
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}} }%%
+classDiagram
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    note "Z3 Group Helper"
+
+    class TernaryOps {
+        +add(a, b)
+        +mul(a, b)
+    }
+    class AdditionTable {
+        + 0 + 0 = 0
+        + 0 + 1 = 1
+        + 0 + -1 = -1
+        + 1 + 0 = 1
+        + 1 + 1 = -1
+        + 1 + -1 = 0
+        + -1 + 0 = -1
+        + -1 + 1 = 0
+        + -1 + -1 = 1
+    }
+    note for AdditionTable "Modulo 3 arithmetic on balanced ternary {-1, 0, 1}"
+```
+
 **Proposition:** p-adic hyperbolic embeddings provide:
+
 1. **log₂(p)** bits per symbol (ternary: 1.585× binary)
 2. **O(1)** approximate distance via radius (vs O(n) Euclidean)
 3. **Implicit hierarchy** through ultrametric structure
@@ -58,18 +163,19 @@ r(x) = a × p^(-c × v_p(x))
 ```
 
 This means:
+
 - **Reading radius = reading depth** (O(1) operation)
 - **Comparing radii = comparing depths** (O(1) operation)
 - **No explicit tree traversal needed**
 
 ### Computational Advantage
 
-| Operation | Tree Structure | Radial Encoding |
-|:----------|:---------------|:----------------|
-| Find depth | O(D) traversal | O(1) norm |
-| Compare depths | O(D) | O(1) |
-| Find common ancestor | O(D) | O(1) via ultrametric |
-| Range query by depth | O(n) scan | O(log n) binary search on radius |
+| Operation            | Tree Structure | Radial Encoding                  |
+| :------------------- | :------------- | :------------------------------- |
+| Find depth           | O(D) traversal | O(1) norm                        |
+| Compare depths       | O(D)           | O(1)                             |
+| Find common ancestor | O(D)           | O(1) via ultrametric             |
+| Range query by depth | O(n) scan      | O(log n) binary search on radius |
 
 ### Implication
 
@@ -87,18 +193,19 @@ The information density of base-p representation follows:
 I(p) = log₂(p) bits per symbol
 ```
 
-| Base | Bits/Symbol | Relative to Binary |
-|:-----|:------------|:-------------------|
-| 2 | 1.000 | 1.00× |
-| 3 | 1.585 | **1.585×** |
-| e | 1.443 | 1.44× (theoretical optimum for continuous) |
-| 4 | 2.000 | 2.00× (but = 2 bits, so no gain) |
+| Base | Bits/Symbol | Relative to Binary                         |
+| :--- | :---------- | :----------------------------------------- |
+| 2    | 1.000       | 1.00×                                      |
+| 3    | 1.585       | **1.585×**                                 |
+| e    | 1.443       | 1.44× (theoretical optimum for continuous) |
+| 4    | 2.000       | 2.00× (but = 2 bits, so no gain)           |
 
 **Key insight:** Base 3 (ternary) is the integer base closest to e, giving optimal discrete information density.
 
 ### Hardware Implication
 
 A ternary processor with N trits stores:
+
 ```
 1.585 × N bits of information
 ```
@@ -110,6 +217,7 @@ This means 63% more information in the same number of symbols.
 The model learned to use **6 effective dimensions per valuation level**, where 6 = 2×3.
 
 Conjecture: This represents a **joint binary-ternary** encoding:
+
 - 2 dimensions: 2 bits (binary addressing)
 - 3 dimensions: log₂(27) ≈ 4.75 bits (ternary refinement)
 - Total: ~6.75 bits per "slot" vs 6 bits for pure binary
@@ -126,6 +234,165 @@ The volume of a hyperbolic ball of radius r in the Poincaré model grows exponen
 Vol_hyp(r) ∝ exp((d-1) × r)
 ```
 
+<!-- embed: DOCUMENTATION/06_DIAGRAMS/02_SCIENTIFIC_THEORY/geometry/poincare_distance.mmd -->
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+graph TD
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    %% Poincaré Distance Formula
+
+    u[Vector u]:::frozen
+    v[Vector v]:::frozen
+    NormU["||u||^2"]
+    NormV["||v||^2"]
+    Diff["||u - v||^2"]
+    
+    u --> NormU
+    v --> NormV
+    u --> Diff
+    v --> Diff
+    
+    Term1["1 - ||u||^2"]
+    Term2["1 - ||v||^2"]
+    
+    NormU --> Term1
+    NormV --> Term2
+    
+    Num["2 * ||u - v||^2"]
+    Diff --> Num
+    
+    Denom["Term1 * Term2"]
+    Term1 --> Denom
+    Term2 --> Denom
+    
+    Frac["1 + (Num / Denom)"]
+    Num --> Frac
+    Denom --> Frac
+    
+    Dist["arcosh(Frac)"]:::hyperbolic
+    Frac --> Dist
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+graph TD
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    %% Poincaré Distance Formula
+
+    u[Vector u]:::frozen
+    v[Vector v]:::frozen
+    NormU["||u||^2"]
+    NormV["||v||^2"]
+    Diff["||u - v||^2"]
+    
+    u --> NormU
+    v --> NormV
+    u --> Diff
+    v --> Diff
+    
+    Term1["1 - ||u||^2"]
+    Term2["1 - ||v||^2"]
+    
+    NormU --> Term1
+    NormV --> Term2
+    
+    Num["2 * ||u - v||^2"]
+    Diff --> Num
+    
+    Denom["Term1 * Term2"]
+    Term1 --> Denom
+    Term2 --> Denom
+    
+    Frac["1 + (Num / Denom)"]
+    Num --> Frac
+    Denom --> Frac
+    
+    Dist["arcosh(Frac)"]:::hyperbolic
+    Frac --> Dist
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
+graph TD
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    %% Poincaré Distance Formula
+
+    u[Vector u]:::frozen
+    v[Vector v]:::frozen
+    NormU["||u||^2"]
+    NormV["||v||^2"]
+    Diff["||u - v||^2"]
+    
+    u --> NormU
+    v --> NormV
+    u --> Diff
+    v --> Diff
+    
+    Term1["1 - ||u||^2"]
+    Term2["1 - ||v||^2"]
+    
+    NormU --> Term1
+    NormV --> Term2
+    
+    Num["2 * ||u - v||^2"]
+    Diff --> Num
+    
+    Denom["Term1 * Term2"]
+    Term1 --> Denom
+    Term2 --> Denom
+    
+    Frac["1 + (Num / Denom)"]
+    Num --> Frac
+    Denom --> Frac
+    
+    Dist["arcosh(Frac)"]:::hyperbolic
+    Frac --> Dist
+```
+%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}} }%%
+graph TD
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
+    
+    %% Poincaré Distance Formula
+
+    u[Vector u]:::frozen
+    v[Vector v]:::frozen
+    NormU["||u||^2"]
+    NormV["||v||^2"]
+    Diff["||u - v||^2"]
+    
+    u --> NormU
+    v --> NormV
+    u --> Diff
+    v --> Diff
+    
+    Term1["1 - ||u||^2"]
+    Term2["1 - ||v||^2"]
+    
+    NormU --> Term1
+    NormV --> Term2
+    
+    Num["2 * ||u - v||^2"]
+    Diff --> Num
+    
+    Denom["Term1 * Term2"]
+    Term1 --> Denom
+    Term2 --> Denom
+    
+    Frac["1 + (Num / Denom)"]
+    Num --> Frac
+    Denom --> Frac
+    
+    Dist["arcosh(Frac)"]:::hyperbolic
+    Frac --> Dist
+```
+
 where d is the dimension.
 
 This means a small increase in radius gives EXPONENTIALLY more space.
@@ -137,12 +404,14 @@ This means a small increase in radius gives EXPONENTIALLY more space.
 **Euclidean:** Need O(n) space, distances scale O(√n).
 
 **Hyperbolic:** Items at depth k are at radius r_k ≈ log(k).
+
 - Space used: O(log n) radius
 - Separation maintained: O(1) via curvature
 
 ### Our Model's Exploitation
 
 The radial formula `r(v) = 0.929 × 3^(-0.172v)` compresses:
+
 - 13,122 items (v=0) into shell at r ≈ 0.94
 - 1 item (v=9) at r ≈ 0.09
 
@@ -168,6 +437,7 @@ Our model achieves 78.7% accuracy predicting arithmetic result components from e
 ### Implication for Computation
 
 If we embed integers preserving multiplicative structure:
+
 - **Factorization** → finding geometric decomposition
 - **GCD** → finding common subspace
 - **Primality** → testing geometric isolation
@@ -187,6 +457,7 @@ The adele ring `A_Q = R × Π_p Q_p` encodes all prime information simultaneousl
 ### Our Evidence
 
 The architecture capacity formula:
+
 ```
 slack = latent_dim - n_trits - 1 = 6 = 2 × 3
 ```
@@ -196,6 +467,7 @@ This "accidentally" encodes capacity for primes 2 and 3.
 ### Generalization
 
 For primes {p_1, ..., p_k}, design:
+
 ```
 latent_dim = n_trits + 1 + Π p_i
 ```
@@ -205,6 +477,7 @@ This creates a **holographic encoding** where each projection recovers one prime
 ### HPC Implication
 
 Instead of running k separate p-adic computations:
+
 - Embed once into adelic space
 - All prime views accessible from single embedding
 - Parallel prime structure without parallel hardware
@@ -240,6 +513,7 @@ The model learned κ = 1 (unit curvature) with perfect ultrametric preservation.
 ### Statement
 
 The exponent 1/6 appears in multiple contexts:
+
 - Our model: `c = 1/6` (radial hierarchy)
 - Random matrix theory: 1/6 in Tracy-Widom distribution tail
 - Riemann zeta: certain explicit formula coefficients
@@ -252,6 +526,7 @@ The Riemann zeta function encodes all primes via Euler product.
 Our embedding encodes p=2,3 structure via architectural capacity.
 
 If GUE statistics (zeta zeros) emerge from multi-prime interaction, then:
+
 - 1/6 might be the **minimal** exponent showing multi-prime effects
 - Larger prime sets would give 1/30, 1/210, etc.
 
@@ -273,6 +548,7 @@ Geometric computation: O(g(log n)) steps (if structure matches)
 ### Mechanism
 
 If data has p-adic structure:
+
 1. Embed into hyperbolic space: O(n) preprocessing
 2. Queries become geometric: O(1) or O(log n)
 3. Total: O(n) + O(q × log n) for q queries
@@ -291,10 +567,12 @@ When q >> n, the geometric approach wins.
 ### Statement
 
 There exists a duality between:
+
 - **Information content** (entropy, bits)
 - **Geometric volume** (hyperbolic measure)
 
 Specifically:
+
 ```
 H(X) ≈ log Vol_hyp(embedding of X)
 ```
@@ -331,12 +609,12 @@ p-adic symbols → Hierarchical embedding → Hyperbolic operations → O(log n)
 
 ### Concrete Advantages
 
-| Task | Current | p-adic Hyperbolic |
-|:-----|:--------|:------------------|
-| Hierarchical search | O(n) | O(log n) via radius |
-| Tree distance | O(D) | O(1) via ultrametric |
-| Multi-scale query | O(n × k) | O(log n) (implicit in embedding) |
-| Compression | ~2:1 typical | ~1000:1 for hierarchical data |
+| Task                | Current      | p-adic Hyperbolic                |
+| :------------------ | :----------- | :------------------------------- |
+| Hierarchical search | O(n)         | O(log n) via radius              |
+| Tree distance       | O(D)         | O(1) via ultrametric             |
+| Multi-scale query   | O(n × k)     | O(log n) (implicit in embedding) |
+| Compression         | ~2:1 typical | ~1000:1 for hierarchical data    |
 
 ### Hardware Implications
 
@@ -400,18 +678,19 @@ Ratio: 1.082 (8.2% overhead)
 ```
 
 **Conjecture:** A 64-bit word can be zero-copy interpreted as:
+
 - 64 bits (binary mode)
 - 40 trits (ternary mode, since 3^40 ≈ 2^63.4)
 
 ### The Alignment Points
 
-| Binary | Ternary | Ratio | Error |
-|:-------|:--------|:------|:------|
-| 2^3 = 8 | 3^2 = 9 | 0.889 | 11.1% |
-| 2^8 = 256 | 3^5 = 243 | 1.053 | 5.3% |
-| 2^19 = 524,288 | 3^12 = 531,441 | 0.987 | 1.3% |
-| 2^30 ≈ 10^9 | 3^19 ≈ 10^9 | 1.082 | 8.2% |
-| **2^63** | **3^40** | **1.007** | **0.7%** |
+| Binary         | Ternary        | Ratio     | Error    |
+| :------------- | :------------- | :-------- | :------- |
+| 2^3 = 8        | 3^2 = 9        | 0.889     | 11.1%    |
+| 2^8 = 256      | 3^5 = 243      | 1.053     | 5.3%     |
+| 2^19 = 524,288 | 3^12 = 531,441 | 0.987     | 1.3%     |
+| 2^30 ≈ 10^9    | 3^19 ≈ 10^9    | 1.082     | 8.2%     |
+| **2^63**       | **3^40**       | **1.007** | **0.7%** |
 
 ### Zero-Copy Mechanism
 
@@ -427,6 +706,7 @@ The SAME memory, TWO interpretations. Switching between views is O(0)—just cha
 ### Implication
 
 A "dual-mode" processor could:
+
 1. Execute binary ops on binary-structured data
 2. Execute ternary ops on ternary-structured data
 3. Switch modes with ZERO memory copy
@@ -446,12 +726,14 @@ Amplification(op) = size(raw_data) / size(semantic_representation)
 ### Example: Tree Search
 
 **Raw approach:**
+
 - Tree with 10^6 nodes
 - Search: O(10^6) comparisons worst case
 - Each comparison: ~10 ops
 - Total: ~10^7 ops
 
 **Semantic approach:**
+
 - Tree embedded in 16D hyperbolic space
 - Search: O(log(10^6)) = O(20) radius comparisons
 - Each comparison: ~50 ops (norm + compare)
@@ -461,12 +743,12 @@ Amplification(op) = size(raw_data) / size(semantic_representation)
 
 ### Generalization
 
-| Operation | Raw | Semantic | Amplification |
-|:----------|:----|:---------|:--------------|
-| Tree search | O(n) | O(log n) | n / log n |
-| Hierarchy comparison | O(D) | O(1) | D |
-| k-NN in tree | O(n×k) | O(log n + k) | n×k / (log n + k) |
-| Subtree matching | O(n×m) | O(D) | n×m / D |
+| Operation            | Raw    | Semantic     | Amplification     |
+| :------------------- | :----- | :----------- | :---------------- |
+| Tree search          | O(n)   | O(log n)     | n / log n         |
+| Hierarchy comparison | O(D)   | O(1)         | D                 |
+| k-NN in tree         | O(n×k) | O(log n + k) | n×k / (log n + k) |
+| Subtree matching     | O(n×m) | O(D)         | n×m / D           |
 
 ### Apparent FLOPS Calculation
 
@@ -477,6 +759,7 @@ Apparent: 10^12 × 10^4 = 10^16 FLOPS = 10 PFLOPS
 ```
 
 For extreme hierarchical depth (D = 100, n = 10^9):
+
 ```
 Amplification: 10^9 / 100 = 10^7
 Apparent: 10^12 × 10^7 = 10^19 FLOPS = 10 EFLOPS
@@ -500,18 +783,19 @@ This is **super-exponential** in D.
 
 ### Numerical Examples
 
-| D | b | Raw Size | Semantic Size | Compression |
-|:--|:--|:---------|:--------------|:------------|
-| 10 | 2 | 1,024 | 10 | 102× |
-| 20 | 2 | 1,048,576 | 20 | 52,429× |
-| 10 | 3 | 59,049 | 16 | 3,691× |
-| **9** | **3** | **19,683** | **16** | **1,230×** (our model) |
-| 30 | 2 | 10^9 | 30 | 33,333,333× |
-| 50 | 3 | 10^24 | 80 | 10^22× |
+| D     | b     | Raw Size   | Semantic Size | Compression            |
+| :---- | :---- | :--------- | :------------ | :--------------------- |
+| 10    | 2     | 1,024      | 10            | 102×                   |
+| 20    | 2     | 1,048,576  | 20            | 52,429×                |
+| 10    | 3     | 59,049     | 16            | 3,691×                 |
+| **9** | **3** | **19,683** | **16**        | **1,230×** (our model) |
+| 30    | 2     | 10^9       | 30            | 33,333,333×            |
+| 50    | 3     | 10^24      | 80            | 10^22×                 |
 
 ### The Extreme Case
 
 For a complete binary tree of depth 50:
+
 - Raw: 2^50 ≈ 10^15 nodes
 - Semantic: 50 coordinates in hyperbolic space
 - Compression: 10^15 / 50 = **2 × 10^13 ×**
@@ -535,6 +819,7 @@ where g is the representation mapping and f is the result remapping.
 ### Zero-Overhead Condition
 
 The remapping is **zero-overhead** when f and g are:
+
 1. Bitwise operations only (AND, OR, XOR, shifts)
 2. No arithmetic (no add, multiply, divide)
 3. Parallelizable per-bit
@@ -557,6 +842,7 @@ Addition table:
 ```
 
 This can be implemented with:
+
 - XOR for sum bits
 - AND + shift for carry
 - Total: ~6 binary ops per ternary add (vs 1 native ternary op)
@@ -588,12 +874,12 @@ SIBLING  r4, x, y   ; r4 = 1 if x, y share parent (= angular distance)
 
 Each SISA instruction maps to:
 
-| SISA Op | Binary Implementation | Binary Ops |
-|:--------|:---------------------|:-----------|
-| DEPTH | norm(embedding) | ~32 (16 muls + 15 adds + sqrt) |
-| ANCESTOR | ultrametric formula | ~64 |
-| CONTAINS | compare norms | ~35 |
-| SIBLING | angular distance | ~80 |
+| SISA Op  | Binary Implementation | Binary Ops                     |
+| :------- | :-------------------- | :----------------------------- |
+| DEPTH    | norm(embedding)       | ~32 (16 muls + 15 adds + sqrt) |
+| ANCESTOR | ultrametric formula   | ~64                            |
+| CONTAINS | compare norms         | ~35                            |
+| SIBLING  | angular distance      | ~80                            |
 
 ### Apparent Speedup
 
@@ -603,6 +889,7 @@ Each SISA instruction maps to:
 **Speedup: 1000 / 32 ≈ 31×**
 
 For ANCESTOR:
+
 - Without: LCA algorithm = O(D) = ~1000 ops
 - With: 64 ops
 - Speedup: ~15×
@@ -628,6 +915,7 @@ Hierarchical:
 ### Zero-Copy Advantage
 
 In hierarchical memory:
+
 - **Range query by depth:** Single memory range, no scatter-gather
 - **Subtree access:** Contiguous in memory by construction
 - **Cache locality:** Parent-child relationships are adjacent
@@ -688,11 +976,13 @@ Effective: 10,000 / 100 = 100 ops per query
 ### Extreme Case: Precomputed Universe
 
 If we embed ALL integers up to N:
+
 - Precompute: O(N × E) ops
 - Store: O(N × 16) floats
 - Query ANY relationship: O(1)
 
 For N = 10^6, E = 10^4:
+
 - Precompute: 10^10 ops (10 seconds at 1 GFLOP)
 - Store: 64 MB
 - Queries: unlimited, each O(1)
@@ -712,6 +1002,7 @@ Compression ratio C ↔ Computation amplification A
 ```
 
 High compression implies high amplification, because:
+
 1. Compressed form encodes structure
 2. Structure enables shortcuts
 3. Shortcuts = fewer operations
@@ -723,6 +1014,7 @@ A = C^α for some α ∈ (0, 1]
 ```
 
 In our model:
+
 - C = 1,230 (compression)
 - A ≈ 1,000 (for tree operations)
 - α ≈ log(1000)/log(1230) ≈ 0.97
@@ -732,6 +1024,7 @@ In our model:
 ### Implication
 
 Maximizing compression AUTOMATICALLY maximizes computational efficiency. The optimal encoding is both:
+
 - Most compact (information-theoretic)
 - Most efficient (computational)
 
@@ -751,16 +1044,17 @@ Apparent_FLOPS = Raw_FLOPS × Semantic_Amplification × Compression_Ratio
 
 ### Calculation
 
-| Component | Value | Source |
-|:----------|:------|:-------|
-| Raw FLOPS | 10^12 | Edge GPU/TPU |
-| Semantic amplification | 10^3 | From SISA |
-| Compression ratio | 10^3 | From hierarchical embedding |
-| **Apparent FLOPS** | **10^18** | **= 1 EFLOP** |
+| Component              | Value     | Source                      |
+| :--------------------- | :-------- | :-------------------------- |
+| Raw FLOPS              | 10^12     | Edge GPU/TPU                |
+| Semantic amplification | 10^3      | From SISA                   |
+| Compression ratio      | 10^3      | From hierarchical embedding |
+| **Apparent FLOPS**     | **10^18** | **= 1 EFLOP**               |
 
 ### Conditions for Validity
 
 This "Exascale on edge" requires:
+
 1. **Hierarchical data:** Natural tree/hierarchy structure
 2. **Precomputed embeddings:** Amortize embedding cost
 3. **Semantic queries:** Questions about structure, not raw values
@@ -768,16 +1062,16 @@ This "Exascale on edge" requires:
 
 ### Valid Workloads
 
-| Workload | Hierarchy | Amplification Potential |
-|:---------|:----------|:-----------------------|
-| File system operations | High | 10^6× |
-| Knowledge graph queries | High | 10^5× |
-| Taxonomic classification | High | 10^4× |
-| Phylogenetic analysis | High | 10^4× |
-| Network routing | Medium | 10^3× |
-| Genomic search | Medium | 10^3× |
-| Matrix operations | Low | 10× |
-| Dense linear algebra | None | 1× |
+| Workload                 | Hierarchy | Amplification Potential |
+| :----------------------- | :-------- | :---------------------- |
+| File system operations   | High      | 10^6×                   |
+| Knowledge graph queries  | High      | 10^5×                   |
+| Taxonomic classification | High      | 10^4×                   |
+| Phylogenetic analysis    | High      | 10^4×                   |
+| Network routing          | Medium    | 10^3×                   |
+| Genomic search           | Medium    | 10^3×                   |
+| Matrix operations        | Low       | 10×                     |
+| Dense linear algebra     | None      | 1×                      |
 
 ---
 
@@ -805,11 +1099,13 @@ The speedup from semantic over syntactic is **algorithmic** (e.g., O(log n) vs O
 ### Implication
 
 The path to Exascale on edge is NOT:
+
 - Faster binary processors
 - Native ternary hardware
 - More parallelism
 
 The path IS:
+
 - Better embeddings
 - Semantic compression
 - Structure-preserving representations
@@ -912,6 +1208,7 @@ Compress(Tree) = Compress(root) ⊕ Compress(children)
 ### Self-Similarity in p-adic Structure
 
 The integers mod 3^n have self-similar structure:
+
 ```
 Z/3^9 Z contains Z/3^8 Z contains ... contains Z/3 Z
 ```
@@ -921,6 +1218,7 @@ Each level "looks like" a scaled copy of the whole.
 ### Compression via Self-Similarity
 
 Instead of storing each level separately:
+
 ```
 Store: [template] + [scale factors per level]
 Size: O(1) + O(D) = O(D)
@@ -929,6 +1227,7 @@ Size: O(1) + O(D) = O(D)
 ### Our Model's Fractal Structure
 
 The radial formula `r(v) = a × 3^(-cv)` IS the self-similarity:
+
 - Each valuation level is a scaled copy
 - Scale factor: 3^(-c) ≈ 3^(-1/6) ≈ 0.83
 - Same structure, different radius
@@ -962,6 +1261,7 @@ Semantic hit rate ≈ 100%
 ### Why This Works
 
 If the cache holds the **structure** (embedding), then:
+
 - ANY query about that structure hits the cache
 - Only truly novel structures cause misses
 - Structured data has few unique structures relative to raw size
@@ -996,6 +1296,7 @@ Speedup: 10^9 / 100 = 10^7×
 ### The Semantic Wavefront
 
 Queries propagate through semantic space like a wavefront:
+
 ```
 Query → hits embedding → resolves to specific value only if needed
 ```
@@ -1010,6 +1311,7 @@ SELECT * FROM tree WHERE depth > 45 AND branch = 'left'
 
 **Eager:** Scan all 2^50 nodes, filter
 **Lazy semantic:**
+
 1. Query embedding for depth > 45 (radius < threshold)
 2. Query embedding for branch = 'left' (angular constraint)
 3. Materialize only matching nodes
@@ -1036,6 +1338,7 @@ Parallel_degree = number of independent subtrees
 ### Geometric Independence
 
 In hyperbolic space, subtrees at the same depth are:
+
 - At similar radius (same depth)
 - Angularly separated (different branches)
 - Non-interfering (ultrametric property)
@@ -1076,6 +1379,7 @@ Semantic: 100 TB/s effective bandwidth for structured data
 ### Why This Works
 
 Each byte transferred carries **structural information**, not raw data.
+
 ```
 1 byte of embedding ↔ 1000 bytes of implied structure
 ```
@@ -1083,6 +1387,7 @@ Each byte transferred carries **structural information**, not raw data.
 ### Memory Wall Solution
 
 The "memory wall" (CPU faster than memory) is solved:
+
 ```
 CPU: 10^12 ops/sec
 Memory: 10^11 bytes/sec (100 GB/s)
@@ -1112,6 +1417,7 @@ Corrupted_embedding → Nearest_valid_structure → Corrected_embedding
 ### The Ultrametric Correction Property
 
 In ultrametric space, small errors stay small:
+
 ```
 d(x, x') < ε → d(f(x), f(x')) < ε for structure-preserving f
 ```
@@ -1130,11 +1436,11 @@ Can correct up to: ~17 bit flips (half the redundancy)
 
 ### Comparison to Traditional ECC
 
-| Method | Overhead | Correction Capacity |
-|:-------|:---------|:--------------------|
-| Hamming(7,4) | 75% | 1 bit per 7 |
-| Reed-Solomon | 100% | ~50% of codeword |
-| **Semantic** | **0%** | **~50% of embedding** |
+| Method       | Overhead | Correction Capacity   |
+| :----------- | :------- | :-------------------- |
+| Hamming(7,4) | 75%      | 1 bit per 7           |
+| Reed-Solomon | 100%     | ~50% of codeword      |
+| **Semantic** | **0%**   | **~50% of embedding** |
 
 **Zero overhead** because the redundancy is inherent in the structure.
 
@@ -1157,6 +1463,7 @@ Compress(A ∘ B) >> Compress(A) × Compress(B)
 ### Why Compositions Compress Better
 
 When A and B are composed, their structures **interact**:
+
 - Redundancy in A×B exceeds redundancy in A + redundancy in B
 - Structural constraints propagate
 - The composition has fewer valid states than the product
@@ -1175,6 +1482,7 @@ Composed: Intersection is O(small), structure constrains all three simultaneousl
 ### Mathematical Form
 
 For structures with c₁ and c₂ compression ratios:
+
 ```
 Compose compression ≥ c₁ × c₂ × interaction_factor
 interaction_factor ≥ 1 (often >> 1)
@@ -1199,16 +1507,17 @@ Bulk (full tree): O(b^D) implicit data
 
 ### The Boundary-Bulk Dictionary
 
-| Boundary (Stored) | Bulk (Computed) |
-|:------------------|:----------------|
-| Radius | Depth in hierarchy |
-| Angular position | Branch identity |
-| Norm gradient | Local structure |
-| Curvature | Subtree size |
+| Boundary (Stored) | Bulk (Computed)    |
+| :---------------- | :----------------- |
+| Radius            | Depth in hierarchy |
+| Angular position  | Branch identity    |
+| Norm gradient     | Local structure    |
+| Curvature         | Subtree size       |
 
 ### Computation from Boundary
 
 To answer "what is node X?":
+
 1. Look up X's embedding (boundary data)
 2. Compute X's properties from embedding (bulk reconstruction)
 3. Never store the explicit node
@@ -1242,17 +1551,18 @@ d(a,c) ≤ max(d(a,b), d(b,c))  [ultrametric inequality]
 
 ### Algorithmic Consequences
 
-| Algorithm | General Metric | Ultrametric |
-|:----------|:---------------|:------------|
-| Nearest neighbor | O(n) or O(log n) | O(1) via radius |
-| Diameter | O(n²) | O(n) |
-| Minimum spanning tree | O(n² log n) | O(n) |
-| All-pairs shortest path | O(n³) | O(n²) |
-| Clustering (single-link) | O(n² log n) | O(n log n) |
+| Algorithm                | General Metric   | Ultrametric     |
+| :----------------------- | :--------------- | :-------------- |
+| Nearest neighbor         | O(n) or O(log n) | O(1) via radius |
+| Diameter                 | O(n²)            | O(n)            |
+| Minimum spanning tree    | O(n² log n)      | O(n)            |
+| All-pairs shortest path  | O(n³)            | O(n²)           |
+| Clustering (single-link) | O(n² log n)      | O(n log n)      |
 
 ### Why Ultrametric Shortcuts Work
 
 The isoceles property means:
+
 - If you know d(a,b) and d(b,c), you know d(a,c) within factor 2
 - Transitivity is "almost" true
 - Path lengths are determined by single edges
@@ -1260,6 +1570,7 @@ The isoceles property means:
 ### Our Model's Ultrametric
 
 The 3-adic metric on integers IS ultrametric:
+
 ```
 |a - c|₃ ≤ max(|a - b|₃, |b - c|₃)
 ```
@@ -1287,6 +1598,7 @@ Semantic embedding: O(D × log b) ≈ r = O(1) in embedding dimension
 ### Connection to Tensor Networks
 
 Tensor networks (used in quantum physics) compress high-dimensional tensors:
+
 ```
 |ψ⟩ = Σ T[i1,i2,...,iD] |i1⟩|i2⟩...|iD⟩
 
@@ -1294,17 +1606,18 @@ Compressed: T ≈ A1 × A2 × ... × AD (matrix product state)
 ```
 
 Our embedding IS a tensor decomposition where:
+
 - Each dimension captures one "factor" of the structure
 - The radial coordinate captures the "rank" (depth)
 
 ### Compression Equivalence
 
-| Method | Parameters | Compression |
-|:-------|:-----------|:------------|
-| Full tensor | b^D | 1× |
-| Tucker decomposition | r^D + D×b×r | ~(b/r)^D |
-| Matrix Product State | D×b×r² | ~b^D / (D×r²) |
-| **Semantic embedding** | **D×log(b)** | **~b^D / D** |
+| Method                 | Parameters   | Compression   |
+| :--------------------- | :----------- | :------------ |
+| Full tensor            | b^D          | 1×            |
+| Tucker decomposition   | r^D + D×b×r  | ~(b/r)^D      |
+| Matrix Product State   | D×b×r²       | ~b^D / (D×r²) |
+| **Semantic embedding** | **D×log(b)** | **~b^D / D**  |
 
 ### Implication
 
@@ -1327,6 +1640,7 @@ where c is the speed of light/signal in the physical system.
 ### Why This Matters
 
 If computation is bottlenecked by information transfer:
+
 ```
 Time = Distance / Velocity
 
@@ -1339,6 +1653,7 @@ Semantic: T = L / (c × compression) = T_physical / compression
 ### Information Light Cone
 
 The "light cone" of what can affect a computation expands:
+
 ```
 Physical light cone: radius c×t
 Semantic light cone: radius c×t×compression (in data space)
@@ -1366,6 +1681,7 @@ Reverse: Query result → Embedding → Structure
 ### Why Reversibility is Free
 
 The embedding is **bijective** (modulo precision):
+
 - Structure → Embedding: The encoder
 - Embedding → Structure: The decoder
 
@@ -1377,6 +1693,7 @@ Landauer: Erasing 1 bit costs kT ln(2) energy.
 Reversible computation: No erasure, no energy cost.
 
 Semantic computation:
+
 - Query doesn't erase structure (just reads embedding)
 - Structure can be recovered from embedding
 - **Zero thermodynamic cost per query** (amortized over embedding creation)
@@ -1400,18 +1717,19 @@ Predict(next_access | current_position, structure) = O(1)
 ### The Structure Knows the Future
 
 In a tree traversal:
+
 - Current position: node X at depth d
 - Next access: child of X (depth d+1) or sibling of X (same depth) or parent (depth d-1)
 - Structure constrains possibilities to O(b) options
 
 ### Prefetch Accuracy
 
-| Access Pattern | Traditional Prefetch | Semantic Prefetch |
-|:---------------|:--------------------|:-----------------|
-| Sequential | 90%+ | 99%+ (structure confirms) |
-| Tree DFS | 50% | 95%+ (knows children) |
-| Tree BFS | 30% | 99%+ (knows level) |
-| Random tree | 10% | 80%+ (structure bounds) |
+| Access Pattern | Traditional Prefetch | Semantic Prefetch         |
+| :------------- | :------------------- | :------------------------ |
+| Sequential     | 90%+                 | 99%+ (structure confirms) |
+| Tree DFS       | 50%                  | 95%+ (knows children)     |
+| Tree BFS       | 30%                  | 99%+ (knows level)        |
+| Random tree    | 10%                  | 80%+ (structure bounds)   |
 
 ### Implementation
 
@@ -1457,6 +1775,7 @@ Deduplication ratio: N / M
 ### Example: File Systems
 
 A file system with 10^9 files might have:
+
 - 10^9 raw file entries
 - 10^6 unique directory structures
 - 10^3 unique depth patterns
@@ -1466,6 +1785,7 @@ A file system with 10^9 files might have:
 ### Automatic Discovery
 
 Unlike hash-based dedup (exact match only), semantic dedup finds:
+
 - **Isomorphic structures:** Same tree shape, different labels
 - **Similar structures:** Trees differing by small subtrees
 - **Pattern structures:** Trees following the same generation rule
@@ -1508,42 +1828,46 @@ Unlike hash-based dedup (exact match only), semantic dedup finds:
 
 ### The Theoretical Foundation
 
-| Principle | Conjecture | Contribution |
-|:----------|:-----------|:-------------|
-| Optimal compression | 21 (Kolmogorov) | Near-optimal by construction |
-| Self-similarity | 22 (Fractal) | Recursive compression |
-| Cache efficiency | 23 (Semantic Cache) | ~100% hit rate |
-| Lazy compute | 24 (Lazy Eval) | Skip unused computation |
-| Auto-parallelism | 25 (Structural) | Free work distribution |
-| Bandwidth multiply | 26 (Semantic BW) | Break memory wall |
-| Free error correction | 27 (Semantic ECC) | Inherent redundancy |
-| Composition boost | 28 (Compositional) | Pipelines get faster |
-| Boundary encoding | 29 (Holographic) | Store surface, compute bulk |
-| Algorithm speedups | 30 (Ultrametric) | O(1) shortcuts |
-| Tensor efficiency | 31 (Tensor Decomp) | Extreme compression |
-| Info velocity | 32 (Velocity) | More data per signal |
-| Energy efficiency | 33 (Reversible) | Near-zero query cost |
-| Perfect prefetch | 34 (Prefetching) | Zero cache misses |
-| Auto-dedup | 35 (Deduplication) | Storage collapse |
+| Principle             | Conjecture          | Contribution                 |
+| :-------------------- | :------------------ | :--------------------------- |
+| Optimal compression   | 21 (Kolmogorov)     | Near-optimal by construction |
+| Self-similarity       | 22 (Fractal)        | Recursive compression        |
+| Cache efficiency      | 23 (Semantic Cache) | ~100% hit rate               |
+| Lazy compute          | 24 (Lazy Eval)      | Skip unused computation      |
+| Auto-parallelism      | 25 (Structural)     | Free work distribution       |
+| Bandwidth multiply    | 26 (Semantic BW)    | Break memory wall            |
+| Free error correction | 27 (Semantic ECC)   | Inherent redundancy          |
+| Composition boost     | 28 (Compositional)  | Pipelines get faster         |
+| Boundary encoding     | 29 (Holographic)    | Store surface, compute bulk  |
+| Algorithm speedups    | 30 (Ultrametric)    | O(1) shortcuts               |
+| Tensor efficiency     | 31 (Tensor Decomp)  | Extreme compression          |
+| Info velocity         | 32 (Velocity)       | More data per signal         |
+| Energy efficiency     | 33 (Reversible)     | Near-zero query cost         |
+| Perfect prefetch      | 34 (Prefetching)    | Zero cache misses            |
+| Auto-dedup            | 35 (Deduplication)  | Storage collapse             |
 
 ### The Path Forward
 
 **Phase 1: Validation**
+
 - Benchmark semantic ops vs raw on real hierarchical data
 - Measure actual amplification factors
 - Validate compression ratios
 
 **Phase 2: Implementation**
+
 - SISA interpreter/compiler
 - Semantic cache manager
 - Zero-copy memory controller
 
 **Phase 3: Hardware**
+
 - SISA accelerator design
 - Dual-mode memory architecture
 - Semantic prefetch unit
 
 **Phase 4: Ecosystem**
+
 - Programming model for semantic computation
 - Automatic structure detection
 - Legacy code transformation
@@ -1571,11 +1895,11 @@ In Euclidean space, orthogonal axes create independent degrees of freedom—each
 
 **Results:**
 
-| Radius Region | Control Overlap | Interpretation |
-|:--------------|:----------------|:---------------|
-| Inner (r~0.45) | 0.093 | 9.3% of trit control is shared |
-| Outer (r~0.90) | 0.001 | 0.1% of trit control is shared |
-| **Change** | **-92%** | Dimensions become independent |
+| Radius Region  | Control Overlap | Interpretation                 |
+| :------------- | :-------------- | :----------------------------- |
+| Inner (r~0.45) | 0.093           | 9.3% of trit control is shared |
+| Outer (r~0.90) | 0.001           | 0.1% of trit control is shared |
+| **Change**     | **-92%**        | Dimensions become independent  |
 
 **Verdict: SUPPORTED** — Near the boundary, latent dimensions control almost entirely non-overlapping outputs. The 92% reduction in overlap demonstrates that hyperbolic curvature creates effective independence between dimensions.
 
@@ -1609,11 +1933,13 @@ Required hyperbolic dimensions: D_hyp = 45 / 2.5 ≈ 18D
 ### Empirical Calibration from v1.1.0
 
 From our experiment:
+
 - Inner overlap: 0.093, Outer overlap: 0.001
 - Independence ratio: 0.093 / 0.001 = 93× more independent at boundary
 - But this measures pairwise overlap, not total effective dimensions
 
 More conservative estimate from active dimensions:
+
 - Inner active dims: 2.67
 - Outer active dims: 0.83 (but with 0.1% overlap = nearly perfect separation)
 
@@ -1643,10 +1969,12 @@ Conservative practical estimate (accounting for training difficulty):
 **Priority:** High - potential paradigm shift in computational representation
 **Document Version:** 2.2 (37 conjectures, 1 experimentally validated)
 **Experimental Status:**
+
 - Conjecture 36: **SUPPORTED** (92% overlap reduction at boundary)
 - Conjecture 37: Derived from Conjecture 36, requires validation at scale
 
 **Next Steps:**
+
 1. Formalize proofs for key conjectures (21, 30, 31)
 2. Prototype SISA interpreter on binary hardware
 3. Benchmark semantic ops vs raw ops on real hierarchical data
