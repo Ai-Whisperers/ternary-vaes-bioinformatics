@@ -1,14 +1,14 @@
 # HIV Research Papers Index (2023-2025)
 
-> **Comprehensive collection of 100 recent HIV research papers organized by topic.**
+> **Comprehensive collection of 111 recent HIV research papers organized by topic.**
 
 ---
 
 ## Overview
 
-This library contains 100 curated HIV research papers from 2023-2025, covering breakthrough treatments, vaccines, cure strategies, drug resistance, and molecular biology relevant to the Ternary VAE bioinformatics project.
+This library contains 111 curated HIV research papers from 2023-2025, covering breakthrough treatments, vaccines, cure strategies, drug resistance, and molecular biology relevant to the Ternary VAE bioinformatics project.
 
-**Total Papers:** 100
+**Total Papers:** 111
 **Date Range:** 2023-2025
 **Last Updated:** 2025-12-24
 
@@ -29,6 +29,9 @@ This library contains 100 curated HIV research papers from 2023-2025, covering b
 | [09_EPIDEMIOLOGY](09_EPIDEMIOLOGY/) | 7 | Global subtypes, PMTCT, surveillance |
 | [10_COMORBIDITIES](10_COMORBIDITIES/) | 6 | Aging, HAND, cardiovascular |
 | [11_AI_DRUG_DISCOVERY](11_AI_DRUG_DISCOVERY/) | 6 | Machine learning, deep learning, prediction |
+| [12_CORECEPTOR_TROPISM](12_CORECEPTOR_TROPISM/) | 4 | CCR5/CXCR4 tropism, coreceptor switching |
+| [13_STIGMA_MENTAL_HEALTH](13_STIGMA_MENTAL_HEALTH/) | 4 | Stigma, discrimination, psychological impact |
+| [14_DIAGNOSTICS](14_DIAGNOSTICS/) | 3 | Self-testing, point-of-care, surveillance |
 
 ---
 
