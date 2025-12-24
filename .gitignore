@@ -79,3 +79,10 @@ engine/build/
 **/alphafold3_predictions/*.zip
 **/alphafold_jobs/*.zip
 research/alphafold3/repo/
+
+# CONFIDENTIAL - Internal IP Protection (NEVER COMMIT)
+**/pitch_tier3_INTERNAL/
+**/INTERNAL/
+**/*_INTERNAL/
+**/*_CONFIDENTIAL/
+**/.secrets/
