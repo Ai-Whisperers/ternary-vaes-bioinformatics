@@ -4,7 +4,7 @@ from .ternary_vae import TernaryVAEV5_11, TernaryVAEV5_11_OptionC, FrozenEncoder
 from .hyperbolic_projection import HyperbolicProjection, DualHyperbolicProjection
 from .differentiable_controller import DifferentiableController, ThreeBodyController
 from .curriculum import ContinuousCurriculumModule, CurriculumScheduler
-from .homeostasis import HomeostasisController
+from .homeostasis import HomeostasisController, compute_Q
 
 # Canonical exports (V5.11 architecture)
 TernaryVAE = TernaryVAEV5_11
@@ -27,6 +27,7 @@ __all__ = [
     # Curriculum
     'ContinuousCurriculumModule',
     'CurriculumScheduler',
-    # Homeostasis (V5.11.7)
+    # Homeostasis (V5.11.7 + V5.11.8)
     'HomeostasisController',
+    'compute_Q',
 ]

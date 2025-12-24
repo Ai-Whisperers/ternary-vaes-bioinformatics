@@ -131,6 +131,15 @@ def parse_args():
                         help='Epochs before homeostasis activates (default: 5)')
     parser.add_argument('--hysteresis_epochs', type=int, default=3,
                         help='Minimum epochs between freeze state changes (default: 3)')
+    # Q-gated annealing (v5.11.8)
+    parser.add_argument('--enable_annealing', action='store_true', default=True,
+                        help='Enable Q-gated threshold annealing (default: True)')
+    parser.add_argument('--no_annealing', action='store_true', default=False,
+                        help='Disable Q-gated threshold annealing')
+    parser.add_argument('--annealing_step', type=float, default=0.005,
+                        help='How much to relax thresholds per successful cycle (default: 0.005)')
+    parser.add_argument('--coverage_floor', type=float, default=0.95,
+                        help='Never relax coverage threshold below this (default: 0.95)')
     return parser.parse_args()
 
 
@@ -710,16 +719,22 @@ def main():
     if progressive_unfreeze:
         print(f"Progressive unfreezing: start={unfreeze_start}, warmup={unfreeze_warmup}, target_lr_scale={encoder_a_target_lr}")
 
-    # Homeostatic control (v5.11.7)
+    # Homeostatic control (v5.11.7 + v5.11.8 Q-gated annealing)
     use_homeostasis = config.get('homeostasis', False)
     homeostasis = None
     if use_homeostasis:
+        enable_annealing = not config.get('no_annealing', False)
         homeostasis = HomeostasisController(
             coverage_freeze_threshold=config.get('coverage_freeze_threshold', 0.995),
             warmup_epochs=config.get('homeostasis_warmup', 5),
             hysteresis_epochs=config.get('hysteresis_epochs', 3),
+            enable_annealing=enable_annealing,
+            annealing_step=config.get('annealing_step', 0.005),
+            coverage_floor=config.get('coverage_floor', 0.95),
         )
         print(f"Homeostasis: ENABLED (coverage_freeze={homeostasis.coverage_freeze_threshold}, warmup={homeostasis.warmup_epochs})")
+        if enable_annealing:
+            print(f"  Q-gated annealing: step={homeostasis.annealing_step}, floor={homeostasis.coverage_floor}")
         # Track previous freeze state for optimizer rebuild
         prev_freeze_state = {
             'encoder_a': True,
@@ -795,7 +810,7 @@ def main():
             train_metrics['loss']
         )
 
-        # Homeostatic control (v5.11.7)
+        # Homeostatic control (v5.11.7 + v5.11.8 Q-gated annealing)
         if use_homeostasis and homeostasis is not None:
             # Compute controller gradient norm
             controller_grad_norm = None
@@ -806,12 +821,13 @@ def main():
                         total_norm += p.grad.data.norm(2).item() ** 2
                 controller_grad_norm = total_norm ** 0.5
 
-            # Update homeostasis state
+            # Update homeostasis state (now with Q tracking)
             homeo_state = homeostasis.update(
                 epoch=epoch,
                 coverage=eval_metrics['coverage'],
                 hierarchy_A=eval_metrics['radial_corr_A'],
                 hierarchy_B=eval_metrics['radial_corr_B'],
+                dist_corr_A=eval_metrics['distance_corr_A'],
                 controller_grad_norm=controller_grad_norm
             )
 
@@ -865,11 +881,15 @@ def main():
             eval_metrics['radial_corr_A'], train_metrics['loss']), epoch)
         writer.add_scalar('LR', optimizer.param_groups[0]['lr'], epoch)
 
-        # Log homeostasis states
+        # Log homeostasis states and Q
         if use_homeostasis and homeostasis is not None:
             writer.add_scalar('Homeostasis/encoder_a_frozen', 1.0 if homeostasis.encoder_a_frozen else 0.0, epoch)
             writer.add_scalar('Homeostasis/encoder_b_frozen', 1.0 if homeostasis.encoder_b_frozen else 0.0, epoch)
             writer.add_scalar('Homeostasis/controller_frozen', 1.0 if homeostasis.controller_frozen else 0.0, epoch)
+            writer.add_scalar('Homeostasis/current_Q', homeo_state.get('current_Q', 0), epoch)
+            writer.add_scalar('Homeostasis/best_Q', homeo_state.get('best_Q', 0), epoch)
+            writer.add_scalar('Homeostasis/coverage_freeze_threshold', homeostasis.coverage_freeze_threshold, epoch)
+            writer.add_scalar('Homeostasis/total_cycles', sum(homeostasis.cycle_count.values()), epoch)
 
         # Print progress
         if epoch % 5 == 0 or epoch == n_epochs - 1:
