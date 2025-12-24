@@ -1,5 +1,7 @@
 # Ternary VAE Source Architecture
 
+> **See also**: [Full Documentation Hub](../DOCUMENTATION/) | [Architecture Specs](../DOCUMENTATION/03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/05_SPECS_AND_GUIDES/ARCHITECTURE.md) | [Quick Start](../DOCUMENTATION/QUICK_START.md)
+
 **Doc-Type:** Architecture Reference · Version 1.0 · Updated 2025-12-12
 
 ---

@@ -1,49 +1,60 @@
 # Ternary VAE Bioinformatics Documentation
 
-**Unified Documentation Hub**
+> **Unified Documentation Hub - Single source of truth for the project.**
 
-This platform is the single source of truth for the project, organized into three primary branches:
+---
 
-## 🧠 01 Project Knowledge Base (`/01_PROJECT_KNOWLEDGE_BASE`)
+## Quick Start
 
-_The "Static" Truth. Immutable concepts, standards, and assets._
+| Resource | Description |
+|:---------|:------------|
+| [QUICK_START.md](QUICK_START.md) | 5-minute project overview |
+| [00_MASTER_INDEX.md](00_MASTER_INDEX.md) | Complete documentation map |
+| [NAVIGATION_GUIDE.md](NAVIGATION_GUIDE.md) | Find docs by role |
 
-- **00 Strategy & Vision**: Pitch decks, long-term goals.
-- **01 Presentation Suite**: Public-facing assets (Grants, Posters).
-- **02 Theory**: Mathematical and Biological foundations.
-- **03 Experiments**: Juypter notebooks and research logs.
-- **04 Scientific History**: Archive of past discoveries.
-- **05 Legal & IP**: Licenses, Notices, and IP Defensibility plans.
+---
 
-## 🏗️ 02 Project Management (`/02_PROJECT_MANAGEMENT`)
+## Documentation Structure
 
-_The "Active" Execution. Mutable plans, tasks, and health checks._
+### 01 Project Knowledge Base
+*The "Static" Truth. Immutable concepts, standards, and assets.*
 
-- **00 Tasks**: Actionable P0/P1 items.
-- **01 Roadmaps & Plans**: Quarterly strategies and improvement plans.
-- **02 Code Health Metrics**: Linting, auditing, and technical debt reports.
-- **03 Archive**: Deprecated plans.
+- **00_STRATEGY_AND_VISION/** - Pitch decks, long-term goals
+- **02_THEORY_AND_FOUNDATIONS/** - Mathematical and biological foundations
+- **03_EXPERIMENTS_AND_LABS/** - Research notebooks and findings
+- **04_SCIENTIFIC_HISTORY/** - Archive of discoveries
+- **05_LEGAL_AND_IP/** - Licenses, IP protection
 
-## 🎯 03 Presentation Tiers (`/03_PRESENTATION_TIERS`)
+### 02 Project Management
+*The "Active" Execution. Mutable plans, tasks, and health checks.*
 
-_Tailored packages for specific stakeholders._
+- **00_TASKS/** - Actionable P0/P1/P2/P3 items
+- **01_ROADMAPS_AND_PLANS/** - Quarterly strategies
+- **02_CODE_HEALTH_METRICS/** - Auditing and technical debt
+- **03_ARCHIVE/** - Deprecated plans
 
-- **01 Tier 1 (Public)**: General audience, high-level impact.
-- **02 Tier 2 (Investor)**: Venture Capital, market analysis, defensibility.
-- **03 Tier 3 (Technical)**: Deep dives for technical due diligence.
+### 03 Presentation Tiers
+*Tailored packages for specific stakeholders.*
 
-## 📐 Architecture Overview
+- **[01_TIER_1_PUBLIC/](03_PRESENTATION_TIERS/01_TIER_1_PUBLIC/)** - Scientists, clinicians, media
+- **[02_TIER_2_INVESTOR/](03_PRESENTATION_TIERS/02_TIER_2_INVESTOR/)** - VCs, grants, partners
+- **[03_TIER_3_TECHNICAL/](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/)** - Due diligence, deep technical
 
-<!-- embed: DOCUMENTATION/06_DIAGRAMS/01_ARCHITECTURE/models/ternary_vae_v5_composition.mmd -->
+### 05 Validation
+*Test strategies and verification frameworks.*
+
+### 06 Diagrams
+*100+ Mermaid diagrams for architecture and workflows.*
+
+---
+
+## Architecture Overview
 
 ```mermaid
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
 classDiagram
-    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
-    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
-    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
-
-    note "V5.11 Composition"
+    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5
+    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px
+    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px
 
     class TernaryVAEV5_11 {
         +FrozenEncoder encoder_A
@@ -54,166 +65,16 @@ classDiagram
         +forward(x)
     }
     class FrozenEncoder:::frozen {
-        <<Frozen>>
-        +encode(x) -> (mu, logvar)
+        encode(x) → mu, logvar
     }
     class FrozenDecoder:::frozen {
-        <<Frozen>>
-        +decode(z) -> logits
+        decode(z) → logits
     }
     class DualHyperbolicProjection:::hyperbolic {
-        +forward(z_A, z_B)
+        forward(z_A, z_B)
     }
     class DifferentiableController:::trainable {
-        +forward(stats)
-    }
-
-    TernaryVAEV5_11 *-- FrozenEncoder
-    TernaryVAEV5_11 *-- FrozenDecoder
-    TernaryVAEV5_11 *-- DualHyperbolicProjection
-    TernaryVAEV5_11 *-- DifferentiableController
-```
-
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
-classDiagram
-classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
-classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
-classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
-
-    note "V5.11 Composition"
-
-    class TernaryVAEV5_11 {
-        +FrozenEncoder encoder_A
-        +FrozenEncoder encoder_B
-        +DualHyperbolicProjection projection
-        +DifferentiableController controller
-        +FrozenDecoder decoder_A
-        +forward(x)
-    }
-    class FrozenEncoder:::frozen {
-        <<Frozen>>
-        +encode(x) -> (mu, logvar)
-    }
-    class FrozenDecoder:::frozen {
-        <<Frozen>>
-        +decode(z) -> logits
-    }
-    class DualHyperbolicProjection:::hyperbolic {
-        +forward(z_A, z_B)
-    }
-    class DifferentiableController:::trainable {
-        +forward(stats)
-    }
-
-    TernaryVAEV5_11 *-- FrozenEncoder
-    TernaryVAEV5_11 *-- FrozenDecoder
-    TernaryVAEV5_11 *-- DualHyperbolicProjection
-    TernaryVAEV5_11 *-- DifferentiableController
-
-```
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}}}%%
-classDiagram
-    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
-    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
-    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
-
-    note "V5.11 Composition"
-
-    class TernaryVAEV5_11 {
-        +FrozenEncoder encoder_A
-        +FrozenEncoder encoder_B
-        +DualHyperbolicProjection projection
-        +DifferentiableController controller
-        +FrozenDecoder decoder_A
-        +forward(x)
-    }
-    class FrozenEncoder:::frozen {
-        <<Frozen>>
-        +encode(x) -> (mu, logvar)
-    }
-    class FrozenDecoder:::frozen {
-        <<Frozen>>
-        +decode(z) -> logits
-    }
-    class DualHyperbolicProjection:::hyperbolic {
-        +forward(z_A, z_B)
-    }
-    class DifferentiableController:::trainable {
-        +forward(stats)
-    }
-
-    TernaryVAEV5_11 *-- FrozenEncoder
-    TernaryVAEV5_11 *-- FrozenDecoder
-    TernaryVAEV5_11 *-- DualHyperbolicProjection
-    TernaryVAEV5_11 *-- DifferentiableController
-```
-
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}} }%%
-classDiagram
-classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
-classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
-classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
-
-    note "V5.11 Composition"
-
-    class TernaryVAEV5_11 {
-        +FrozenEncoder encoder_A
-        +FrozenEncoder encoder_B
-        +DualHyperbolicProjection projection
-        +DifferentiableController controller
-        +FrozenDecoder decoder_A
-        +forward(x)
-    }
-    class FrozenEncoder:::frozen {
-        <<Frozen>>
-        +encode(x) -> (mu, logvar)
-    }
-    class FrozenDecoder:::frozen {
-        <<Frozen>>
-        +decode(z) -> logits
-    }
-    class DualHyperbolicProjection:::hyperbolic {
-        +forward(z_A, z_B)
-    }
-    class DifferentiableController:::trainable {
-        +forward(stats)
-    }
-
-    TernaryVAEV5_11 *-- FrozenEncoder
-    TernaryVAEV5_11 *-- FrozenDecoder
-    TernaryVAEV5_11 *-- DualHyperbolicProjection
-    TernaryVAEV5_11 *-- DifferentiableController
-
-```
-%%{init: {'theme': 'base', 'themeVariables': { 'primaryColor': '#2196f3', 'edgeLabelBackground':'#f9f9f9', 'tertiaryColor': '#e1e4e8'}} }%%
-classDiagram
-    classDef frozen fill:#e1e4e8,stroke:#333,stroke-dasharray: 5 5;
-    classDef trainable fill:#c8e6c9,stroke:#2e7d32,stroke-width:2px;
-    classDef hyperbolic fill:#e1bee7,stroke:#7b1fa2,stroke-width:2px;
-
-    note "V5.11 Composition"
-
-    class TernaryVAEV5_11 {
-        +FrozenEncoder encoder_A
-        +FrozenEncoder encoder_B
-        +DualHyperbolicProjection projection
-        +DifferentiableController controller
-        +FrozenDecoder decoder_A
-        +forward(x)
-    }
-    class FrozenEncoder:::frozen {
-        <<Frozen>>
-        +encode(x) -> (mu, logvar)
-    }
-    class FrozenDecoder:::frozen {
-        <<Frozen>>
-        +decode(z) -> logits
-    }
-    class DualHyperbolicProjection:::hyperbolic {
-        +forward(z_A, z_B)
-    }
-    class DifferentiableController:::trainable {
-        +forward(stats)
+        forward(stats)
     }
 
     TernaryVAEV5_11 *-- FrozenEncoder
@@ -224,4 +85,18 @@ classDiagram
 
 ---
 
-_Generated by Antigravity - Reorganization v4_
+## Content Standards
+
+All documentation follows [CONTENT_STANDARDS.md](STANDARDS/CONTENT_STANDARDS.md).
+
+Templates available in [STANDARDS/TEMPLATES/](STANDARDS/TEMPLATES/).
+
+---
+
+## External Documentation
+
+See [EXTERNAL_DOCS_INDEX.md](EXTERNAL_DOCS_INDEX.md) for docs outside this folder.
+
+---
+
+*Last updated: 2025-12-24*
