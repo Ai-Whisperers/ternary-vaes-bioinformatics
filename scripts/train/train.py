@@ -45,6 +45,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC, HomeostasisController
 from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, CombinedGeodesicLoss, GlobalRankLoss
+from src.losses import CombinedZeroStructureLoss
 from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
 
@@ -140,6 +141,13 @@ def parse_args():
                         help='How much to relax thresholds per successful cycle (default: 0.005)')
     parser.add_argument('--coverage_floor', type=float, default=0.95,
                         help='Never relax coverage threshold below this (default: 0.95)')
+    # Zero-structure loss (v5.11.9)
+    parser.add_argument('--zero_structure', action='store_true', default=False,
+                        help='Enable zero-structure loss (V5.11.9)')
+    parser.add_argument('--zero_valuation_weight', type=float, default=1.0,
+                        help='Weight for zero-valuation loss (default: 1.0)')
+    parser.add_argument('--zero_sparsity_weight', type=float, default=0.5,
+                        help='Weight for zero-sparsity loss (default: 0.5)')
     return parser.parse_args()
 
 
@@ -401,7 +409,8 @@ def compute_metrics(model, x, indices, geodesic_loss_fn, radial_loss_fn, device)
 
 def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
                 batch_size, epoch, tau, radial_weight, device, use_stratified=True,
-                rank_loss_fn=None, rank_loss_weight=1.0, use_learnable_weights=False):
+                rank_loss_fn=None, rank_loss_weight=1.0, use_learnable_weights=False,
+                zero_structure_loss_fn=None, zero_structure_weight=1.0):
     """Train one epoch.
 
     V5.11.1 FIX: Changed loss composition to always include radial loss.
@@ -441,6 +450,7 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
     total_geo = 0.0
     total_rad = 0.0
     total_rank = 0.0
+    total_zero = 0.0
 
     for i in range(n_batches):
         if use_stratified:
@@ -477,6 +487,13 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
             rank_loss_B, rank_metrics_B = rank_loss_fn(z_B_hyp, idx_batch)
             rank_loss = rank_loss_A + rank_loss_B
 
+        # V5.11.9: Zero-structure loss for exploiting ternary zero semantics
+        zero_loss = torch.tensor(0.0, device=device)
+        if zero_structure_loss_fn is not None:
+            zero_loss_A = zero_structure_loss_fn(z_A_hyp, x_batch)
+            zero_loss_B = zero_structure_loss_fn(z_B_hyp, x_batch)
+            zero_loss = zero_loss_A + zero_loss_B
+
         # V5.11.1 FIX: Always include both losses
         # Radial loss is ALWAYS active (weighted by radial_weight)
         # Geodesic loss ramps up with tau
@@ -492,7 +509,7 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
             learned_geo = ctrl['weight_geodesic'].mean()
 
             # Core loss with learned weights
-            core_loss = learned_tau * geo_loss + learned_radial * rad_loss + rank_loss_weight * rank_loss
+            core_loss = learned_tau * geo_loss + learned_radial * rad_loss + rank_loss_weight * rank_loss + zero_structure_weight * zero_loss
 
             # V5.11.5: Q-preservation regularization
             # Prevent controller from collapsing to "easy path" (radial-only)
@@ -512,7 +529,7 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
 
             total_batch_loss = core_loss + q_regularization
         else:
-            total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss
+            total_batch_loss = tau * geo_loss + radial_weight * rad_loss + rank_loss_weight * rank_loss + zero_structure_weight * zero_loss
 
         # Backward and optimize
         total_batch_loss.backward()
@@ -523,12 +540,14 @@ def train_epoch(model, optimizer, x, indices, geodesic_loss_fn, radial_loss_fn,
         total_geo += geo_loss.item()
         total_rad += rad_loss.item()
         total_rank += rank_loss.item()
+        total_zero += zero_loss.item()
 
     return {
         'loss': total_loss / n_batches,
         'geo_loss': total_geo / n_batches,
         'rad_loss': total_rad / n_batches,
-        'rank_loss': total_rank / n_batches
+        'rank_loss': total_rank / n_batches,
+        'zero_loss': total_zero / n_batches
     }
 
 
@@ -651,11 +670,23 @@ def main():
     ).to(device) if use_rank_loss else None
     rank_loss_weight = config.get('rank_loss_weight', 1.0)
 
+    # V5.11.9: Zero-structure loss for exploiting ternary zero semantics
+    use_zero_structure = config.get('zero_structure', False)
+    zero_structure_loss_fn = CombinedZeroStructureLoss(
+        valuation_weight=config.get('zero_valuation_weight', 1.0),
+        sparsity_weight=config.get('zero_sparsity_weight', 0.5),
+        inner_radius=config.get('inner_radius', 0.1),
+        outer_radius=config.get('outer_radius', 0.85)
+    ).to(device) if use_zero_structure else None
+    zero_structure_weight = config.get('zero_valuation_weight', 1.0) + config.get('zero_sparsity_weight', 0.5)
+
     # Radial weight (always active, not curriculum-blended)
     radial_weight = config.get('radial_weight', 2.0)
     print(f"\nLoss weights: radial={radial_weight}, margin={config.get('margin_weight', 1.0)}")
     if use_rank_loss:
         print(f"  Global rank loss: weight={rank_loss_weight}")
+    if use_zero_structure:
+        print(f"  Zero-structure loss: valuation={config.get('zero_valuation_weight', 1.0)}, sparsity={config.get('zero_sparsity_weight', 0.5)}")
 
     # Create optimizer (only trainable parameters)
     base_lr = config.get('lr', 1e-3)
@@ -791,7 +822,9 @@ def main():
             use_stratified=use_stratified,
             rank_loss_fn=rank_loss_fn,
             rank_loss_weight=rank_loss_weight,
-            use_learnable_weights=use_learnable_weights
+            use_learnable_weights=use_learnable_weights,
+            zero_structure_loss_fn=zero_structure_loss_fn,
+            zero_structure_weight=zero_structure_weight
         )
 
         # Evaluate

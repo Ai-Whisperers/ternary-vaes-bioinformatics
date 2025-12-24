@@ -69,6 +69,14 @@ from .radial_stratification import (
     compute_single_index_valuation
 )
 
+from .zero_structure import (
+    ZeroValuationLoss,
+    ZeroSparsityLoss,
+    CombinedZeroStructureLoss,
+    compute_operation_zero_valuation,
+    compute_operation_zero_count
+)
+
 from .padic_geodesic import (
     poincare_distance,
     PAdicGeodesicLoss,
@@ -133,6 +141,12 @@ __all__ = [
     'HyperbolicCentroidLoss',
     'RadialStratificationLoss',
     'compute_single_index_valuation',
+    # V5.11.9 Zero Structure Loss
+    'ZeroValuationLoss',
+    'ZeroSparsityLoss',
+    'CombinedZeroStructureLoss',
+    'compute_operation_zero_valuation',
+    'compute_operation_zero_count',
     # V5.11 Unified Geodesic Loss
     'poincare_distance',
     'PAdicGeodesicLoss',
