@@ -34,7 +34,7 @@ This is the central repository for all Ternary VAE project knowledge, research, 
 - Active research notebooks and experiments
 - Genetic Code, Spectral Analysis, Manifold Visualizations
 
-### 5. [`04_REPORTS_AND_HISTORY/`](./04_REPORTS_AND_HISTORY/)
+### 5. [`04_SCIENTIFIC_HISTORY/`](./04_SCIENTIFIC_HISTORY/)
 
 **"The Record"**
 

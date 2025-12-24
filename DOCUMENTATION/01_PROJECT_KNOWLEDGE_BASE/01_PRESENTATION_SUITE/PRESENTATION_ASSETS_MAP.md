@@ -9,13 +9,13 @@
 **Goal**: Validation, Collaboration, Peer Review.
 _They care about: Novelty, Rigor, Reproducibility._
 
-| Asset Type           | Document Name                                      | Status       | Description                                                              |
-| :------------------- | :------------------------------------------------- | :----------- | :----------------------------------------------------------------------- |
-| **Pre-print**        | `academic/TECHNICAL_WHITEPAPER.md`                 | ✅ **Ready** | A unified, arXiv-style paper combining Math + Bio results (The "Paper"). |
-| **Math Proofs**      | `validation_suite/02_MATHEMATICAL_STRESS_TESTS.md` | ✅ **Ready** | The rigorous geometric proofs (validation_suite).                        |
-| **Benchmarks**       | `validation_suite/01_BIOLOGICAL_BENCHMARKS.md`     | ✅ **Ready** | Comparison vs. EVE/ProteinGym (validation_suite).                        |
-| **Code Walkthrough** | `academic/CODE_ARCHITECTURE_WALKTHROUGH.md`        | ✅ **Ready** | "How to run the model yourself" (for skeptics).                          |
-| **Theory Guide**     | `academic/theory_deep_dive/*.md`                   | ✅ **Ready** | The 3-part split guide (Formulation, StateNet, Convergence).             |
+| Asset Type           | Document Name                                                                                    | Status       | Description                                                              |
+| :------------------- | :----------------------------------------------------------------------------------------------- | :----------- | :----------------------------------------------------------------------- |
+| **Pre-print**        | `02_SCIENTIFIC_COMMUNICATION/whitepapers/TECHNICAL_WHITEPAPER.md`                                | ✅ **Ready** | A unified, arXiv-style paper combining Math + Bio results (The "Paper"). |
+| **Math Proofs**      | `validation_suite/02_MATHEMATICAL_STRESS_TESTS.md`                                               | ✅ **Ready** | The rigorous geometric proofs (validation_suite).                        |
+| **Benchmarks**       | `validation_suite/01_BIOLOGICAL_BENCHMARKS.md`                                                   | ✅ **Ready** | Comparison vs. EVE/ProteinGym (validation_suite).                        |
+| **Code Walkthrough** | `02_SCIENTIFIC_COMMUNICATION/B_Foundations/00_Core_Manuscripts/CODE_ARCHITECTURE_WALKTHROUGH.md` | ✅ **Ready** | "How to run the model yourself" (for skeptics).                          |
+| **Theory Guide**     | `02_SCIENTIFIC_COMMUNICATION/theory_deep_dive/*.md`                                              | ✅ **Ready** | The 3-part split guide (Formulation, StateNet, Convergence).             |
 
 ---
 
@@ -35,11 +35,11 @@ _They care about: Market Size, Moat, Team, Exit._
 
 | Asset Type            | Document Name                                                     | Status       | Description                                           |
 | :-------------------- | :---------------------------------------------------------------- | :----------- | :---------------------------------------------------- |
-| **Pitch Deck Script** | `investor/PITCH_DECK_SCRIPT.md`                                   | ✅ **Ready** | Slide-by-slide narrative for the 15-slide deck.       |
-| **Market Analysis**   | `investor/MARKET_OPPORTUNITY.md`                                  | ✅ **Ready** | TAM/SAM/SOM for "Generative Biology".                 |
-| **Moat Definitions**  | `investor/IP_AND_DEFENSIBILITY.md`                                | ✅ **Ready** | Why Google can't just copy us tomorrow (IP Strategy). |
+| **Pitch Deck Script** | `01_INVESTOR_PACKAGE/01_pitch_materials/PITCH_DECK_SCRIPT.md`     | ✅ **Ready** | Slide-by-slide narrative for the 15-slide deck.       |
+| **Market Analysis**   | `01_INVESTOR_PACKAGE/02_market_analysis/MARKET_OPPORTUNITY.md`    | ✅ **Ready** | TAM/SAM/SOM for "Generative Biology".                 |
+| **Moat Definitions**  | `01_INVESTOR_PACKAGE/03_legal_and_ip/IP_AND_DEFENSIBILITY.md`     | ✅ **Ready** | Why Google can't just copy us tomorrow (IP Strategy). |
 | **Team & Roadmap**    | `../04_PROJECT_MANAGEMENT/active_plans/00_MASTER_ROADMAP_JONA.md` | ✅ **Ready** | "What we are building next" (Project Management).     |
-| **Cap Table/Ask**     | `investor/FUNDING_PROPOSAL.md`                                    | ✅ **Ready** | Specifics on the raise and use of funds.              |
+| **Cap Table/Ask**     | `01_INVESTOR_PACKAGE/01_pitch_materials/FUNDING_PROPOSAL.md`      | ✅ **Ready** | Specifics on the raise and use of funds.              |
 
 ---
 

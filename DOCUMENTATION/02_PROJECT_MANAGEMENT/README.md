@@ -30,26 +30,26 @@ Active work items broken down by area.
 
 ---
 
-## 📅 01 Active Plans (`/01_ACTIVE_PLANS`)
+## 📅 01 Roadmaps & Plans (`/01_ROADMAPS_AND_PLANS`)
 
 Live documents tracking the current execution strategy.
 
-| Plan                                                                          | Target      | Description                                          |
-| :---------------------------------------------------------------------------- | :---------- | :--------------------------------------------------- |
-| **[Improvement Plan](01_ACTIVE_PLANS/IMPROVEMENT_PLAN.md)**                   | **Next**    | Research-driven code improvements (Source of Tasks). |
-| **[Master Roadmap](01_ACTIVE_PLANS/00_MASTER_ROADMAP_JONA.md)**               | **2025-Q1** | The high-level strategic vision.                     |
-| **[Val & Benchmarking](01_ACTIVE_PLANS/VALIDATION_AND_BENCHMARKING_PLAN.md)** | Ongoing     | Strategy for model verification.                     |
+| Plan                                                                                | Target      | Description                                          |
+| :---------------------------------------------------------------------------------- | :---------- | :--------------------------------------------------- |
+| **[Improvement Plan](01_ROADMAPS_AND_PLANS/IMPROVEMENT_PLAN.md)**                   | **Next**    | Research-driven code improvements (Source of Tasks). |
+| **[Master Roadmap](01_ROADMAPS_AND_PLANS/00_MASTER_ROADMAP_JONA.md)**               | **2025-Q1** | The high-level strategic vision.                     |
+| **[Val & Benchmarking](01_ROADMAPS_AND_PLANS/VALIDATION_AND_BENCHMARKING_PLAN.md)** | Ongoing     | Strategy for model verification.                     |
 
 ---
 
-## 📊 02 Reports (`/02_REPORTS`)
+## 📊 02 Code Health Metrics (`/02_CODE_HEALTH_METRICS`)
 
 Snapshots of codebase health and audit results.
 
-- **[Code Health Dashboard](02_REPORTS/CODE_HEALTH_DASHBOARD.md)**: Latest linting & type check status.
-- **[Duplication Report](02_REPORTS/DUPLICATION_REPORT.md)**: Code redundancy analysis.
-- **[Codebase Analysis](02_REPORTS/CODEBASE_ANALYSIS.md)**: Deep architectural review.
-- **[External Tools](02_REPORTS/EXTERNAL_TOOLS_REPORT.md)**: Dependency usage.
+- **[Code Health Dashboard](02_CODE_HEALTH_METRICS/CODE_HEALTH_DASHBOARD.md)**: Latest linting & type check status.
+- **[Duplication Report](02_CODE_HEALTH_METRICS/DUPLICATION_REPORT.md)**: Code redundancy analysis.
+- **[Codebase Analysis](02_CODE_HEALTH_METRICS/CODEBASE_ANALYSIS.md)**: Deep architectural review.
+- **[External Tools](02_CODE_HEALTH_METRICS/EXTERNAL_TOOLS_REPORT.md)**: Dependency usage.
 
 ---
 
