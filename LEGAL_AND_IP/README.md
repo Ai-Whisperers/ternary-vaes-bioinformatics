@@ -1,5 +1,8 @@
 # Ternary VAE v5.11: Pure Hyperbolic Geometry
 
+![License: CC-BY-4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)
+![Open Medicine Policy](https://img.shields.io/badge/Open%20Medicine-Policy-blue.svg)
+
 > **Unified 3-Adic Embedding with Frozen Encoder Coverage**
 
 ![Version](https://img.shields.io/badge/version-5.11.0-blue)
@@ -599,6 +602,7 @@ If you use this model in your research, please cite:
 **PolyForm Noncommercial License 1.0.0**
 
 This software is free for:
+
 - Academic research and education
 - Student projects and coursework
 - Non-profit research organizations
