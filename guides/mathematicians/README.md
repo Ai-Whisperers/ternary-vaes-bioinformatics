@@ -10,9 +10,9 @@ Pure mathematical investigations using the 3-adic codon encoder (v5.11.3 / v1.1.
 
 Two focused tracks, prioritized for maximum theoretical impact.
 
-| Track | Hypothesis | Status |
-|-------|-----------|--------|
-| 1. Genetic Code Optimality | 64→21 degeneracy reflects optimal p-adic error-correction | Planned |
+| Track                         | Hypothesis                                                | Status  |
+| ----------------------------- | --------------------------------------------------------- | ------- |
+| 1. Genetic Code Optimality    | 64→21 degeneracy reflects optimal p-adic error-correction | Planned |
 | 2. Unreasonable Effectiveness | p-adic geometry is native language of molecular evolution | Planned |
 
 ---
@@ -24,6 +24,7 @@ Two focused tracks, prioritized for maximum theoretical impact.
 ### Background
 
 The genetic code exhibits structured degeneracy:
+
 - 64 codons → 20 amino acids + 1 stop signal
 - Synonymous codons cluster by wobble position (3rd base)
 - Similar amino acids often have similar codons
@@ -41,12 +42,18 @@ The genetic code exhibits structured degeneracy:
 
 ### Metrics to Compute
 
-| Metric | Definition | Optimal Behavior |
-|--------|-----------|------------------|
-| Packing density | Volume ratio of codon balls to total space | Maximized |
-| Covering radius | Max distance from any point to nearest codeword | Minimized |
-| Minimum distance | Smallest inter-class p-adic distance | Maximized |
-| Graceful degradation | Correlation between p-adic distance and biochemical similarity | Strong positive |
+| Metric               | Definition                                                     | Optimal Behavior |
+| -------------------- | -------------------------------------------------------------- | ---------------- |
+| Packing density      | Volume ratio of codon balls to total space                     | Maximized        |
+| Covering radius      | Max distance from any point to nearest codeword                | Minimized        |
+| Minimum distance     | Smallest inter-class p-adic distance                           | Maximized        |
+| Graceful degradation | Correlation between p-adic distance and biochemical similarity | Strong positive  |
+
+## 1. The Core Hypothesis: "Biology is Geometry"
+
+> _"Intelligence is not symbolic; it is topological. Logic is just the nesting of shapes in high-dimensional space."_ — [Topology of Intelligence](../../docs/research_notes/TOPOLOGY_OF_INTELLIGENCE.md)
+
+Our central claim is that the genetic code is an **Optimal Error-Correcting Code** structured on a **3-adic Ultrametric Space** (the Cantor Set).
 
 ### Connections to Established Theory
 
@@ -71,24 +78,24 @@ The genetic code exhibits structured degeneracy:
 
 ### Pro-Arguments to Validate
 
-| Claim | Evidence | Validation Method |
-|-------|----------|-------------------|
-| High predictive accuracy | r=0.751 on HLA-disease association | Cross-validation, held-out diseases |
-| Boundary semantics | 100% boundary-crossing for AA substitutions | Statistical significance vs null |
-| Phylogenetic alignment | Ultrametric distances match evolutionary trees | Compare against known phylogenies |
-| Cross-domain generalization | Works on RA, HIV, Tau, SARS-CoV-2 | Blind prediction on new systems |
-| Structural validation | Predictions confirmed by AlphaFold3 | Correlation with experimental structures |
+| Claim                       | Evidence                                       | Validation Method                        |
+| --------------------------- | ---------------------------------------------- | ---------------------------------------- |
+| High predictive accuracy    | r=0.751 on HLA-disease association             | Cross-validation, held-out diseases      |
+| Boundary semantics          | 100% boundary-crossing for AA substitutions    | Statistical significance vs null         |
+| Phylogenetic alignment      | Ultrametric distances match evolutionary trees | Compare against known phylogenies        |
+| Cross-domain generalization | Works on RA, HIV, Tau, SARS-CoV-2              | Blind prediction on new systems          |
+| Structural validation       | Predictions confirmed by AlphaFold3            | Correlation with experimental structures |
 
 ### Counter-Arguments to Test
 
-| Challenge | Test |
-|-----------|------|
-| Euclidean sufficiency | Train equivalent model in Euclidean R^16, compare performance |
-| Prime specificity | Test p=2, 5, 7, 11 encoders against p=3 |
-| Overfitting to biology | Test on shuffled/randomized biological data |
-| Initialization dependence | Compare against randomly-initialized encoders |
-| Dimensionality confound | Test if high-dim Euclidean matches hyperbolic |
-| Confirmation bias | Blind predictions scored by independent evaluator |
+| Challenge                 | Test                                                          |
+| ------------------------- | ------------------------------------------------------------- |
+| Euclidean sufficiency     | Train equivalent model in Euclidean R^16, compare performance |
+| Prime specificity         | Test p=2, 5, 7, 11 encoders against p=3                       |
+| Overfitting to biology    | Test on shuffled/randomized biological data                   |
+| Initialization dependence | Compare against randomly-initialized encoders                 |
+| Dimensionality confound   | Test if high-dim Euclidean matches hyperbolic                 |
+| Confirmation bias         | Blind predictions scored by independent evaluator             |
 
 ### Null Models Required
 
@@ -126,13 +133,13 @@ The genetic code exhibits structured degeneracy:
 
 ## Timeline
 
-| Phase | Focus | Dependencies |
-|-------|-------|--------------|
-| Phase 1 | Document hypotheses and metrics | None |
-| Phase 2 | Implement null models | Phase 1 |
-| Phase 3 | Run comparative benchmarks | Phase 2 |
-| Phase 4 | Statistical analysis | Phase 3 |
-| Phase 5 | Write findings | Phase 4 |
+| Phase   | Focus                           | Dependencies |
+| ------- | ------------------------------- | ------------ |
+| Phase 1 | Document hypotheses and metrics | None         |
+| Phase 2 | Implement null models           | Phase 1      |
+| Phase 3 | Run comparative benchmarks      | Phase 2      |
+| Phase 4 | Statistical analysis            | Phase 3      |
+| Phase 5 | Write findings                  | Phase 4      |
 
 ---
 
