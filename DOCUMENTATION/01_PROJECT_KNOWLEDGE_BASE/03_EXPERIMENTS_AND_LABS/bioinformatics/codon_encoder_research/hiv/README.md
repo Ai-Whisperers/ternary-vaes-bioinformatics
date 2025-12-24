@@ -6,6 +6,8 @@
 
 ## Executive Summary
 
+![3D Render of HIV-1 Virion with Glycan Shield](images/hiv_env_glycan_shield_render.png)
+
 This directory contains comprehensive analysis of HIV-1 using p-adic geometric methods derived from the 3-adic codon encoder (trained on V5.11.3 embeddings). The research demonstrates that **p-adic distance correlates with evolutionary fitness cost**, providing a novel geometric framework for understanding viral escape mechanisms and identifying therapeutic targets.
 
 **Key Achievement:** The framework successfully identifies "sentinel glycans" on the HIV envelope protein whose removal exposes broadly neutralizing antibody (bnAb) epitopes - a discovery corroborated by AlphaFold3 structural predictions.
@@ -823,12 +825,12 @@ timeline
 
 ## Changelog
 
-| Date       | Version | Description                                                                                |
-| :--------- | :------ | :----------------------------------------------------------------------------------------- |
-| 2025-12-24 | 3.0     | Added Mermaid diagrams, improved visual structure and readability                          |
-| 2025-12-24 | 2.0     | Major expansion: comprehensive documentation, therapeutic implications, AF3 corroboration  |
-| 2025-12-18 | 1.1     | Updated to 3-adic encoder, expanded datasets                                               |
-| 2025-12-16 | 1.0     | Initial implementation                                                                     |
+| Date       | Version | Description                                                                               |
+| :--------- | :------ | :---------------------------------------------------------------------------------------- |
+| 2025-12-24 | 3.0     | Added Mermaid diagrams, improved visual structure and readability                         |
+| 2025-12-24 | 2.0     | Major expansion: comprehensive documentation, therapeutic implications, AF3 corroboration |
+| 2025-12-18 | 1.1     | Updated to 3-adic encoder, expanded datasets                                              |
+| 2025-12-16 | 1.0     | Initial implementation                                                                    |
 
 ---
 

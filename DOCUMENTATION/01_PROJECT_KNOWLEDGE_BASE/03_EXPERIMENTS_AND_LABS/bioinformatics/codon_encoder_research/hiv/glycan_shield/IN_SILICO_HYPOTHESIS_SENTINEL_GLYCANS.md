@@ -6,6 +6,11 @@
 
 ## 1. Core Hypothesis
 
+<div align="center">
+  <img src="images/sentinel_glycan_mechanism.png" width="800" alt="Sentinel Glycan Mechanism Diagram">
+  <p><em>Figure 1: Sentinel Glycan Mechanism - Removal of shielding glycans exposes bnAb epitopes.</em></p>
+</div>
+
 ```mermaid
 flowchart LR
     subgraph HYPOTHESIS[" Core Hypothesis "]
@@ -118,6 +123,11 @@ bnAbs target conserved epitopes often involving glycans:
 ---
 
 ## 3. The Inverse Goldilocks Hypothesis
+
+<div align="center">
+  <img src="images/goldilocks_zone_concept.png" width="800" alt="Goldilocks Zone Concept Chart">
+  <p><em>Figure 2: The Goldilocks Zone - Balancing immune recognition and structural stability.</em></p>
+</div>
 
 ### 3.1 Model Comparison
 
@@ -483,7 +493,7 @@ flowchart LR
     style STABLE fill:#3b82f6,stroke:#1e40af,color:#ffffff,stroke-width:2px
 ```
 
-```
+```text
 Optimal HIV immunogen = Env with sentinel glycans removed
                       = Exposes bnAb epitopes without structural collapse
                       = P-adic guided glycan deletion
@@ -678,11 +688,11 @@ flowchart TB
 
 ## Changelog
 
-| Date       | Version | Description                                        |
-| ---------- | ------- | -------------------------------------------------- |
-| 2025-12-24 | 2.0     | Added Mermaid diagrams, improved visual structure  |
-| 2025-12-24 | 1.1     | Renamed to In Silico Hypothesis                    |
-| 2025-12-18 | 1.0     | Initial conjecture document                        |
+| Date       | Version | Description                                       |
+| ---------- | ------- | ------------------------------------------------- |
+| 2025-12-24 | 2.0     | Added Mermaid diagrams, improved visual structure |
+| 2025-12-24 | 1.1     | Renamed to In Silico Hypothesis                   |
+| 2025-12-18 | 1.0     | Initial conjecture document                       |
 
 ---
 
