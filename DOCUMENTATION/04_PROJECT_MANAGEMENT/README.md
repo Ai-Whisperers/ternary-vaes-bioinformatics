@@ -8,11 +8,24 @@
 
 Active work items broken down by area.
 
-- **[Bioinformatics](00_TASKS/01_BIOINFORMATICS/)**: Data loaders (ScanPy), Genetic Code analysis.
-- **[Model Architecture](00_TASKS/02_MODEL_ARCHITECTURE/)**: Geometry stability (`geoopt`), VAE Core.
-- **[Infrastructure](00_TASKS/03_INFRASTRUCTURE/)**: Refactoring, Viz (`hiplot`), Tooling.
+- **[Bioinformatics](00_TASKS/01_BIOINFORMATICS/)**:
+  - [P1_RA_AUTOIMMUNITY](00_TASKS/01_BIOINFORMATICS/P1_RA_AUTOIMMUNITY.md): Rheumatoid Arthritis & HLA.
+  - [P1_VIRAL_EVOLUTION](00_TASKS/01_BIOINFORMATICS/P1_VIRAL_EVOLUTION.md): HIV/SARS-CoV-2 Glycan Shield.
+  - [P2_BIO_DATA](00_TASKS/01_BIOINFORMATICS/P2_BIO_DATA.md): ScanPy & Data Loaders.
+  - [P3_PTM_GOLDILOCKS_ENCODER](00_TASKS/01_BIOINFORMATICS/P3_PTM_GOLDILOCKS_ENCODER.md): Therapeutic PTM Classifier.
+- **[Model Architecture](00_TASKS/02_MODEL_ARCHITECTURE/)**:
+  - [P0_GEOMETRY](00_TASKS/02_MODEL_ARCHITECTURE/P0_GEOMETRY.md): Stability & `geoopt`.
+  - [P2_SPECTRAL_ANALYSIS](00_TASKS/02_MODEL_ARCHITECTURE/P2_SPECTRAL_ANALYSIS.md): Geometric Scattering.
+  - [P3_MODEL_OPTIMIZATION](00_TASKS/02_MODEL_ARCHITECTURE/P3_MODEL_OPTIMIZATION.md): Riemannian Adam & JIT.
+  - [P3_THEORETICAL_VALIDATION](00_TASKS/02_MODEL_ARCHITECTURE/P3_THEORETICAL_VALIDATION.md): Verify Conjectures.
+- **[Infrastructure](00_TASKS/03_INFRASTRUCTURE/)**:
+  - [P1_SECURITY_FIXES](00_TASKS/03_INFRASTRUCTURE/P1_SECURITY_FIXES.md): Security & Parsing Fixes.
+  - [P1_UNIT_TESTING_OVERHAUL](00_TASKS/03_INFRASTRUCTURE/P1_UNIT_TESTING_OVERHAUL.md): Pytest & CI.
+  - [P2_COMPLEXITY_REFACTOR](00_TASKS/03_INFRASTRUCTURE/P2_COMPLEXITY_REFACTOR.md): Cyclomatic Refactoring.
 - **[Documentation](00_TASKS/04_DOCUMENTATION/)**: Knowledge Base maintenance.
-- **[Validation](00_TASKS/05_VALIDATION/)**: Metrics (MIG), Benchmarks.
+- **[Validation](00_TASKS/05_VALIDATION/)**:
+  - [P1_VALIDATION_SUITE](00_TASKS/05_VALIDATION/P1_VALIDATION_SUITE.md): Benchmarks & "Kill Sheet".
+  - [P2_METRICS](00_TASKS/05_VALIDATION/P2_METRICS.md): MIG & Disentanglement.
 - **[💡 Ideas & Concepts](00_TASKS/99_IDEAS/)**: Future explorations (Dashboards, JIT).
 
 ---

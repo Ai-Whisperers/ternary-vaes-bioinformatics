@@ -49,12 +49,24 @@ This document outlines structural and functional improvements to the codebase, d
 - [ ] **Base Trainer Class**: Create `src/training/base.py` containing the `__init__`, checkpointing, and loop boilerplate.
 - [ ] **Inheritance Refactor**: Refactor `TernaryVAETrainer` and `AppetitiveVAETrainer` to inherit from the base class.
 
+## 6. Science & Experiments (Knowledge Translation)
+
+**Source:** `01_PROJECT_KNOWLEDGE_BASE` (Experiments Index)
+**Goal:** Translate theoretical findings into reproducible lab results.
+
+- [ ] **Rheumatoid Arthritis**: Verify "Goldilocks Zone" hypothesis (`P1_RA_AUTOIMMUNITY`).
+- [ ] **Viral Evolution**: Analyze Glycan Shield geometry (`P1_VIRAL_EVOLUTION`).
+- [ ] **Spectral Analysis**: Compute Adelic/Spectral fingerprints (`P2_SPECTRAL_ANALYSIS`).
+- [ ] **Validation Pillars**: Execute the full benchmark suite (`P1_VALIDATION_SUITE`).
+
 ## Summary of Priority Actions
 
-| Priority | Area     | Task File                                                                    | Action                  |
-| :------- | :------- | :--------------------------------------------------------------------------- | :---------------------- |
-| **P0**   | Geometry | **[P0_GEOMETRY.md](../00_TASKS/02_MODEL_ARCHITECTURE/P0_GEOMETRY.md)**       | Make `geoopt` mandatory |
-| **P1**   | Refactor | **[P1_REFACTOR.md](../00_TASKS/03_INFRASTRUCTURE/P1_REFACTOR.md)**           | Unify Trainers          |
-| **P2**   | Metrics  | **[P2_METRICS.md](../00_TASKS/05_VALIDATION/P2_METRICS.md)**                 | Implement MIG           |
-| **P2**   | Data     | **[P2_BIO_DATA.md](../00_TASKS/01_BIOINFORMATICS/P2_BIO_DATA.md)**           | Add `scanpy` loader     |
-| **P3**   | Viz      | **[P3_VISUALIZATION.md](../00_TASKS/03_INFRASTRUCTURE/P3_VISUALIZATION.md)** | Add `hiplot` script     |
+| Priority | Area     | Task File                                                                                | Action                   |
+| :------- | :------- | :--------------------------------------------------------------------------------------- | :----------------------- |
+| **P0**   | Geometry | **[P0_GEOMETRY.md](../00_TASKS/02_MODEL_ARCHITECTURE/P0_GEOMETRY.md)**                   | Make `geoopt` mandatory  |
+| **P0**   | Science  | **[P1_RA_AUTOIMMUNITY.md](../00_TASKS/01_BIOINFORMATICS/P1_RA_AUTOIMMUNITY.md)**         | Validate RA Hypothesis   |
+| **P1**   | Security | **[P1_SECURITY_FIXES.md](../00_TASKS/03_INFRASTRUCTURE/P1_SECURITY_FIXES.md)**           | Fix Syntax/Security bugs |
+| **P1**   | Refactor | **[P2_COMPLEXITY_REFACTOR.md](../00_TASKS/03_INFRASTRUCTURE/P2_COMPLEXITY_REFACTOR.md)** | Fix Monster Functions    |
+| **P1**   | Bio      | **[P1_VIRAL_EVOLUTION.md](../00_TASKS/01_BIOINFORMATICS/P1_VIRAL_EVOLUTION.md)**         | Glycan Shield Analysis   |
+| **P2**   | Metrics  | **[P2_METRICS.md](../00_TASKS/05_VALIDATION/P2_METRICS.md)**                             | Implement MIG            |
+| **P3**   | Viz      | **[P3_VISUALIZATION.md](../00_TASKS/03_INFRASTRUCTURE/P3_VISUALIZATION.md)**             | Add `hiplot` script      |
