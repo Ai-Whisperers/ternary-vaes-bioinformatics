@@ -29,13 +29,24 @@ env/
 # Environment variables
 .env
 
-# IDE
+# IDE and AI Tools
 .vscode/
 !.vscode/extensions.json
 .idea/
 *.swp
 *.swo
 *~
+.cursor/
+.gemini/
+.claude/
+conductor/
+
+# Build artifacts and analysis outputs
+radon_results.json
+bandit_results.json
+dataset_*.json
+*_results.json
+*.log
 
 
 

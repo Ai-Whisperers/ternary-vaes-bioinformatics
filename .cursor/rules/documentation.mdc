@@ -1,9 +1,0 @@
----
-description: Documentation Standards
-globs: *.py, *.md
----
-# Documentation Rules
-
--   **Docstrings**: All public modules, classes, and functions MUST have Google-style docstrings.
--   **READMEs**: Every directory should have a `README.md` explaining its purpose.
--   **Updates**: When modifying logic, you MUST update corresponding docstrings immediately.
