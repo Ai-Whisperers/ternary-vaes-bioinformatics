@@ -38,6 +38,11 @@ Analysis of 27 HIV-1 mutations (9 CTL escape, 18 drug resistance) reveals that *
 
 ### Overview
 
+<div align="center">
+  <img src="images/hyperbolic_drug_resistance_profile.png" width="600" alt="Hyperbolic Drug Resistance Profile">
+  <p><em>Figure 3: P-Adic Drug Resistance Landscape - Visualizing the geometric cost of escape.</em></p>
+</div>
+
 ```mermaid
 flowchart TB
     subgraph DRUG_CLASSES[" Drug Class P-Adic Profiles "]
@@ -67,12 +72,12 @@ xychart-beta
     bar [6.05, 5.34, 5.16, 3.60]
 ```
 
-| Drug Class | Mean Distance | Std Dev | Target Site | Interpretation |
-|:-----------|:--------------|:--------|:------------|:---------------|
-| **NRTI** | 6.05 | ±1.28 | RT active site | Most constrained |
-| **INSTI** | 5.16 | ±1.45 | Integrase active site | High constraint |
-| **NNRTI** | 5.34 | ±1.40 | Allosteric pocket | Moderate |
-| **PI** | 3.60 | ±2.01 | Protease | Most flexible |
+| Drug Class | Mean Distance | Std Dev | Target Site           | Interpretation   |
+| :--------- | :------------ | :------ | :-------------------- | :--------------- |
+| **NRTI**   | 6.05          | ±1.28   | RT active site        | Most constrained |
+| **INSTI**  | 5.16          | ±1.45   | Integrase active site | High constraint  |
+| **NNRTI**  | 5.34          | ±1.40   | Allosteric pocket     | Moderate         |
+| **PI**     | 3.60          | ±2.01   | Protease              | Most flexible    |
 
 ### Biological Explanation
 
@@ -96,11 +101,13 @@ flowchart TB
 ```
 
 **Why NRTIs Have Highest Distances:**
+
 - Reverse transcriptase active site is catalytically essential
 - M184V (3TC/FTC resistance): d = 4.00 - significant fitness cost
 - K65R (tenofovir resistance): d = 7.41 - major geometric jump required
 
 **Why PIs Have Lower Distances:**
+
 - Protease more tolerant of substitutions
 - Multiple compensatory mutations available
 - M46I: d = 3.18 - relatively small jump
@@ -110,6 +117,11 @@ flowchart TB
 ## Discovery 2: Elite Controller HLA Alleles
 
 ### Geometric Protection Mechanism
+
+<div align="center">
+  <img src="images/hla_b27_geometric_trap.png" width="800" alt="HLA-B27 Geometric Trap">
+  <p><em>Figure 5: The "Geometric Trap" - HLA-B27 presents epitopes deep in the fitness landscape, preventing escape.</em></p>
+</div>
 
 ```mermaid
 flowchart TB
@@ -139,14 +151,14 @@ xychart-beta
     bar [7.38, 7.37, 6.34, 5.27, 4.96, 4.10]
 ```
 
-| Epitope | HLA | Protein | Wild-Type | Escape | Distance | Fitness Cost |
-|:--------|:----|:--------|:----------|:-------|:---------|:-------------|
-| **KK10** | B*27:05 | Gag p24 | KRWIILGLNK | R264K | **7.38** | High |
-| **FL8** | A*24:02 | Nef | FLKEKGGL | K94R | **7.37** | Low |
-| **TW10** | B*57:01 | Gag p24 | TSTLQEQIGW | T242N | **6.34** | Moderate |
-| SL9 | A*02:01 | Gag p17 | SLYNTVATL | Y79F | 5.27 | Low |
-| IV9 | A*02:01 | RT | ILKEPVHGV | V181I | 4.10 | Low |
-| RL9 | B*08:01 | Env | RLRDLLLIW | D314N | 4.96 | High |
+| Epitope  | HLA      | Protein | Wild-Type  | Escape | Distance | Fitness Cost |
+| :------- | :------- | :------ | :--------- | :----- | :------- | :----------- |
+| **KK10** | B\*27:05 | Gag p24 | KRWIILGLNK | R264K  | **7.38** | High         |
+| **FL8**  | A\*24:02 | Nef     | FLKEKGGL   | K94R   | **7.37** | Low          |
+| **TW10** | B\*57:01 | Gag p24 | TSTLQEQIGW | T242N  | **6.34** | Moderate     |
+| SL9      | A\*02:01 | Gag p17 | SLYNTVATL  | Y79F   | 5.27     | Low          |
+| IV9      | A\*02:01 | RT      | ILKEPVHGV  | V181I  | 4.10     | Low          |
+| RL9      | B\*08:01 | Env     | RLRDLLLIW  | D314N  | 4.96     | High         |
 
 ### Why HLA-B27 Provides Protection
 
@@ -166,7 +178,8 @@ flowchart LR
     style E4 fill:#22c55e,stroke:#15803d,color:#ffffff,stroke-width:2px
 ```
 
-HLA-B27 and B*57:01 are "protective" alleles because:
+HLA-B27 and B\*57:01 are "protective" alleles because:
+
 1. **High escape distance** - Virus must make large p-adic jumps to escape
 2. **High fitness cost** - Escape mutations impair viral replication
 3. **Geometric barrier** - The p-adic landscape acts as evolutionary trap
@@ -209,15 +222,15 @@ xychart-beta
 
 Seven glycosylation sites on HIV-1 gp120 fall within the Goldilocks Zone (15-30% centroid shift upon deglycosylation):
 
-| Site | Region | Shift | Score | bnAb Relevance |
-|:-----|:-------|:------|:------|:---------------|
-| **N58** | V1 | 22.4% | 1.19 | V1/V2 shield |
-| **N429** | C5 | 22.6% | 1.19 | Structural |
-| **N103** | V2 | 23.7% | 1.04 | V1/V2 apex (PG9/PG16) |
-| **N204** | V3 | 25.1% | 0.85 | V3 supersite (PGT121) |
-| **N107** | V2 | 17.0% | 0.46 | V1/V2 bnAbs |
-| **N271** | C3 | 28.4% | 0.42 | Core glycan |
-| **N265** | C3 | 29.1% | 0.32 | Core glycan |
+| Site     | Region | Shift | Score | bnAb Relevance        |
+| :------- | :----- | :---- | :---- | :-------------------- |
+| **N58**  | V1     | 22.4% | 1.19  | V1/V2 shield          |
+| **N429** | C5     | 22.6% | 1.19  | Structural            |
+| **N103** | V2     | 23.7% | 1.04  | V1/V2 apex (PG9/PG16) |
+| **N204** | V3     | 25.1% | 0.85  | V3 supersite (PGT121) |
+| **N107** | V2     | 17.0% | 0.46  | V1/V2 bnAbs           |
+| **N271** | C3     | 28.4% | 0.42  | Core glycan           |
+| **N265** | C3     | 29.1% | 0.32  | Core glycan           |
 
 ### Goldilocks Zone Map
 
@@ -256,6 +269,11 @@ flowchart TB
 
 ### Structural Predictions
 
+<div align="center">
+  <img src="images/alphafold_structural_perturbation.png" width="800" alt="AlphaFold Structural Perturbation">
+  <p><em>Figure 6: Structural Perturbation - Deglycosylation at sentinel sites triggers significant conformational shifts.</em></p>
+</div>
+
 ```mermaid
 flowchart LR
     subgraph AF3[" AlphaFold3 Predictions "]
@@ -278,14 +296,14 @@ flowchart LR
 
 Strong inverse correlation (r = -0.89) between Goldilocks score and structural stability upon deglycosylation.
 
-| Variant | pTM | pLDDT | Disorder | Goldilocks Score |
-|:--------|:----|:------|:---------|:-----------------|
-| Wild-type | 0.82 | 78.3 | 0% | N/A |
-| N58Q | 0.79 | 73.2 | 75% | 1.19 |
-| N429Q | 0.75 | 71.1 | 100% | 1.19 |
-| N103Q | 0.80 | 75.8 | 67% | 1.04 |
-| N204Q | 0.81 | 76.4 | 68% | 0.85 |
-| Above-Goldilocks (mean) | 0.81 | 77.5 | 63% | 0.65 |
+| Variant                 | pTM  | pLDDT | Disorder | Goldilocks Score |
+| :---------------------- | :--- | :---- | :------- | :--------------- |
+| Wild-type               | 0.82 | 78.3  | 0%       | N/A              |
+| N58Q                    | 0.79 | 73.2  | 75%      | 1.19             |
+| N429Q                   | 0.75 | 71.1  | 100%     | 1.19             |
+| N103Q                   | 0.80 | 75.8  | 67%      | 1.04             |
+| N204Q                   | 0.81 | 76.4  | 68%      | 0.85             |
+| Above-Goldilocks (mean) | 0.81 | 77.5  | 63%      | 0.65             |
 
 ### Interpretation
 
@@ -311,6 +329,11 @@ flowchart TB
 ## Therapeutic Implications
 
 ### Application Pathways
+
+<div align="center">
+  <img src="images/hiv_therapeutic_landscape_concept.png" width="800" alt="HIV Therapeutic Landscape">
+  <p><em>Figure 7: Therapeutic Landscape - Integrating drug design, vaccines, and novel glycan editing.</em></p>
+</div>
 
 ```mermaid
 flowchart TB
@@ -350,11 +373,11 @@ flowchart LR
 
 **Target regions requiring large p-adic jumps for escape:**
 
-| Priority | Target | Current Drugs | Mean Escape d |
-|:---------|:-------|:--------------|:--------------|
-| 1 | Integrase active site | DTG, BIC | 5.16 |
-| 2 | RT active site | TAF, TDF | 6.05 |
-| 3 | Protease metal sites | DRV | 3.60 (improve) |
+| Priority | Target                | Current Drugs | Mean Escape d  |
+| :------- | :-------------------- | :------------ | :------------- |
+| 1        | Integrase active site | DTG, BIC      | 5.16           |
+| 2        | RT active site        | TAF, TDF      | 6.05           |
+| 3        | Protease metal sites  | DRV           | 3.60 (improve) |
 
 ### 2. Vaccine Immunogen Design
 
@@ -376,10 +399,12 @@ flowchart LR
 **Recommended constructs:**
 
 1. **Triple sentinel removal:** BG505 N58Q + N103Q + N204Q
+
    - Exposes V1/V2 apex and V3 supersite
    - Targets PG9, PG16, PGT121, PGT128 epitopes
 
 2. **V1/V2 focused:** N103Q + N107Q
+
    - Apex exposure for PG9/PG16 class
 
 3. **Sequential strategy:**
@@ -389,8 +414,9 @@ flowchart LR
 ### 3. CTL-Based Vaccine
 
 **Target epitopes requiring d > 6.0 for escape:**
+
 - HLA-B27 restricted (KK10): d = 7.38
-- HLA-B*57:01 restricted (TW10): d = 6.34
+- HLA-B\*57:01 restricted (TW10): d = 6.34
 - Multi-epitope increases total geometric barrier
 
 ### 4. Novel: Glycan Editing Therapy
@@ -412,6 +438,7 @@ flowchart TB
 ```
 
 **Concept:** Glycosidase-antibody conjugates targeting N58/N429
+
 - Transient glycan removal exposes bnAb epitopes
 - Enable immune clearance of latent reservoir cells
 - Combine with existing ART for functional cure
@@ -430,20 +457,20 @@ pie showData
     "Glycan Sites (n=24)" : 24
 ```
 
-| Analysis | n | Categories |
-|:---------|:--|:-----------|
-| CTL escape | 9 | 6 epitopes |
-| Drug resistance | 18 | 4 drug classes |
-| Glycan sites | 24 | 7 Goldilocks |
-| **Total** | **51** | - |
+| Analysis        | n      | Categories     |
+| :-------------- | :----- | :------------- |
+| CTL escape      | 9      | 6 epitopes     |
+| Drug resistance | 18     | 4 drug classes |
+| Glycan sites    | 24     | 7 Goldilocks   |
+| **Total**       | **51** | -              |
 
 ### Correlations
 
-| Comparison | r | p-value | Interpretation |
-|:-----------|:--|:--------|:---------------|
-| Escape d vs fitness | 0.29 | 0.45 | Positive trend |
-| Drug class d vs constraint | 0.68 | <0.01 | Significant |
-| Goldilocks vs AF3 disorder | -0.89 | <0.001 | Strong inverse |
+| Comparison                 | r     | p-value | Interpretation |
+| :------------------------- | :---- | :------ | :------------- |
+| Escape d vs fitness        | 0.29  | 0.45    | Positive trend |
+| Drug class d vs constraint | 0.68  | <0.01   | Significant    |
+| Goldilocks vs AF3 disorder | -0.89 | <0.001  | Strong inverse |
 
 ---
 
@@ -469,13 +496,13 @@ flowchart LR
     style AD fill:#8b5cf6,stroke:#6d28d9,color:#ffffff,stroke-width:2px
 ```
 
-| Disease | PTM Type | Direction | Model | Status |
-|:--------|:---------|:----------|:------|:-------|
-| **HIV** | Glycosylation | Removal exposes | Inverse Goldilocks | **VALIDATED** |
-| RA | Citrullination | Addition triggers | Standard Goldilocks | VALIDATED |
-| SARS-CoV-2 | Phosphomimic | Asymmetric disruption | Handshake | VALIDATED |
-| Alzheimer's | Phosphorylation | Cumulative dysfunction | Transition Zone | VALIDATED |
-| Cancer | Various | Context-dependent | TBD | Pending |
+| Disease     | PTM Type        | Direction              | Model               | Status        |
+| :---------- | :-------------- | :--------------------- | :------------------ | :------------ |
+| **HIV**     | Glycosylation   | Removal exposes        | Inverse Goldilocks  | **VALIDATED** |
+| RA          | Citrullination  | Addition triggers      | Standard Goldilocks | VALIDATED     |
+| SARS-CoV-2  | Phosphomimic    | Asymmetric disruption  | Handshake           | VALIDATED     |
+| Alzheimer's | Phosphorylation | Cumulative dysfunction | Transition Zone     | VALIDATED     |
+| Cancer      | Various         | Context-dependent      | TBD                 | Pending       |
 
 **Key Insight:** The 15-30% Goldilocks Zone appears universal across disease contexts, suggesting it reflects fundamental immune recognition thresholds.
 
@@ -579,11 +606,11 @@ timeline
 
 ## Changelog
 
-| Date | Version | Description |
-|:-----|:--------|:------------|
-| 2025-12-24 | 3.0 | Added Mermaid diagrams, improved visual structure |
-| 2025-12-24 | 2.0 | Major expansion: sentinel glycans, AF3 corroboration, therapeutic implications |
-| 2025-12-16 | 1.0 | Initial discovery documentation |
+| Date       | Version | Description                                                                    |
+| :--------- | :------ | :----------------------------------------------------------------------------- |
+| 2025-12-24 | 3.0     | Added Mermaid diagrams, improved visual structure                              |
+| 2025-12-24 | 2.0     | Major expansion: sentinel glycans, AF3 corroboration, therapeutic implications |
+| 2025-12-16 | 1.0     | Initial discovery documentation                                                |
 
 ---
 
@@ -612,14 +639,14 @@ flowchart LR
     style M5 fill:#3b82f6,stroke:#1e40af,color:#ffffff,stroke-width:2px
 ```
 
-| Metric | Value | Significance |
-|:-------|:------|:-------------|
-| Sentinel glycans | 7 sites | Vaccine immunogen targets |
-| Mean Goldilocks shift | 23.4% | Optimal epitope exposure |
-| AF3 correlation | r = -0.89 | Strong structural corroboration |
-| Highest escape d | 7.41 | K65R, R263K (major barrier) |
-| Most constrained class | NRTI (d = 6.05) | Best drug target region |
-| Elite controller d | 7.38 | HLA-B27 protection mechanism |
+| Metric                 | Value           | Significance                    |
+| :--------------------- | :-------------- | :------------------------------ |
+| Sentinel glycans       | 7 sites         | Vaccine immunogen targets       |
+| Mean Goldilocks shift  | 23.4%           | Optimal epitope exposure        |
+| AF3 correlation        | r = -0.89       | Strong structural corroboration |
+| Highest escape d       | 7.41            | K65R, R263K (major barrier)     |
+| Most constrained class | NRTI (d = 6.05) | Best drug target region         |
+| Elite controller d     | 7.38            | HLA-B27 protection mechanism    |
 
 ### One-Liner
 

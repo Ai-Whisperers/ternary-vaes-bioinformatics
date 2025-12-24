@@ -42,6 +42,11 @@ flowchart TB
 
 ### Experimental Design
 
+<div align="center">
+  <img src="images/alphafold_structural_perturbation.png" width="800" alt="AlphaFold Structural Perturbation">
+  <p><em>Figure 1: Structural Perturbation - Comparing Native (Green) vs Deglycosylated (Orange) gp120 conformations.</em></p>
+</div>
+
 ```mermaid
 flowchart LR
     subgraph AF3["<b>AlphaFold3 Validation Pipeline</b>"]
@@ -66,15 +71,15 @@ flowchart LR
 
 ### Structural Metrics
 
-| Variant | pTM | pLDDT | Disorder | Goldilocks Score |
-|:--------|:----|:------|:---------|:-----------------|
-| Wild-type | 0.82 | 78.3 | 0% | N/A |
-| **N58Q** | 0.79 | 73.2 | **75%** | **1.19** |
-| **N429Q** | 0.75 | 71.1 | **100%** | **1.19** |
-| **N103Q** | 0.80 | 75.8 | **67%** | **1.04** |
-| N204Q | 0.81 | 76.4 | 68% | 0.85 |
-| N246Q | 0.81 | 77.1 | 63% | 0.70 |
-| N152Q | 0.81 | 77.8 | 61% | 0.69 |
+| Variant   | pTM  | pLDDT | Disorder | Goldilocks Score |
+| :-------- | :--- | :---- | :------- | :--------------- |
+| Wild-type | 0.82 | 78.3  | 0%       | N/A              |
+| **N58Q**  | 0.79 | 73.2  | **75%**  | **1.19**         |
+| **N429Q** | 0.75 | 71.1  | **100%** | **1.19**         |
+| **N103Q** | 0.80 | 75.8  | **67%**  | **1.04**         |
+| N204Q     | 0.81 | 76.4  | 68%      | 0.85             |
+| N246Q     | 0.81 | 77.1  | 63%      | 0.70             |
+| N152Q     | 0.81 | 77.8  | 61%      | 0.69             |
 
 ### Correlation Analysis
 
@@ -123,11 +128,11 @@ xychart-beta
     bar [6.05, 5.34, 5.16, 3.60]
 ```
 
-| Correlation | r | p-value | Interpretation |
-|:------------|:--|:--------|:---------------|
-| Class distance vs constraint | 0.68 | < 0.01 | Significant |
-| Escape d vs fitness cost | 0.29 | 0.45 | Positive trend |
-| Goldilocks vs AF3 disorder | -0.89 | < 0.001 | Strong inverse |
+| Correlation                  | r     | p-value | Interpretation |
+| :--------------------------- | :---- | :------ | :------------- |
+| Class distance vs constraint | 0.68  | < 0.01  | Significant    |
+| Escape d vs fitness cost     | 0.29  | 0.45    | Positive trend |
+| Goldilocks vs AF3 disorder   | -0.89 | < 0.001 | Strong inverse |
 
 ### Sample Sizes
 
@@ -174,12 +179,12 @@ flowchart LR
 
 ### Concordance with Published Data
 
-| Known bnAb Target | Our Prediction | Concordance |
-|:------------------|:---------------|:------------|
-| N156 (PG9) | N103, N107 (V1/V2) | Adjacent region |
-| N160 (PGT145) | N103 (V2) | Same region |
-| N332 (PGT121) | N204 (V3) | Same supersite |
-| N276 (VRC01) | Outside analysis | CD4bs region |
+| Known bnAb Target | Our Prediction     | Concordance     |
+| :---------------- | :----------------- | :-------------- |
+| N156 (PG9)        | N103, N107 (V1/V2) | Adjacent region |
+| N160 (PGT145)     | N103 (V2)          | Same region     |
+| N332 (PGT121)     | N204 (V3)          | Same supersite  |
+| N276 (VRC01)      | Outside analysis   | CD4bs region    |
 
 **Note:** Our analysis uses BG505 sequence; some sites correspond to different HXB2 numbering.
 
@@ -212,12 +217,12 @@ flowchart TB
     style TAU fill:#ec4899,stroke:#db2777,color:#ffffff,stroke-width:2px
 ```
 
-| Disease | PTM Type | Direction | Validation Status |
-|:--------|:---------|:----------|:------------------|
-| **HIV** | Glycosylation | Removal exposes | VALIDATED (AF3) |
-| **RA** | Citrullination | Addition triggers | VALIDATED (Literature) |
-| **SARS-CoV-2** | Phosphomimic | Asymmetric | VALIDATED (AF3) |
-| **Alzheimer's** | Phosphorylation | Cumulative | VALIDATED (Literature) |
+| Disease         | PTM Type        | Direction         | Validation Status      |
+| :-------------- | :-------------- | :---------------- | :--------------------- |
+| **HIV**         | Glycosylation   | Removal exposes   | VALIDATED (AF3)        |
+| **RA**          | Citrullination  | Addition triggers | VALIDATED (Literature) |
+| **SARS-CoV-2**  | Phosphomimic    | Asymmetric        | VALIDATED (AF3)        |
+| **Alzheimer's** | Phosphorylation | Cumulative        | VALIDATED (Literature) |
 
 ---
 
@@ -242,13 +247,13 @@ quadrantChart
 
 ### Confidence Levels
 
-| Discovery | Validation Type | Confidence |
-|:----------|:----------------|:-----------|
-| Sentinel Glycans | AF3 + Literature | **HIGH** |
-| Drug Class Profiles | Statistical + Literature | **HIGH** |
-| Elite Controller Mechanism | Literature | **HIGH** |
-| Inverse Goldilocks Model | AF3 + Cross-disease | **HIGH** |
-| Therapeutic Applications | Conceptual | **MEDIUM** |
+| Discovery                  | Validation Type          | Confidence |
+| :------------------------- | :----------------------- | :--------- |
+| Sentinel Glycans           | AF3 + Literature         | **HIGH**   |
+| Drug Class Profiles        | Statistical + Literature | **HIGH**   |
+| Elite Controller Mechanism | Literature               | **HIGH**   |
+| Inverse Goldilocks Model   | AF3 + Cross-disease      | **HIGH**   |
+| Therapeutic Applications   | Conceptual               | **MEDIUM** |
 
 ---
 
@@ -292,13 +297,13 @@ flowchart TB
 
 ### Planned Validation
 
-| Validation | Method | Status |
-|:-----------|:-------|:-------|
-| Cross-clade analysis | Los Alamos sequences | Planned |
-| Stanford HIVDB expansion | Full mutation set | Planned |
-| bnAb binding assays | Wet lab partner | Seeking |
-| Clinical correlation | Patient outcomes | Seeking |
-| Animal immunization | Deglycosylated constructs | Long-term |
+| Validation               | Method                    | Status    |
+| :----------------------- | :------------------------ | :-------- |
+| Cross-clade analysis     | Los Alamos sequences      | Planned   |
+| Stanford HIVDB expansion | Full mutation set         | Planned   |
+| bnAb binding assays      | Wet lab partner           | Seeking   |
+| Clinical correlation     | Patient outcomes          | Seeking   |
+| Animal immunization      | Deglycosylated constructs | Long-term |
 
 ---
 

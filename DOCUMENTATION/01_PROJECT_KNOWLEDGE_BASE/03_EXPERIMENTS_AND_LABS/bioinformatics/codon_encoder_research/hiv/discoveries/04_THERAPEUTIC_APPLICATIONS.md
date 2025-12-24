@@ -33,6 +33,11 @@ timeline
 
 ## Application Overview
 
+<div align="center">
+  <img src="images/hiv_therapeutic_landscape_concept.png" width="800" alt="HIV Therapeutic Landscape">
+  <p><em>Figure 1: Integrated Therapeutic Landscape - From molecular drug design to functional cures.</em></p>
+</div>
+
 ```mermaid
 flowchart TB
     subgraph APPLICATIONS["<b>7 Therapeutic Applications</b>"]
@@ -172,13 +177,13 @@ flowchart TB
 
 ### Combination Rankings
 
-| Combination | Components | Total Barrier | Recommendation |
-|:------------|:-----------|:--------------|:---------------|
-| **INSTI + NRTI + NRTI** | DTG + TAF + FTC | ~15.1 | OPTIMAL |
-| **INSTI + NRTI** | DTG + TAF | ~11.2 | Excellent |
-| **INSTI + NNRTI** | DTG + EFV | ~10.5 | Good |
-| NNRTI + NRTI | EFV + TDF | ~9.5 | Moderate |
-| NNRTI + PI | EFV + ATV | ~8.9 | Caution |
+| Combination             | Components      | Total Barrier | Recommendation |
+| :---------------------- | :-------------- | :------------ | :------------- |
+| **INSTI + NRTI + NRTI** | DTG + TAF + FTC | ~15.1         | OPTIMAL        |
+| **INSTI + NRTI**        | DTG + TAF       | ~11.2         | Excellent      |
+| **INSTI + NNRTI**       | DTG + EFV       | ~10.5         | Good           |
+| NNRTI + NRTI            | EFV + TDF       | ~9.5          | Moderate       |
+| NNRTI + PI              | EFV + ATV       | ~8.9          | Caution        |
 
 ---
 
@@ -377,14 +382,14 @@ quadrantChart
 
 ## Priority Matrix
 
-| Application | Timeline | Impact | Resources | Priority |
-|:------------|:---------|:-------|:----------|:---------|
-| Combo Optimization | Immediate | Medium | Low | **1** |
-| Resistance Prediction | 6-12 mo | Medium | Medium | **2** |
-| Vaccine Immunogens | 1-2 yr | High | High | **3** |
-| Elite Controller Research | 2-3 yr | High | Medium | **4** |
-| Glycan Editing | 3-5 yr | Very High | Very High | **5** |
-| Functional Cure | 5+ yr | Transformative | Very High | **6** |
+| Application               | Timeline  | Impact         | Resources | Priority |
+| :------------------------ | :-------- | :------------- | :-------- | :------- |
+| Combo Optimization        | Immediate | Medium         | Low       | **1**    |
+| Resistance Prediction     | 6-12 mo   | Medium         | Medium    | **2**    |
+| Vaccine Immunogens        | 1-2 yr    | High           | High      | **3**    |
+| Elite Controller Research | 2-3 yr    | High           | Medium    | **4**    |
+| Glycan Editing            | 3-5 yr    | Very High      | Very High | **5**    |
+| Functional Cure           | 5+ yr     | Transformative | Very High | **6**    |
 
 ---
 

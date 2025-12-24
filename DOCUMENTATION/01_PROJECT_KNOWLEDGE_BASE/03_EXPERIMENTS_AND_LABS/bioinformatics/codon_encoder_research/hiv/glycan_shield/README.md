@@ -6,7 +6,12 @@
 
 ## Overview
 
-This module implements the **Inverse Goldilocks Model** for HIV vaccine design: identifying "sentinel glycans" on HIV-1 gp120 whose removal optimally exposes broadly neutralizing antibody (bnAb) epitopes. Unlike autoimmune diseases where PTM *addition* triggers immunity, HIV uses glycan *presence* to shield epitopes - and strategic deglycosylation can shift epitopes *into* the immunogenic Goldilocks Zone.
+This module implements the **Inverse Goldilocks Model** for HIV vaccine design: identifying "sentinel glycans" on HIV-1 gp120 whose removal optimally exposes broadly neutralizing antibody (bnAb) epitopes. Unlike autoimmune diseases where PTM _addition_ triggers immunity, HIV uses glycan _presence_ to shield epitopes - and strategic deglycosylation can shift epitopes _into_ the immunogenic Goldilocks Zone.
+
+<div align="center">
+  <img src="images/sentinel_glycan_mechanism.png" width="800" alt="Sentinel Glycan Mechanism Diagram">
+  <p><em>Figure 1: Sentinel Glycan Mechanism - Removal of shielding glycans exposes bnAb epitopes.</em></p>
+</div>
 
 ---
 
@@ -35,6 +40,11 @@ Glycosylated Env ──[-glycan]──► Deglycosylated Env
 ```
 
 **Key Insight:** The same 15-30% geometric shift threshold that triggers autoimmunity in RA can be exploited to expose HIV epitopes for vaccine design.
+
+<div align="center">
+  <img src="images/goldilocks_zone_concept.png" width="800" alt="Goldilocks Zone Concept Chart">
+  <p><em>Figure 2: The Goldilocks Zone - Balancing immune recognition and structural stability.</em></p>
+</div>
 
 ---
 
@@ -98,25 +108,25 @@ goldilocks_score = zone_score + boundary_bonus
 
 ### Sentinel Glycans (Goldilocks Zone Sites)
 
-| Rank | Site | Region | Shift | Score | bnAb Relevance |
-|:-----|:-----|:-------|:------|:------|:---------------|
-| 1 | **N58** | V1 | 22.4% | 1.19 | V1/V2 shield |
-| 2 | **N429** | C5 | 22.6% | 1.19 | Structural |
-| 3 | **N103** | V2 | 23.7% | 1.04 | V1/V2 bnAbs (PG9/PG16) |
-| 4 | **N204** | V3 | 25.1% | 0.85 | V3 supersite (PGT121) |
-| 5 | **N107** | V2 | 17.0% | 0.46 | V1/V2 bnAbs |
-| 6 | **N271** | C3 | 28.4% | 0.42 | Core glycan |
-| 7 | **N265** | C3 | 29.1% | 0.32 | Core glycan |
+| Rank | Site     | Region | Shift | Score | bnAb Relevance         |
+| :--- | :------- | :----- | :---- | :---- | :--------------------- |
+| 1    | **N58**  | V1     | 22.4% | 1.19  | V1/V2 shield           |
+| 2    | **N429** | C5     | 22.6% | 1.19  | Structural             |
+| 3    | **N103** | V2     | 23.7% | 1.04  | V1/V2 bnAbs (PG9/PG16) |
+| 4    | **N204** | V3     | 25.1% | 0.85  | V3 supersite (PGT121)  |
+| 5    | **N107** | V2     | 17.0% | 0.46  | V1/V2 bnAbs            |
+| 6    | **N271** | C3     | 28.4% | 0.42  | Core glycan            |
+| 7    | **N265** | C3     | 29.1% | 0.32  | Core glycan            |
 
 ### Above-Goldilocks Sites (Structural Glycans)
 
 Sites with >30% shift are likely structural - their removal destabilizes gp120:
 
-| Site | Region | Shift | Likely Role |
-|:-----|:-------|:------|:------------|
-| N246 | C3 | 30.0% | Core stability |
-| N152, N155 | C2 | ~31% | CD4bs proximal |
-| N324, N360 | C4 | ~32% | gp120-gp41 interface |
+| Site       | Region | Shift | Likely Role          |
+| :--------- | :----- | :---- | :------------------- |
+| N246       | C3     | 30.0% | Core stability       |
+| N152, N155 | C2     | ~31%  | CD4bs proximal       |
+| N324, N360 | C4     | ~32%  | gp120-gp41 interface |
 
 ---
 
@@ -131,14 +141,14 @@ Sites with >30% shift are likely structural - their removal destabilizes gp120:
 
 ### Validation Results
 
-| Variant | pTM | pLDDT | Disorder | Goldilocks Score |
-|:--------|:----|:------|:---------|:-----------------|
-| Wild-type | 0.82 | 78.3 | 0% | N/A |
-| N58Q | 0.79 | 73.2 | 75% | 1.19 |
-| N429Q | 0.75 | 71.1 | 100% | 1.19 |
-| N103Q | 0.80 | 75.8 | 67% | 1.04 |
-| N204Q | 0.81 | 76.4 | 68% | 0.85 |
-| N246Q | 0.81 | 77.1 | 63% | 0.70 |
+| Variant   | pTM  | pLDDT | Disorder | Goldilocks Score |
+| :-------- | :--- | :---- | :------- | :--------------- |
+| Wild-type | 0.82 | 78.3  | 0%       | N/A              |
+| N58Q      | 0.79 | 73.2  | 75%      | 1.19             |
+| N429Q     | 0.75 | 71.1  | 100%     | 1.19             |
+| N103Q     | 0.80 | 75.8  | 67%      | 1.04             |
+| N204Q     | 0.81 | 76.4  | 68%      | 0.85             |
+| N246Q     | 0.81 | 77.1  | 63%      | 0.70             |
 
 **Key Finding:** Strong inverse correlation (r = -0.89) between Goldilocks score and structural stability confirms the model.
 
@@ -146,15 +156,15 @@ Sites with >30% shift are likely structural - their removal destabilizes gp120:
 
 ## Files in This Directory
 
-| File | Purpose |
-|:-----|:--------|
-| `README.md` | This guide |
-| `CONJECTURE_SENTINEL_GLYCANS.md` | Theoretical foundation and hypothesis |
-| `01_glycan_sentinel_analysis.py` | Main analysis script |
-| `02_alphafold3_input_generator.py` | Generate AF3 input JSONs |
-| `03_create_batch_json.py` | Combine jobs for batch submission |
-| `glycan_analysis_results.json` | Analysis output data |
-| `alphafold3_inputs/` | Generated AF3 job files |
+| File                               | Purpose                               |
+| :--------------------------------- | :------------------------------------ |
+| `README.md`                        | This guide                            |
+| `CONJECTURE_SENTINEL_GLYCANS.md`   | Theoretical foundation and hypothesis |
+| `01_glycan_sentinel_analysis.py`   | Main analysis script                  |
+| `02_alphafold3_input_generator.py` | Generate AF3 input JSONs              |
+| `03_create_batch_json.py`          | Combine jobs for batch submission     |
+| `glycan_analysis_results.json`     | Analysis output data                  |
+| `alphafold3_inputs/`               | Generated AF3 job files               |
 
 ---
 
@@ -203,11 +213,13 @@ alphafold3_inputs/
 Based on Goldilocks score and bnAb relevance:
 
 1. **N58Q + N103Q + N204Q** (V1/V2/V3 exposure)
+
    - Exposes V1/V2 apex and V3 supersite
    - All sites in Goldilocks zone
    - Targets PG9, PG16, PGT121, PGT128 epitopes
 
 2. **N103Q + N107Q** (V1/V2 focused)
+
    - Focused V1/V2 apex exposure
    - Targets PG9/PG16 class antibodies
 
@@ -229,11 +241,13 @@ Boost:  Native Env → Affinity maturation against glycan-masked form
 ### Why P-Adic Geometry Works
 
 The glycan shield operates **hierarchically**:
+
 - Individual glycans shield local epitopes
 - Glycan clusters shield larger regions
 - The entire shield masks the conserved core
 
 P-adic/ultrametric geometry naturally captures this hierarchy:
+
 - Close in p-adic space = similar immunological visibility
 - Cluster boundaries = immunological recognition thresholds
 - Goldilocks zone = universal immune recognition threshold
@@ -241,6 +255,7 @@ P-adic/ultrametric geometry naturally captures this hierarchy:
 ### The Goldilocks Zone is Universal
 
 The same 15-30% shift range predicts:
+
 - RA autoantigen selection (citrullination)
 - HIV bnAb epitope exposure (deglycosylation)
 - SARS-CoV-2 binding disruption (phosphomimics)
@@ -254,11 +269,11 @@ This universality suggests the Goldilocks Zone reflects **fundamental immune rec
 ### Literature Comparison
 
 | Known bnAb Target | Expected in Goldilocks? | Our Prediction |
-|:------------------|:------------------------|:---------------|
-| N156 (PG9/PG16) | Yes | Border (~30%) |
-| N160 (PGT145) | Yes | Border (~31%) |
-| N332 (PGT121/128) | Yes | Above (~40%) |
-| N276 (VRC01) | Yes | Above (~36%) |
+| :---------------- | :---------------------- | :------------- |
+| N156 (PG9/PG16)   | Yes                     | Border (~30%)  |
+| N160 (PGT145)     | Yes                     | Border (~31%)  |
+| N332 (PGT121/128) | Yes                     | Above (~40%)   |
+| N276 (VRC01)      | Yes                     | Above (~36%)   |
 
 **Interpretation:** Our analysis uses BG505 sequence; some sites may show different behavior than HXB2 numbering suggests. Sites near the Goldilocks boundary (28-32%) are likely context-dependent.
 
@@ -303,9 +318,9 @@ This universality suggests the Goldilocks Zone reflects **fundamental immune rec
 
 ## Changelog
 
-| Date | Version | Description |
-|:-----|:--------|:------------|
-| 2025-12-24 | 1.0 | Initial comprehensive documentation |
+| Date       | Version | Description                         |
+| :--------- | :------ | :---------------------------------- |
+| 2025-12-24 | 1.0     | Initial comprehensive documentation |
 
 ---
 

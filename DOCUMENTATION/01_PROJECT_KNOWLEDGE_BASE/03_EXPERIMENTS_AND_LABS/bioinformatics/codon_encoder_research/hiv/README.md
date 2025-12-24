@@ -6,7 +6,10 @@
 
 ## Executive Summary
 
-![3D Render of HIV-1 Virion with Glycan Shield](images/hiv_env_glycan_shield_render.png)
+<div align="center">
+  <img src="images/hiv_env_glycan_shield_render.png" width="800" alt="3D Render of HIV-1 Virion with Glycan Shield">
+  <p><em>Figure 1: HIV-1 Virion - The dense glycan shield (fuzzy coat) masks conserved epitopes.</em></p>
+</div>
 
 This directory contains comprehensive analysis of HIV-1 using p-adic geometric methods derived from the 3-adic codon encoder (trained on V5.11.3 embeddings). The research demonstrates that **p-adic distance correlates with evolutionary fitness cost**, providing a novel geometric framework for understanding viral escape mechanisms and identifying therapeutic targets.
 
@@ -51,6 +54,11 @@ flowchart LR
 ## Scientific Background
 
 ### The P-Adic Geometric Framework
+
+<div align="center">
+  <img src="images/hyperbolic_neural_network_abstract.png" width="600" alt="Abstract Hyperbolic Neural Network">
+  <p><em>Figure 2: Hyperbolic Geometric Framework - Uncovering hidden hierarchical patterns.</em></p>
+</div>
 
 ```mermaid
 flowchart TB
