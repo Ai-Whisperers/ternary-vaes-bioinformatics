@@ -24,29 +24,22 @@ _They care about: Novelty, Rigor, Reproducibility._
 **Goal**: Pilot Programs, Licensing, Acquisition.
 _They care about: Efficiency, Scalability, Integration._
 
-| Asset Type            | Document Name                                      | Status       | Description                                                    |
-| :-------------------- | :------------------------------------------------- | :----------- | :------------------------------------------------------------- |
-| **Executive Summary** | `PITCH.md`                                         | ✅ **Ready** | High-level "Hook" (Problem/Solution/Ask).                      |
-| **Case Study 1**      | `case_studies/CASE_STUDY_VIRAL_ESCAPE.md`          | ✅ **Ready** | "How we beat EVE on Omicron XBB.1.5" (Narrative format).       |
-| **Case Study 2**      | `case_studies/CASE_STUDY_PROTEIN_DESIGN.md`        | ✅ **Ready** | "Designing a better P53 tumor suppressor".                     |
-| **Tech Specs**        | `validation_suite/03_COMPUTATIONAL_SCALABILITY.md` | ✅ **Ready** | "Exascale on a Laptop" & Hardware specs (validation_suite).    |
-| **Kill Sheet**        | `validation_suite/04_COMPETITIVE_LANDSCAPE.md`     | ✅ **Ready** | Use cases where we destroy the competition (validation_suite). |
-| **Integration**       | `industry/ENTERPRISE_INTEGRATION_GUIDE.md`         | ✅ **Ready** | "How to plug this into an existing Pharma pipeline".           |
-
----
+| Asset Type            | Document Name | Status       | Description                               |
+| :-------------------- | :------------ | :----------- | :---------------------------------------- |
+| **Executive Summary** | `PITCH.md`    | ✅ **Ready** | High-level "Hook" (Problem/Solution/Ask). |
 
 ## 💰 Audience C: The Investors (TechBio VCs, Grants)
 
 **Goal**: Funding ($2M-$10M Seed).
 _They care about: Market Size, Moat, Team, Exit._
 
-| Asset Type            | Document Name                      | Status       | Description                                           |
-| :-------------------- | :--------------------------------- | :----------- | :---------------------------------------------------- |
-| **Pitch Deck Script** | `investor/PITCH_DECK_SCRIPT.md`    | ✅ **Ready** | Slide-by-slide narrative for the 15-slide deck.       |
-| **Market Analysis**   | `investor/MARKET_OPPORTUNITY.md`   | ✅ **Ready** | TAM/SAM/SOM for "Generative Biology".                 |
-| **Moat Definitions**  | `investor/IP_AND_DEFENSIBILITY.md` | ✅ **Ready** | Why Google can't just copy us tomorrow (IP Strategy). |
-| **Team & Roadmap**    | `JONA_ROADMAP.md`                  | ✅ **Ready** | "What we are building next" (Project Management).     |
-| **Cap Table/Ask**     | `investor/FUNDING_PROPOSAL.md`     | ✅ **Ready** | Specifics on the raise and use of funds.              |
+| Asset Type            | Document Name                                                     | Status       | Description                                           |
+| :-------------------- | :---------------------------------------------------------------- | :----------- | :---------------------------------------------------- |
+| **Pitch Deck Script** | `investor/PITCH_DECK_SCRIPT.md`                                   | ✅ **Ready** | Slide-by-slide narrative for the 15-slide deck.       |
+| **Market Analysis**   | `investor/MARKET_OPPORTUNITY.md`                                  | ✅ **Ready** | TAM/SAM/SOM for "Generative Biology".                 |
+| **Moat Definitions**  | `investor/IP_AND_DEFENSIBILITY.md`                                | ✅ **Ready** | Why Google can't just copy us tomorrow (IP Strategy). |
+| **Team & Roadmap**    | `../04_PROJECT_MANAGEMENT/active_plans/00_MASTER_ROADMAP_JONA.md` | ✅ **Ready** | "What we are building next" (Project Management).     |
+| **Cap Table/Ask**     | `investor/FUNDING_PROPOSAL.md`                                    | ✅ **Ready** | Specifics on the raise and use of funds.              |
 
 ---
 

@@ -30,7 +30,8 @@ Single responsibility: V5.11 model architecture.
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
+import torch.optim as optim
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
@@ -55,7 +56,7 @@ class FrozenEncoder(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
         self.fc_mu = nn.Linear(64, latent_dim)
         self.fc_logvar = nn.Linear(64, latent_dim)
@@ -75,9 +76,9 @@ class FrozenEncoder(nn.Module):
     def from_v5_5_checkpoint(
         cls,
         checkpoint_path: Path,
-        encoder_prefix: str = 'encoder_A',
-        device: str = 'cpu'
-    ) -> 'FrozenEncoder':
+        encoder_prefix: str = "encoder_A",
+        device: str = "cpu",
+    ) -> "FrozenEncoder":
         """Load frozen encoder from v5.5 checkpoint.
 
         Args:
@@ -88,8 +89,10 @@ class FrozenEncoder(nn.Module):
         Returns:
             FrozenEncoder with loaded weights
         """
-        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-        model_state = checkpoint['model']
+        checkpoint = torch.load(
+            checkpoint_path, map_location=device, weights_only=False
+        )
+        model_state = checkpoint["model"]
 
         # Create encoder
         encoder = cls()
@@ -97,8 +100,8 @@ class FrozenEncoder(nn.Module):
         # Extract and load weights
         encoder_state = {}
         for key, value in model_state.items():
-            if key.startswith(f'{encoder_prefix}.'):
-                new_key = key[len(encoder_prefix) + 1:]  # Remove prefix
+            if key.startswith(f"{encoder_prefix}."):
+                new_key = key[len(encoder_prefix) + 1 :]  # Remove prefix
                 encoder_state[new_key] = value
 
         encoder.load_state_dict(encoder_state)
@@ -127,7 +130,7 @@ class FrozenDecoder(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 64),
             nn.ReLU(),
-            nn.Linear(64, output_dim * 3)
+            nn.Linear(64, output_dim * 3),
         )
 
         # FREEZE
@@ -143,19 +146,21 @@ class FrozenDecoder(nn.Module):
     def from_v5_5_checkpoint(
         cls,
         checkpoint_path: Path,
-        decoder_prefix: str = 'decoder_A',
-        device: str = 'cpu'
-    ) -> 'FrozenDecoder':
+        decoder_prefix: str = "decoder_A",
+        device: str = "cpu",
+    ) -> "FrozenDecoder":
         """Load frozen decoder from v5.5 checkpoint."""
-        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-        model_state = checkpoint['model']
+        checkpoint = torch.load(
+            checkpoint_path, map_location=device, weights_only=False
+        )
+        model_state = checkpoint["model"]
 
         decoder = cls()
 
         decoder_state = {}
         for key, value in model_state.items():
-            if key.startswith(f'{decoder_prefix}.'):
-                new_key = key[len(decoder_prefix) + 1:]
+            if key.startswith(f"{decoder_prefix}."):
+                new_key = key[len(decoder_prefix) + 1 :]
                 decoder_state[new_key] = value
 
         decoder.load_state_dict(decoder_state)
@@ -186,7 +191,7 @@ class TernaryVAEV5_11(nn.Module):
         use_controller: bool = True,
         use_dual_projection: bool = False,
         n_projection_layers: int = 1,
-        projection_dropout: float = 0.0
+        projection_dropout: float = 0.0,
     ):
         """Initialize TernaryVAEV5_11.
 
@@ -226,7 +231,7 @@ class TernaryVAEV5_11(nn.Module):
                 max_radius=max_radius,
                 curvature=curvature,
                 n_layers=n_projection_layers,
-                dropout=projection_dropout
+                dropout=projection_dropout,
             )
         else:
             self.projection = HyperbolicProjection(
@@ -235,59 +240,58 @@ class TernaryVAEV5_11(nn.Module):
                 max_radius=max_radius,
                 curvature=curvature,
                 n_layers=n_projection_layers,
-                dropout=projection_dropout
+                dropout=projection_dropout,
             )
 
         # Trainable controller
         if use_controller:
-            self.controller = DifferentiableController(
-                input_dim=8,
-                hidden_dim=32
-            )
+            self.controller = DifferentiableController(input_dim=8, hidden_dim=32)
         else:
             self.controller = None
 
         # Default control values (used when controller is disabled)
         self.default_control = {
-            'rho': 0.0,  # No cross-injection for frozen model
-            'weight_geodesic': 1.0,
-            'weight_radial': 0.5,
-            'beta_A': 1.0,
-            'beta_B': 1.0,
-            'tau': 0.5
+            "rho": 0.0,  # No cross-injection for frozen model
+            "weight_geodesic": 1.0,
+            "weight_radial": 0.5,
+            "beta_A": 1.0,
+            "beta_B": 1.0,
+            "tau": 0.5,
         }
 
-    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = 'cpu'):
+    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = "cpu"):
         """Load frozen components from v5.5 checkpoint.
 
         Args:
             checkpoint_path: Path to v5.5 checkpoint file
             device: Device to load to
         """
-        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-        model_state = checkpoint['model']
+        checkpoint = torch.load(
+            checkpoint_path, map_location=device, weights_only=False
+        )
+        model_state = checkpoint["model"]
 
         # Load encoder_A
         enc_A_state = {
-            k.replace('encoder_A.', ''): v
+            k.replace("encoder_A.", ""): v
             for k, v in model_state.items()
-            if k.startswith('encoder_A.')
+            if k.startswith("encoder_A.")
         }
         self.encoder_A.load_state_dict(enc_A_state)
 
         # Load encoder_B
         enc_B_state = {
-            k.replace('encoder_B.', ''): v
+            k.replace("encoder_B.", ""): v
             for k, v in model_state.items()
-            if k.startswith('encoder_B.')
+            if k.startswith("encoder_B.")
         }
         self.encoder_B.load_state_dict(enc_B_state)
 
         # Load decoder_A
         dec_A_state = {
-            k.replace('decoder_A.', ''): v
+            k.replace("decoder_A.", ""): v
             for k, v in model_state.items()
-            if k.startswith('decoder_A.')
+            if k.startswith("decoder_A.")
         }
         self.decoder_A.load_state_dict(dec_A_state)
 
@@ -312,9 +316,7 @@ class TernaryVAEV5_11(nn.Module):
         return mu + eps * std
 
     def forward(
-        self,
-        x: torch.Tensor,
-        compute_control: bool = True
+        self, x: torch.Tensor, compute_control: bool = True
     ) -> Dict[str, torch.Tensor]:
         """Forward pass through the model.
 
@@ -346,21 +348,29 @@ class TernaryVAEV5_11(nn.Module):
             radius_B = torch.norm(z_B_hyp, dim=-1).mean()
 
             # Use mean embeddings for other stats
-            kl_A = -0.5 * (1 + logvar_A - mu_A.pow(2) - logvar_A.exp()).sum(dim=-1).mean()
-            kl_B = -0.5 * (1 + logvar_B - mu_B.pow(2) - logvar_B.exp()).sum(dim=-1).mean()
+            kl_A = (
+                -0.5 * (1 + logvar_A - mu_A.pow(2) - logvar_A.exp()).sum(dim=-1).mean()
+            )
+            kl_B = (
+                -0.5 * (1 + logvar_B - mu_B.pow(2) - logvar_B.exp()).sum(dim=-1).mean()
+            )
 
             # Placeholder for loss-based stats (will be filled during training)
             geo_loss_placeholder = torch.tensor(0.0, device=x.device)
             rad_loss_placeholder = torch.tensor(0.0, device=x.device)
 
-            batch_stats = torch.stack([
-                radius_A, radius_B,
-                torch.tensor(1.0, device=x.device),  # H_A placeholder
-                torch.tensor(1.0, device=x.device),  # H_B placeholder
-                kl_A, kl_B,
-                geo_loss_placeholder,
-                rad_loss_placeholder
-            ])
+            batch_stats = torch.stack(
+                [
+                    radius_A,
+                    radius_B,
+                    torch.tensor(1.0, device=x.device),  # H_A placeholder
+                    torch.tensor(1.0, device=x.device),  # H_B placeholder
+                    kl_A,
+                    kl_B,
+                    geo_loss_placeholder,
+                    rad_loss_placeholder,
+                ]
+            )
 
             control = self.controller(batch_stats)
             # Squeeze batch dimension
@@ -377,22 +387,19 @@ class TernaryVAEV5_11(nn.Module):
 
         return {
             # Euclidean latents (from frozen encoder)
-            'z_A_euc': z_A_euc,
-            'z_B_euc': z_B_euc,
-            'mu_A': mu_A,
-            'mu_B': mu_B,
-            'logvar_A': logvar_A,
-            'logvar_B': logvar_B,
-
+            "z_A_euc": z_A_euc,
+            "z_B_euc": z_B_euc,
+            "mu_A": mu_A,
+            "mu_B": mu_B,
+            "logvar_A": logvar_A,
+            "logvar_B": logvar_B,
             # Hyperbolic latents (from trainable projection)
-            'z_A_hyp': z_A_hyp,
-            'z_B_hyp': z_B_hyp,
-
+            "z_A_hyp": z_A_hyp,
+            "z_B_hyp": z_B_hyp,
             # Control signals (from trainable controller)
-            'control': control,
-
+            "control": control,
             # Reconstruction logits (for verification)
-            'logits_A': logits_A
+            "logits_A": logits_A,
         }
 
     def get_trainable_parameters(self):
@@ -404,12 +411,10 @@ class TernaryVAEV5_11(nn.Module):
 
     def count_parameters(self) -> Dict[str, int]:
         """Count parameters by component."""
-        frozen_params = sum(
-            p.numel() for p in self.encoder_A.parameters()
-        ) + sum(
-            p.numel() for p in self.encoder_B.parameters()
-        ) + sum(
-            p.numel() for p in self.decoder_A.parameters()
+        frozen_params = (
+            sum(p.numel() for p in self.encoder_A.parameters())
+            + sum(p.numel() for p in self.encoder_B.parameters())
+            + sum(p.numel() for p in self.decoder_A.parameters())
         )
 
         projection_params = sum(p.numel() for p in self.projection.parameters())
@@ -419,11 +424,11 @@ class TernaryVAEV5_11(nn.Module):
             controller_params = sum(p.numel() for p in self.controller.parameters())
 
         return {
-            'frozen': frozen_params,
-            'projection': projection_params,
-            'controller': controller_params,
-            'trainable': projection_params + controller_params,
-            'total': frozen_params + projection_params + controller_params
+            "frozen": frozen_params,
+            "projection": projection_params,
+            "controller": controller_params,
+            "trainable": projection_params + controller_params,
+            "total": frozen_params + projection_params + controller_params,
         }
 
 
@@ -450,7 +455,7 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
         encoder_b_lr_scale: float = 0.1,
         encoder_a_lr_scale: float = 0.05,
         controller_lr_scale: float = 1.0,
-        **kwargs
+        **kwargs,
     ):
         super().__init__(**kwargs)
         self.freeze_encoder_b = freeze_encoder_b
@@ -461,7 +466,7 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
         self.freeze_controller = False  # Starts trainable
         self.encoder_a_lr_scale = encoder_a_lr_scale
 
-    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = 'cpu'):
+    def load_v5_5_checkpoint(self, checkpoint_path: Path, device: str = "cpu"):
         """Load checkpoint with optional encoder_B unfreezing."""
         super().load_v5_5_checkpoint(checkpoint_path, device)
 
@@ -482,7 +487,7 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
             lr_scale: Learning rate multiplier (0.0 = frozen, >0 = trainable)
         """
         self.encoder_a_lr_scale = lr_scale
-        self.freeze_encoder_a = (lr_scale == 0.0)
+        self.freeze_encoder_a = lr_scale == 0.0
 
         if not self.freeze_encoder_a:
             # Enable gradients for encoder_A
@@ -531,26 +536,24 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
         Args:
             state: Dict with encoder_a_frozen, encoder_b_frozen, controller_frozen
         """
-        if 'encoder_a_frozen' in state:
-            self.set_encoder_a_frozen(state['encoder_a_frozen'])
-        if 'encoder_b_frozen' in state:
-            self.set_encoder_b_frozen(state['encoder_b_frozen'])
-        if 'controller_frozen' in state:
-            self.set_controller_frozen(state['controller_frozen'])
+        if "encoder_a_frozen" in state:
+            self.set_encoder_a_frozen(state["encoder_a_frozen"])
+        if "encoder_b_frozen" in state:
+            self.set_encoder_b_frozen(state["encoder_b_frozen"])
+        if "controller_frozen" in state:
+            self.set_controller_frozen(state["controller_frozen"])
 
     def get_freeze_state_summary(self) -> str:
         """Get human-readable freeze state summary."""
         states = []
         states.append(f"enc_A:{'F' if self.freeze_encoder_a else 'T'}")
         states.append(f"enc_B:{'F' if self.freeze_encoder_b else 'T'}")
-        ctrl_state = 'F' if getattr(self, 'freeze_controller', False) else 'T'
+        ctrl_state = "F" if getattr(self, "freeze_controller", False) else "T"
         states.append(f"ctrl:{ctrl_state}")
         return " ".join(states)
 
     def forward(
-        self,
-        x: torch.Tensor,
-        compute_control: bool = True
+        self, x: torch.Tensor, compute_control: bool = True
     ) -> Dict[str, torch.Tensor]:
         """Forward pass with conditional gradient flow for both encoders.
 
@@ -588,17 +591,25 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
         if compute_control and self.controller is not None:
             radius_A = torch.norm(z_A_hyp, dim=-1).mean()
             radius_B = torch.norm(z_B_hyp, dim=-1).mean()
-            kl_A = -0.5 * (1 + logvar_A - mu_A.pow(2) - logvar_A.exp()).sum(dim=-1).mean()
-            kl_B = -0.5 * (1 + logvar_B - mu_B.pow(2) - logvar_B.exp()).sum(dim=-1).mean()
+            kl_A = (
+                -0.5 * (1 + logvar_A - mu_A.pow(2) - logvar_A.exp()).sum(dim=-1).mean()
+            )
+            kl_B = (
+                -0.5 * (1 + logvar_B - mu_B.pow(2) - logvar_B.exp()).sum(dim=-1).mean()
+            )
 
-            batch_stats = torch.stack([
-                radius_A, radius_B,
-                torch.tensor(1.0, device=x.device),
-                torch.tensor(1.0, device=x.device),
-                kl_A, kl_B,
-                torch.tensor(0.0, device=x.device),
-                torch.tensor(0.0, device=x.device)
-            ])
+            batch_stats = torch.stack(
+                [
+                    radius_A,
+                    radius_B,
+                    torch.tensor(1.0, device=x.device),
+                    torch.tensor(1.0, device=x.device),
+                    kl_A,
+                    kl_B,
+                    torch.tensor(0.0, device=x.device),
+                    torch.tensor(0.0, device=x.device),
+                ]
+            )
 
             control = self.controller(batch_stats)
             control = {k: v.squeeze(0) for k, v in control.items()}
@@ -613,16 +624,16 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
             logits_A = self.decoder_A(mu_A)  # Use mean for deterministic verification
 
         return {
-            'z_A_euc': z_A_euc,
-            'z_B_euc': z_B_euc,
-            'mu_A': mu_A,
-            'mu_B': mu_B,
-            'logvar_A': logvar_A,
-            'logvar_B': logvar_B,
-            'z_A_hyp': z_A_hyp,
-            'z_B_hyp': z_B_hyp,
-            'control': control,
-            'logits_A': logits_A
+            "z_A_euc": z_A_euc,
+            "z_B_euc": z_B_euc,
+            "mu_A": mu_A,
+            "mu_B": mu_B,
+            "logvar_A": logvar_A,
+            "logvar_B": logvar_B,
+            "z_A_hyp": z_A_hyp,
+            "z_B_hyp": z_B_hyp,
+            "control": control,
+            "logits_A": logits_A,
         }
 
     def get_trainable_parameters(self):
@@ -648,50 +659,60 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
 
         # Projections always trainable (fast adaptation layer)
         if self.use_dual_projection:
-            param_groups.append({
-                'params': list(self.projection.proj_A.parameters()),
-                'lr': base_lr,
-                'name': 'proj_A'
-            })
-            if hasattr(self.projection, 'proj_B'):
+            param_groups.append(
+                {
+                    "params": list(self.projection.proj_A.parameters()),
+                    "lr": base_lr,
+                    "name": "proj_A",
+                }
+            )
+            if hasattr(self.projection, "proj_B"):
                 proj_b_params = list(self.projection.proj_B.parameters())
             else:
                 proj_b_params = list(self.projection.proj_B_radius.parameters())
-            param_groups.append({
-                'params': proj_b_params,
-                'lr': base_lr,
-                'name': 'proj_B'
-            })
+            param_groups.append(
+                {"params": proj_b_params, "lr": base_lr, "name": "proj_B"}
+            )
         else:
-            param_groups.append({
-                'params': list(self.projection.parameters()),
-                'lr': base_lr,
-                'name': 'projection'
-            })
+            param_groups.append(
+                {
+                    "params": list(self.projection.parameters()),
+                    "lr": base_lr,
+                    "name": "projection",
+                }
+            )
 
         # Controller (can be frozen by homeostasis)
-        if self.controller is not None and not getattr(self, 'freeze_controller', False):
-            param_groups.append({
-                'params': list(self.controller.parameters()),
-                'lr': base_lr * self.controller_lr_scale,
-                'name': 'controller'
-            })
+        if self.controller is not None and not getattr(
+            self, "freeze_controller", False
+        ):
+            param_groups.append(
+                {
+                    "params": list(self.controller.parameters()),
+                    "lr": base_lr * self.controller_lr_scale,
+                    "name": "controller",
+                }
+            )
 
         # Encoder A (can be frozen by homeostasis)
         if not self.freeze_encoder_a:
-            param_groups.append({
-                'params': list(self.encoder_A.parameters()),
-                'lr': base_lr * self.encoder_a_lr_scale,
-                'name': 'encoder_A'
-            })
+            param_groups.append(
+                {
+                    "params": list(self.encoder_A.parameters()),
+                    "lr": base_lr * self.encoder_a_lr_scale,
+                    "name": "encoder_A",
+                }
+            )
 
         # Encoder B (can be frozen by homeostasis)
         if not self.freeze_encoder_b:
-            param_groups.append({
-                'params': list(self.encoder_B.parameters()),
-                'lr': base_lr * self.encoder_b_lr_scale,
-                'name': 'encoder_B'
-            })
+            param_groups.append(
+                {
+                    "params": list(self.encoder_B.parameters()),
+                    "lr": base_lr * self.encoder_b_lr_scale,
+                    "name": "encoder_B",
+                }
+            )
 
         return param_groups
 
@@ -701,11 +722,9 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
         Called when homeostasis changes freeze states to update optimizer.
         Returns new optimizer with correct param groups.
         """
-        import torch.optim as optim
         param_groups = self.get_param_groups(base_lr)
         new_optimizer = optim.AdamW(
-            param_groups,
-            weight_decay=optimizer.defaults.get('weight_decay', 1e-4)
+            param_groups, weight_decay=optimizer.defaults.get("weight_decay", 1e-4)
         )
         return new_optimizer
 
@@ -715,16 +734,16 @@ class TernaryVAEV5_11_OptionC(TernaryVAEV5_11):
 
         if not self.freeze_encoder_b:
             encoder_b_params = sum(p.numel() for p in self.encoder_B.parameters())
-            counts['encoder_b_trainable'] = encoder_b_params
-            counts['trainable'] += encoder_b_params
-            counts['frozen'] -= encoder_b_params
+            counts["encoder_b_trainable"] = encoder_b_params
+            counts["trainable"] += encoder_b_params
+            counts["frozen"] -= encoder_b_params
 
         return counts
 
 
 __all__ = [
-    'FrozenEncoder',
-    'FrozenDecoder',
-    'TernaryVAEV5_11',
-    'TernaryVAEV5_11_OptionC'
+    "FrozenEncoder",
+    "FrozenDecoder",
+    "TernaryVAEV5_11",
+    "TernaryVAEV5_11_OptionC",
 ]

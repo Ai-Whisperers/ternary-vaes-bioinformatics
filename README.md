@@ -149,7 +149,7 @@ python scripts/benchmark/measure_manifold_resolution.py
 
 ## Project Structure (Refactored)
 
-```
+```text
 ternary-vaes/
 ├── README.md                      # This file
 ├── DOCUMENTATION/                 # 📚 KNOWLEDGE BASE
@@ -240,11 +240,12 @@ The refactored architecture follows Single Responsibility Principle:
   PyTorch: 2.x.x
   CUDA: True
 
-````
+```text`
+
 - Deterministic CUDA operations
 - Checkpoint includes full optimizer state
--# 2. Configure
-cp configs/env.example .env
+  -# 2. Configure
+  cp configs/env.example .env
 - Configuration-driven (no magic numbers in code)
 
 ### 6. Ensemble Prediction
@@ -278,7 +279,7 @@ cp configs/env.example .env
 
 ```yaml
 gpu_resident: true # All 19,683 samples on GPU
-````
+```
 
 ---
 
@@ -471,13 +472,13 @@ The core Python package.
 
 Detailed research notes and future directions can be found in the documentation:
 
-- [Strategic Roadmap (Jona)](DOCUMENTATION/04_PROJECT_MANAGEMENT/JONA_ROADMAP.md)
+- [Strategic Roadmap (Jona)](DOCUMENTATION/04_PROJECT_MANAGEMENT/active_plans/00_MASTER_ROADMAP_JONA.md)
 - [Scientific Domains](DOCUMENTATION/02_THEORY_AND_RESEARCH/biology_context/SCIENTIFIC_DOMAINS.md)
 - [Medical Frontiers](DOCUMENTATION/02_THEORY_AND_RESEARCH/biology_context/MEDICAL_FRONTIERS.md)
 - [Relevant Repositories](DOCUMENTATION/02_THEORY_AND_RESEARCH/academic_output/RELEVANT_REPOS.md)
 - [Suggested Libraries](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/industry/technical_specs/DEPENDENCIES.md)
 
-* **[01_STAKEHOLDER_RESOURCES](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/)**: Guides & Presentations.
+- **[01_STAKEHOLDER_RESOURCES](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/)**: Guides & Presentations.
 
   - [Setup & Dependencies](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/industry/technical_specs/SETUP.md)
   - [Workflows & Scripts](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/industry/technical_specs/WORKFLOWS.md)
@@ -487,14 +488,14 @@ Detailed research notes and future directions can be found in the documentation:
     - [Optimization & Convergence](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/academic/theory_deep_dive/03_optimization_and_convergence.md)
   - [Dual VAE Architecture](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/academic/code_walkthrough/DUAL_VAE_GUIDE.md)
 
-* **[02_THEORY_AND_RESEARCH](DOCUMENTATION/02_THEORY_AND_RESEARCH/)**: Research & Context.
+- **[02_THEORY_AND_RESEARCH](DOCUMENTATION/02_THEORY_AND_RESEARCH/)**: Research & Context.
   - **Foundations**: [Conjectures](DOCUMENTATION/02_THEORY_AND_RESEARCH/foundations/CONJECTURES_INFORMATIONAL_GEOMETRY.md), [Topology](DOCUMENTATION/02_THEORY_AND_RESEARCH/foundations/TOPOLOGY_OF_INTELLIGENCE.md)
   - **Biology Context**: [Medical Frontiers](DOCUMENTATION/02_THEORY_AND_RESEARCH/biology_context/MEDICAL_FRONTIERS.md), [Scientific Domains](DOCUMENTATION/02_THEORY_AND_RESEARCH/biology_context/SCIENTIFIC_DOMAINS.md)
   - **Academic Output**: [Database](DOCUMENTATION/02_THEORY_AND_RESEARCH/academic_output/ACADEMIC_DATABASE.md), [Research Opps](DOCUMENTATION/02_THEORY_AND_RESEARCH/academic_output/RESEARCH_OPPORTUNITIES.md)
   - **Reports**: [Codebase Analysis](DOCUMENTATION/02_THEORY_AND_RESEARCH/reports/V5_11_CODEBASE_ANALYSIS.md)
-* **[03_EXPERIMENTS](DOCUMENTATION/03_EXPERIMENTS_AND_LABS/)**: Research scripts and labs.
+- **[03_EXPERIMENTS](DOCUMENTATION/03_EXPERIMENTS_AND_LABS/)**: Research scripts and labs.
   - Contains `bioinformatics/` and `mathematics/` experiments.
-* **[01_STAKEHOLDER_RESOURCES](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/)**: Pitch decks and summaries.
+- **[01_STAKEHOLDER_RESOURCES](DOCUMENTATION/01_STAKEHOLDER_RESOURCES/)**: Pitch decks and summaries.
 
 ### `results/` - Data & Outputs
 
