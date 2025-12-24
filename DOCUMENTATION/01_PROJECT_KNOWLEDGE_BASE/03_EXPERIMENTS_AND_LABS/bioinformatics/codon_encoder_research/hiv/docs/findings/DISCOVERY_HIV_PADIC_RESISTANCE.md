@@ -39,7 +39,7 @@ Analysis of 27 HIV-1 mutations (9 CTL escape, 18 drug resistance) reveals that *
 ### Overview
 
 <div align="center">
-  <img src="images/hyperbolic_drug_resistance_profile.png" width="600" alt="Hyperbolic Drug Resistance Profile">
+  <img src="../assets/hyperbolic_drug_resistance_profile.png" width="600" alt="Hyperbolic Drug Resistance Profile">
   <p><em>Figure 3: P-Adic Drug Resistance Landscape - Visualizing the geometric cost of escape.</em></p>
 </div>
 
@@ -119,7 +119,7 @@ flowchart TB
 ### Geometric Protection Mechanism
 
 <div align="center">
-  <img src="images/hla_b27_geometric_trap.png" width="800" alt="HLA-B27 Geometric Trap">
+  <img src="../assets/hla_b27_geometric_trap.png" width="800" alt="HLA-B27 Geometric Trap">
   <p><em>Figure 5: The "Geometric Trap" - HLA-B27 presents epitopes deep in the fitness landscape, preventing escape.</em></p>
 </div>
 
@@ -270,7 +270,7 @@ flowchart TB
 ### Structural Predictions
 
 <div align="center">
-  <img src="images/alphafold_structural_perturbation.png" width="800" alt="AlphaFold Structural Perturbation">
+  <img src="../assets/alphafold_structural_perturbation.png" width="800" alt="AlphaFold Structural Perturbation">
   <p><em>Figure 6: Structural Perturbation - Deglycosylation at sentinel sites triggers significant conformational shifts.</em></p>
 </div>
 
@@ -365,7 +365,7 @@ xychart-beta
 ### Application Pathways
 
 <div align="center">
-  <img src="images/hiv_therapeutic_landscape_concept.png" width="800" alt="HIV Therapeutic Landscape">
+  <img src="../assets/hiv_therapeutic_landscape_concept.png" width="800" alt="HIV Therapeutic Landscape">
   <p><em>Figure 7: Therapeutic Landscape - Integrating drug design, vaccines, and novel glycan editing.</em></p>
 </div>
 

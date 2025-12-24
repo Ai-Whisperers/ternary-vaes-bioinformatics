@@ -7,7 +7,7 @@
 ## Executive Summary
 
 <div align="center">
-  <img src="images/hiv_env_glycan_shield_render.png" width="800" alt="3D Render of HIV-1 Virion with Glycan Shield">
+  <img src="docs/assets/hiv_env_glycan_shield_render.png" width="800" alt="3D Render of HIV-1 Virion with Glycan Shield">
   <p><em>Figure 1: HIV-1 Virion - The dense glycan shield (fuzzy coat) masks conserved epitopes.</em></p>
 </div>
 
@@ -56,7 +56,7 @@ flowchart LR
 ### The P-Adic Geometric Framework
 
 <div align="center">
-  <img src="images/hyperbolic_neural_network_abstract.png" width="600" alt="Abstract Hyperbolic Neural Network">
+  <img src="docs/assets/hyperbolic_neural_network_abstract.png" width="600" alt="Abstract Hyperbolic Neural Network">
   <p><em>Figure 2: Hyperbolic Geometric Framework - Uncovering hidden hierarchical patterns.</em></p>
 </div>
 

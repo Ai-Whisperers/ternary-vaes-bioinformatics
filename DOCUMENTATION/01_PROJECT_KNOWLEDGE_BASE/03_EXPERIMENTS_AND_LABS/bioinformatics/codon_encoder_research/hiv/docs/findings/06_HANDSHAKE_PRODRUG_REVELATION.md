@@ -13,7 +13,7 @@ Traditional HIV therapies focus on attacking viral replication or entry ("Attack
 ## The Revelation Paradigm
 
 <div align="center">
-  <img src="images/hiv_handshake_mechanism.png" width="800" alt="Pro-Drug Revelation Mechanism">
+  <img src="../assets/hiv_handshake_mechanism.png" width="800" alt="Pro-Drug Revelation Mechanism">
   <p><em>Figure 1: Pro-Drug Revelation - A small molecule 'key' (gold) unlocks the Phe43 cavity, forcing gp120 (blue) into an open state that reveals hidden epitopes.</em></p>
 </div>
 
