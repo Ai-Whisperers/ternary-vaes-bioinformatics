@@ -1,26 +1,36 @@
-# Relevant Repositories for Inspiration
+# Relevant Repositories (The "Cheat Sheet")
 
-These projects solve similar problems. We can learn from their architecture (or steal their code).
+> **Goal:** Don't reinvent the wheel. Steal these implementations.
 
-## 1. Hyperbolic Deep Learning
+These repositories solved specific problems we are facing.
 
-- **[HazyResearch/hgcn](https://github.com/HazyResearch/hgcn)** (Stanford)
+---
 
-  - **What:** Hyperbolic Graph Convolutional Networks.
-  - **Lesson:** How to handle graph data in hyperbolic space. Perfect for your "StateNet" controller.
+## 1. Hyperbolic Graph Neural Networks (`hgcn`)
 
-- **[facebookresearch/poincare-embeddings](https://github.com/facebookresearch/poincare-embeddings)**
-  - **What:** The original paper code.
-  - **Lesson:** C++ optimized sampling for massive datasets.
+- **Repo:** [HazyResearch/hgcn](https://github.com/HazyResearch/hgcn) (Stanford)
+- **Why:** They solved the "Hierarchy Problem" in graphs.
+- **Key Files to Copy:**
+  - `layers/hyp_layers.py`: Contains the `HyperbolicGraphConvolution` class. We can use this for our **StateNet controller** (treating the trajectory as a graph).
+  - `manifolds/poincare.py`: Robust implementation of `mobius_add` (better than ours).
 
-## 2. VAEs & Disentanglement
+## 2. Poincaré Embeddings (C++ Optimized)
 
-- **[google-research/disentanglement_lib](https://github.com/google-research/disentanglement_lib)**
-  - **What:** The gold standard for VAE metrics.
-  - **Lesson:** Implement their "FactorVAE" metric to prove your dimensions are truly independent.
+- **Repo:** [facebookresearch/poincare-embeddings](https://github.com/facebookresearch/poincare-embeddings)
+- **Why:** Speed. Python is too slow for 1 Million+ nodes.
+- **Key Insight:** They use "Burn-in" phases (optimizing unrelated parameters first).
+- **Action:** If we scale to the full Human Genome (3B base pairs), we must port our training loop to C++ using their `dist` function.
 
-## 3. Bioinformatics
+## 3. Disentanglement Lib
 
-- **[theislab/scvelo](https://github.com/theislab/scvelo)**
-  - **What:** RNA Velocity (predicting cell future state).
-  - **Lesson:** They use dynamical systems to predict cell trajectories. Your "Ternary Operator" is a discrete version of this.
+- **Repo:** [google-research/disentanglement_lib](https://github.com/google-research/disentanglement_lib)
+- **Why:** We need to _prove_ our features are independent (e.g., "Viral Infectivity" vs "Viral Replication").
+- **Key Metric:** `mig.py` (Mutual Information Gap).
+- **Action:** Copy the `compute_mig` function and run it on our latent vectors. If our features are entangled, this score will be low (bad).
+
+## 4. RNA Velocity (`scvelo`)
+
+- **Repo:** [theislab/scvelo](https://github.com/theislab/scvelo)
+- **Why:** They predict "Future State" of cells.
+- **Key Concept:** `velocity_graph`. They compute a vector field.
+- **Relevance:** We can adapt this to compute "Evolutionary Velocity" for viruses. `velocity` = `fitness_gradient` in our hyperbolic space.

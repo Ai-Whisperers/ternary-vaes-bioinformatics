@@ -1,29 +1,40 @@
-# Research for Jona
+# The Jona Research Roadmap
 
-> **Generated:** Dec 23, 2025
-> **Context:** Future Directions & Tooling
+> **Strategic Direction for v6.0+**
 
-This folder contains research on improving the codebase and expanding the market.
+This folder contains the "Blue Ocean" research plan to take the project beyond its current scope.
 
-## Contents
+---
 
-1.  **[Medical Frontiers](MEDICAL_FRONTIERS.md)** (**New**)
+## 🏗️ Phase 1: Tooling Upgrade (The "Now")
 
-    - _Direct Uses: Autoimmune Scoring, Cancer Vaccines._
-    - _Boosting: CRISPR, mRNA stability._
-    - _Future: Bio-Digital Twins, Xenotransplantation._
+_Goal: Fix numerical instability and improve visualization._
 
-2.  **[Scientific Impact Domains](SCIENTIFIC_DOMAINS.md)**
+1.  **[Suggested Libraries](SUGGESTED_LIBRARIES.md)**
 
-    - _Material Science (Polymers), Software Engineering (ASTs)._
+    - **Action:** Refactor `models/layers.py` to use `geoopt` (Code provided).
+    - **Action:** Switch to `scanpy` for data loading to handle 1M+ sequences.
 
-3.  **[Suggested Libraries](SUGGESTED_LIBRARIES.md)**
+2.  **[Relevant Repositories](RELEVANT_REPOS.md)**
+    - **Action:** Copy the `mig.py` metric from Google to prove disentanglement.
+    - **Action:** Study `HazyResearch` for robust hyperbolic layers.
 
-    - _Upgrade to `geoopt` for speed._
+## 🔬 Phase 2: Scientific Expansion (The "Next")
 
-4.  **[Relevant Repositories](RELEVANT_REPOS.md)**
+_Goal: Apply the model to new scientific domains._
 
-    - _Check `HazyResearch` for Hyperbolic GCNs._
+3.  **[Scientific Impact Domains](SCIENTIFIC_DOMAINS.md)**
 
-5.  **[Application Ideas](NEW_APPLICATION_IDEAS.md)**
-    - _Supply Chain, NLP, etc._
+    - **Engineering:** Supply Chain Optimization (Resilience).
+    - **Code:** Bug detection via AST (Abstract Syntax Tree) embedding.
+    - **Materials:** Predicting polymer strength via branching factors.
+
+4.  **[Medical Frontiers](MEDICAL_FRONTIERS.md)**
+    - **Pharma:** "Generative Immunology" (Universal Antibodies).
+    - **Clinical:** Autoimmune "Severity Scoring" for personalized chemo.
+    - **Future:** "Bio-Digital Twins" on wearables.
+
+---
+
+**Summary:**
+We are moving from a "Bioinformatics Tool" -> "General Purpose Hierarchical AI".

@@ -68,10 +68,12 @@ Because we use **Ternary Logic (Decision Trees)** + **Hyperbolic Space (Hierarch
 
 ## Technical Summary for Grant Proposals
 
-| Domain       | The "Tree" Structure  | Why Ternary VAE Fits                     |
-| :----------- | :-------------------- | :--------------------------------------- |
-| **Networks** | Scale-free Routing    | Preserves distance in small-world graphs |
-| **Material** | Dendrimers/Polymers   | Models branching molecular weights       |
-| **Code**     | Abstract Syntax Trees | Anomaly detection in logic flow          |
-| **Language** | Recursive Syntax      | Captures Chomsky hierarchy naturally     |
-| **Robotics** | Decision Trees        | Differentiable logic for planning        |
+| Domain              | The "Tree" Structure   | Why Ternary VAE Fits                     |
+| :------------------ | :--------------------- | :--------------------------------------- |
+| **Networks**        | Scale-free Routing     | Preserves distance in small-world graphs |
+| **Material**        | Dendrimers/Polymers    | Models branching molecular weights       |
+| **Code**            | Abstract Syntax Trees  | Anomaly detection in logic flow          |
+| **Language**        | Recursive Syntax       | Captures Chomsky hierarchy naturally     |
+| **Robotics**        | Decision Trees         | Differentiable logic for planning        |
+| **Supply Chain**    | Branching Dependencies | Resilience to shocks                     |
+| **Social Networks** | Echo Chambers          | Mapping radicalization trajectories      |
