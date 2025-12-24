@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Hyperparameter Dependency Map"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Hyperparameter Dependency Map
 
 **Doc-Type:** Architecture Analysis · Version 1.0 · Updated 2025-12-14

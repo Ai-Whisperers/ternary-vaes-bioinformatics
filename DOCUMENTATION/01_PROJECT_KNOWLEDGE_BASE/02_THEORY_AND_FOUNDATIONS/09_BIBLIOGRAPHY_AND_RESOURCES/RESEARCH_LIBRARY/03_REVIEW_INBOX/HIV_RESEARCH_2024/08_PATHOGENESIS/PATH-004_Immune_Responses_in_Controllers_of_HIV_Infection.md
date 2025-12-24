@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Immune Responses in Controllers of HIV Infection"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Immune Responses in Controllers of HIV Infection
 
 **ID:** PATH-004

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Positive, Open, Proud: Disclosure-Based Stigma Intervention"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Positive, Open, Proud: Disclosure-Based Stigma Intervention
 
 **ID:** STIGMA-004

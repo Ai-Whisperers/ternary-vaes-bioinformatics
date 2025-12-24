@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Three-Body System: Architectural Redesign"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Three-Body System: Architectural Redesign
 
 **Doc-Type:** Architecture Vision · Version 1.1 · 2025-12-14

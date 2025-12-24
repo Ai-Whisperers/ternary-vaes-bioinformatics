@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Ternary Hyperbolic Systems for Bioinformatics"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Ternary Hyperbolic Systems for Bioinformatics
 
 **Doc-Type:** Research Vision · Version 1.0 · Updated 2025-12-16 · Author Ternary VAE Team

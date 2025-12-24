@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "PMTCT Progress: 4.4 Million Child HIV Infections Prevented"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # PMTCT Progress: 4.4 Million Child HIV Infections Prevented
 
 **ID:** EPI-005

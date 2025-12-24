@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Accessory Proteins: Vif, Vpr, Vpu, Nef Functions"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Accessory Proteins: Vif, Vpr, Vpu, Nef Functions
 
 **ID:** MOL-008

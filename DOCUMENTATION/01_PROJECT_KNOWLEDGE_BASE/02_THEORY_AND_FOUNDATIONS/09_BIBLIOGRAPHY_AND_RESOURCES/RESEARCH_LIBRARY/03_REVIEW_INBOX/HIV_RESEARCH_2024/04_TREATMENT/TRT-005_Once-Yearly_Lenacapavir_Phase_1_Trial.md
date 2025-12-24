@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Once-Yearly Lenacapavir Phase 1 Trial"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Once-Yearly Lenacapavir Phase 1 Trial
 
 **ID:** TRT-005

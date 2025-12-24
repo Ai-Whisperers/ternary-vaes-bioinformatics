@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "V5.11 Embedding Space Analysis Summary"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # V5.11 Embedding Space Analysis Summary
 
 **Analysis Date:** 2024-12-23

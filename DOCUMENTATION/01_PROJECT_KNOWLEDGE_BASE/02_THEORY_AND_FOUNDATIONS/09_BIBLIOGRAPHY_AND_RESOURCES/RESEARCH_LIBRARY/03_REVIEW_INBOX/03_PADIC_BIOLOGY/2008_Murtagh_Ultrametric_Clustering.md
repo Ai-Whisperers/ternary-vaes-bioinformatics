@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Hierarchical Clustering of Massive, High Dimensional Data Sets by Exploiting Ultrametric Embedding"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Hierarchical Clustering of Massive, High Dimensional Data Sets by Exploiting Ultrametric Embedding
 
 **Author:** Murtagh, F., Downs, G., & Contreras, P.

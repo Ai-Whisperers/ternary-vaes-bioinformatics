@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Proposal – Drug Interaction Modeling & Multi‑Task Loss Functions"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Proposal – Drug Interaction Modeling & Multi‑Task Loss Functions
 
 ## 1. Background & Motivation

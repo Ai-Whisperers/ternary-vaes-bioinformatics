@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Development and Trends of Drug Resistance Mutations: Bibliometric Analysis"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Development and Trends of Drug Resistance Mutations: Bibliometric Analysis
 
 **ID:** RES-003

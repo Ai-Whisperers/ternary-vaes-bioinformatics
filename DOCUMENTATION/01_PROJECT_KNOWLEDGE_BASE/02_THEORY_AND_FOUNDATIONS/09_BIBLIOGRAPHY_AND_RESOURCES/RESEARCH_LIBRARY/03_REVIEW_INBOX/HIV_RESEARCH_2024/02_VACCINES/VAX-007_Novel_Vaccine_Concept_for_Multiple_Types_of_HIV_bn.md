@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Novel Vaccine Concept for Multiple Types of HIV bnAbs"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Novel Vaccine Concept for Multiple Types of HIV bnAbs
 
 **ID:** VAX-007

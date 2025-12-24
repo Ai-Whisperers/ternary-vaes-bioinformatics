@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Modeling of the spread of viral infection on hierarchical social clusters"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Modeling of the spread of viral infection on hierarchical social clusters
 
 **Author:** Khrennikov, A., et al.

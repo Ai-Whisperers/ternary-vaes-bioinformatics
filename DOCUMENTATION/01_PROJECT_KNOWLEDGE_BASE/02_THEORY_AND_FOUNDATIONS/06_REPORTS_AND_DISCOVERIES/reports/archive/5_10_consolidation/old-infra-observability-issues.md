@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Monitoring Refactoring Plan (Old Training Infrastructure)"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Monitoring Refactoring Plan (Old Training Infrastructure)
 
 **Doc-Type:** Implementation Plan · Version 1.0 · Updated 2025-12-12 · Author Claude Code

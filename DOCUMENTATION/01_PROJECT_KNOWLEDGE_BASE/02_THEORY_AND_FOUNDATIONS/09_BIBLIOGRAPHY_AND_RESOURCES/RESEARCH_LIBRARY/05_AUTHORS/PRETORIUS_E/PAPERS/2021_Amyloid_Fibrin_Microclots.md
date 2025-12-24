@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "A central role for amyloid fibrin microclots in long COVID/PASC: origins and therapeutic implications"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # A central role for amyloid fibrin microclots in long COVID/PASC: origins and therapeutic implications
 
 **Author:** Resia Pretorius, Douglas B. Kell, et al.

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Laplacian Eigenmaps for Dimensionality Reduction and Data Representation"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Laplacian Eigenmaps for Dimensionality Reduction and Data Representation
 
 **Author:** Belkin, M., & Niyogi, P.

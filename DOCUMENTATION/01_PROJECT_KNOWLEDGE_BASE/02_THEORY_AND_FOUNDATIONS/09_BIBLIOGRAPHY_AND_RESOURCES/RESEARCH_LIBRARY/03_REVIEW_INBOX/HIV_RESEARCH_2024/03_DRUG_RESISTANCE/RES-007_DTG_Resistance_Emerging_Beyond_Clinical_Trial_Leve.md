@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Dolutegravir Resistance Emerging Beyond Clinical Trial Levels"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Dolutegravir Resistance Emerging Beyond Clinical Trial Levels
 
 **ID:** RES-007

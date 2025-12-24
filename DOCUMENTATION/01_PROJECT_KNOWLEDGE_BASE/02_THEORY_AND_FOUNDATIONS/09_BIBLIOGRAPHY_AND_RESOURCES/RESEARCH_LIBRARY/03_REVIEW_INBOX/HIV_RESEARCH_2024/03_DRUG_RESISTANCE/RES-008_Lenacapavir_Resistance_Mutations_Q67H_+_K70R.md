@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Lenacapavir Resistance Mutations: Q67H and K70R in HIV-1 Capsid"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Lenacapavir Resistance Mutations: Q67H and K70R in HIV-1 Capsid
 
 **ID:** RES-008

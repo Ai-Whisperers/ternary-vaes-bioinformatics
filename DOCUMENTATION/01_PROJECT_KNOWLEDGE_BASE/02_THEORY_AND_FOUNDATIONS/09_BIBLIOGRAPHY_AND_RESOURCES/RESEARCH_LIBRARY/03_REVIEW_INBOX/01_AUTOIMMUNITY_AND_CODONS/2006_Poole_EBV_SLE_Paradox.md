@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Cellular and humoral paradoxes in the pathogenesis of SLE: the breakdown of tolerance and the role of EBV"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Cellular and humoral paradoxes in the pathogenesis of SLE: the breakdown of tolerance and the role of EBV
 
 **Author:** Poole, B.D., et al.

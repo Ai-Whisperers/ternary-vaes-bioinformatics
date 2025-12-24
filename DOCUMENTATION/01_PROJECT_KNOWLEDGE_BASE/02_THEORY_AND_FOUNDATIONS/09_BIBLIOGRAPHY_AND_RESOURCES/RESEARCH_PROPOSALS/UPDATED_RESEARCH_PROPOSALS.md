@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Updated Research Proposals – Consolidated & Classified by Approach"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Updated Research Proposals – Consolidated & Classified by Approach
 
 > **Purpose:** Provide a comprehensive, organized set of research proposals derived from the extensive material in the `RESEARCH_LIBRARY`. Each proposal is classified by scientific approach, includes objectives, methodology, data sources, and expected outcomes, and references the underlying files in the library for deeper details.

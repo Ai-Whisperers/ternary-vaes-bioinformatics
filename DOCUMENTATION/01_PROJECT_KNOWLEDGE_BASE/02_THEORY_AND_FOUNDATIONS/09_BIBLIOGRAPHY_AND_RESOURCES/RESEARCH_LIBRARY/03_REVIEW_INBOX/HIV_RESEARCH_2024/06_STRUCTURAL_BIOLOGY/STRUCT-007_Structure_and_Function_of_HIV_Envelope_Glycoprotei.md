@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Structure and Function of HIV Envelope Glycoprotein: From Entry to Vaccine Immunogen"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Structure and Function of HIV Envelope Glycoprotein: From Entry to Vaccine Immunogen
 
 **ID:** STRUCT-007

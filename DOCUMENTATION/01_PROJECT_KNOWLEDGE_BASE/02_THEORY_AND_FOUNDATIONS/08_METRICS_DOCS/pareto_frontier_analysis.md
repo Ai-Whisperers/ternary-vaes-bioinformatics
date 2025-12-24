@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Pareto Frontier Analysis: Conserved Structure Capacity"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Pareto Frontier Analysis: Conserved Structure Capacity
 
 **Doc-Type:** Research Finding · Version 1.0 · Updated 2025-12-23 · Author AI Whisperers

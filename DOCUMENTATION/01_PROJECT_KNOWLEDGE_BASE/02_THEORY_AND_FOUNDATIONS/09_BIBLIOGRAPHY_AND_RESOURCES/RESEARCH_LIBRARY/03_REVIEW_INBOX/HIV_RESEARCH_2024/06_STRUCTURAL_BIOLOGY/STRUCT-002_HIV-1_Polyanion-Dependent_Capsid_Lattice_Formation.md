@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV-1 Polyanion-Dependent Capsid Lattice Formation"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV-1 Polyanion-Dependent Capsid Lattice Formation
 
 **ID:** STRUCT-002

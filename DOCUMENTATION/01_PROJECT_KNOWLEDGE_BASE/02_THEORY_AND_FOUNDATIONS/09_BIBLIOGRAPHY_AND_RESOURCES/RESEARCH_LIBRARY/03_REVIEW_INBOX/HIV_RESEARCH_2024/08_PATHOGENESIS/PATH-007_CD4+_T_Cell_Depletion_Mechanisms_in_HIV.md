@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "CD4+ T Cell Depletion Mechanisms in HIV: Pyroptosis, Apoptosis, and Bystander Effects"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # CD4+ T Cell Depletion Mechanisms in HIV: Pyroptosis, Apoptosis, and Bystander Effects
 
 **ID:** PATH-007

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Differential evolution of codon usage bias in HIV-1 genes"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Differential evolution of codon usage bias in HIV-1 genes
 
 **Author:** Pandit, A., & Sinha, S.

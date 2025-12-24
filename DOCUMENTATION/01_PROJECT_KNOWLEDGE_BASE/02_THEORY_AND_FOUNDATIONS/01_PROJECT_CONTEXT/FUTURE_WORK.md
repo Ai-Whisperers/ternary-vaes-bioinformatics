@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Future Work: Ternary VAE Research Directions"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Future Work: Ternary VAE Research Directions
 
 **Baseline Model:** V5.11.3 Structural (v1.1.0 tag)

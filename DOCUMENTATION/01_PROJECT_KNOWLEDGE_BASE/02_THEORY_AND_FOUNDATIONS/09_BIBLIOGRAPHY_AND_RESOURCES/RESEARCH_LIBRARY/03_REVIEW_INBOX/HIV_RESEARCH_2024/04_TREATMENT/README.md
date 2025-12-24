@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Treatment (2023-2025)"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Treatment (2023-2025)
 
 > **15 papers on long-acting injectables, integrase inhibitors, and novel antiretrovirals.**

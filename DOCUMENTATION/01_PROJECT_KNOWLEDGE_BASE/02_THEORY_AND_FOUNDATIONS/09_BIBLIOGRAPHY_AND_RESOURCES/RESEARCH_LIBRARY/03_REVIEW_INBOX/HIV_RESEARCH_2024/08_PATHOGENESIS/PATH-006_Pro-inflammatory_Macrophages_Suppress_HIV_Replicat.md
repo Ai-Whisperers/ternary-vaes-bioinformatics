@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Pro-Inflammatory Macrophages Suppress HIV Replication"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Pro-Inflammatory Macrophages Suppress HIV Replication
 
 **ID:** PATH-006

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Anti-HIV Candidate Discovery with AI Multi-Stage System"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Anti-HIV Candidate Discovery with AI Multi-Stage System
 
 **ID:** AI-004

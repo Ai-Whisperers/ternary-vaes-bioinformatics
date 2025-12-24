@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "02 Validation Suite: Mathematical Stress Tests"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # 02 Validation Suite: Mathematical Stress Tests
 
 > **Objective**: Prove the "Goldilocks Zone" hypothesis rigorously through 40+ synthetic scenarios.

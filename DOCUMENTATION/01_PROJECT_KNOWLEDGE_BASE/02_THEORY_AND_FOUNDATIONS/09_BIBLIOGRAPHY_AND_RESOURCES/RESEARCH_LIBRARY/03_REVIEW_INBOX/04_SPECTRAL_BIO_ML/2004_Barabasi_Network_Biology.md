@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Network biology: understanding the cell's functional organization"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Network biology: understanding the cell's functional organization
 
 **Author:** Barabasi, A.L., & Oltvai, Z.N.

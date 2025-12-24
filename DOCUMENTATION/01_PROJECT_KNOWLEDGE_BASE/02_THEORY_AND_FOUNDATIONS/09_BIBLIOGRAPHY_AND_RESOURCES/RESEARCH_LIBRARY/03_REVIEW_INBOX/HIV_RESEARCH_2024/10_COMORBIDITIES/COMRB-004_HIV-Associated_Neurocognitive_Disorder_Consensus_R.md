@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV-Associated Neurocognitive Disorder Consensus Recommendations"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV-Associated Neurocognitive Disorder Consensus Recommendations
 
 **ID:** COMRB-004

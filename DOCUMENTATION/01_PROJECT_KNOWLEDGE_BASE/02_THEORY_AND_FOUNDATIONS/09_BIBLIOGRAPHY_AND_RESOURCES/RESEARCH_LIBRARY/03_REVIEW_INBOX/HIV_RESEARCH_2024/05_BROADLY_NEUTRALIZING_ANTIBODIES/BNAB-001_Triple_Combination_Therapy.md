@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Safety and Antiviral Effect of a Triple Combination of HIV-1 Broadly Neutralizing Antibodies"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Safety and Antiviral Effect of a Triple Combination of HIV-1 Broadly Neutralizing Antibodies
 
 **ID:** BNAB-001

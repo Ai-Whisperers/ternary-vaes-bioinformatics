@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Drug Resistance in Low-Level Viremia (Zhengzhou Study)"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Drug Resistance in Low-Level Viremia (Zhengzhou Study)
 
 **ID:** RES-005

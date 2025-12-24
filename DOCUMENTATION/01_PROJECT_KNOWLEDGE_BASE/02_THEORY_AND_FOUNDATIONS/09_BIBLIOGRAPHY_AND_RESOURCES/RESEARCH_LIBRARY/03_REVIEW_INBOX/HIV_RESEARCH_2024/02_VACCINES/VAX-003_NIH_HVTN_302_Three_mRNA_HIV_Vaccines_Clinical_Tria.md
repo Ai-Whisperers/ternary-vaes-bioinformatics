@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HVTN 302: NIH Phase 1 Trial of Three mRNA HIV Vaccines"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HVTN 302: NIH Phase 1 Trial of Three mRNA HIV Vaccines
 
 **ID:** VAX-003

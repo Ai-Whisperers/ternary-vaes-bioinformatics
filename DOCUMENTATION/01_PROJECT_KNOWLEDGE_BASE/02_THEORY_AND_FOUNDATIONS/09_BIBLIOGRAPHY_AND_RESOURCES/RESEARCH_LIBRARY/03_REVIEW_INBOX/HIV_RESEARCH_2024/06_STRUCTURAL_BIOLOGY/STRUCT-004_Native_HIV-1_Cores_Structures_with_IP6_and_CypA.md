@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Native HIV-1 Cores: Structures with IP6 and Cyclophilin A"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Native HIV-1 Cores: Structures with IP6 and Cyclophilin A
 
 **ID:** STRUCT-004

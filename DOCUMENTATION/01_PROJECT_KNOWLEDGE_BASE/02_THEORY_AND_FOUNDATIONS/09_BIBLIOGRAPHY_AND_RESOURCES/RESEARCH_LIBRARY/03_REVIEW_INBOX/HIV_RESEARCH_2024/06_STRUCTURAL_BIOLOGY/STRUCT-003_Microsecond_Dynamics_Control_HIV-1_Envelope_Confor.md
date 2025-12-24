@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Microsecond Dynamics Control HIV-1 Envelope Conformation"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Microsecond Dynamics Control HIV-1 Envelope Conformation
 
 **ID:** STRUCT-003

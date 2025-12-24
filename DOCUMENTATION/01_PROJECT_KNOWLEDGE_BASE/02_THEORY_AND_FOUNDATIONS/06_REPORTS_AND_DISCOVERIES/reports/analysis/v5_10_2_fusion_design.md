@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "v5.10.2 Fusion Design: Appetitive + Purposeful + Hyperbolic"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # v5.10.2 Fusion Design: Appetitive + Purposeful + Hyperbolic
 
 **Doc-Type:** Architecture Design Document - Version 1.0 - Updated 2025-12-12 - Author Claude Code

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Gene Therapy for HIV: CRISPR/Cas9 B Cell Modification"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Gene Therapy for HIV: CRISPR/Cas9 B Cell Modification
 
 **ID:** CURE-012

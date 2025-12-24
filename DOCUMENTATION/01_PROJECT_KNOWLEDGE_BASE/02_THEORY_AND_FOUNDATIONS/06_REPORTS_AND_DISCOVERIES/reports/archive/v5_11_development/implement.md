@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Ternary VAE Implementation Plan: Toward Algebraic Closure"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Ternary VAE Implementation Plan: Toward Algebraic Closure
 
 **Teleology:** Transform the VAE from an isometric embedding (preserves metric) into a homomorphism (preserves algebraic operations), enabling the manifold to become a computational engine.

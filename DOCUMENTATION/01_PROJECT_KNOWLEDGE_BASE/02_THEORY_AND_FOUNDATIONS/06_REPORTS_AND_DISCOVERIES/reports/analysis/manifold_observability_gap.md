@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Manifold Observability Gap Analysis"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Manifold Observability Gap Analysis
 
 **Doc-Type:** Technical Analysis · Version 1.0 · Updated 2025-12-12 · Author Claude Code

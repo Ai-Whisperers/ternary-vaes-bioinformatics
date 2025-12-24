@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Validation Theory: The Four Pillars"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Validation Theory: The Four Pillars
 
 > **Source of Truth**: This document defines the theoretical standards for validating the Ternary VAE. For the execution roadmap, see `DOCUMENTATION/02_PROJECT_MANAGEMENT/01_ROADMAPS_AND_PLANS/VALIDATION_AND_BENCHMARKING_PLAN.md`.

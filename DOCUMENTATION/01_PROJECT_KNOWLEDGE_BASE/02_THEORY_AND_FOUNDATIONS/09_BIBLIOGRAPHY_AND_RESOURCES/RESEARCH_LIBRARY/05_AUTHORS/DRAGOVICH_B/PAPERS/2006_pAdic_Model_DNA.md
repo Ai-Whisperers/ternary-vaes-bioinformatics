@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "A p-Adic Model of DNA Sequence and Genetic Code"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # A p-Adic Model of DNA Sequence and Genetic Code
 
 **Author:** Branko Dragovich, A. Dragovich

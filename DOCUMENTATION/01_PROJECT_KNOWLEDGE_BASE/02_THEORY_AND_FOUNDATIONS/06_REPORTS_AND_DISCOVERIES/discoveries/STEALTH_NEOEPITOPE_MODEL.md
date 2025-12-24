@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "The Stealth Neoepitope Model"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # The Stealth Neoepitope Model
 
 **Doc-Type:** Scientific Discovery - Version 1.0 - Updated 2025-12-19 - Author AI Whisperers

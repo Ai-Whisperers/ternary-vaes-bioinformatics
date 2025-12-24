@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "p-Adic numbers in bioinformatics: from genetic code to PAM-matrix"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # p-Adic numbers in bioinformatics: from genetic code to PAM-matrix
 
 **Author:** Khrennikov, A., & Kozyrev, S.V.

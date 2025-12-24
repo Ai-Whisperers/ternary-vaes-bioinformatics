@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Clonally Expanded B Cells in MS Bind to EBV EBNA1 and GlialCAM"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Clonally Expanded B Cells in MS Bind to EBV EBNA1 and GlialCAM
 
 **Author:** Lanz, T.V., et al. (Stanford)

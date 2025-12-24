@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Reduced evolutionary rates in HIV-1 reveal extensive latency periods among replicating lineages"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Reduced evolutionary rates in HIV-1 reveal extensive latency periods among replicating lineages
 
 **Author:** Al-Harthi, L., et al.

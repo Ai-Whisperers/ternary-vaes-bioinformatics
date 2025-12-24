@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Updated Research Proposals – Master Index"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Updated Research Proposals – Master Index
 
 This document provides a **structured overview** of all research proposals derived from the deep analysis of the `RESEARCH_LIBRARY`. Each proposal is organized by scientific **approach** and lives in its own sub‑folder under `RESEARCH_PROPOSALS/`. The folder hierarchy mirrors the classification, making it easy to locate implementation details and to integrate the work into the repository.

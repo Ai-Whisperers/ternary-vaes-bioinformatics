@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Towards a natural system of organisms: proposal for the domains Archaea, Bacteria, and Eucarya"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Towards a natural system of organisms: proposal for the domains Archaea, Bacteria, and Eucarya
 
 **Author:** Carl R. Woese, Otto Kandler, Mark L. Wheelis

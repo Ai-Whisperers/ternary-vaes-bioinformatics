@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "IAVI G002/G003 Trials: Proof-of-Concept for bnAb Pathway"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # IAVI G002/G003 Trials: Proof-of-Concept for bnAb Pathway
 
 **ID:** VAX-002

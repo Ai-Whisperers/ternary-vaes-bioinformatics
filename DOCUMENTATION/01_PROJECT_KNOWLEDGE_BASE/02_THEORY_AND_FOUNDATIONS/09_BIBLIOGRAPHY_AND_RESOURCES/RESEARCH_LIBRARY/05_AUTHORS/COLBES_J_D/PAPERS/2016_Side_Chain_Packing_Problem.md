@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Protein side-chain packing problem: is there still room for improvement?"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Protein side-chain packing problem: is there still room for improvement?
 
 **Author:** José Domingo Colbes, C. Benítez

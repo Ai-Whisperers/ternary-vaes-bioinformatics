@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "PASO-DOBLE Trial: Dovato vs Biktarvy Head-to-Head Comparison"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # PASO-DOBLE Trial: Dovato vs Biktarvy Head-to-Head Comparison
 
 **ID:** TRT-009

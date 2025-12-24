@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Research Papers Index (2023-2025)"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Research Papers Index (2023-2025)
 
 > **Comprehensive collection of 111 recent HIV research papers organized by topic.**

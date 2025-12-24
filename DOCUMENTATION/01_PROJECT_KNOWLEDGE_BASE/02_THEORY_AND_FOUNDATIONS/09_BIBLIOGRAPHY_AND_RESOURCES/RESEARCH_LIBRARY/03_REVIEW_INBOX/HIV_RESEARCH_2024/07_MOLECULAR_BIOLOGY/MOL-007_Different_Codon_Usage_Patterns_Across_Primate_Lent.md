@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Different Patterns of Codon Usage and Amino Acid Composition Across Primate Lentiviruses"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Different Patterns of Codon Usage and Amino Acid Composition Across Primate Lentiviruses
 
 **ID:** MOL-007

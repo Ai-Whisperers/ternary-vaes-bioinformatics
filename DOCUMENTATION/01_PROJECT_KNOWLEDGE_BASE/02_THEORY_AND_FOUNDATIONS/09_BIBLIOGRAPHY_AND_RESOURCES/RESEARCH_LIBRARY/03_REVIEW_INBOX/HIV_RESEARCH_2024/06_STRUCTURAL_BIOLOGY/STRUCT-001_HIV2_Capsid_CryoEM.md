@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Structural Insights into HIV-2 CA Lattice Formation and FG-Pocket Binding Revealed by Single Particle Cryo-EM"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Structural Insights into HIV-2 CA Lattice Formation and FG-Pocket Binding Revealed by Single Particle Cryo-EM
 
 **ID:** STRUCT-001

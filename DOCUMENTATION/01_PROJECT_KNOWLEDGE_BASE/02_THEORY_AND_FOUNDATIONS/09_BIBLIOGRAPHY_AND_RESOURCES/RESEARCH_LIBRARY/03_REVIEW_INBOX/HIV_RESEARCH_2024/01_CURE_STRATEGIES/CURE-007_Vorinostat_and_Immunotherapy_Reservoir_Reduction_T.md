@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Vorinostat and HIV-Specific T-Cell Therapy for Reservoir Reduction"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Vorinostat and HIV-Specific T-Cell Therapy for Reservoir Reduction
 
 **ID:** CURE-007

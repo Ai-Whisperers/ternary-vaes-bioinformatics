@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Global and Regional Genetic Diversity of HIV-1 in 2010-2021: Systematic Review and Analysis"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Global and Regional Genetic Diversity of HIV-1 in 2010-2021: Systematic Review and Analysis
 
 **ID:** EPI-001

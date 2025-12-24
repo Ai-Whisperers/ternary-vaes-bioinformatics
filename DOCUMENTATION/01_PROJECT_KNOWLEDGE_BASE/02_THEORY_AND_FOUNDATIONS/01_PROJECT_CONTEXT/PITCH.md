@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "The Ternary VAE Project: An Executive Summary"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # The Ternary VAE Project: An Executive Summary
 
 <!-- embed: DOCUMENTATION/06_DIAGRAMS/01_ARCHITECTURE/models/ternary_vae_v5_composition.mmd -->

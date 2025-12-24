@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "A colorful origin for the genetic code: Information theory, statistical mechanics and the emergence of molecular codes"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # A colorful origin for the genetic code: Information theory, statistical mechanics and the emergence of molecular codes
 
 **Author:** Tsvi Tlusty

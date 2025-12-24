@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Deep Learning for Drug Resistance Prediction on HIV-1 Sequences"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Deep Learning for Drug Resistance Prediction on HIV-1 Sequences
 
 **ID:** AI-005

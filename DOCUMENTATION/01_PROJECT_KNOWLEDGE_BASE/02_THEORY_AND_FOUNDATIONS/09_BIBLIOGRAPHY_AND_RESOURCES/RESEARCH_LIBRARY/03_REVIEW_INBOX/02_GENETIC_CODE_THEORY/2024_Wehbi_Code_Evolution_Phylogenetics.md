@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Ancient protein domains reveal the order of amino acid recruitment to the genetic code"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Ancient protein domains reveal the order of amino acid recruitment to the genetic code
 
 **Author:** Wehbi, S., & Masel, J. (University of Arizona)

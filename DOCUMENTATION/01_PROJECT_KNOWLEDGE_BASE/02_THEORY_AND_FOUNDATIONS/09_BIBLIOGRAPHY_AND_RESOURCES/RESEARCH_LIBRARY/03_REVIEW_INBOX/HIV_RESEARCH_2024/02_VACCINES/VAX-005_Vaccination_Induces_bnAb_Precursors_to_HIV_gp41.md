@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Vaccination Induces bnAb Precursors to HIV gp41"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Vaccination Induces bnAb Precursors to HIV gp41
 
 **ID:** VAX-005

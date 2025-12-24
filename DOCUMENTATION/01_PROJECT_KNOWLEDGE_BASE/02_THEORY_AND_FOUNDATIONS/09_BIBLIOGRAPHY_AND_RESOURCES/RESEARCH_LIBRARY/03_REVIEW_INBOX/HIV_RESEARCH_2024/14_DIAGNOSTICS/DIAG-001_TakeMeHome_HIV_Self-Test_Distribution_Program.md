@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Together TakeMeHome: National HIV Self-Test Distribution Program"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Together TakeMeHome: National HIV Self-Test Distribution Program
 
 **ID:** DIAG-001

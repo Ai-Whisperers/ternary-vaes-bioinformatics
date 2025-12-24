@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Host Cell Glycosylation Selects for Infection with CCR5- versus CXCR4-Tropic HIV-1"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Host Cell Glycosylation Selects for Infection with CCR5- versus CXCR4-Tropic HIV-1
 
 **ID:** TROP-002

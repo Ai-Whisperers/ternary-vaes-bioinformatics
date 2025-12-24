@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "IP Strategy and Commercial Protection"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # IP Strategy and Commercial Protection
 
 **Doc-Type:** Strategic Planning · Version 1.0 · Updated 2025-12-16 · Author: Internal

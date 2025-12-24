@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "How to Report and Make Sense of a New HIV-1 Circulating Recombinant Form"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # How to Report and Make Sense of a New HIV-1 Circulating Recombinant Form
 
 **ID:** EPI-003

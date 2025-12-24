@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Research Opportunities & Academic Context"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Research Opportunities & Academic Context
 
 > **Strategic Alignment**: Intersection of Geometric Deep Learning, p-adic Number Theory, and Viral Evolution.

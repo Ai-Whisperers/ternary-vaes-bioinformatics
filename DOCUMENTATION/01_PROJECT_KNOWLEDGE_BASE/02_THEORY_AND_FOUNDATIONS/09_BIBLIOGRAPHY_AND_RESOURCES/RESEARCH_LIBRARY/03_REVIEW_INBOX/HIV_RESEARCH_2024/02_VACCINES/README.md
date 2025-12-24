@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Vaccines (2023-2025)"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Vaccines (2023-2025)
 
 > **10 papers on mRNA vaccines, broadly neutralizing antibody induction, and clinical trials.**

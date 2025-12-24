@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Elite Controller Provirus Integration in Non-Coding Regions"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Elite Controller Provirus Integration in Non-Coding Regions
 
 **ID:** PATH-008

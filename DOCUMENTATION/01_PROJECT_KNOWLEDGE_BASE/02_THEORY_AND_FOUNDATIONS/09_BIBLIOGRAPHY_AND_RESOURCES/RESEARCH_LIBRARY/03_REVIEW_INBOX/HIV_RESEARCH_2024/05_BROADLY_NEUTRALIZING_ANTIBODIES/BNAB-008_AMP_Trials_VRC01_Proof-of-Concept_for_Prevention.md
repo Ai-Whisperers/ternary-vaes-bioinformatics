@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "AMP Trials: VRC01 Proof-of-Concept for Antibody-Mediated Prevention"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # AMP Trials: VRC01 Proof-of-Concept for Antibody-Mediated Prevention
 
 **ID:** BNAB-008

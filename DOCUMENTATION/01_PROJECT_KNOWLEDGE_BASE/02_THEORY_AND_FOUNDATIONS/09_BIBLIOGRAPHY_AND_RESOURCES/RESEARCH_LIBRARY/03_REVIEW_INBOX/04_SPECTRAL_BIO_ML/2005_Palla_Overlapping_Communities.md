@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Uncovering the overlapping community structure of complex networks in nature and society"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Uncovering the overlapping community structure of complex networks in nature and society
 
 **Author:** Palla, G., Derenyi, I., Farkas, I., & Vicsek, T.

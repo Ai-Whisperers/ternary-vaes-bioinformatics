@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Persistence, Latency, and Cure Approaches: Where Are We Now?"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Persistence, Latency, and Cure Approaches: Where Are We Now?
 
 **ID:** CURE-003

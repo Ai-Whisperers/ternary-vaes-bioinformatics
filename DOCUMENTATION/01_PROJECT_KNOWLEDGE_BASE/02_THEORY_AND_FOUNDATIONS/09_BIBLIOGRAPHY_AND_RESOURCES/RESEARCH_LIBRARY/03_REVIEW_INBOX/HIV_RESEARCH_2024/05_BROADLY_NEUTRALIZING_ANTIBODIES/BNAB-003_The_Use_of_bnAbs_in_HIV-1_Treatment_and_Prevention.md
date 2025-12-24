@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "The Use of Broadly Neutralizing Antibodies in HIV-1 Treatment and Prevention"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # The Use of Broadly Neutralizing Antibodies in HIV-1 Treatment and Prevention
 
 **ID:** BNAB-003

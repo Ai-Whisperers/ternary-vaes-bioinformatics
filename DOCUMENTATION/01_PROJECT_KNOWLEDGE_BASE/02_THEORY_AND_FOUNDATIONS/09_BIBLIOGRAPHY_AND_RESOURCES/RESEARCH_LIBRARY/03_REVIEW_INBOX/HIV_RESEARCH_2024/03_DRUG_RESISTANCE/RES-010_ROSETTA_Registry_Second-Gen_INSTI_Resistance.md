@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "ROSETTA Registry: Second-Generation INSTI Resistance Patterns"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # ROSETTA Registry: Second-Generation INSTI Resistance Patterns
 
 **ID:** RES-010

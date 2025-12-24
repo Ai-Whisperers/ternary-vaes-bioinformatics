@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Lenacapavir Binding to HIV-1 Capsid Lattice: Structural Basis"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Lenacapavir Binding to HIV-1 Capsid Lattice: Structural Basis
 
 **ID:** STRUCT-008

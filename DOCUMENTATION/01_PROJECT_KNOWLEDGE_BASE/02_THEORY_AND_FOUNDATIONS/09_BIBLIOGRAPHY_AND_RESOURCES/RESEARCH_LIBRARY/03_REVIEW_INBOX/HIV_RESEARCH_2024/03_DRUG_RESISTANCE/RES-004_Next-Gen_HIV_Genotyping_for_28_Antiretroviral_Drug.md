@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Next-Gen HIV Genotyping for 28 Antiretroviral Drugs"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Next-Gen HIV Genotyping for 28 Antiretroviral Drugs
 
 **ID:** RES-004

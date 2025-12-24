@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Variation in HIV-1 Tat Activity is a Key Determinant in the Establishment of Latent Infection"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Variation in HIV-1 Tat Activity is a Key Determinant in the Establishment of Latent Infection
 
 **ID:** MOL-001

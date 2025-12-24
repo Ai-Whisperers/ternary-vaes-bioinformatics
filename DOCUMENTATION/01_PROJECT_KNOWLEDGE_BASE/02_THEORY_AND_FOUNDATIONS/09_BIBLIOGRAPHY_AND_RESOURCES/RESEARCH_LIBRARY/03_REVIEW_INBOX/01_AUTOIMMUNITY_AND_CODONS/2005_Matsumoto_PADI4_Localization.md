@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Localization of Peptidylarginine Deiminase 4 (PADI4) and Citrullinated Protein in Synovial Tissue"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Localization of Peptidylarginine Deiminase 4 (PADI4) and Citrullinated Protein in Synovial Tissue
 
 **Author:** Matsumoto, I., et al.

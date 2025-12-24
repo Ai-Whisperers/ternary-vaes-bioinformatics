@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "SLC35A2: First Host Protein Affecting HIV by Coreceptor Use"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # SLC35A2: First Host Protein Affecting HIV by Coreceptor Use
 
 **ID:** TROP-004

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Theory of protein folding: the energy landscape perspective"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Theory of protein folding: the energy landscape perspective
 
 **Author:** Onuchic, J.N., Luthey-Schulten, Z., & Wolynes, P.G.

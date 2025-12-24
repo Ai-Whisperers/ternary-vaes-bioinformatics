@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Transmission of X4-Tropic HIV-1 Through Mucosal Route in Wild-Type CCR5 Individual"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Transmission of X4-Tropic HIV-1 Through Mucosal Route in Wild-Type CCR5 Individual
 
 **ID:** TROP-001

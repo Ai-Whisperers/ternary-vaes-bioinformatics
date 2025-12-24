@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "TIQ-15: A Novel CXCR4 Antagonist with Dual Tropic HIV Entry Inhibition"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # TIQ-15: A Novel CXCR4 Antagonist with Dual Tropic HIV Entry Inhibition
 
 **ID:** TROP-003

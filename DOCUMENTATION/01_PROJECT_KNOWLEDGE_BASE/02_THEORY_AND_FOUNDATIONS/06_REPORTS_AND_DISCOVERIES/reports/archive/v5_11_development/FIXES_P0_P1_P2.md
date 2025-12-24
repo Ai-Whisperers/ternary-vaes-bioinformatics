@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Priority Fixes - Training Stability"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Priority Fixes - Training Stability
 
 **Doc-Type:** Fix Specification · Version 1.0 · Updated 2025-12-14

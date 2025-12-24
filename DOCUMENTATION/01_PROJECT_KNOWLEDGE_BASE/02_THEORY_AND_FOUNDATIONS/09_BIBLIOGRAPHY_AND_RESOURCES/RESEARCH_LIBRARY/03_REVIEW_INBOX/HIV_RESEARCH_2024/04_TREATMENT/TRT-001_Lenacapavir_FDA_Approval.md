@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Lenacapavir (Yeztugo): First FDA-Approved Twice-Yearly HIV Prevention Option"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Lenacapavir (Yeztugo): First FDA-Approved Twice-Yearly HIV Prevention Option
 
 **ID:** TRT-001

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Psychological Distress, Stigma, Social Support in Vietnam"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Psychological Distress, Stigma, Social Support in Vietnam
 
 **ID:** STIGMA-002

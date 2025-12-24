@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Stereochemical evidence for the origin of the genetic code"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Stereochemical evidence for the origin of the genetic code
 
 **Author:** Johnson, D.B., & Wang, L.

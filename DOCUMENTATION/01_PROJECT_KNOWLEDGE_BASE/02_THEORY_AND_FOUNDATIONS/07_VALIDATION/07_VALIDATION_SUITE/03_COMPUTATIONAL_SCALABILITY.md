@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "03 Validation Suite: Computational Scalability"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # 03 Validation Suite: Computational Scalability
 
 > **Objective**: Prove "Exascale on a Laptop" and define hardware requirements.

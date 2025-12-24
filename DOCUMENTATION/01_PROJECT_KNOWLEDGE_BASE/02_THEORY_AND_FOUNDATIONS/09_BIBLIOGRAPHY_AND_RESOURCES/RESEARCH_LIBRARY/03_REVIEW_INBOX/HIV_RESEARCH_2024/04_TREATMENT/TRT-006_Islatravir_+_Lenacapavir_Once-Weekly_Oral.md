@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Islatravir + Lenacapavir: First Once-Weekly Oral HIV Treatment"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Islatravir + Lenacapavir: First Once-Weekly Oral HIV Treatment
 
 **ID:** TRT-006

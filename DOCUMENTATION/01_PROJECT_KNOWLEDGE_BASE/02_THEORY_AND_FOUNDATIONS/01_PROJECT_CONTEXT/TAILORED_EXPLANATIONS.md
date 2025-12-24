@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Tailored Explanations for Stakeholders"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Tailored Explanations for Stakeholders
 
 > **Do not use the same pitch for everyone.** Use these narratives to frame the technology correctly for each audience.

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "VH4524184: Third-Generation Integrase Inhibitor with Enhanced Resistance Profile"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # VH4524184: Third-Generation Integrase Inhibitor with Enhanced Resistance Profile
 
 **ID:** TRT-008

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Making Sense of Multifunctional HIV Proteins: Tat, Rev, and Connections to Transcription"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Making Sense of Multifunctional HIV Proteins: Tat, Rev, and Connections to Transcription
 
 **ID:** MOL-010

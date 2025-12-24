@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "PURPOSE 1 Trial: 100% HIV Prevention Efficacy in Cisgender Women"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # PURPOSE 1 Trial: 100% HIV Prevention Efficacy in Cisgender Women
 
 **ID:** TRT-002

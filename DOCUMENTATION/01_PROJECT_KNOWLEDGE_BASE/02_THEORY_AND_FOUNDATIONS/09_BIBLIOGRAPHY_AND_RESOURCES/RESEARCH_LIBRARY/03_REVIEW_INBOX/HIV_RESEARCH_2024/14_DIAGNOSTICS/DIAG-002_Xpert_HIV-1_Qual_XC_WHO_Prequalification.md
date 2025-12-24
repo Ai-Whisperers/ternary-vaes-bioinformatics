@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Xpert HIV-1 Qual XC WHO Prequalification"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Xpert HIV-1 Qual XC WHO Prequalification
 
 **ID:** DIAG-002

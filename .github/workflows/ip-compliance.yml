@@ -27,6 +27,23 @@ jobs:
           python scripts/legal/add_copyright_headers.py --check
         continue-on-error: false
 
+      - name: Check SPDX headers in documentation
+        run: |
+          echo "Checking SPDX headers in theory documentation..."
+          MISSING=0
+          for file in $(find DOCUMENTATION/01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS -name "*.md" 2>/dev/null); do
+            if ! head -5 "$file" | grep -q "SPDX-License-Identifier"; then
+              echo "MISSING SPDX: $file"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "ERROR: $MISSING files missing SPDX headers"
+            echo "Run: python scripts/docs/add_spdx_frontmatter.py"
+            exit 1
+          fi
+          echo "All documentation files have SPDX headers"
+
       - name: Verify required files exist
         run: |
           echo "Checking required legal files..."

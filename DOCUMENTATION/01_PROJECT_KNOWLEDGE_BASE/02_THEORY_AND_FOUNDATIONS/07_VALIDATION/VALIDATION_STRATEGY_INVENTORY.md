@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Validation Strategy Inventory & Roadmap"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Validation Strategy Inventory & Roadmap
 
 **Purpose**: This document merges all testing plans (`01_PLANS`), suites (`02_SUITES`), and factory architectures (`03_TEST_FRAMEWORK_DOCS`) into a single actionable roadmap.

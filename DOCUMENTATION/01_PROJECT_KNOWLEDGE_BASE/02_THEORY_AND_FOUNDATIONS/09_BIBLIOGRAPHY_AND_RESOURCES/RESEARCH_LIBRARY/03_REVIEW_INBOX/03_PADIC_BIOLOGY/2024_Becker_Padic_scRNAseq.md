@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "p-ClustVal: A Novel p-adic Approach for Enhanced Clustering of High-Dimensional scRNASeq Data"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # p-ClustVal: A Novel p-adic Approach for Enhanced Clustering of High-Dimensional scRNASeq Data
 
 **Author:** Becker, Sharma, Mishra, Kurban, Dalkilic

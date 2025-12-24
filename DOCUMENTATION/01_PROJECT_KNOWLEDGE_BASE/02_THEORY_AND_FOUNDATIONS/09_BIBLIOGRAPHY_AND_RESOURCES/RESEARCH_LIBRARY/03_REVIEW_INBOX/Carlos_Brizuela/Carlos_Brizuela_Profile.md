@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Carlos Brizuela"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Carlos Brizuela
 **Affiliation:** Researcher, Computer Science Department, CICESE (Center for Scientific Research and Higher Education of Ensenada), Mexico.
 **Email:** (Verified at cicese.mx)

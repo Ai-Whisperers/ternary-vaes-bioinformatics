@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "01 Validation Suite: Biological Benchmarks"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # 01 Validation Suite: Biological Benchmarks
 
 > **Objective**: Prove the model predicts "Escape" and fitness across the virosphere and proteome.

@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Peptidylarginine deiminase 4 and citrullination in health and disease"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Peptidylarginine deiminase 4 and citrullination in health and disease
 
 **Author:** Vossenaar, E.R., et al.

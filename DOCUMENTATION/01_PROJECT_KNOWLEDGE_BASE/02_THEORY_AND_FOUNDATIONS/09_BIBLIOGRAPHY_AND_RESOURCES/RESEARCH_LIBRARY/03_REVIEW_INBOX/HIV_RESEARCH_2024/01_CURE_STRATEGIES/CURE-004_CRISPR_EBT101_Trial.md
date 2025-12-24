@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "CRISPR Gene Therapy EBT-101: First-in-Human Clinical Trial for HIV"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # CRISPR Gene Therapy EBT-101: First-in-Human Clinical Trial for HIV
 
 **ID:** CURE-004

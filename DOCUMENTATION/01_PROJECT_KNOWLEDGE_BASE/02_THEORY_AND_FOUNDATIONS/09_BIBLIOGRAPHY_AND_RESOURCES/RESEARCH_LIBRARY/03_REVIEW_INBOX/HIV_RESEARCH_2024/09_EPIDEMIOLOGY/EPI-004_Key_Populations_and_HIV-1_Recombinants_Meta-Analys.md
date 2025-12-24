@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "Key Populations and HIV-1 Recombinants Meta-Analysis"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # Key Populations and HIV-1 Recombinants Meta-Analysis
 
 **ID:** EPI-004

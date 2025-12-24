@@ -1,3 +1,14 @@
+<!-- SPDX-License-Identifier: PolyForm-Noncommercial-1.0.0 -->
+
+---
+title: "HIV Progression Depends on Codon and Amino Acid Usage Profile of Envelope Protein"
+date: 2025-12-24
+authors:
+  - AI Whisperers
+version: "0.1"
+license: PolyForm-Noncommercial-1.0.0
+---
+
 # HIV Progression Depends on Codon and Amino Acid Usage Profile of Envelope Protein
 
 **Author:** Roy, S., et al.
