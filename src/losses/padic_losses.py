@@ -18,6 +18,9 @@ from typing import Tuple
 # STRUCTURAL FIX: Use core module's TERNARY singleton as single source of truth
 from ..core import TERNARY
 
+# Use geometry module for hyperbolic operations (single source of truth)
+from ..geometry import poincare_distance, project_to_poincare
+
 
 # Note: Full 19683x19683 distance matrix removed (was O(n²) dead code).
 # Use TERNARY.distance() for efficient on-demand computation.
@@ -551,43 +554,16 @@ class PAdicRankingLossHyperbolic(nn.Module):
     def _project_to_poincare(self, z: torch.Tensor) -> torch.Tensor:
         """Project Euclidean points onto the Poincaré ball.
 
-        Uses the projection: z_hyp = z / (1 + ||z||) * max_norm
-
-        This maps R^n -> B^n (open unit ball) while preserving directions.
-        Points far from origin in Euclidean space map near the boundary.
+        Delegates to geometry module for single source of truth.
         """
-        norm = torch.norm(z, dim=1, keepdim=True)
-        # Smooth projection that maps R^n to B^n
-        z_hyp = z / (1 + norm) * self.max_norm
-        return z_hyp
+        return project_to_poincare(z, max_norm=self.max_norm, c=self.curvature)
 
     def _poincare_distance(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
         """Compute Poincaré distance between points.
 
-        d_poincare(x,y) = arcosh(1 + 2||x-y||² / ((1-||x||²)(1-||y||²)))
-
-        For numerical stability, we use:
-        arcosh(z) = log(z + sqrt(z² - 1)) for z >= 1
+        Delegates to geometry module for numerical stability via geoopt.
         """
-        # Squared norms
-        x_norm_sq = torch.sum(x ** 2, dim=1)
-        y_norm_sq = torch.sum(y ** 2, dim=1)
-
-        # Squared Euclidean distance
-        diff_norm_sq = torch.sum((x - y) ** 2, dim=1)
-
-        # Denominators (1 - ||x||²)(1 - ||y||²)
-        denom = (1 - x_norm_sq) * (1 - y_norm_sq)
-        denom = torch.clamp(denom, min=1e-10)  # Numerical stability
-
-        # Argument to arcosh
-        arg = 1 + 2 * diff_norm_sq / denom
-        arg = torch.clamp(arg, min=1.0 + 1e-7)  # arcosh requires arg >= 1
-
-        # arcosh(z) = log(z + sqrt(z² - 1))
-        distance = torch.log(arg + torch.sqrt(arg ** 2 - 1))
-
-        return distance * self.curvature
+        return poincare_distance(x, y, c=self.curvature)
 
     def _poincare_distance_matrix(self, z: torch.Tensor) -> torch.Tensor:
         """Compute all pairwise Poincaré distances (vectorized).
