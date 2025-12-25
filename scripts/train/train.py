@@ -50,6 +50,8 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC, HomeostasisController
 from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, GlobalRankLoss
 from src.losses import CombinedZeroStructureLoss
+from src.losses.geometric_loss import GeometricAlignmentLoss
+from src.losses.drug_interaction import DrugInteractionPenalty
 from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
 from src.geometry import get_riemannian_optimizer
@@ -310,6 +312,26 @@ def parse_args():
         action="store_true",
         default=False,
         help="Return ManifoldParameter from projection for Riemannian gradients",
+    )
+    # Geometric Alignment (Phase 1)
+    parser.add_argument(
+        "--geometric_weight",
+        type=float,
+        default=0.0,
+        help="Weight for geometric alignment loss (default: 0.0 = disabled)",
+    )
+    parser.add_argument(
+        "--geometric_symmetry",
+        type=str,
+        default="point_24",
+        help="Symmetry group for geometric alignment (default: point_24)",
+    )
+    # Phase 2: Drug Interaction
+    parser.add_argument(
+        "--drug_sim_weight",
+        type=float,
+        default=0.0,
+        help="Weight for drug interaction/similarity loss",
     )
     return parser.parse_args()
 
@@ -596,6 +618,10 @@ def train_epoch(
     use_learnable_weights=False,
     zero_structure_loss_fn=None,
     zero_structure_weight=1.0,
+    geometric_loss_fn=None,
+    geometric_weight=0.0,
+    drug_interaction_loss_fn=None,
+    drug_interaction_weight=0.0,
 ):
     """Train one epoch.
 
@@ -636,7 +662,12 @@ def train_epoch(
     total_geo = 0.0
     total_rad = 0.0
     total_rank = 0.0
+    total_rank = 0.0
     total_zero = 0.0
+    total_rank = 0.0
+    total_zero = 0.0
+    total_geo_align = 0.0
+    total_drug = 0.0
 
     for i in range(n_batches):
         if use_stratified:
@@ -680,7 +711,25 @@ def train_epoch(
             zero_loss_B = zero_structure_loss_fn(z_B_hyp, x_batch)
             zero_loss = zero_loss_A + zero_loss_B
 
+        # V5.12: Geometric Alignment Loss (Phase 1)
+        geo_align_loss = torch.tensor(0.0, device=device)
+        if geometric_loss_fn is not None:
+            # We align trainable High-Level structure (z_B) or both?
+            # Proposal implies scaffold alignment. Let's align z_B_hyp as it is the "structure" VAE
+            align_loss_A, _ = geometric_loss_fn(z_A_hyp)
+            align_loss_B, _ = geometric_loss_fn(z_B_hyp)
+            geo_align_loss = align_loss_A + align_loss_B
+
+        # V5.13: Drug Interaction Loss (Phase 2)
+        drug_loss = torch.tensor(0.0, device=device)
+        if drug_interaction_loss_fn is not None and drug_interaction_weight > 0:
+            # MOCK: Assuming interaction data is in batch metadata or simulating self-interaction for constraint
+            # Real implementation would need x_batch to contain interaction labels
+            # For now, we leave as 0 or implement a dummy constaint if needed
+            pass
+
         # V5.11.1 FIX: Always include both losses
+
         # Radial loss is ALWAYS active (weighted by radial_weight)
         # Geodesic loss ramps up with tau
         # Early: low tau = focus on radial, some geodesic
@@ -699,7 +748,9 @@ def train_epoch(
                 learned_tau * geo_loss
                 + learned_radial * rad_loss
                 + rank_loss_weight * rank_loss
+                + rank_loss_weight * rank_loss
                 + zero_structure_weight * zero_loss
+                + geometric_weight * geo_align_loss
             )
 
             # V5.11.5: Q-preservation regularization
@@ -724,7 +775,9 @@ def train_epoch(
                 tau * geo_loss
                 + radial_weight * rad_loss
                 + rank_loss_weight * rank_loss
+                + rank_loss_weight * rank_loss
                 + zero_structure_weight * zero_loss
+                + geometric_weight * geo_align_loss
             )
 
         # Backward and optimize
@@ -736,7 +789,10 @@ def train_epoch(
         total_geo += geo_loss.item()
         total_rad += rad_loss.item()
         total_rank += rank_loss.item()
+        total_rank += rank_loss.item()
         total_zero += zero_loss.item()
+        total_geo_align += geo_align_loss.item()
+        total_drug += drug_loss.item()
 
     return {
         "loss": total_loss / n_batches,
@@ -744,6 +800,8 @@ def train_epoch(
         "rad_loss": total_rad / n_batches,
         "rank_loss": total_rank / n_batches,
         "zero_loss": total_zero / n_batches,
+        "geo_align_loss": total_geo_align / n_batches,
+        "drug_loss": total_drug / n_batches,
     }
 
 
