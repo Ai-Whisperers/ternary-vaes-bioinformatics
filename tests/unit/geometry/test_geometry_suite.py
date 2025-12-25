@@ -1,7 +1,9 @@
 import pytest
 import torch
 import torch.testing as testing
-from src.geometry.poincare import poincare_distance, project_to_poincare, mobius_add
+
+from src.geometry.poincare import (mobius_add, poincare_distance,
+                                   project_to_poincare)
 
 
 def test_poincare_distance_identity(device):

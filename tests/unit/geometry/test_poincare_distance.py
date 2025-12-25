@@ -10,11 +10,9 @@ Tests pairwise and matrix distance computations.
 
 import pytest
 import torch
-from src.geometry.poincare import (
-    poincare_distance,
-    poincare_distance_matrix,
-    project_to_poincare,
-)
+
+from src.geometry.poincare import (poincare_distance, poincare_distance_matrix,
+                                   project_to_poincare)
 
 
 class TestPoincareDistanceBasic:

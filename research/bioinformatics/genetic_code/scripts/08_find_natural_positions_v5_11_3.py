@@ -14,19 +14,19 @@ Strategy:
 Output: research/genetic_code/data/natural_positions_v5_11_3.json
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
 from collections import Counter, defaultdict
 from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
 import numpy as np
-from sklearn.cluster import KMeans, AgglomerativeClustering
+import torch
 from scipy.spatial.distance import pdist, squareform
+from sklearn.cluster import AgglomerativeClustering, KMeans
 
 # Genetic code degeneracy pattern: 21 clusters with these sizes (sorted)
 # Total = 64 codons

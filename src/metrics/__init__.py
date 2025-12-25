@@ -15,16 +15,13 @@ This module contains evaluation metrics:
 - tracking: Coverage and metrics tracking
 """
 
-from .hyperbolic import (
-    project_to_poincare,
-    poincare_distance,
-    compute_3adic_valuation,
-    compute_ranking_correlation_hyperbolic
-)
+from .hyperbolic import (compute_3adic_valuation,
+                         compute_ranking_correlation_hyperbolic,
+                         poincare_distance, project_to_poincare)
 
 __all__ = [
-    'project_to_poincare',
-    'poincare_distance',
-    'compute_3adic_valuation',
-    'compute_ranking_correlation_hyperbolic'
+    "project_to_poincare",
+    "poincare_distance",
+    "compute_3adic_valuation",
+    "compute_ranking_correlation_hyperbolic",
 ]

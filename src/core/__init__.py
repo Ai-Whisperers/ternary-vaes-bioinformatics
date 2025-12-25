@@ -22,14 +22,8 @@ Usage:
     t = TERNARY.to_ternary(indices)
 """
 
-from .ternary import (
-    TernarySpace,
-    TERNARY,
-    valuation,
-    distance,
-    to_ternary,
-    from_ternary,
-)
+from .ternary import (TERNARY, TernarySpace, distance, from_ternary,
+                      to_ternary, valuation)
 
 # Constants exposed at module level for convenience
 N_OPERATIONS = TERNARY.N_OPERATIONS
@@ -37,13 +31,13 @@ N_DIGITS = TERNARY.N_DIGITS
 MAX_VALUATION = TERNARY.MAX_VALUATION
 
 __all__ = [
-    'TernarySpace',
-    'TERNARY',
-    'valuation',
-    'distance',
-    'to_ternary',
-    'from_ternary',
-    'N_OPERATIONS',
-    'N_DIGITS',
-    'MAX_VALUATION',
+    "TernarySpace",
+    "TERNARY",
+    "valuation",
+    "distance",
+    "to_ternary",
+    "from_ternary",
+    "N_OPERATIONS",
+    "N_DIGITS",
+    "MAX_VALUATION",
 ]

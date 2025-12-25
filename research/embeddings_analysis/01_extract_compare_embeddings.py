@@ -15,11 +15,12 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+import json
+from typing import Any, Dict, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from typing import Dict, Tuple, Any
-import json
 
 
 def generate_all_ternary_operations() -> np.ndarray:
@@ -410,7 +411,7 @@ def analyze_embedding_space(
     dist_val_corr = np.corrcoef(distances, val_diff_flat)[0, 1]
 
     # Clustering analysis by valuation
-    from scipy.cluster.hierarchy import linkage, fcluster
+    from scipy.cluster.hierarchy import fcluster, linkage
 
     Z = linkage(sample_emb, method="ward")
 

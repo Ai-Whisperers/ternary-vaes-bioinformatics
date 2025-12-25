@@ -4,21 +4,18 @@ HIV-1 CTL Escape Mutation Analysis using Hyperbolic Geometry
 Uses shared hyperbolic_utils from RA pipeline (codon_encoder_3adic.pt)
 """
 
-import sys
 import json
+import sys
+from pathlib import Path
+
 import numpy as np
 import torch
-from pathlib import Path
 
 # Use local hyperbolic_utils
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from hyperbolic_utils import (
-    load_codon_encoder,
-    poincare_distance,
-    codon_to_onehot,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot, load_codon_encoder,
+                              poincare_distance)
 
 CODON_TABLE = {
     "TTT": "F",

@@ -27,25 +27,22 @@ Author: AI Whisperers
 Date: 2025-12-24
 """
 
-import sys
 import json
-import torch
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Set
-from dataclasses import dataclass, asdict, field
+import sys
 from collections import defaultdict
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
+import torch
 
 # Add local path for imports
 script_dir = Path(__file__).parent
 sys.path.insert(0, str(script_dir))
 
-from hyperbolic_utils import (
-    load_codon_encoder,
-    poincare_distance,
-    codon_to_onehot,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot, load_codon_encoder,
+                              poincare_distance)
 
 # =============================================================================
 # COMPLETE HIV PROTEOME - ALL PROTEINS AND THEIR HIDING FUNCTIONS
@@ -76,7 +73,6 @@ HIV_PROTEOME = {
             "membrane_region": ["AAG", "CTG", "AAG", "CGG", "AAG"],  # Basic patch
         },
     },
-
     "Gag_CA_p24": {
         "gene": "gag",
         "length": 231,
@@ -97,7 +93,6 @@ HIV_PROTEOME = {
             "CypA_loop": ["GGC", "CCG", "GTG", "ATC", "ACC", "GGC", "AAC"],
         },
     },
-
     "Gag_NC_p7": {
         "gene": "gag",
         "length": 55,
@@ -117,7 +112,6 @@ HIV_PROTEOME = {
             "ZF2": ["TGC", "CAC", "TGC"],
         },
     },
-
     # =========================================================================
     # ENZYMATIC PROTEINS (Pol)
     # =========================================================================
@@ -141,7 +135,6 @@ HIV_PROTEOME = {
             "catalytic": ["GAC", "ACC", "GGC"],  # Asp-Thr-Gly
         },
     },
-
     "Pol_RT": {
         "gene": "pol",
         "length": 560,
@@ -162,7 +155,6 @@ HIV_PROTEOME = {
             "YMDD_motif": ["TAC", "ATG", "GAC", "GAC"],  # Tyr-Met-Asp-Asp
         },
     },
-
     "Pol_IN": {
         "gene": "pol",
         "length": 288,
@@ -183,7 +175,6 @@ HIV_PROTEOME = {
             "DDE_catalytic": ["GAC", "GAC", "GAG"],  # Asp-Asp-Glu
         },
     },
-
     # =========================================================================
     # ENVELOPE PROTEINS (Env)
     # =========================================================================
@@ -201,18 +192,177 @@ HIV_PROTEOME = {
         "human_mimics": ["CD4 binding proteins", "Glycosylated self-proteins"],
         "signaling_targets": ["CD4 receptor", "CCR5/CXCR4 coreceptors", "DC-SIGN"],
         "key_residues": {
-            "CD4_binding": [124, 125, 126, 196, 198, 279, 280, 281, 282, 368, 370, 425, 426, 427, 428, 429, 430, 431, 432, 455, 456, 457, 458, 459, 471, 472, 473, 474, 475, 476],
+            "CD4_binding": [
+                124,
+                125,
+                126,
+                196,
+                198,
+                279,
+                280,
+                281,
+                282,
+                368,
+                370,
+                425,
+                426,
+                427,
+                428,
+                429,
+                430,
+                431,
+                432,
+                455,
+                456,
+                457,
+                458,
+                459,
+                471,
+                472,
+                473,
+                474,
+                475,
+                476,
+            ],
             "coreceptor_binding": [298, 308, 315, 316, 317, 318, 319, 320, 421, 422],
-            "V1_loop": [131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156],
-            "V2_loop": [157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196],
-            "V3_loop": [296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330],
-            "glycan_shield": [88, 133, 137, 156, 160, 187, 197, 234, 241, 262, 276, 289, 295, 301, 332, 339, 355, 362, 386, 392, 406, 411, 448, 463],
+            "V1_loop": [
+                131,
+                132,
+                133,
+                134,
+                135,
+                136,
+                137,
+                138,
+                139,
+                140,
+                141,
+                142,
+                143,
+                144,
+                145,
+                146,
+                147,
+                148,
+                149,
+                150,
+                151,
+                152,
+                153,
+                154,
+                155,
+                156,
+            ],
+            "V2_loop": [
+                157,
+                158,
+                159,
+                160,
+                161,
+                162,
+                163,
+                164,
+                165,
+                166,
+                167,
+                168,
+                169,
+                170,
+                171,
+                172,
+                173,
+                174,
+                175,
+                176,
+                177,
+                178,
+                179,
+                180,
+                181,
+                182,
+                183,
+                184,
+                185,
+                186,
+                187,
+                188,
+                189,
+                190,
+                191,
+                192,
+                193,
+                194,
+                195,
+                196,
+            ],
+            "V3_loop": [
+                296,
+                297,
+                298,
+                299,
+                300,
+                301,
+                302,
+                303,
+                304,
+                305,
+                306,
+                307,
+                308,
+                309,
+                310,
+                311,
+                312,
+                313,
+                314,
+                315,
+                316,
+                317,
+                318,
+                319,
+                320,
+                321,
+                322,
+                323,
+                324,
+                325,
+                326,
+                327,
+                328,
+                329,
+                330,
+            ],
+            "glycan_shield": [
+                88,
+                133,
+                137,
+                156,
+                160,
+                187,
+                197,
+                234,
+                241,
+                262,
+                276,
+                289,
+                295,
+                301,
+                332,
+                339,
+                355,
+                362,
+                386,
+                392,
+                406,
+                411,
+                448,
+                463,
+            ],
         },
         "codons": {
             "CD4_contact_core": ["TGG", "GAG", "ACC", "TGC"],  # Trp-Glu-Thr-Cys
         },
     },
-
     "Env_gp41": {
         "gene": "env",
         "length": 345,
@@ -225,16 +375,143 @@ HIV_PROTEOME = {
         "human_mimics": ["Paramyxovirus F proteins", "Influenza HA2"],
         "signaling_targets": ["Membrane fusion machinery", "Lipid rafts"],
         "key_residues": {
-            "fusion_peptide": [512, 513, 514, 515, 516, 517, 518, 519, 520, 521, 522, 523, 524, 525, 526, 527],
-            "HR1": [540, 541, 542, 543, 544, 545, 546, 547, 548, 549, 550, 551, 552, 553, 554, 555, 556, 557, 558, 559, 560, 561, 562, 563, 564, 565, 566, 567, 568, 569, 570, 571, 572, 573, 574, 575, 576, 577, 578, 579, 580, 581, 582, 583, 584, 585, 586, 587, 588, 589, 590, 591],
-            "HR2": [628, 629, 630, 631, 632, 633, 634, 635, 636, 637, 638, 639, 640, 641, 642, 643, 644, 645, 646, 647, 648, 649, 650, 651, 652, 653, 654, 655, 656, 657, 658, 659, 660, 661],
-            "MPER": [662, 663, 664, 665, 666, 667, 668, 669, 670, 671, 672, 673, 674, 675, 676, 677, 678, 679, 680, 681, 682, 683],
+            "fusion_peptide": [
+                512,
+                513,
+                514,
+                515,
+                516,
+                517,
+                518,
+                519,
+                520,
+                521,
+                522,
+                523,
+                524,
+                525,
+                526,
+                527,
+            ],
+            "HR1": [
+                540,
+                541,
+                542,
+                543,
+                544,
+                545,
+                546,
+                547,
+                548,
+                549,
+                550,
+                551,
+                552,
+                553,
+                554,
+                555,
+                556,
+                557,
+                558,
+                559,
+                560,
+                561,
+                562,
+                563,
+                564,
+                565,
+                566,
+                567,
+                568,
+                569,
+                570,
+                571,
+                572,
+                573,
+                574,
+                575,
+                576,
+                577,
+                578,
+                579,
+                580,
+                581,
+                582,
+                583,
+                584,
+                585,
+                586,
+                587,
+                588,
+                589,
+                590,
+                591,
+            ],
+            "HR2": [
+                628,
+                629,
+                630,
+                631,
+                632,
+                633,
+                634,
+                635,
+                636,
+                637,
+                638,
+                639,
+                640,
+                641,
+                642,
+                643,
+                644,
+                645,
+                646,
+                647,
+                648,
+                649,
+                650,
+                651,
+                652,
+                653,
+                654,
+                655,
+                656,
+                657,
+                658,
+                659,
+                660,
+                661,
+            ],
+            "MPER": [
+                662,
+                663,
+                664,
+                665,
+                666,
+                667,
+                668,
+                669,
+                670,
+                671,
+                672,
+                673,
+                674,
+                675,
+                676,
+                677,
+                678,
+                679,
+                680,
+                681,
+                682,
+                683,
+            ],
         },
         "codons": {
             "fusion_peptide_start": ["GGC", "ATC", "GTG", "GGC"],  # Gly-Ile-Val-Gly
         },
     },
-
     # =========================================================================
     # REGULATORY PROTEINS
     # =========================================================================
@@ -248,7 +525,12 @@ HIV_PROTEOME = {
             "Cysteine-rich domain mimics growth factors",
         ],
         "human_mimics": ["HIV LTR activators", "Angiogenic factors (VEGF-like)"],
-        "signaling_targets": ["CDK9/CyclinT1 (P-TEFb)", "RNA Pol II", "TAR RNA", "Extracellular signaling"],
+        "signaling_targets": [
+            "CDK9/CyclinT1 (P-TEFb)",
+            "RNA Pol II",
+            "TAR RNA",
+            "Extracellular signaling",
+        ],
         "key_residues": {
             "cysteine_rich": [22, 25, 27, 30, 31, 34, 37],
             "core_domain": [38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48],
@@ -259,7 +541,6 @@ HIV_PROTEOME = {
             "ARM": ["CGG", "CGG", "CGG", "AAG", "CGG", "CGG"],  # Arg-rich motif
         },
     },
-
     "Rev": {
         "gene": "rev",
         "length": 116,
@@ -280,7 +561,6 @@ HIV_PROTEOME = {
             "NES": ["CTG", "CTG", "CTG", "CCG", "CTG"],  # Leu-rich
         },
     },
-
     # =========================================================================
     # ACCESSORY PROTEINS - THE "HIDING SPECIALISTS"
     # =========================================================================
@@ -298,8 +578,13 @@ HIV_PROTEOME = {
         ],
         "human_mimics": ["SH3-binding proteins", "PACS proteins", "AP-1/AP-2 adaptors"],
         "signaling_targets": [
-            "CD4 endocytosis", "MHC-I endocytosis", "MHC-II trafficking",
-            "Src family kinases", "PAK2", "DOCK2-ELMO1", "PI3K",
+            "CD4 endocytosis",
+            "MHC-I endocytosis",
+            "MHC-II trafficking",
+            "Src family kinases",
+            "PAK2",
+            "DOCK2-ELMO1",
+            "PI3K",
         ],
         "key_residues": {
             "myristoylation": [1, 2],
@@ -313,7 +598,6 @@ HIV_PROTEOME = {
             "dileucine": ["CTG", "CTG"],  # Leu-Leu
         },
     },
-
     "Vif": {
         "gene": "vif",
         "length": 192,
@@ -327,15 +611,52 @@ HIV_PROTEOME = {
         "signaling_targets": ["APOBEC3G/F/H", "Cullin5-EloB-EloC complex", "CBF-beta"],
         "key_residues": {
             "APOBEC3_binding": [21, 22, 23, 24, 25, 26, 40, 41, 42, 43, 44],
-            "BC_box": [144, 145, 146, 147, 148, 149, 150, 151, 152, 153, 154, 155, 156, 157, 158, 159],
-            "Cullin5_binding": [120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139],
+            "BC_box": [
+                144,
+                145,
+                146,
+                147,
+                148,
+                149,
+                150,
+                151,
+                152,
+                153,
+                154,
+                155,
+                156,
+                157,
+                158,
+                159,
+            ],
+            "Cullin5_binding": [
+                120,
+                121,
+                122,
+                123,
+                124,
+                125,
+                126,
+                127,
+                128,
+                129,
+                130,
+                131,
+                132,
+                133,
+                134,
+                135,
+                136,
+                137,
+                138,
+                139,
+            ],
             "zinc_binding": [108, 114, 133, 139],  # HCCH motif
         },
         "codons": {
             "HCCH": ["CAC", "TGC", "TGC", "CAC"],  # His-Cys-Cys-His
         },
     },
-
     "Vpr": {
         "gene": "vpr",
         "length": 96,
@@ -356,7 +677,6 @@ HIV_PROTEOME = {
             "helical_core": ["CTG", "GCC", "GTG", "GCC"],  # Hydrophobic helix
         },
     },
-
     "Vpu": {
         "gene": "vpu",
         "length": 81,
@@ -370,9 +690,62 @@ HIV_PROTEOME = {
         "human_mimics": ["Ion channels", "SCF-TrCP substrates"],
         "signaling_targets": ["BST-2/Tetherin", "beta-TrCP", "CD4", "NF-kB"],
         "key_residues": {
-            "transmembrane": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+            "transmembrane": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10,
+                11,
+                12,
+                13,
+                14,
+                15,
+                16,
+                17,
+                18,
+                19,
+                20,
+                21,
+                22,
+                23,
+                24,
+                25,
+                26,
+                27,
+            ],
             "phosphoserine": [52, 56],  # DSGxxS motif
-            "BST2_binding": [28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51],
+            "BST2_binding": [
+                28,
+                29,
+                30,
+                31,
+                32,
+                33,
+                34,
+                35,
+                36,
+                37,
+                38,
+                39,
+                40,
+                41,
+                42,
+                43,
+                44,
+                45,
+                46,
+                47,
+                48,
+                49,
+                50,
+                51,
+            ],
         },
         "codons": {
             "DSGxxS": ["GAC", "AGC", "GGC", "XXX", "XXX", "AGC"],  # Phosphodegron
@@ -394,7 +767,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["Anergy", "Apoptosis", "Immune dysfunction"],
     },
-
     "MHC_antigen_presentation": {
         "description": "Antigen presentation to CTLs and helper T-cells",
         "hiv_interference": {
@@ -403,7 +775,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["CTL evasion", "Reduced immune recognition"],
     },
-
     "innate_restriction": {
         "description": "Intrinsic cellular antiviral factors",
         "hiv_interference": {
@@ -414,7 +785,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["Viral persistence", "Productive infection"],
     },
-
     "cell_cycle": {
         "description": "Cell division and checkpoint control",
         "hiv_interference": {
@@ -423,7 +793,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["Enhanced viral production", "Cell death"],
     },
-
     "NF_kB_pathway": {
         "description": "Inflammatory and immune gene activation",
         "hiv_interference": {
@@ -433,7 +802,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["Chronic inflammation", "Immune activation"],
     },
-
     "apoptosis": {
         "description": "Programmed cell death",
         "hiv_interference": {
@@ -444,7 +812,6 @@ SIGNALING_PATHWAYS = {
         },
         "downstream_effects": ["CD4 depletion", "Immune collapse"],
     },
-
     "nuclear_import": {
         "description": "Nuclear-cytoplasmic transport",
         "hiv_interference": {
@@ -453,9 +820,11 @@ SIGNALING_PATHWAYS = {
             "Rev": "Exports unspliced RNA via CRM1",
             "Pol_IN": "LEDGF interaction for integration",
         },
-        "downstream_effects": ["Infection of non-dividing cells", "Latency establishment"],
+        "downstream_effects": [
+            "Infection of non-dividing cells",
+            "Latency establishment",
+        ],
     },
-
     "membrane_trafficking": {
         "description": "Endocytosis, exocytosis, vesicle transport",
         "hiv_interference": {
@@ -473,23 +842,81 @@ SIGNALING_PATHWAYS = {
 # =============================================================================
 
 CODON_TABLE = {
-    'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L', 'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
-    'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*', 'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
-    'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L', 'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-    'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q', 'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-    'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M', 'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
-    'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K', 'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
-    'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V', 'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-    'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E', 'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G',
+    "TTT": "F",
+    "TTC": "F",
+    "TTA": "L",
+    "TTG": "L",
+    "TCT": "S",
+    "TCC": "S",
+    "TCA": "S",
+    "TCG": "S",
+    "TAT": "Y",
+    "TAC": "Y",
+    "TAA": "*",
+    "TAG": "*",
+    "TGT": "C",
+    "TGC": "C",
+    "TGA": "*",
+    "TGG": "W",
+    "CTT": "L",
+    "CTC": "L",
+    "CTA": "L",
+    "CTG": "L",
+    "CCT": "P",
+    "CCC": "P",
+    "CCA": "P",
+    "CCG": "P",
+    "CAT": "H",
+    "CAC": "H",
+    "CAA": "Q",
+    "CAG": "Q",
+    "CGT": "R",
+    "CGC": "R",
+    "CGA": "R",
+    "CGG": "R",
+    "ATT": "I",
+    "ATC": "I",
+    "ATA": "I",
+    "ATG": "M",
+    "ACT": "T",
+    "ACC": "T",
+    "ACA": "T",
+    "ACG": "T",
+    "AAT": "N",
+    "AAC": "N",
+    "AAA": "K",
+    "AAG": "K",
+    "AGT": "S",
+    "AGC": "S",
+    "AGA": "R",
+    "AGG": "R",
+    "GTT": "V",
+    "GTC": "V",
+    "GTA": "V",
+    "GTG": "V",
+    "GCT": "A",
+    "GCC": "A",
+    "GCA": "A",
+    "GCG": "A",
+    "GAT": "D",
+    "GAC": "D",
+    "GAA": "E",
+    "GAG": "E",
+    "GGT": "G",
+    "GGC": "G",
+    "GGA": "G",
+    "GGG": "G",
 }
 
 # =============================================================================
 # ANALYSIS CLASSES
 # =============================================================================
 
+
 @dataclass
 class HidingMechanism:
     """A specific hiding mechanism at a particular hierarchy level."""
+
     protein: str
     level: str  # codon, peptide, protein, signaling, glycan
     mechanism: str
@@ -498,9 +925,11 @@ class HidingMechanism:
     embedding_centroid: Optional[np.ndarray] = None
     embedding_radius: float = 0.0
 
+
 @dataclass
 class HidingCluster:
     """A cluster of related hiding mechanisms in embedding space."""
+
     name: str
     level: str
     mechanisms: List[str]
@@ -509,9 +938,11 @@ class HidingCluster:
     radius: float
     boundary_distance: float  # Distance to nearest non-hiding region
 
+
 @dataclass
 class HidingLandscape:
     """Complete hiding landscape analysis."""
+
     total_mechanisms: int
     by_level: Dict[str, int]
     by_protein: Dict[str, int]
@@ -528,7 +959,7 @@ class HidingLandscapeAnalyzer:
     geometry reveals the evolutionary possibility space.
     """
 
-    def __init__(self, device: str = 'cpu'):
+    def __init__(self, device: str = "cpu"):
         self.device = device
         self.encoder = None
         self.codon_mapping = None
@@ -539,7 +970,7 @@ class HidingLandscapeAnalyzer:
         print("Loading 3-adic codon encoder...")
         try:
             self.encoder, self.codon_mapping, _ = load_codon_encoder(
-                device=self.device, version='3adic'
+                device=self.device, version="3adic"
             )
             print("  Encoder loaded successfully")
             return True
@@ -564,7 +995,7 @@ class HidingLandscapeAnalyzer:
                 pass
 
         # Fallback: use amino acid properties
-        aa = CODON_TABLE.get(codon, 'X')
+        aa = CODON_TABLE.get(codon, "X")
         emb = self._fallback_embedding(aa, codon)
         self.embeddings_cache[codon] = emb
         return emb
@@ -572,21 +1003,32 @@ class HidingLandscapeAnalyzer:
     def _fallback_embedding(self, aa: str, codon: str) -> np.ndarray:
         """Fallback embedding based on amino acid properties."""
         properties = {
-            'A': [0.62, 0.0, 0.2, 0.0], 'C': [0.29, 0.0, 0.3, 0.1],
-            'D': [-0.9, -1.0, 0.4, 1.0], 'E': [-0.74, -1.0, 0.5, 1.0],
-            'F': [1.19, 0.0, 0.7, 0.0], 'G': [0.48, 0.0, 0.0, 0.0],
-            'H': [-0.4, 0.5, 0.5, 0.5], 'I': [1.38, 0.0, 0.5, 0.0],
-            'K': [-1.5, 1.0, 0.5, 1.0], 'L': [1.06, 0.0, 0.5, 0.0],
-            'M': [0.64, 0.0, 0.5, 0.0], 'N': [-0.78, 0.0, 0.4, 1.0],
-            'P': [0.12, 0.0, 0.3, 0.0], 'Q': [-0.85, 0.0, 0.5, 1.0],
-            'R': [-2.53, 1.0, 0.6, 1.0], 'S': [-0.18, 0.0, 0.2, 0.5],
-            'T': [-0.05, 0.0, 0.3, 0.5], 'V': [1.08, 0.0, 0.4, 0.0],
-            'W': [0.81, 0.0, 0.8, 0.2], 'Y': [0.26, 0.0, 0.7, 0.3],
-            '*': [0.0, 0.0, 0.0, 0.0], 'X': [0.0, 0.0, 0.0, 0.0],
+            "A": [0.62, 0.0, 0.2, 0.0],
+            "C": [0.29, 0.0, 0.3, 0.1],
+            "D": [-0.9, -1.0, 0.4, 1.0],
+            "E": [-0.74, -1.0, 0.5, 1.0],
+            "F": [1.19, 0.0, 0.7, 0.0],
+            "G": [0.48, 0.0, 0.0, 0.0],
+            "H": [-0.4, 0.5, 0.5, 0.5],
+            "I": [1.38, 0.0, 0.5, 0.0],
+            "K": [-1.5, 1.0, 0.5, 1.0],
+            "L": [1.06, 0.0, 0.5, 0.0],
+            "M": [0.64, 0.0, 0.5, 0.0],
+            "N": [-0.78, 0.0, 0.4, 1.0],
+            "P": [0.12, 0.0, 0.3, 0.0],
+            "Q": [-0.85, 0.0, 0.5, 1.0],
+            "R": [-2.53, 1.0, 0.6, 1.0],
+            "S": [-0.18, 0.0, 0.2, 0.5],
+            "T": [-0.05, 0.0, 0.3, 0.5],
+            "V": [1.08, 0.0, 0.4, 0.0],
+            "W": [0.81, 0.0, 0.8, 0.2],
+            "Y": [0.26, 0.0, 0.7, 0.3],
+            "*": [0.0, 0.0, 0.0, 0.0],
+            "X": [0.0, 0.0, 0.0, 0.0],
         }
 
         # Codon position encoding
-        base_map = {'T': 0, 'C': 1, 'A': 2, 'G': 3}
+        base_map = {"T": 0, "C": 1, "A": 2, "G": 3}
         codon_enc = np.zeros(12)
         for i, base in enumerate(codon):
             if base in base_map:
@@ -619,7 +1061,7 @@ class HidingLandscapeAnalyzer:
         """Compute Poincare distance between two points."""
         x_norm_sq = np.sum(x**2)
         y_norm_sq = np.sum(y**2)
-        diff_norm_sq = np.sum((x - y)**2)
+        diff_norm_sq = np.sum((x - y) ** 2)
 
         x_norm_sq = min(x_norm_sq, 0.99)
         y_norm_sq = min(y_norm_sq, 0.99)
@@ -655,7 +1097,9 @@ class HidingLandscapeAnalyzer:
 
                 # Calculate radius and distances
                 if embeddings:
-                    distances = [self.compute_poincare_distance(centroid, e) for e in embeddings]
+                    distances = [
+                        self.compute_poincare_distance(centroid, e) for e in embeddings
+                    ]
                     radius = np.max(distances) if distances else 0.0
 
                     # Distance from origin (center of Poincare ball)
@@ -666,16 +1110,20 @@ class HidingLandscapeAnalyzer:
                         "amino_acids": [CODON_TABLE[c] for c in valid_codons],
                         "centroid_norm": float(origin_dist),
                         "cluster_radius": float(radius),
-                        "mean_pairwise_distance": float(np.mean(distances)) if distances else 0.0,
+                        "mean_pairwise_distance": (
+                            float(np.mean(distances)) if distances else 0.0
+                        ),
                     }
 
         # Catalog mechanisms by level
         for mechanism in protein_data.get("hiding_mechanisms", []):
             level = self._classify_mechanism_level(mechanism)
-            results["mechanisms"].append({
-                "description": mechanism,
-                "level": level,
-            })
+            results["mechanisms"].append(
+                {
+                    "description": mechanism,
+                    "level": level,
+                }
+            )
 
         return results
 
@@ -689,7 +1137,10 @@ class HidingLandscapeAnalyzer:
             return "peptide"
         elif any(x in mechanism_lower for x in ["glycan", "glycosyl", "sugar"]):
             return "glycan"
-        elif any(x in mechanism_lower for x in ["signal", "kinase", "pathway", "receptor", "binding"]):
+        elif any(
+            x in mechanism_lower
+            for x in ["signal", "kinase", "pathway", "receptor", "binding"]
+        ):
             return "signaling"
         else:
             return "protein"
@@ -728,7 +1179,10 @@ class HidingLandscapeAnalyzer:
         # Compute overall hiding space geometry
         if all_centroids:
             overall_centroid = self.compute_centroid(all_centroids)
-            distances_from_center = [self.compute_poincare_distance(overall_centroid, c) for c in all_centroids]
+            distances_from_center = [
+                self.compute_poincare_distance(overall_centroid, c)
+                for c in all_centroids
+            ]
 
             geometry = {
                 "overall_centroid_norm": float(np.linalg.norm(overall_centroid)),
@@ -753,8 +1207,10 @@ class HidingLandscapeAnalyzer:
         protein_distances = {}
         protein_names = list(protein_centroids.keys())
         for i, p1 in enumerate(protein_names):
-            for p2 in protein_names[i+1:]:
-                d = self.compute_poincare_distance(protein_centroids[p1], protein_centroids[p2])
+            for p2 in protein_names[i + 1 :]:
+                d = self.compute_poincare_distance(
+                    protein_centroids[p1], protein_centroids[p2]
+                )
                 protein_distances[f"{p1}-{p2}"] = float(d)
 
         return {
@@ -779,38 +1235,48 @@ class HidingLandscapeAnalyzer:
         }
 
         # Analyze centroid positions
-        overall_norm = hiding_geometry.get("geometry", {}).get("overall_centroid_norm", 0.5)
+        overall_norm = hiding_geometry.get("geometry", {}).get(
+            "overall_centroid_norm", 0.5
+        )
 
         # Near boundary (norm > 0.8) = highly specialized, constrained
         if overall_norm > 0.8:
-            predictions["constrained_regions"].append({
-                "type": "boundary_proximity",
-                "description": "HIV hiding codons cluster near Poincare boundary",
-                "implication": "Limited evolutionary flexibility, highly specialized",
-            })
+            predictions["constrained_regions"].append(
+                {
+                    "type": "boundary_proximity",
+                    "description": "HIV hiding codons cluster near Poincare boundary",
+                    "implication": "Limited evolutionary flexibility, highly specialized",
+                }
+            )
 
         # Near center (norm < 0.3) = more flexibility
         if overall_norm < 0.3:
-            predictions["expandable_regions"].append({
-                "type": "central_position",
-                "description": "HIV hiding codons cluster near center",
-                "implication": "More evolutionary flexibility available",
-            })
+            predictions["expandable_regions"].append(
+                {
+                    "type": "central_position",
+                    "description": "HIV hiding codons cluster near center",
+                    "implication": "More evolutionary flexibility available",
+                }
+            )
 
         # Analyze by level
         for level, data in hiding_geometry.get("by_level", {}).items():
             if data["centroid_norm"] > 0.7:
-                predictions["constrained_regions"].append({
-                    "level": level,
-                    "norm": data["centroid_norm"],
-                    "description": f"{level}-level hiding is highly specialized",
-                })
+                predictions["constrained_regions"].append(
+                    {
+                        "level": level,
+                        "norm": data["centroid_norm"],
+                        "description": f"{level}-level hiding is highly specialized",
+                    }
+                )
             elif data["centroid_norm"] < 0.4:
-                predictions["expandable_regions"].append({
-                    "level": level,
-                    "norm": data["centroid_norm"],
-                    "description": f"{level}-level hiding has room to evolve",
-                })
+                predictions["expandable_regions"].append(
+                    {
+                        "level": level,
+                        "norm": data["centroid_norm"],
+                        "description": f"{level}-level hiding has room to evolve",
+                    }
+                )
 
         # Identify vulnerability zones (gaps between clusters)
         protein_distances = hiding_geometry.get("protein_distances", {})
@@ -818,11 +1284,13 @@ class HidingLandscapeAnalyzer:
             # Large distances between proteins = potential vulnerability
             for pair, distance in protein_distances.items():
                 if distance > 2.0:  # Significant hyperbolic distance
-                    predictions["vulnerability_zones"].append({
-                        "proteins": pair,
-                        "distance": distance,
-                        "description": f"Gap between {pair} could be therapeutic target",
-                    })
+                    predictions["vulnerability_zones"].append(
+                        {
+                            "proteins": pair,
+                            "distance": distance,
+                            "description": f"Gap between {pair} could be therapeutic target",
+                        }
+                    )
 
         return predictions
 
@@ -832,7 +1300,9 @@ class HidingLandscapeAnalyzer:
         print("HIV COMPLETE HIDING LANDSCAPE ANALYSIS")
         print("=" * 70)
         print("\nHYPOTHESIS: HIV has overfitted hiding at multiple hierarchy levels.")
-        print("The 3-adic geometry reveals the complete evolutionary possibility space.")
+        print(
+            "The 3-adic geometry reveals the complete evolutionary possibility space."
+        )
 
         # Load encoder
         encoder_loaded = self.load_encoder()
@@ -854,7 +1324,9 @@ class HidingLandscapeAnalyzer:
             for mech in result["mechanisms"]:
                 level_counts[mech["level"]] += 1
 
-            print(f"{n_mech} mechanisms, {len(result['mimicry_targets'])} mimicry targets")
+            print(
+                f"{n_mech} mechanisms, {len(result['mimicry_targets'])} mimicry targets"
+            )
 
         # Compute hiding space geometry
         print("\n[2] COMPUTING HIDING SPACE GEOMETRY")
@@ -862,12 +1334,18 @@ class HidingLandscapeAnalyzer:
         hiding_geometry = self.compute_hiding_space_geometry(all_results)
 
         if hiding_geometry.get("geometry"):
-            print(f"  Overall centroid norm: {hiding_geometry['geometry']['overall_centroid_norm']:.3f}")
-            print(f"  Mean hiding radius: {hiding_geometry['geometry']['mean_radius']:.3f}")
+            print(
+                f"  Overall centroid norm: {hiding_geometry['geometry']['overall_centroid_norm']:.3f}"
+            )
+            print(
+                f"  Mean hiding radius: {hiding_geometry['geometry']['mean_radius']:.3f}"
+            )
 
         print("\n  By hierarchy level:")
         for level, data in hiding_geometry.get("by_level", {}).items():
-            print(f"    {level}: centroid_norm={data['centroid_norm']:.3f}, n={data['n_proteins']}")
+            print(
+                f"    {level}: centroid_norm={data['centroid_norm']:.3f}, n={data['n_proteins']}"
+            )
 
         # Predict evolutionary possibilities
         print("\n[3] PREDICTING EVOLUTIONARY POSSIBILITIES")
@@ -926,7 +1404,7 @@ class HidingLandscapeAnalyzer:
 
 def main():
     """Run the complete hiding landscape analysis."""
-    analyzer = HidingLandscapeAnalyzer(device='cpu')
+    analyzer = HidingLandscapeAnalyzer(device="cpu")
     results = analyzer.run_full_analysis()
 
     # Print key findings
@@ -935,23 +1413,26 @@ def main():
     print("=" * 70)
 
     print(f"\n  Total HIV proteins analyzed: {results['metadata']['total_proteins']}")
-    print(f"  Total hiding mechanisms cataloged: {results['metadata']['total_mechanisms']}")
+    print(
+        f"  Total hiding mechanisms cataloged: {results['metadata']['total_mechanisms']}"
+    )
 
     print("\n  Mechanisms by hierarchy level:")
-    for level, count in results['summary']['mechanisms_by_level'].items():
+    for level, count in results["summary"]["mechanisms_by_level"].items():
         print(f"    {level}: {count}")
 
     print("\n  Top hiding specialists (by mechanism count):")
     sorted_proteins = sorted(
-        results['summary']['mechanisms_by_protein'].items(),
-        key=lambda x: x[1], reverse=True
+        results["summary"]["mechanisms_by_protein"].items(),
+        key=lambda x: x[1],
+        reverse=True,
     )
     for protein, count in sorted_proteins[:5]:
         print(f"    {protein}: {count} mechanisms")
 
     # Vulnerability analysis
     print("\n  VULNERABILITY ZONES (potential therapeutic targets):")
-    for vuln in results['evolutionary_predictions']['vulnerability_zones'][:5]:
+    for vuln in results["evolutionary_predictions"]["vulnerability_zones"][:5]:
         print(f"    {vuln['proteins']}: distance={vuln['distance']:.2f}")
 
     # Save results
@@ -970,7 +1451,7 @@ def main():
         else:
             return obj
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(convert_for_json(results), f, indent=2)
 
     print(f"\n  Results saved to: {output_file}")
@@ -979,7 +1460,8 @@ def main():
     print("\n" + "=" * 70)
     print("HYPOTHESIS VALIDATION")
     print("=" * 70)
-    print("""
+    print(
+        """
   The analysis reveals HIV has indeed developed MULTI-LEVEL hiding:
 
   1. CODON LEVEL: Specific codon choices for key functional motifs
@@ -1011,7 +1493,8 @@ def main():
   IMPLICATION: By mapping the codon-level substrate of ALL these
   hiding mechanisms, we can predict the COMPLETE evolutionary
   possibility space and identify UNIVERSAL therapeutic targets.
-""")
+"""
+    )
 
     return results
 

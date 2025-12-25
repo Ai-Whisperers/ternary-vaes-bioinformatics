@@ -5,8 +5,8 @@
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
 
-import sys
 import subprocess
+import sys
 from datetime import datetime
 
 # List of 20+ libraries/tools to research/check

@@ -19,9 +19,10 @@ tau = 1: Pure ranking learning (fine angular discrimination)
 Single responsibility: Manage curriculum state and loss modulation.
 """
 
+from typing import Any, Dict, List, Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
-from typing import Any, Dict, List, Optional, Tuple, Union
 
 
 class ContinuousCurriculumModule(nn.Module):
@@ -53,12 +54,12 @@ class ContinuousCurriculumModule(nn.Module):
         tau_min: float = 0.0,
         tau_max: float = 1.0,
         tau_scale: float = 0.1,
-        momentum: float = 0.95
+        momentum: float = 0.95,
     ):
         super().__init__()
 
         # Core curriculum state (buffer, not parameter - updated by StateNet)
-        self.register_buffer('tau', torch.tensor(initial_tau, dtype=torch.float32))
+        self.register_buffer("tau", torch.tensor(initial_tau, dtype=torch.float32))
 
         # Bounds
         self.tau_min = tau_min
@@ -67,7 +68,7 @@ class ContinuousCurriculumModule(nn.Module):
         self.momentum = momentum
 
         # History tracking for analysis
-        self.register_buffer('tau_ema', torch.tensor(initial_tau, dtype=torch.float32))
+        self.register_buffer("tau_ema", torch.tensor(initial_tau, dtype=torch.float32))
         self.tau_history: List[float] = []  # For logging/visualization
 
     def update_tau(self, delta_curriculum: float) -> torch.Tensor:
@@ -114,9 +115,7 @@ class ContinuousCurriculumModule(nn.Module):
         return self.tau_ema
 
     def modulate_losses(
-        self,
-        radial_loss: torch.Tensor,
-        ranking_loss: torch.Tensor
+        self, radial_loss: torch.Tensor, ranking_loss: torch.Tensor
     ) -> torch.Tensor:
         """Blend radial and ranking losses based on current tau.
 
@@ -144,18 +143,20 @@ class ContinuousCurriculumModule(nn.Module):
     def get_state_dict_extra(self) -> Dict[str, Any]:
         """Return extra state for checkpointing."""
         return {
-            'tau_history': self.tau_history[-1000:],  # Last 1000 values
+            "tau_history": self.tau_history[-1000:],  # Last 1000 values
         }
 
     def load_state_dict_extra(self, state_dict: Dict[str, Any]):
         """Load extra state from checkpoint."""
-        if 'tau_history' in state_dict:
-            self.tau_history = state_dict['tau_history']
+        if "tau_history" in state_dict:
+            self.tau_history = state_dict["tau_history"]
 
     def reset(self, initial_tau: Optional[float] = None):
         """Reset curriculum to initial state."""
         if initial_tau is not None:
-            self.tau = torch.tensor(initial_tau, dtype=torch.float32, device=self.tau.device)
+            self.tau = torch.tensor(
+                initial_tau, dtype=torch.float32, device=self.tau.device
+            )
             self.tau_ema = self.tau.clone()
         else:
             self.tau = torch.tensor(0.0, dtype=torch.float32, device=self.tau.device)
@@ -163,9 +164,11 @@ class ContinuousCurriculumModule(nn.Module):
         self.tau_history = []
 
     def extra_repr(self) -> str:
-        return (f'tau={self.tau.item():.3f}, '
-                f'tau_min={self.tau_min}, tau_max={self.tau_max}, '
-                f'tau_scale={self.tau_scale}')
+        return (
+            f"tau={self.tau.item():.3f}, "
+            f"tau_min={self.tau_min}, tau_max={self.tau_max}, "
+            f"tau_scale={self.tau_scale}"
+        )
 
 
 class CurriculumScheduler:
@@ -182,10 +185,7 @@ class CurriculumScheduler:
         self.ranking_loss_history: List[float] = []
 
     def record_step(
-        self,
-        delta_curriculum: float,
-        radial_loss: float,
-        ranking_loss: float
+        self, delta_curriculum: float, radial_loss: float, ranking_loss: float
     ):
         """Record a curriculum step for analysis."""
         self.delta_history.append(delta_curriculum)
@@ -198,27 +198,29 @@ class CurriculumScheduler:
 
         if len(tau_history) < 2:
             return {
-                'tau_current': self.curriculum.tau.item(),
-                'tau_velocity': 0.0,
-                'tau_trend': 'stable'
+                "tau_current": self.curriculum.tau.item(),
+                "tau_velocity": 0.0,
+                "tau_trend": "stable",
             }
 
         tau_current = tau_history[-1]
-        tau_prev = tau_history[-min(10, len(tau_history)):-1]
-        tau_velocity = tau_current - (sum(tau_prev) / len(tau_prev)) if tau_prev else 0.0
+        tau_prev = tau_history[-min(10, len(tau_history)) : -1]
+        tau_velocity = (
+            tau_current - (sum(tau_prev) / len(tau_prev)) if tau_prev else 0.0
+        )
 
         # Determine trend
         if tau_velocity > 0.01:
-            trend = 'advancing'
+            trend = "advancing"
         elif tau_velocity < -0.01:
-            trend = 'retreating'
+            trend = "retreating"
         else:
-            trend = 'stable'
+            trend = "stable"
 
         return {
-            'tau_current': tau_current,
-            'tau_ema': self.curriculum.tau_ema.item(),
-            'tau_velocity': tau_velocity,
-            'tau_trend': trend,
-            'history_length': len(tau_history)
+            "tau_current": tau_current,
+            "tau_ema": self.curriculum.tau_ema.item(),
+            "tau_velocity": tau_velocity,
+            "tau_trend": trend,
+            "history_length": len(tau_history),
         }

@@ -6,14 +6,9 @@ for all 3-adic operations in the codebase.
 
 import pytest
 import torch
-from src.core.ternary import (
-    TERNARY,
-    TernarySpace,
-    valuation,
-    distance,
-    to_ternary,
-    from_ternary,
-)
+
+from src.core.ternary import (TERNARY, TernarySpace, distance, from_ternary,
+                              to_ternary, valuation)
 
 
 class TestTernarySpaceConstants:
@@ -82,7 +77,9 @@ class TestValuation:
 
     def test_valuation_clamping(self):
         """Indices out of range should be clamped."""
-        indices = torch.tensor([-1, 0, TERNARY.N_OPERATIONS, TERNARY.N_OPERATIONS + 100])
+        indices = torch.tensor(
+            [-1, 0, TERNARY.N_OPERATIONS, TERNARY.N_OPERATIONS + 100]
+        )
         v = TERNARY.valuation(indices)
         # Should not raise, values should be within valid range
         assert v.shape == indices.shape
@@ -310,14 +307,14 @@ class TestDeviceCaching:
 
     def test_cpu_operations(self):
         """Operations should work on CPU."""
-        indices = torch.tensor([0, 1, 2, 3], device='cpu')
+        indices = torch.tensor([0, 1, 2, 3], device="cpu")
         v = TERNARY.valuation(indices)
         assert v.device == indices.device
 
     @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA not available")
     def test_cuda_operations(self):
         """Operations should work on CUDA."""
-        indices = torch.tensor([0, 1, 2, 3], device='cuda')
+        indices = torch.tensor([0, 1, 2, 3], device="cuda")
         v = TERNARY.valuation(indices)
         assert v.device == indices.device
 
@@ -333,7 +330,7 @@ class TestDeviceCaching:
         TERNARY.valuation(indices2)
 
         # Cache should have entry for CPU
-        assert 'valuation_cpu' in TERNARY._device_cache
+        assert "valuation_cpu" in TERNARY._device_cache
 
 
 class TestEdgeCases:

@@ -14,12 +14,13 @@ Test Case: "Find all operations with 3-adic valuation >= k"
 This directly measures the semantic amplification factor.
 """
 
+import json
 import sys
 import time
-import json
-import numpy as np
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import numpy as np
 
 # Add parent to path
 # Add project root to path

@@ -22,8 +22,8 @@ V5.11.8: Q-gated annealing progressively relaxes thresholds when Q improves,
 enabling exploration of higher Q values while maintaining coverage floors.
 """
 
-from typing import Any, Dict, List, Optional
 from collections import deque
+from typing import Any, Dict, List, Optional
 
 
 def compute_Q(dist_corr: float, hierarchy: float) -> float:
@@ -51,20 +51,16 @@ class HomeostasisController:
         # Coverage thresholds for encoder_A
         coverage_freeze_threshold: float = 0.995,  # Freeze when drops below
         coverage_unfreeze_threshold: float = 1.0,  # Unfreeze when reaches
-
         # Hierarchy thresholds for encoder_B
         hierarchy_plateau_threshold: float = 0.001,  # Freeze when change < this
         hierarchy_plateau_patience: int = 5,  # Epochs of plateau before freeze
-
         # Controller gradient thresholds
         controller_grad_threshold: float = 0.01,  # Freeze when grad norm < this
         controller_grad_patience: int = 3,  # Epochs of low grad before freeze
-
         # General settings
         window_size: int = 5,  # Moving average window
         hysteresis_epochs: int = 3,  # Minimum epochs between state changes
         warmup_epochs: int = 5,  # Epochs before homeostasis activates
-
         # Q-gated annealing settings (V5.11.8)
         enable_annealing: bool = True,  # Enable Q-gated threshold annealing
         annealing_step: float = 0.005,  # How much to relax thresholds per cycle
@@ -102,7 +98,9 @@ class HomeostasisController:
         self.hierarchy_A_history: deque[float] = deque(maxlen=window_size)
         self.hierarchy_B_history: deque[float] = deque(maxlen=window_size)
         self.controller_grad_history: deque[float] = deque(maxlen=window_size)
-        self.Q_history: deque[float] = deque(maxlen=window_size * 2)  # Longer window for Q
+        self.Q_history: deque[float] = deque(
+            maxlen=window_size * 2
+        )  # Longer window for Q
 
         # Freeze states
         self.encoder_a_frozen = True  # Starts frozen
@@ -126,10 +124,10 @@ class HomeostasisController:
         # Q-gated annealing state
         # Initialize cycle start Q for components that start unfrozen
         self.Q_at_cycle_start = {
-            'encoder_b': 0.0,  # Starts unfrozen in Option C
-            'controller': 0.0,  # Starts unfrozen
+            "encoder_b": 0.0,  # Starts unfrozen in Option C
+            "controller": 0.0,  # Starts unfrozen
         }
-        self.cycle_count = {'encoder_a': 0, 'encoder_b': 0, 'controller': 0}
+        self.cycle_count = {"encoder_a": 0, "encoder_b": 0, "controller": 0}
         self.best_Q = 0.0  # Best Q achieved so far
 
     def update(
@@ -174,12 +172,12 @@ class HomeostasisController:
         # Skip homeostasis during warmup
         if epoch < self.warmup_epochs:
             return {
-                'encoder_a_frozen': self.encoder_a_frozen,
-                'encoder_b_frozen': self.encoder_b_frozen,
-                'controller_frozen': self.controller_frozen,
-                'current_Q': current_Q,
-                'best_Q': self.best_Q,
-                'events': ['warmup']
+                "encoder_a_frozen": self.encoder_a_frozen,
+                "encoder_b_frozen": self.encoder_b_frozen,
+                "controller_frozen": self.controller_frozen,
+                "current_Q": current_Q,
+                "best_Q": self.best_Q,
+                "events": ["warmup"],
             }
 
         # === Encoder A: Coverage-gated ===
@@ -189,11 +187,15 @@ class HomeostasisController:
                 was_frozen = self.encoder_a_frozen
                 self.encoder_a_frozen = encoder_a_decision
                 self.encoder_a_last_change = epoch
-                events.append(f"encoder_A {'frozen' if encoder_a_decision else 'unfrozen'}")
+                events.append(
+                    f"encoder_A {'frozen' if encoder_a_decision else 'unfrozen'}"
+                )
 
                 # Q-gated annealing: check cycle completion
                 if self.enable_annealing:
-                    anneal_event = self._handle_cycle('encoder_a', was_frozen, encoder_a_decision, current_Q)
+                    anneal_event = self._handle_cycle(
+                        "encoder_a", was_frozen, encoder_a_decision, current_Q
+                    )
                     if anneal_event:
                         events.append(anneal_event)
 
@@ -204,11 +206,15 @@ class HomeostasisController:
                 was_frozen = self.encoder_b_frozen
                 self.encoder_b_frozen = encoder_b_decision
                 self.encoder_b_last_change = epoch
-                events.append(f"encoder_B {'frozen' if encoder_b_decision else 'unfrozen'}")
+                events.append(
+                    f"encoder_B {'frozen' if encoder_b_decision else 'unfrozen'}"
+                )
 
                 # Q-gated annealing
                 if self.enable_annealing:
-                    anneal_event = self._handle_cycle('encoder_b', was_frozen, encoder_b_decision, current_Q)
+                    anneal_event = self._handle_cycle(
+                        "encoder_b", was_frozen, encoder_b_decision, current_Q
+                    )
                     if anneal_event:
                         events.append(anneal_event)
 
@@ -220,24 +226,30 @@ class HomeostasisController:
                     was_frozen = self.controller_frozen
                     self.controller_frozen = controller_decision
                     self.controller_last_change = epoch
-                    events.append(f"controller {'frozen' if controller_decision else 'unfrozen'}")
+                    events.append(
+                        f"controller {'frozen' if controller_decision else 'unfrozen'}"
+                    )
 
                     # Q-gated annealing
                     if self.enable_annealing:
-                        anneal_event = self._handle_cycle('controller', was_frozen, controller_decision, current_Q)
+                        anneal_event = self._handle_cycle(
+                            "controller", was_frozen, controller_decision, current_Q
+                        )
                         if anneal_event:
                             events.append(anneal_event)
 
         return {
-            'encoder_a_frozen': self.encoder_a_frozen,
-            'encoder_b_frozen': self.encoder_b_frozen,
-            'controller_frozen': self.controller_frozen,
-            'current_Q': current_Q,
-            'best_Q': self.best_Q,
-            'events': events
+            "encoder_a_frozen": self.encoder_a_frozen,
+            "encoder_b_frozen": self.encoder_b_frozen,
+            "controller_frozen": self.controller_frozen,
+            "current_Q": current_Q,
+            "best_Q": self.best_Q,
+            "events": events,
         }
 
-    def _handle_cycle(self, component: str, was_frozen: bool, now_frozen: bool, current_Q: float) -> Optional[str]:
+    def _handle_cycle(
+        self, component: str, was_frozen: bool, now_frozen: bool, current_Q: float
+    ) -> Optional[str]:
         """Handle Q-gated annealing when a cycle completes.
 
         A cycle is: unfrozen -> frozen (component adapted then consolidated)
@@ -285,7 +297,7 @@ class HomeostasisController:
         direction = "relaxed" if relax else "tightened"
         step = self.annealing_step if relax else -self.annealing_step
 
-        if component == 'encoder_a':
+        if component == "encoder_a":
             # Relax coverage thresholds (lower freeze, lower unfreeze)
             new_freeze = self.coverage_freeze_threshold - step
             new_unfreeze = self.coverage_unfreeze_threshold - step
@@ -298,7 +310,7 @@ class HomeostasisController:
             else:
                 return f"encoder_A at floor (coverage_floor={self.coverage_floor})"
 
-        elif component == 'encoder_b':
+        elif component == "encoder_b":
             # Relax hierarchy patience (more epochs before freeze)
             new_patience = self.hierarchy_plateau_patience + (1 if relax else -1)
 
@@ -312,7 +324,7 @@ class HomeostasisController:
                 ceiling_or_floor = "ceiling" if relax else "floor"
                 return f"encoder_B at {ceiling_or_floor} (patience={self.hierarchy_plateau_patience})"
 
-        elif component == 'controller':
+        elif component == "controller":
             # Relax controller patience
             new_patience = self.controller_grad_patience + (1 if relax else -1)
 
@@ -400,7 +412,10 @@ class HomeostasisController:
         else:
             # Currently frozen - unfreeze if hierarchy degraded
             if len(self.hierarchy_B_history) >= 2:
-                if abs(self.hierarchy_B_history[-1]) < abs(self.hierarchy_B_history[-2]) - 0.01:
+                if (
+                    abs(self.hierarchy_B_history[-1])
+                    < abs(self.hierarchy_B_history[-2]) - 0.01
+                ):
                     self.hierarchy_b_plateau_count = 0
                     return False  # Unfreeze - hierarchy degraded
 
@@ -431,7 +446,9 @@ class HomeostasisController:
                 return True  # Freeze - controller stabilized
         else:
             # Check for gradient spike (need to adapt again)
-            avg_grad = sum(self.controller_grad_history) / len(self.controller_grad_history)
+            avg_grad = sum(self.controller_grad_history) / len(
+                self.controller_grad_history
+            )
             if current_grad > avg_grad * 2:  # Spike = 2x average
                 self.controller_low_grad_count = 0
                 return False  # Unfreeze
@@ -481,7 +498,7 @@ class HomeostasisController:
 
         # Reset annealing state
         self.Q_at_cycle_start = {}
-        self.cycle_count = {'encoder_a': 0, 'encoder_b': 0, 'controller': 0}
+        self.cycle_count = {"encoder_a": 0, "encoder_b": 0, "controller": 0}
         self.best_Q = 0.0
 
         # Reset thresholds to initial values
@@ -491,4 +508,4 @@ class HomeostasisController:
         self.controller_grad_patience = self._initial_controller_patience
 
 
-__all__ = ['HomeostasisController', 'compute_Q']
+__all__ = ["HomeostasisController", "compute_Q"]

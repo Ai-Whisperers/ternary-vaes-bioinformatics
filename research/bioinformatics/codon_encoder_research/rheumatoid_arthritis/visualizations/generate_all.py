@@ -22,7 +22,7 @@ def run_generator(script_path: Path, name: str) -> bool:
             [sys.executable, str(script_path)],
             cwd=str(BASE_DIR),
             capture_output=True,
-            text=True
+            text=True,
         )
 
         if result.returncode == 0:
@@ -41,22 +41,36 @@ def run_generator(script_path: Path, name: str) -> bool:
 
 
 def main():
-    print("="*60)
+    print("=" * 60)
     print("RA VISUALIZATION GENERATOR")
-    print("="*60)
+    print("=" * 60)
 
     generators = [
         # Pitch visualizations
-        (BASE_DIR / "pitch/01_pathophysiology_funnel/generate.py", "Pathophysiology Funnel"),
+        (
+            BASE_DIR / "pitch/01_pathophysiology_funnel/generate.py",
+            "Pathophysiology Funnel",
+        ),
         (BASE_DIR / "pitch/02_hla_risk_charts/generate.py", "HLA Risk Charts"),
-        (BASE_DIR / "pitch/03_intervention_pathways/generate.py", "Intervention Pathways"),
+        (
+            BASE_DIR / "pitch/03_intervention_pathways/generate.py",
+            "Intervention Pathways",
+        ),
         (BASE_DIR / "pitch/04_safety_comparisons/generate.py", "Safety Comparisons"),
         (BASE_DIR / "pitch/05_goldilocks_radar/generate.py", "Goldilocks Zone"),
-
         # Scientific visualizations
-        (BASE_DIR / "scientific/01_hla_pca_projections/generate.py", "HLA PCA Projections"),
-        (BASE_DIR / "scientific/02_cluster_boundary_3d/generate.py", "3D Cluster Boundaries"),
-        (BASE_DIR / "scientific/04_calabi_yau_manifolds/generate.py", "Calabi-Yau Manifolds"),
+        (
+            BASE_DIR / "scientific/01_hla_pca_projections/generate.py",
+            "HLA PCA Projections",
+        ),
+        (
+            BASE_DIR / "scientific/02_cluster_boundary_3d/generate.py",
+            "3D Cluster Boundaries",
+        ),
+        (
+            BASE_DIR / "scientific/04_calabi_yau_manifolds/generate.py",
+            "Calabi-Yau Manifolds",
+        ),
         (BASE_DIR / "scientific/05_distance_heatmaps/generate.py", "Distance Heatmaps"),
     ]
 
@@ -70,9 +84,9 @@ def main():
             results.append((name, None))
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("GENERATION SUMMARY")
-    print("="*60)
+    print("=" * 60)
 
     successes = sum(1 for _, r in results if r is True)
     failures = sum(1 for _, r in results if r is False)
@@ -85,20 +99,20 @@ def main():
     print(f"\nTotal: {successes} success, {failures} failed, {skipped} skipped")
 
     # List generated files
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("GENERATED FILES")
-    print("="*60)
+    print("=" * 60)
 
-    for subdir in ['pitch', 'scientific']:
+    for subdir in ["pitch", "scientific"]:
         dir_path = BASE_DIR / subdir
         if dir_path.exists():
             print(f"\n{subdir.upper()}/")
-            for child in sorted(dir_path.rglob('*')):
-                if child.is_file() and child.suffix in ['.png', '.svg', '.html']:
+            for child in sorted(dir_path.rglob("*")):
+                if child.is_file() and child.suffix in [".png", ".svg", ".html"]:
                     rel_path = child.relative_to(BASE_DIR)
                     size_kb = child.stat().st_size / 1024
                     print(f"  {rel_path} ({size_kb:.1f} KB)")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

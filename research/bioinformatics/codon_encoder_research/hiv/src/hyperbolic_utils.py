@@ -13,22 +13,23 @@ Version History:
 - v2.0: Native hyperbolic via codon-encoder-3-adic (trained on V5.11.3)
 """
 
+from pathlib import Path
+from typing import Optional, Tuple, Union
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from pathlib import Path
-from typing import Tuple, Optional, Union
-
 
 # ============================================================================
 # POINCARÉ BALL DISTANCE
 # ============================================================================
 
+
 def poincare_distance(
     x: Union[np.ndarray, torch.Tensor],
     y: Union[np.ndarray, torch.Tensor],
     c: float = 1.0,
-    eps: float = 1e-10
+    eps: float = 1e-10,
 ) -> Union[np.ndarray, torch.Tensor]:
     """
     Compute Poincaré ball distance between points.
@@ -52,8 +53,8 @@ def poincare_distance(
         y = torch.from_numpy(y).float()
 
     # Compute norms squared
-    x_norm_sq = torch.sum(x ** 2, dim=-1)
-    y_norm_sq = torch.sum(y ** 2, dim=-1)
+    x_norm_sq = torch.sum(x**2, dim=-1)
+    y_norm_sq = torch.sum(y**2, dim=-1)
     diff_norm_sq = torch.sum((x - y) ** 2, dim=-1)
 
     # Compute denominator with stability
@@ -75,7 +76,7 @@ def poincare_distance(
 def poincare_distance_matrix(
     X: Union[np.ndarray, torch.Tensor],
     Y: Optional[Union[np.ndarray, torch.Tensor]] = None,
-    c: float = 1.0
+    c: float = 1.0,
 ) -> Union[np.ndarray, torch.Tensor]:
     """
     Compute pairwise Poincaré distances.
@@ -114,10 +115,11 @@ def poincare_distance_matrix(
 # PROJECTION TO POINCARÉ BALL
 # ============================================================================
 
+
 def project_to_poincare(
     z: Union[np.ndarray, torch.Tensor],
     max_radius: float = 0.95,
-    method: str = 'normalize'
+    method: str = "normalize",
 ) -> Union[np.ndarray, torch.Tensor]:
     """
     Project Euclidean vectors to Poincaré ball.
@@ -137,12 +139,12 @@ def project_to_poincare(
     if is_numpy:
         z = torch.from_numpy(z).float()
 
-    if method == 'normalize':
+    if method == "normalize":
         norm = torch.norm(z, dim=-1, keepdim=True)
         # Scale so max norm is max_radius
         scale = max_radius / (1 + norm)
         z_hyp = z * scale
-    elif method == 'tanh':
+    elif method == "tanh":
         norm = torch.norm(z, dim=-1, keepdim=True)
         direction = z / (norm + 1e-10)
         radius = torch.tanh(norm) * max_radius
@@ -158,6 +160,7 @@ def project_to_poincare(
 # ============================================================================
 # CODON ENCODER WITH HYPERBOLIC PROJECTION
 # ============================================================================
+
 
 class CodonEncoder(nn.Module):
     """Codon encoder network (same architecture as training)."""
@@ -203,8 +206,8 @@ class HyperbolicCodonEncoder:
         self,
         encoder: CodonEncoder,
         max_radius: float = 0.95,
-        projection_method: str = 'normalize',
-        native_hyperbolic: bool = False
+        projection_method: str = "normalize",
+        native_hyperbolic: bool = False,
     ):
         self.encoder = encoder
         self.max_radius = max_radius
@@ -242,9 +245,9 @@ class HyperbolicCodonEncoder:
 # LOADING UTILITIES
 # ============================================================================
 
+
 def load_codon_encoder(
-    device: str = 'cpu',
-    version: str = '3adic'
+    device: str = "cpu", version: str = "3adic"
 ) -> Tuple[CodonEncoder, dict, bool]:
     """
     Load the trained codon encoder and mapping.
@@ -267,22 +270,38 @@ def load_codon_encoder(
     #          [4]=03_EXPERIMENTS_AND_LABS, [5]=01_PROJECT_KNOWLEDGE_BASE, [6]=DOCUMENTATION, [7]=ternary-vaes
     project_root = script_dir.parents[6]  # Navigate to ternary-vaes root
 
-    if version == '3adic':
+    if version == "3adic":
         # New native hyperbolic encoder (trained on V5.11.3 embeddings)
         encoder_paths = [
-            research_dir / 'genetic_code' / 'data' / 'codon_encoder_3adic.pt',
-            script_dir.parent / 'data' / 'codon_encoder_3adic.pt',
+            research_dir / "genetic_code" / "data" / "codon_encoder_3adic.pt",
+            script_dir.parent / "data" / "codon_encoder_3adic.pt",
             # Project-level paths
-            project_root / 'research' / 'bioinformatics' / 'genetic_code' / 'data' / 'codon_encoder_3adic.pt',
-            project_root / 'DOCUMENTATION' / '01_PROJECT_KNOWLEDGE_BASE' / '03_EXPERIMENTS_AND_LABS' /
-            'bioinformatics' / 'codon_encoder_research' / 'rheumatoid_arthritis' / 'data' / 'codon_encoder_3adic.pt',
+            project_root
+            / "research"
+            / "bioinformatics"
+            / "genetic_code"
+            / "data"
+            / "codon_encoder_3adic.pt",
+            project_root
+            / "DOCUMENTATION"
+            / "01_PROJECT_KNOWLEDGE_BASE"
+            / "03_EXPERIMENTS_AND_LABS"
+            / "bioinformatics"
+            / "codon_encoder_research"
+            / "rheumatoid_arthritis"
+            / "data"
+            / "codon_encoder_3adic.pt",
         ]
         native_hyperbolic = True
     else:
         # Legacy encoder (trained on v5.5 Euclidean, needs projection)
         encoder_paths = [
-            research_dir / 'genetic_code' / 'data' / 'legacy' / 'codon_encoder_legacy.pt',
-            script_dir.parent / 'data' / 'legacy' / 'codon_encoder_legacy.pt',
+            research_dir
+            / "genetic_code"
+            / "data"
+            / "legacy"
+            / "codon_encoder_legacy.pt",
+            script_dir.parent / "data" / "legacy" / "codon_encoder_legacy.pt",
         ]
         native_hyperbolic = False
 
@@ -297,20 +316,18 @@ def load_codon_encoder(
 
     encoder = CodonEncoder(input_dim=12, hidden_dim=32, embed_dim=16, n_clusters=21)
     checkpoint = torch.load(encoder_path, map_location=device, weights_only=False)
-    encoder.load_state_dict(checkpoint['model_state'])
+    encoder.load_state_dict(checkpoint["model_state"])
     encoder.eval()
     encoder.to(device)
 
     # Get mapping
-    mapping = checkpoint.get('codon_to_position', {})
+    mapping = checkpoint.get("codon_to_position", {})
 
     return encoder, mapping, native_hyperbolic
 
 
 def load_hyperbolic_encoder(
-    device: str = 'cpu',
-    max_radius: float = 0.95,
-    version: str = '3adic'
+    device: str = "cpu", max_radius: float = 0.95, version: str = "3adic"
 ) -> Tuple[HyperbolicCodonEncoder, dict]:
     """
     Load encoder with hyperbolic projection wrapper.
@@ -325,9 +342,7 @@ def load_hyperbolic_encoder(
     """
     encoder, mapping, native_hyperbolic = load_codon_encoder(device, version=version)
     hyp_encoder = HyperbolicCodonEncoder(
-        encoder,
-        max_radius=max_radius,
-        native_hyperbolic=native_hyperbolic
+        encoder, max_radius=max_radius, native_hyperbolic=native_hyperbolic
     )
     return hyp_encoder, mapping
 
@@ -336,9 +351,10 @@ def load_hyperbolic_encoder(
 # CODON ENCODING UTILITIES
 # ============================================================================
 
+
 def codon_to_onehot(codon: str) -> np.ndarray:
     """Convert codon string to one-hot encoding (12-dim)."""
-    nucleotides = {'A': 0, 'C': 1, 'G': 2, 'T': 3, 'U': 3}
+    nucleotides = {"A": 0, "C": 1, "G": 2, "T": 3, "U": 3}
     onehot = np.zeros(12)
     for i, nuc in enumerate(codon.upper()):
         if nuc in nucleotides:
@@ -346,10 +362,7 @@ def codon_to_onehot(codon: str) -> np.ndarray:
     return onehot
 
 
-def encode_codon_hyperbolic(
-    codon: str,
-    encoder: HyperbolicCodonEncoder
-) -> np.ndarray:
+def encode_codon_hyperbolic(codon: str, encoder: HyperbolicCodonEncoder) -> np.ndarray:
     """
     Encode a single codon to hyperbolic space.
 
@@ -365,9 +378,7 @@ def encode_codon_hyperbolic(
 
 
 def encode_sequence_hyperbolic(
-    aa_sequence: str,
-    encoder: HyperbolicCodonEncoder,
-    aa_to_codon: dict
+    aa_sequence: str, encoder: HyperbolicCodonEncoder, aa_to_codon: dict
 ) -> np.ndarray:
     """
     Encode amino acid sequence to hyperbolic embeddings.
@@ -382,8 +393,8 @@ def encode_sequence_hyperbolic(
     """
     embeddings = []
     for aa in aa_sequence.upper():
-        codon = aa_to_codon.get(aa, 'NNN')
-        if codon != 'NNN':
+        codon = aa_to_codon.get(aa, "NNN")
+        if codon != "NNN":
             emb = encode_codon_hyperbolic(codon, encoder)
             embeddings.append(emb)
     return np.array(embeddings)
@@ -393,11 +404,12 @@ def encode_sequence_hyperbolic(
 # HYPERBOLIC GEOMETRY UTILITIES
 # ============================================================================
 
+
 def hyperbolic_centroid(
     points: Union[np.ndarray, torch.Tensor],
     c: float = 1.0,
     max_iter: int = 100,
-    tol: float = 1e-6
+    tol: float = 1e-6,
 ) -> Union[np.ndarray, torch.Tensor]:
     """
     Compute Fréchet mean (centroid) in Poincaré ball.
@@ -419,11 +431,15 @@ def hyperbolic_centroid(
         points = torch.from_numpy(points).float()
 
     # Initialize with Euclidean mean (projected to ball)
-    centroid = project_to_poincare(points.mean(dim=0, keepdim=True), max_radius=0.9).squeeze()
+    centroid = project_to_poincare(
+        points.mean(dim=0, keepdim=True), max_radius=0.9
+    ).squeeze()
 
     for _ in range(max_iter):
         # Compute distances to current centroid
-        dists = poincare_distance(points, centroid.unsqueeze(0).expand(points.shape[0], -1), c=c)
+        dists = poincare_distance(
+            points, centroid.unsqueeze(0).expand(points.shape[0], -1), c=c
+        )
 
         # Weighted update (simplified gradient descent in tangent space)
         weights = 1 / (dists + 1e-10)
@@ -431,7 +447,9 @@ def hyperbolic_centroid(
 
         # Move toward weighted mean in tangent space
         new_centroid = (points * weights.unsqueeze(-1)).sum(dim=0)
-        new_centroid = project_to_poincare(new_centroid.unsqueeze(0), max_radius=0.9).squeeze()
+        new_centroid = project_to_poincare(
+            new_centroid.unsqueeze(0), max_radius=0.9
+        ).squeeze()
 
         # Check convergence
         shift = torch.norm(new_centroid - centroid)
@@ -448,7 +466,7 @@ def hyperbolic_centroid(
 def hyperbolic_variance(
     points: Union[np.ndarray, torch.Tensor],
     centroid: Optional[Union[np.ndarray, torch.Tensor]] = None,
-    c: float = 1.0
+    c: float = 1.0,
 ) -> float:
     """
     Compute variance in Poincaré ball (mean squared geodesic distance).
@@ -471,8 +489,10 @@ def hyperbolic_variance(
     if centroid is None:
         centroid = hyperbolic_centroid(points, c=c)
 
-    dists = poincare_distance(points, centroid.unsqueeze(0).expand(points.shape[0], -1), c=c)
-    variance = (dists ** 2).mean().item()
+    dists = poincare_distance(
+        points, centroid.unsqueeze(0).expand(points.shape[0], -1), c=c
+    )
+    variance = (dists**2).mean().item()
 
     return variance
 
@@ -482,30 +502,47 @@ def hyperbolic_variance(
 # ============================================================================
 
 AA_TO_CODON = {
-    'A': 'GCT', 'R': 'CGG', 'N': 'AAC', 'D': 'GAC', 'C': 'TGC',
-    'E': 'GAG', 'Q': 'CAG', 'G': 'GGC', 'H': 'CAC', 'I': 'ATC',
-    'L': 'CTG', 'K': 'AAG', 'M': 'ATG', 'F': 'TTC', 'P': 'CCG',
-    'S': 'TCG', 'T': 'ACC', 'W': 'TGG', 'Y': 'TAC', 'V': 'GTG',
-    '*': 'TGA',
+    "A": "GCT",
+    "R": "CGG",
+    "N": "AAC",
+    "D": "GAC",
+    "C": "TGC",
+    "E": "GAG",
+    "Q": "CAG",
+    "G": "GGC",
+    "H": "CAC",
+    "I": "ATC",
+    "L": "CTG",
+    "K": "AAG",
+    "M": "ATG",
+    "F": "TTC",
+    "P": "CCG",
+    "S": "TCG",
+    "T": "ACC",
+    "W": "TGG",
+    "Y": "TAC",
+    "V": "GTG",
+    "*": "TGA",
 }
 
 # All arginine codons
-ARGININE_CODONS = ['CGT', 'CGC', 'CGA', 'CGG', 'AGA', 'AGG']
+ARGININE_CODONS = ["CGT", "CGC", "CGA", "CGG", "AGA", "AGG"]
 
 
 # ============================================================================
 # RESULTS DIRECTORY UTILITIES
 # ============================================================================
 
+
 def get_results_dir(hyperbolic: bool = True) -> Path:
     """Get the appropriate results directory."""
     script_dir = Path(__file__).parent
-    results_base = script_dir.parent / 'results'
+    results_base = script_dir.parent / "results"
 
     if hyperbolic:
-        results_dir = results_base / 'hyperbolic'
+        results_dir = results_base / "hyperbolic"
     else:
-        results_dir = results_base / 'euclidean'
+        results_dir = results_base / "euclidean"
 
     results_dir.mkdir(parents=True, exist_ok=True)
     return results_dir

@@ -1,8 +1,10 @@
-from torch import nn
-from src.models.ternary_vae import TernaryVAEV5_11, TernaryVAEV5_11_OptionC
-from tests.factories.models import ModelConfigFactory
 from unittest.mock import MagicMock, patch
+
+from torch import nn
+
+from src.models.ternary_vae import TernaryVAEV5_11, TernaryVAEV5_11_OptionC
 from tests.core.helpers import MockFrozenModule
+from tests.factories.models import ModelConfigFactory
 
 
 class VAEBuilder:

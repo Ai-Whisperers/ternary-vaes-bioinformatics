@@ -11,21 +11,18 @@ HIV-1 CTL Escape Mutation Analysis using Hyperbolic Geometry
 Uses shared hyperbolic_utils from RA pipeline (codon_encoder_3adic.pt)
 """
 
-import sys
 import json
+import sys
+from pathlib import Path
+
 import numpy as np
 import torch
-from pathlib import Path
 
 # Use local hyperbolic_utils
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from hyperbolic_utils import (
-    load_codon_encoder,
-    poincare_distance,
-    codon_to_onehot,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot, load_codon_encoder,
+                              poincare_distance)
 
 CODON_TABLE = {
     "TTT": "F",
@@ -322,7 +319,7 @@ def main():
             "epitope": name,
             "hla": hla,
             "wild_type_sequence": seq,
-            "escape_mutations": []
+            "escape_mutations": [],
         }
 
         for esc in data["escape_variants"]:
@@ -331,11 +328,7 @@ def main():
             print(f"  {r['mutation']}: d={r['hyperbolic_distance']:.3f}, {status}")
 
             epitope_data["escape_mutations"].append(r)
-            all_results.append({
-                "epitope": name,
-                "hla": hla,
-                **r
-            })
+            all_results.append({"epitope": name, "hla": hla, **r})
 
         epitope_results[name] = epitope_data
 
@@ -346,7 +339,9 @@ def main():
     summary = {
         "total_mutations": len(all_results),
         "boundary_crossed": boundary_crossed,
-        "boundary_crossing_rate": boundary_crossed / len(all_results) if all_results else 0,
+        "boundary_crossing_rate": (
+            boundary_crossed / len(all_results) if all_results else 0
+        ),
         "mean_distance": float(np.mean(distances)) if distances else 0,
         "std_distance": float(np.std(distances)) if distances else 0,
         "min_distance": float(np.min(distances)) if distances else 0,
@@ -367,11 +362,11 @@ def main():
     output = {
         "metadata": {
             "encoder": "3-adic (V5.11.3)",
-            "analysis_type": "HIV CTL Escape Mutations"
+            "analysis_type": "HIV CTL Escape Mutations",
         },
         "summary": summary,
         "epitopes": epitope_results,
-        "all_mutations": all_results
+        "all_mutations": all_results,
     }
 
     output_path = results_dir / "hiv_escape_results.json"

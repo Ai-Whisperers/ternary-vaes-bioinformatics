@@ -12,11 +12,12 @@ to eliminate code duplication (D1.5 from DUPLICATION_REPORT).
 """
 
 import json
-import yaml
-import torch
-import numpy as np
 from pathlib import Path
-from typing import Any, Dict, Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Dict, Optional
+
+import numpy as np
+import torch
+import yaml
 
 from src.data import generate_all_ternary_operations
 
@@ -33,7 +34,7 @@ class BenchmarkBase:
     - Operation count
     """
 
-    def __init__(self, model: torch.nn.Module, device: str = 'cuda'):
+    def __init__(self, model: torch.nn.Module, device: str = "cuda"):
         """Initialize benchmark with model and operations.
 
         Args:
@@ -72,7 +73,7 @@ def convert_to_python_types(obj: Any) -> Any:
         return obj
 
 
-def load_config(config_path: str = 'configs/ternary_v5_6.yaml') -> Dict:
+def load_config(config_path: str = "configs/ternary_v5_6.yaml") -> Dict:
     """Load YAML configuration file.
 
     Args:
@@ -91,7 +92,7 @@ def get_device() -> str:
     Returns:
         'cuda' if available, else 'cpu'
     """
-    return 'cuda' if torch.cuda.is_available() else 'cpu'
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 def create_v5_6_model(config: Dict) -> "DualNeuralVAEV5":
@@ -106,18 +107,18 @@ def create_v5_6_model(config: Dict) -> "DualNeuralVAEV5":
     # Lazy import to allow sys.path.append in calling script
     from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
-    mc = config['model']
+    mc = config["model"]
     return DualNeuralVAEV5(
-        input_dim=mc['input_dim'],
-        latent_dim=mc['latent_dim'],
-        rho_min=mc['rho_min'],
-        rho_max=mc['rho_max'],
-        lambda3_base=mc['lambda3_base'],
-        lambda3_amplitude=mc['lambda3_amplitude'],
-        eps_kl=mc['eps_kl'],
-        gradient_balance=mc.get('gradient_balance', True),
-        adaptive_scheduling=mc.get('adaptive_scheduling', True),
-        use_statenet=mc.get('use_statenet', True)
+        input_dim=mc["input_dim"],
+        latent_dim=mc["latent_dim"],
+        rho_min=mc["rho_min"],
+        rho_max=mc["rho_max"],
+        lambda3_base=mc["lambda3_base"],
+        lambda3_amplitude=mc["lambda3_amplitude"],
+        eps_kl=mc["eps_kl"],
+        gradient_balance=mc.get("gradient_balance", True),
+        adaptive_scheduling=mc.get("adaptive_scheduling", True),
+        use_statenet=mc.get("use_statenet", True),
     )
 
 
@@ -125,7 +126,7 @@ def load_checkpoint_safe(
     model: torch.nn.Module,
     checkpoint_dir: str,
     device: str,
-    checkpoint_name: str = 'best'
+    checkpoint_name: str = "best",
 ) -> Dict:
     """Load checkpoint with error handling.
 
@@ -144,23 +145,22 @@ def load_checkpoint_safe(
     checkpoint_path = Path(checkpoint_dir)
     if not checkpoint_path.exists():
         print("No checkpoint found, using random initialization")
-        return {'epoch': 'init'}
+        return {"epoch": "init"}
 
     try:
         manager = CheckpointManager(checkpoint_path)
-        checkpoint = manager.load_checkpoint(model, checkpoint_name=checkpoint_name, device=device)
+        checkpoint = manager.load_checkpoint(
+            model, checkpoint_name=checkpoint_name, device=device
+        )
         print(f"Loaded checkpoint from epoch {checkpoint['epoch']}")
         return checkpoint
     except Exception as e:
         print(f"Could not load checkpoint: {e}")
-        return {'epoch': 'init'}
+        return {"epoch": "init"}
 
 
 def save_results(
-    results: Dict,
-    output_name: str,
-    epoch: Any,
-    output_dir: str = 'reports/benchmarks'
+    results: Dict, output_name: str, epoch: Any, output_dir: str = "reports/benchmarks"
 ) -> Path:
     """Save benchmark results to JSON file.
 
@@ -176,8 +176,8 @@ def save_results(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    output_file = output_path / f'{output_name}_{epoch}.json'
-    with open(output_file, 'w') as f:
+    output_file = output_path / f"{output_name}_{epoch}.json"
+    with open(output_file, "w") as f:
         json.dump(convert_to_python_types(results), f, indent=2)
 
     print(f"\nResults saved to: {output_file}")

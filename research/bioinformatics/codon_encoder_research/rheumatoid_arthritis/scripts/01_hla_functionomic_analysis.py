@@ -11,26 +11,20 @@ RA-associated alleles may have altered hyperbolic geometry that causes misclassi
 Version: 2.0 - Updated to use Poincaré ball geometry
 """
 
-import torch
-import torch.nn as nn
-import numpy as np
-from pathlib import Path
+import json
 from collections import defaultdict
 from itertools import combinations
-import json
+from pathlib import Path
 
+import numpy as np
+import torch
+import torch.nn as nn
 # Import hyperbolic utilities
-from hyperbolic_utils import (
-    poincare_distance as hyp_poincare_distance,
-    poincare_distance_matrix,
-    project_to_poincare,
-    load_hyperbolic_encoder,
-    load_codon_encoder,
-    get_results_dir,
-    codon_to_onehot,
-    HyperbolicCodonEncoder,
-    CodonEncoder,
-)
+from hyperbolic_utils import (CodonEncoder, HyperbolicCodonEncoder,
+                              codon_to_onehot, get_results_dir,
+                              load_codon_encoder, load_hyperbolic_encoder)
+from hyperbolic_utils import poincare_distance as hyp_poincare_distance
+from hyperbolic_utils import poincare_distance_matrix, project_to_poincare
 
 # ============================================================================
 # HLA-DRB1 ALLELE DATA

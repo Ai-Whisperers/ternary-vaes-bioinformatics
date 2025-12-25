@@ -24,11 +24,12 @@ The insight: StateNet v2 solved coverage collapse by adding coverage signals.
 StateNet v3 solves the r-coverage tradeoff by adding ranking correlation signals.
 """
 
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-import numpy as np
 
 
 class TernaryEncoderA(nn.Module):
@@ -43,7 +44,7 @@ class TernaryEncoderA(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -68,7 +69,7 @@ class TernaryDecoderA(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 64),
             nn.ReLU(),
-            nn.Linear(64, output_dim * 3)
+            nn.Linear(64, output_dim * 3),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -82,11 +83,7 @@ class ResidualBlock(nn.Module):
 
     def __init__(self, dim: int = 128):
         super().__init__()
-        self.block = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
+        self.block = nn.Sequential(nn.Linear(dim, dim), nn.ReLU(), nn.Linear(dim, dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.block(x)
@@ -104,7 +101,7 @@ class TernaryEncoderB(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -174,22 +171,23 @@ class StateNetV3(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, latent_dim)
+            nn.Linear(hidden_dim, latent_dim),
         )
 
         # Decoder: latent -> corrections (5D output now)
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, 5),  # [delta_lr, delta_lambda1-3, delta_ranking_weight]
-            nn.Tanh()  # Output in [-1, 1] for bounded corrections
+            nn.Linear(
+                hidden_dim, 5
+            ),  # [delta_lr, delta_lambda1-3, delta_ranking_weight]
+            nn.Tanh(),  # Output in [-1, 1] for bounded corrections
         )
 
         # Metric-specific attention head
         # Learns which state dimensions most affect r vs coverage
         self.metric_attention = nn.Sequential(
-            nn.Linear(state_dim, 8),
-            nn.Softmax(dim=-1)
+            nn.Linear(state_dim, 8), nn.Softmax(dim=-1)
         )
 
     def forward(self, state: torch.Tensor) -> tuple:
@@ -217,15 +215,18 @@ class StateNetV3(nn.Module):
 
         # Expand attention to match state dimensions (8 -> 14)
         # Use attention to weight different parts of the state
-        attention_expanded = torch.cat([
-            attention[:, 0:2].repeat(1, 1),  # For entropy (H_A, H_B)
-            attention[:, 2:4].repeat(1, 1),  # For KL (kl_A, kl_B)
-            attention[:, 4:5],               # For grad_ratio
-            attention[:, 4:5],               # For rho
-            attention[:, 5:6].repeat(1, 3),  # For lambdas
-            attention[:, 6:7].repeat(1, 3),  # For coverage
-            attention[:, 7:8].repeat(1, 2),  # For ranking (r_A, r_B)
-        ], dim=1)
+        attention_expanded = torch.cat(
+            [
+                attention[:, 0:2].repeat(1, 1),  # For entropy (H_A, H_B)
+                attention[:, 2:4].repeat(1, 1),  # For KL (kl_A, kl_B)
+                attention[:, 4:5],  # For grad_ratio
+                attention[:, 4:5],  # For rho
+                attention[:, 5:6].repeat(1, 3),  # For lambdas
+                attention[:, 6:7].repeat(1, 3),  # For coverage
+                attention[:, 7:8].repeat(1, 2),  # For ranking (r_A, r_B)
+            ],
+            dim=1,
+        )
 
         # Apply attention-weighted encoding
         attended_state = normalized_state * attention_expanded
@@ -266,7 +267,7 @@ class DualNeuralVAEV5_7(nn.Module):
         statenet_lr_scale: float = 0.05,
         statenet_lambda_scale: float = 0.01,
         statenet_ranking_scale: float = 0.1,  # NEW: scale for ranking weight modulation
-        base_ranking_weight: float = 0.5  # NEW: base ranking loss weight
+        base_ranking_weight: float = 0.5,  # NEW: base ranking loss weight
     ):
         super().__init__()
 
@@ -314,25 +315,27 @@ class DualNeuralVAEV5_7(nn.Module):
         self.grad_balance_achieved = False
 
         # Gradient magnitude tracking
-        self.register_buffer('grad_norm_A_ema', torch.tensor(1.0))
-        self.register_buffer('grad_norm_B_ema', torch.tensor(1.0))
+        self.register_buffer("grad_norm_A_ema", torch.tensor(1.0))
+        self.register_buffer("grad_norm_B_ema", torch.tensor(1.0))
         self.grad_ema_momentum = 0.9
 
         # Ranking correlation tracking (for trend analysis)
-        self.register_buffer('r_A_ema', torch.tensor(0.5))
-        self.register_buffer('r_B_ema', torch.tensor(0.5))
+        self.register_buffer("r_A_ema", torch.tensor(0.5))
+        self.register_buffer("r_B_ema", torch.tensor(0.5))
         self.r_ema_momentum = 0.9
 
         # StateNet correction history
         self.statenet_corrections = {
-            'delta_lr': [],
-            'delta_lambda1': [],
-            'delta_lambda2': [],
-            'delta_lambda3': [],
-            'delta_ranking_weight': []  # NEW
+            "delta_lr": [],
+            "delta_lambda1": [],
+            "delta_lambda2": [],
+            "delta_lambda3": [],
+            "delta_ranking_weight": [],  # NEW
         }
 
-    def compute_phase_scheduled_rho(self, epoch: int, phase_4_start: int = 250) -> float:
+    def compute_phase_scheduled_rho(
+        self, epoch: int, phase_4_start: int = 250
+    ) -> float:
         """Compute phase-scheduled latent permeability."""
         if epoch < 40:
             self.current_phase = 1
@@ -369,7 +372,9 @@ class DualNeuralVAEV5_7(nn.Module):
         else:
             self.grad_ema_momentum = 0.9
 
-    def update_adaptive_lambdas(self, grad_ratio: float, coverage_A: int, coverage_B: int):
+    def update_adaptive_lambdas(
+        self, grad_ratio: float, coverage_A: int, coverage_B: int
+    ):
         """Update lambda1 and lambda2 adaptively."""
         if not self.adaptive_scheduling:
             return
@@ -396,8 +401,12 @@ class DualNeuralVAEV5_7(nn.Module):
 
     def update_ranking_ema(self, r_A: float, r_B: float):
         """Update EMA of ranking correlations for trend tracking."""
-        self.r_A_ema = self.r_ema_momentum * self.r_A_ema + (1 - self.r_ema_momentum) * r_A
-        self.r_B_ema = self.r_ema_momentum * self.r_B_ema + (1 - self.r_ema_momentum) * r_B
+        self.r_A_ema = (
+            self.r_ema_momentum * self.r_A_ema + (1 - self.r_ema_momentum) * r_A
+        )
+        self.r_B_ema = (
+            self.r_ema_momentum * self.r_B_ema + (1 - self.r_ema_momentum) * r_B
+        )
 
     def apply_statenet_corrections(
         self,
@@ -410,7 +419,7 @@ class DualNeuralVAEV5_7(nn.Module):
         coverage_A: int = 0,
         coverage_B: int = 0,
         r_A: float = 0.5,  # NEW: ranking correlation VAE-A
-        r_B: float = 0.5   # NEW: ranking correlation VAE-B
+        r_B: float = 0.5,  # NEW: ranking correlation VAE-B
     ) -> tuple:
         """Apply StateNet v3 corrections including ranking weight modulation.
 
@@ -447,12 +456,24 @@ class DualNeuralVAEV5_7(nn.Module):
 
         # Build 14D state vector with coverage AND ranking feedback
         state_vec = torch.tensor(
-            [H_A, H_B, kl_A, kl_B, grad_ratio, self.rho,
-             self.lambda1, self.lambda2, self.lambda3,
-             coverage_A_norm, coverage_B_norm, missing_ops_norm,
-             r_A, r_B],  # NEW: ranking signals
+            [
+                H_A,
+                H_B,
+                kl_A,
+                kl_B,
+                grad_ratio,
+                self.rho,
+                self.lambda1,
+                self.lambda2,
+                self.lambda3,
+                coverage_A_norm,
+                coverage_B_norm,
+                missing_ops_norm,
+                r_A,
+                r_B,
+            ],  # NEW: ranking signals
             device=self.grad_norm_A_ema.device,
-            dtype=torch.float32
+            dtype=torch.float32,
         )
 
         corrections, latent, attention = self.state_net(state_vec)
@@ -469,15 +490,18 @@ class DualNeuralVAEV5_7(nn.Module):
         # Apply lambda corrections
         self.lambda1 = torch.clamp(
             torch.tensor(self.lambda1) + self.statenet_lambda_scale * delta_lambda1,
-            0.5, 0.95
+            0.5,
+            0.95,
         ).item()
         self.lambda2 = torch.clamp(
             torch.tensor(self.lambda2) + self.statenet_lambda_scale * delta_lambda2,
-            0.5, 0.95
+            0.5,
+            0.95,
         ).item()
         self.lambda3 = torch.clamp(
             torch.tensor(self.lambda3) + self.statenet_lambda_scale * delta_lambda3,
-            0.15, 0.75
+            0.15,
+            0.75,
         ).item()
 
         # Apply ranking weight correction (NEW)
@@ -491,18 +515,27 @@ class DualNeuralVAEV5_7(nn.Module):
         self.ranking_weight = effective_ranking_weight
 
         # Record corrections
-        self.statenet_corrections['delta_lr'].append(delta_lr.item())
-        self.statenet_corrections['delta_lambda1'].append(delta_lambda1.item())
-        self.statenet_corrections['delta_lambda2'].append(delta_lambda2.item())
-        self.statenet_corrections['delta_lambda3'].append(delta_lambda3.item())
-        self.statenet_corrections['delta_ranking_weight'].append(delta_ranking_weight.item())
+        self.statenet_corrections["delta_lr"].append(delta_lr.item())
+        self.statenet_corrections["delta_lambda1"].append(delta_lambda1.item())
+        self.statenet_corrections["delta_lambda2"].append(delta_lambda2.item())
+        self.statenet_corrections["delta_lambda3"].append(delta_lambda3.item())
+        self.statenet_corrections["delta_ranking_weight"].append(
+            delta_ranking_weight.item()
+        )
 
-        return (corrected_lr, delta_lr.item(), delta_lambda1.item(),
-                delta_lambda2.item(), delta_lambda3.item(),
-                delta_ranking_weight.item(), effective_ranking_weight)
+        return (
+            corrected_lr,
+            delta_lr.item(),
+            delta_lambda1.item(),
+            delta_lambda2.item(),
+            delta_lambda3.item(),
+            delta_ranking_weight.item(),
+            effective_ranking_weight,
+        )
 
-    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor,
-                       temperature: float = 1.0) -> torch.Tensor:
+    def reparameterize(
+        self, mu: torch.Tensor, logvar: torch.Tensor, temperature: float = 1.0
+    ) -> torch.Tensor:
         """Reparameterization trick with temperature."""
         if self.training:
             std = torch.exp(0.5 * logvar)
@@ -511,7 +544,9 @@ class DualNeuralVAEV5_7(nn.Module):
         else:
             return mu
 
-    def compute_latent_entropy(self, z: torch.Tensor, num_bins: int = 50) -> torch.Tensor:
+    def compute_latent_entropy(
+        self, z: torch.Tensor, num_bins: int = 50
+    ) -> torch.Tensor:
         """Estimate latent entropy using histogram method."""
         batch_size, latent_dim = z.shape
 
@@ -526,8 +561,14 @@ class DualNeuralVAEV5_7(nn.Module):
 
         return torch.stack(entropies).mean()
 
-    def forward(self, x: torch.Tensor, temp_A: float = 1.0, temp_B: float = 1.0,
-                beta_A: float = 1.0, beta_B: float = 1.0) -> dict:
+    def forward(
+        self,
+        x: torch.Tensor,
+        temp_A: float = 1.0,
+        temp_B: float = 1.0,
+        beta_A: float = 1.0,
+        beta_B: float = 1.0,
+    ) -> dict:
         """Forward pass with stop-gradient cross-injection."""
         # Encode
         mu_A, logvar_A = self.encoder_A(x)
@@ -554,21 +595,21 @@ class DualNeuralVAEV5_7(nn.Module):
             H_B = self.compute_latent_entropy(z_B)
 
         return {
-            'logits_A': logits_A,
-            'logits_B': logits_B,
-            'mu_A': mu_A,
-            'logvar_A': logvar_A,
-            'mu_B': mu_B,
-            'logvar_B': logvar_B,
-            'z_A': z_A,
-            'z_B': z_B,
-            'z_A_tilde': z_A_tilde,
-            'z_B_tilde': z_B_tilde,
-            'H_A': H_A,
-            'H_B': H_B,
-            'beta_A': beta_A,
-            'beta_B': beta_B,
-            'ranking_weight': self.ranking_weight  # NEW: expose dynamic weight
+            "logits_A": logits_A,
+            "logits_B": logits_B,
+            "mu_A": mu_A,
+            "logvar_A": logvar_A,
+            "mu_B": mu_B,
+            "logvar_B": logvar_B,
+            "z_A": z_A,
+            "z_B": z_B,
+            "z_A_tilde": z_A_tilde,
+            "z_B_tilde": z_B_tilde,
+            "H_A": H_A,
+            "H_B": H_B,
+            "beta_A": beta_A,
+            "beta_B": beta_B,
+            "ranking_weight": self.ranking_weight,  # NEW: expose dynamic weight
         }
 
     def update_gradient_norms(self):
@@ -577,32 +618,41 @@ class DualNeuralVAEV5_7(nn.Module):
             return
 
         grad_norm_A = 0.0
-        for param in list(self.encoder_A.parameters()) + list(self.decoder_A.parameters()):
+        for param in list(self.encoder_A.parameters()) + list(
+            self.decoder_A.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_A += param.grad.norm().item() ** 2
         grad_norm_A = math.sqrt(grad_norm_A)
 
         grad_norm_B = 0.0
-        for param in list(self.encoder_B.parameters()) + list(self.decoder_B.parameters()):
+        for param in list(self.encoder_B.parameters()) + list(
+            self.decoder_B.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_B += param.grad.norm().item() ** 2
         grad_norm_B = math.sqrt(grad_norm_B)
 
         if grad_norm_A > 0:
-            self.grad_norm_A_ema = (self.grad_ema_momentum * self.grad_norm_A_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_A)
+            self.grad_norm_A_ema = (
+                self.grad_ema_momentum * self.grad_norm_A_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_A
+            )
         if grad_norm_B > 0:
-            self.grad_norm_B_ema = (self.grad_ema_momentum * self.grad_norm_B_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_B)
+            self.grad_norm_B_ema = (
+                self.grad_ema_momentum * self.grad_norm_B_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_B
+            )
 
-    def sample(self, num_samples: int, device: str = 'cpu',
-               use_vae: str = 'A') -> torch.Tensor:
+    def sample(
+        self, num_samples: int, device: str = "cpu", use_vae: str = "A"
+    ) -> torch.Tensor:
         """Sample from the learned manifold."""
         self.eval()
         with torch.no_grad():
             z = torch.randn(num_samples, self.latent_dim, device=device)
 
-            if use_vae == 'A':
+            if use_vae == "A":
                 logits = self.decoder_A(z)
             else:
                 logits = self.decoder_B(z)
@@ -621,12 +671,12 @@ class DualNeuralVAEV5_7(nn.Module):
     def get_metric_state(self) -> dict:
         """Get current metric-related state for logging."""
         return {
-            'r_A_ema': self.r_A_ema.item(),
-            'r_B_ema': self.r_B_ema.item(),
-            'ranking_weight': self.ranking_weight,
-            'lambda1': self.lambda1,
-            'lambda2': self.lambda2,
-            'lambda3': self.lambda3,
-            'rho': self.rho,
-            'phase': self.current_phase
+            "r_A_ema": self.r_A_ema.item(),
+            "r_B_ema": self.r_B_ema.item(),
+            "ranking_weight": self.ranking_weight,
+            "lambda1": self.lambda1,
+            "lambda2": self.lambda2,
+            "lambda3": self.lambda3,
+            "rho": self.rho,
+            "phase": self.current_phase,
         }

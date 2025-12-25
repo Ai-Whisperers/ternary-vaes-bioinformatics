@@ -16,8 +16,8 @@ Tests the combined loss function that integrates all loss components:
 
 import pytest
 import torch
-from src.losses.dual_vae_loss import DualVAELoss
 
+from src.losses.dual_vae_loss import DualVAELoss
 
 # =============================================================================
 # Fixtures
@@ -128,7 +128,9 @@ class TestDualVAELossForward:
 
         assert isinstance(result, dict)
 
-    def test_forward_contains_required_keys(self, loss_fn, sample_input, sample_outputs):
+    def test_forward_contains_required_keys(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Result dict should contain all required keys."""
         result = loss_fn(
             x=sample_input,
@@ -145,11 +147,23 @@ class TestDualVAELossForward:
         )
 
         required_keys = [
-            "loss", "ce_A", "ce_B", "kl_A", "kl_B",
-            "loss_A", "loss_B", "entropy_B", "repulsion_B",
-            "entropy_align", "H_A", "H_B",
-            "grad_scale_A", "grad_scale_B",
-            "lambda1", "lambda2", "lambda3",
+            "loss",
+            "ce_A",
+            "ce_B",
+            "kl_A",
+            "kl_B",
+            "loss_A",
+            "loss_B",
+            "entropy_B",
+            "repulsion_B",
+            "entropy_align",
+            "H_A",
+            "H_B",
+            "grad_scale_A",
+            "grad_scale_B",
+            "lambda1",
+            "lambda2",
+            "lambda3",
         ]
 
         for key in required_keys:
@@ -192,7 +206,9 @@ class TestDualVAELossForward:
 
         assert torch.isfinite(result["loss"])
 
-    def test_gradient_flows_through_total_loss(self, loss_fn, sample_input, sample_outputs):
+    def test_gradient_flows_through_total_loss(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Gradients should flow through total loss."""
         # Make inputs require grad
         sample_outputs["logits_A"].requires_grad_(True)
@@ -232,7 +248,9 @@ class TestDualVAELossGradientBalance:
     def loss_fn(self):
         return DualVAELoss()
 
-    def test_gradient_balance_scales_losses(self, loss_fn, sample_input, sample_outputs):
+    def test_gradient_balance_scales_losses(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Gradient balancing should scale losses."""
         grad_norm_A = torch.tensor(1.0)
         grad_norm_B = torch.tensor(2.0)
@@ -277,7 +295,9 @@ class TestDualVAELossGradientBalance:
         assert 0.5 <= result["grad_scale_A"] <= 2.0
         assert 0.5 <= result["grad_scale_B"] <= 2.0
 
-    def test_gradient_balance_disabled_when_not_training(self, loss_fn, sample_input, sample_outputs):
+    def test_gradient_balance_disabled_when_not_training(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Gradient balancing should be disabled during inference."""
         result = loss_fn(
             x=sample_input,
@@ -309,7 +329,9 @@ class TestDualVAELossEntropyAlignment:
     def loss_fn(self):
         return DualVAELoss()
 
-    def test_entropy_alignment_zero_when_equal(self, loss_fn, sample_input, sample_outputs):
+    def test_entropy_alignment_zero_when_equal(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Entropy alignment should be 0 when H_A == H_B."""
         sample_outputs["H_A"] = torch.tensor(1.5)
         sample_outputs["H_B"] = torch.tensor(1.5)
@@ -330,7 +352,9 @@ class TestDualVAELossEntropyAlignment:
 
         assert result["entropy_align"].item() == pytest.approx(0.0, abs=1e-6)
 
-    def test_entropy_alignment_increases_with_difference(self, loss_fn, sample_input, sample_outputs):
+    def test_entropy_alignment_increases_with_difference(
+        self, loss_fn, sample_input, sample_outputs
+    ):
         """Entropy alignment should increase when H_A != H_B."""
         sample_outputs["H_A"] = torch.tensor(1.0)
         sample_outputs["H_B"] = torch.tensor(2.0)
@@ -474,7 +498,9 @@ class TestDualVAELossEdgeCases:
 class TestDualVAELossWithPAdicLosses:
     """Test DualVAELoss with p-Adic losses enabled."""
 
-    def test_metric_loss_included(self, sample_input, sample_outputs, sample_batch_indices):
+    def test_metric_loss_included(
+        self, sample_input, sample_outputs, sample_batch_indices
+    ):
         """p-Adic metric loss should be included when enabled."""
         padic_config = {"enable_metric_loss": True, "metric_loss_weight": 0.1}
         loss_fn = DualVAELoss(padic_config=padic_config)
@@ -499,7 +525,9 @@ class TestDualVAELossWithPAdicLosses:
         assert result["padic_metric_A"] >= 0
         assert result["padic_metric_B"] >= 0
 
-    def test_ranking_loss_included(self, sample_input, sample_outputs, sample_batch_indices):
+    def test_ranking_loss_included(
+        self, sample_input, sample_outputs, sample_batch_indices
+    ):
         """p-Adic ranking loss should be included when enabled."""
         padic_config = {"enable_ranking_loss": True, "ranking_loss_weight": 0.5}
         loss_fn = DualVAELoss(padic_config=padic_config)

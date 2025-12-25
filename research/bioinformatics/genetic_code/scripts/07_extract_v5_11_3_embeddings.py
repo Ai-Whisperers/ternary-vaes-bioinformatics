@@ -17,17 +17,18 @@ Output: research/genetic_code/data/v5_11_3_embeddings.pt
 
 import sys
 from pathlib import Path
-import torch
+
 import numpy as np
+import torch
 from scipy.stats import spearmanr
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.models.ternary_vae import TernaryVAEV5_11_OptionC
-from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
+from src.data.generation import generate_all_ternary_operations
+from src.models.ternary_vae import TernaryVAEV5_11_OptionC
 
 
 def load_v5_11_3_model(device="cpu"):

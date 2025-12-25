@@ -17,10 +17,10 @@ Input: research/bioinformatics/rheumatoid_arthritis/data/ra_high_priority_target
 Output: research/bioinformatics/rheumatoid_arthritis/alphafold_jobs/ra_validation_batch.json
 """
 
-import sys
 import json
-from pathlib import Path
+import sys
 from datetime import datetime
+from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).parent
 
@@ -49,6 +49,7 @@ HLA_DRA_SEQUENCE = (
 # PEPTIDE EXTRACTION
 # =============================================================================
 
+
 def extract_peptide_context(sequence: str, position: int, length: int = 15) -> str:
     """
     Extract peptide centered on modification site.
@@ -63,9 +64,9 @@ def extract_peptide_context(sequence: str, position: int, length: int = 15) -> s
     # Pad if at boundaries
     if len(peptide) < length:
         if start == 0:
-            peptide = peptide.ljust(length, 'G')
+            peptide = peptide.ljust(length, "G")
         else:
-            peptide = peptide.rjust(length, 'G')
+            peptide = peptide.rjust(length, "G")
 
     return peptide
 
@@ -73,14 +74,15 @@ def extract_peptide_context(sequence: str, position: int, length: int = 15) -> s
 def apply_citrullination(sequence: str, position: int) -> str:
     """Apply R->Q citrullination at specified position (1-indexed)."""
     seq_list = list(sequence)
-    if 0 < position <= len(seq_list) and seq_list[position - 1] == 'R':
-        seq_list[position - 1] = 'Q'
-    return ''.join(seq_list)
+    if 0 < position <= len(seq_list) and seq_list[position - 1] == "R":
+        seq_list[position - 1] = "Q"
+    return "".join(seq_list)
 
 
 # =============================================================================
 # JOB GENERATION
 # =============================================================================
+
 
 def create_pmhc_job(name: str, peptide: str, description: str = "") -> dict:
     """
@@ -92,24 +94,9 @@ def create_pmhc_job(name: str, peptide: str, description: str = "") -> dict:
         "name": name,
         "modelSeeds": [],
         "sequences": [
-            {
-                "proteinChain": {
-                    "sequence": HLA_DRA_SEQUENCE,
-                    "count": 1
-                }
-            },
-            {
-                "proteinChain": {
-                    "sequence": HLA_DRB1_0401_SEQUENCE,
-                    "count": 1
-                }
-            },
-            {
-                "proteinChain": {
-                    "sequence": peptide,
-                    "count": 1
-                }
-            }
+            {"proteinChain": {"sequence": HLA_DRA_SEQUENCE, "count": 1}},
+            {"proteinChain": {"sequence": HLA_DRB1_0401_SEQUENCE, "count": 1}},
+            {"proteinChain": {"sequence": peptide, "count": 1}},
         ],
         "dialect": "alphafoldserver",
         "version": 1,
@@ -117,28 +104,30 @@ def create_pmhc_job(name: str, peptide: str, description: str = "") -> dict:
             "description": description,
             "hla_allele": "DRB1*04:01",
             "peptide_length": len(peptide),
-        }
+        },
     }
 
 
-def generate_ra_validation_jobs(proteins_data: dict, high_priority_targets: list) -> list:
+def generate_ra_validation_jobs(
+    proteins_data: dict, high_priority_targets: list
+) -> list:
     """Generate AlphaFold jobs for RA validation."""
 
     jobs = []
 
     # Get protein sequences
-    protein_seqs = {p['name']: p['sequence'] for p in proteins_data['proteins']}
+    protein_seqs = {p["name"]: p["sequence"] for p in proteins_data["proteins"]}
 
     # Focus on known ACPA sites first
-    known_acpa = [t for t in high_priority_targets if t['is_known_acpa']]
+    known_acpa = [t for t in high_priority_targets if t["is_known_acpa"]]
 
     print(f"\n  Found {len(known_acpa)} known ACPA sites with score=3")
 
     # Generate jobs for known ACPA sites (priority)
     for target in known_acpa[:3]:  # Top 3 known sites
-        protein = target['protein']
-        position = target['position']
-        seq = protein_seqs.get(protein, '')
+        protein = target["protein"]
+        position = target["position"]
+        seq = protein_seqs.get(protein, "")
 
         if not seq:
             continue
@@ -149,27 +138,35 @@ def generate_ra_validation_jobs(proteins_data: dict, high_priority_targets: list
 
         # Generate WT job
         job_name_wt = f"ra_{protein.lower().replace(' ', '_')}_R{position}_WT_DRB10401"
-        jobs.append(create_pmhc_job(
-            name=job_name_wt[:50],  # AlphaFold name limit
-            peptide=wt_peptide,
-            description=f"WT {protein} R{position} with HLA-DRB1*04:01"
-        ))
+        jobs.append(
+            create_pmhc_job(
+                name=job_name_wt[:50],  # AlphaFold name limit
+                peptide=wt_peptide,
+                description=f"WT {protein} R{position} with HLA-DRB1*04:01",
+            )
+        )
 
         # Generate citrullinated job
         job_name_cit = f"ra_{protein.lower().replace(' ', '_')}_R{position}Q_DRB10401"
-        jobs.append(create_pmhc_job(
-            name=job_name_cit[:50],
-            peptide=cit_peptide,
-            description=f"Citrullinated {protein} R{position}Q with HLA-DRB1*04:01 [KNOWN ACPA]"
-        ))
+        jobs.append(
+            create_pmhc_job(
+                name=job_name_cit[:50],
+                peptide=cit_peptide,
+                description=f"Citrullinated {protein} R{position}Q with HLA-DRB1*04:01 [KNOWN ACPA]",
+            )
+        )
 
     # Add 1-2 predicted high-priority sites (not known ACPA)
-    predicted = [t for t in high_priority_targets if not t['is_known_acpa'] and t['ptm_type'] == 'R->Q']
+    predicted = [
+        t
+        for t in high_priority_targets
+        if not t["is_known_acpa"] and t["ptm_type"] == "R->Q"
+    ]
 
     for target in predicted[:2]:
-        protein = target['protein']
-        position = target['position']
-        seq = protein_seqs.get(protein, '')
+        protein = target["protein"]
+        position = target["position"]
+        seq = protein_seqs.get(protein, "")
 
         if not seq:
             continue
@@ -178,11 +175,13 @@ def generate_ra_validation_jobs(proteins_data: dict, high_priority_targets: list
         cit_peptide = apply_citrullination(wt_peptide, 8)
 
         job_name = f"ra_{protein.lower().replace(' ', '_')}_R{position}Q_predicted"
-        jobs.append(create_pmhc_job(
-            name=job_name[:50],
-            peptide=cit_peptide,
-            description=f"PREDICTED {protein} R{position}Q with HLA-DRB1*04:01 (score=3)"
-        ))
+        jobs.append(
+            create_pmhc_job(
+                name=job_name[:50],
+                peptide=cit_peptide,
+                description=f"PREDICTED {protein} R{position}Q with HLA-DRB1*04:01 (score=3)",
+            )
+        )
 
     return jobs
 
@@ -194,14 +193,14 @@ def main():
     print("=" * 70)
 
     # Load data
-    data_dir = SCRIPT_DIR.parent / 'data'
+    data_dir = SCRIPT_DIR.parent / "data"
 
-    proteins_path = data_dir / 'acpa_proteins.json'
+    proteins_path = data_dir / "acpa_proteins.json"
     if not proteins_path.exists():
         print(f"ERROR: ACPA proteins not found at {proteins_path}")
         return 1
 
-    targets_path = data_dir / 'ra_high_priority_targets.json'
+    targets_path = data_dir / "ra_high_priority_targets.json"
     if not targets_path.exists():
         print(f"ERROR: High-priority targets not found at {targets_path}")
         return 1
@@ -227,42 +226,42 @@ def main():
     print(f"\n  Total jobs generated: {len(jobs)}")
     print(f"\n  Jobs:")
     for i, job in enumerate(jobs, 1):
-        meta = job.get('_metadata', {})
-        desc = meta.get('description', job['name'])
+        meta = job.get("_metadata", {})
+        desc = meta.get("description", job["name"])
         print(f"    {i}. {desc}")
 
     # Remove metadata before saving (not part of AlphaFold spec)
     jobs_clean = []
     for job in jobs:
-        job_copy = {k: v for k, v in job.items() if k != '_metadata'}
+        job_copy = {k: v for k, v in job.items() if k != "_metadata"}
         jobs_clean.append(job_copy)
 
     # Save jobs
-    output_dir = SCRIPT_DIR.parent / 'alphafold_jobs'
+    output_dir = SCRIPT_DIR.parent / "alphafold_jobs"
     output_dir.mkdir(exist_ok=True)
 
-    output_path = output_dir / 'ra_validation_batch.json'
-    with open(output_path, 'w') as f:
+    output_path = output_dir / "ra_validation_batch.json"
+    with open(output_path, "w") as f:
         json.dump(jobs_clean, f, indent=2)
     print(f"\n  Saved: {output_path}")
 
     # Save metadata separately
     metadata = {
-        'generation_date': datetime.now().isoformat(),
-        'hla_allele': 'DRB1*04:01',
-        'job_count': len(jobs),
-        'jobs': [
+        "generation_date": datetime.now().isoformat(),
+        "hla_allele": "DRB1*04:01",
+        "job_count": len(jobs),
+        "jobs": [
             {
-                'name': job['name'],
-                'description': job.get('_metadata', {}).get('description', ''),
-                'peptide_length': job.get('_metadata', {}).get('peptide_length', 0),
+                "name": job["name"],
+                "description": job.get("_metadata", {}).get("description", ""),
+                "peptide_length": job.get("_metadata", {}).get("peptide_length", 0),
             }
             for job in jobs
-        ]
+        ],
     }
 
-    metadata_path = output_dir / 'ra_validation_metadata.json'
-    with open(metadata_path, 'w') as f:
+    metadata_path = output_dir / "ra_validation_metadata.json"
+    with open(metadata_path, "w") as f:
         json.dump(metadata, f, indent=2)
     print(f"  Saved: {metadata_path}")
 
@@ -276,5 +275,5 @@ def main():
     return 0
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())

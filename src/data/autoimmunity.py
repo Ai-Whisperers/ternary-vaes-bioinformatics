@@ -3,9 +3,10 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-import torch
 import random
-from typing import List, Dict, Optional
+from typing import Dict, List, Optional
+
+import torch
 
 
 class AutoimmunityLoader:

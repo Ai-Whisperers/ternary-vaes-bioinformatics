@@ -8,9 +8,10 @@ Goldilocks Zone (15-30% centroid shift), analogous to HIV glycan shield analysis
 Reference: Wuhan-Hu-1 spike (UniProt P0DTC2)
 """
 
-import sys
 import json
+import sys
 from pathlib import Path
+
 import numpy as np
 import torch
 
@@ -20,14 +21,9 @@ import torch
 CODON_RESEARCH_DIR = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(CODON_RESEARCH_DIR / "rheumatoid_arthritis" / "scripts"))
 
-from hyperbolic_utils import (
-    load_hyperbolic_encoder,
-    encode_codon_hyperbolic,
-    hyperbolic_centroid,
-    poincare_distance,
-    AA_TO_CODON,
-    codon_to_onehot
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot,
+                              encode_codon_hyperbolic, hyperbolic_centroid,
+                              load_hyperbolic_encoder, poincare_distance)
 
 # SARS-CoV-2 Spike protein sequence (Wuhan-Hu-1, UniProt P0DTC2)
 # Full length: 1273 amino acids
@@ -55,28 +51,160 @@ SPIKE_SEQUENCE = (
 
 # Known N-linked glycosylation sites with annotations
 SPIKE_GLYCAN_SITES = [
-    {"position": 17, "name": "N17", "domain": "NTD", "glycan_type": "Complex", "bnab_relevance": "NTD shielding"},
-    {"position": 61, "name": "N61", "domain": "NTD", "glycan_type": "Complex/Hybrid", "bnab_relevance": "Antigenic supersite"},
-    {"position": 74, "name": "N74", "domain": "NTD", "glycan_type": "Complex", "bnab_relevance": "NTD shielding"},
-    {"position": 122, "name": "N122", "domain": "NTD", "glycan_type": "Complex", "bnab_relevance": "Near antigenic site"},
-    {"position": 149, "name": "N149", "domain": "NTD", "glycan_type": "Complex", "bnab_relevance": "Antigenic supersite"},
-    {"position": 165, "name": "N165", "domain": "NTD", "glycan_type": "Complex", "bnab_relevance": "RBD positioning"},
-    {"position": 234, "name": "N234", "domain": "RBD", "glycan_type": "Oligomannose", "bnab_relevance": "ACE2 adjacent"},
-    {"position": 282, "name": "N282", "domain": "RBD", "glycan_type": "Complex", "bnab_relevance": "RBD shielding"},
-    {"position": 331, "name": "N331", "domain": "RBD", "glycan_type": "Complex", "bnab_relevance": "Critical RBD shield"},
-    {"position": 343, "name": "N343", "domain": "RBD", "glycan_type": "Complex", "bnab_relevance": "Critical RBD shield"},
-    {"position": 603, "name": "N603", "domain": "SD1", "glycan_type": "Oligomannose", "bnab_relevance": "Structural"},
-    {"position": 616, "name": "N616", "domain": "SD1", "glycan_type": "Complex", "bnab_relevance": "Structural"},
-    {"position": 657, "name": "N657", "domain": "SD2", "glycan_type": "Complex", "bnab_relevance": "Structural"},
-    {"position": 709, "name": "N709", "domain": "S2", "glycan_type": "Oligomannose", "bnab_relevance": "Fusion machinery"},
-    {"position": 717, "name": "N717", "domain": "S2", "glycan_type": "Oligomannose", "bnab_relevance": "Fusion machinery"},
-    {"position": 801, "name": "N801", "domain": "S2", "glycan_type": "Oligomannose", "bnab_relevance": "Near fusion peptide"},
-    {"position": 1074, "name": "N1074", "domain": "S2", "glycan_type": "Complex", "bnab_relevance": "S2 shielding"},
-    {"position": 1098, "name": "N1098", "domain": "S2", "glycan_type": "Complex", "bnab_relevance": "S2 shielding"},
-    {"position": 1134, "name": "N1134", "domain": "HR2", "glycan_type": "Oligomannose", "bnab_relevance": "Stem region"},
-    {"position": 1158, "name": "N1158", "domain": "HR2", "glycan_type": "Complex", "bnab_relevance": "Stem region"},
-    {"position": 1173, "name": "N1173", "domain": "HR2", "glycan_type": "Oligomannose", "bnab_relevance": "Stem region"},
-    {"position": 1194, "name": "N1194", "domain": "HR2", "glycan_type": "Complex", "bnab_relevance": "Membrane proximal"},
+    {
+        "position": 17,
+        "name": "N17",
+        "domain": "NTD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "NTD shielding",
+    },
+    {
+        "position": 61,
+        "name": "N61",
+        "domain": "NTD",
+        "glycan_type": "Complex/Hybrid",
+        "bnab_relevance": "Antigenic supersite",
+    },
+    {
+        "position": 74,
+        "name": "N74",
+        "domain": "NTD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "NTD shielding",
+    },
+    {
+        "position": 122,
+        "name": "N122",
+        "domain": "NTD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Near antigenic site",
+    },
+    {
+        "position": 149,
+        "name": "N149",
+        "domain": "NTD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Antigenic supersite",
+    },
+    {
+        "position": 165,
+        "name": "N165",
+        "domain": "NTD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "RBD positioning",
+    },
+    {
+        "position": 234,
+        "name": "N234",
+        "domain": "RBD",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "ACE2 adjacent",
+    },
+    {
+        "position": 282,
+        "name": "N282",
+        "domain": "RBD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "RBD shielding",
+    },
+    {
+        "position": 331,
+        "name": "N331",
+        "domain": "RBD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Critical RBD shield",
+    },
+    {
+        "position": 343,
+        "name": "N343",
+        "domain": "RBD",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Critical RBD shield",
+    },
+    {
+        "position": 603,
+        "name": "N603",
+        "domain": "SD1",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Structural",
+    },
+    {
+        "position": 616,
+        "name": "N616",
+        "domain": "SD1",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Structural",
+    },
+    {
+        "position": 657,
+        "name": "N657",
+        "domain": "SD2",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Structural",
+    },
+    {
+        "position": 709,
+        "name": "N709",
+        "domain": "S2",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Fusion machinery",
+    },
+    {
+        "position": 717,
+        "name": "N717",
+        "domain": "S2",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Fusion machinery",
+    },
+    {
+        "position": 801,
+        "name": "N801",
+        "domain": "S2",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Near fusion peptide",
+    },
+    {
+        "position": 1074,
+        "name": "N1074",
+        "domain": "S2",
+        "glycan_type": "Complex",
+        "bnab_relevance": "S2 shielding",
+    },
+    {
+        "position": 1098,
+        "name": "N1098",
+        "domain": "S2",
+        "glycan_type": "Complex",
+        "bnab_relevance": "S2 shielding",
+    },
+    {
+        "position": 1134,
+        "name": "N1134",
+        "domain": "HR2",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Stem region",
+    },
+    {
+        "position": 1158,
+        "name": "N1158",
+        "domain": "HR2",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Stem region",
+    },
+    {
+        "position": 1173,
+        "name": "N1173",
+        "domain": "HR2",
+        "glycan_type": "Oligomannose",
+        "bnab_relevance": "Stem region",
+    },
+    {
+        "position": 1194,
+        "name": "N1194",
+        "domain": "HR2",
+        "glycan_type": "Complex",
+        "bnab_relevance": "Membrane proximal",
+    },
 ]
 
 # Goldilocks Zone boundaries
@@ -104,20 +232,20 @@ def get_context_window(sequence: str, position: int, window_size: int = 11) -> s
 def simulate_deglycosylation(context: str, position_in_context: int = 5) -> str:
     """Simulate deglycosylation by N→Q mutation (removes glycosylation sequon)."""
     context_list = list(context)
-    if context_list[position_in_context] == 'N':
-        context_list[position_in_context] = 'Q'
-    return ''.join(context_list)
+    if context_list[position_in_context] == "N":
+        context_list[position_in_context] = "Q"
+    return "".join(context_list)
 
 
 def encode_sequence(encoder, sequence: str) -> np.ndarray:
     """Encode amino acid sequence to hyperbolic embeddings."""
     embeddings = []
     for aa in sequence.upper():
-        if aa == 'X':
+        if aa == "X":
             # Placeholder for padding - use glycine
-            aa = 'G'
-        codon = AA_TO_CODON.get(aa, 'NNN')
-        if codon != 'NNN':
+            aa = "G"
+        codon = AA_TO_CODON.get(aa, "NNN")
+        if codon != "NNN":
             emb = encode_codon_hyperbolic(codon, encoder)
             embeddings.append(emb)
     return np.array(embeddings)
@@ -145,7 +273,9 @@ def calculate_js_divergence(wt_emb: np.ndarray, mut_emb: np.ndarray) -> float:
     mut_var = np.var(mut_emb)
 
     # Symmetric KL-like measure
-    js = 0.5 * (np.log(wt_var / mut_var + 1e-10) ** 2 + np.log(mut_var / wt_var + 1e-10) ** 2)
+    js = 0.5 * (
+        np.log(wt_var / mut_var + 1e-10) ** 2 + np.log(mut_var / wt_var + 1e-10) ** 2
+    )
     return float(min(js, 1.0))
 
 
@@ -166,7 +296,9 @@ def classify_goldilocks(shift: float) -> str:
         return "above"
 
 
-def calculate_goldilocks_score(shift: float, js_div: float, entropy_change: float) -> float:
+def calculate_goldilocks_score(
+    shift: float, js_div: float, entropy_change: float
+) -> float:
     """
     Calculate Goldilocks score combining multiple metrics.
     Higher score = better sentinel candidate.
@@ -221,7 +353,7 @@ def analyze_glycan_site(encoder, site_info: dict, sequence: str) -> dict:
         "goldilocks_zone": zone,
         "goldilocks_score": float(score),
         "wt_context": wt_context,
-        "mut_context": mut_context
+        "mut_context": mut_context,
     }
 
 
@@ -233,7 +365,7 @@ def main():
 
     # Load encoder
     print("\nLoading 3-adic codon encoder...")
-    encoder, mapping = load_hyperbolic_encoder(device='cpu', version='3adic')
+    encoder, mapping = load_hyperbolic_encoder(device="cpu", version="3adic")
     print(f"Encoder loaded successfully")
 
     # Verify spike sequence
@@ -251,10 +383,12 @@ def main():
         results.append(result)
 
         zone_marker = "***" if result["goldilocks_zone"] == "goldilocks" else "   "
-        print(f"{zone_marker} {result['name']:8} ({result['domain']:4}): "
-              f"shift={result['centroid_shift']*100:5.1f}%, "
-              f"zone={result['goldilocks_zone']:10}, "
-              f"score={result['goldilocks_score']:.3f}")
+        print(
+            f"{zone_marker} {result['name']:8} ({result['domain']:4}): "
+            f"shift={result['centroid_shift']*100:5.1f}%, "
+            f"zone={result['goldilocks_zone']:10}, "
+            f"score={result['goldilocks_score']:.3f}"
+        )
 
     # Sort by Goldilocks score
     results_sorted = sorted(results, key=lambda x: x["goldilocks_score"], reverse=True)
@@ -271,17 +405,27 @@ def main():
 
     print("\n--- Top 10 Sentinel Candidates (by Goldilocks Score) ---")
     for i, r in enumerate(results_sorted[:10], 1):
-        zone_marker = "[GOLDILOCKS]" if r["goldilocks_zone"] == "goldilocks" else f"[{r['goldilocks_zone'].upper()}]"
-        print(f"{i:2}. {r['name']:8} | {r['domain']:4} | "
-              f"shift={r['centroid_shift']*100:5.1f}% | "
-              f"score={r['goldilocks_score']:.3f} | "
-              f"{zone_marker}")
+        zone_marker = (
+            "[GOLDILOCKS]"
+            if r["goldilocks_zone"] == "goldilocks"
+            else f"[{r['goldilocks_zone'].upper()}]"
+        )
+        print(
+            f"{i:2}. {r['name']:8} | {r['domain']:4} | "
+            f"shift={r['centroid_shift']*100:5.1f}% | "
+            f"score={r['goldilocks_score']:.3f} | "
+            f"{zone_marker}"
+        )
 
     print("\n--- Goldilocks Zone Sites (Sentinel Candidates) ---")
     if goldilocks_sites:
-        for r in sorted(goldilocks_sites, key=lambda x: x["goldilocks_score"], reverse=True):
-            print(f"  {r['name']:8} ({r['domain']:4}): {r['centroid_shift']*100:.1f}% shift, "
-                  f"score={r['goldilocks_score']:.3f}, {r['bnab_relevance']}")
+        for r in sorted(
+            goldilocks_sites, key=lambda x: x["goldilocks_score"], reverse=True
+        ):
+            print(
+                f"  {r['name']:8} ({r['domain']:4}): {r['centroid_shift']*100:.1f}% shift, "
+                f"score={r['goldilocks_score']:.3f}, {r['bnab_relevance']}"
+            )
     else:
         print("  No sites found in Goldilocks Zone")
 
@@ -298,8 +442,10 @@ def main():
         domains[domain]["sites"].append(r["name"])
 
     for domain, info in domains.items():
-        print(f"  {domain}: {info['goldilocks']}/{info['total']} in Goldilocks Zone "
-              f"({', '.join(info['sites'])})")
+        print(
+            f"  {domain}: {info['goldilocks']}/{info['total']} in Goldilocks Zone "
+            f"({', '.join(info['sites'])})"
+        )
 
     # Save results
     output_file = Path(__file__).parent / "spike_analysis_results.json"
@@ -310,14 +456,14 @@ def main():
             "uniprot": "P0DTC2",
             "goldilocks_zone": "[15%, 30%]",
             "total_sites": len(results),
-            "goldilocks_count": len(goldilocks_sites)
+            "goldilocks_count": len(goldilocks_sites),
         },
         "results": results_sorted,
         "top_candidates": [r["name"] for r in results_sorted[:10]],
-        "goldilocks_sites": [r["name"] for r in goldilocks_sites]
+        "goldilocks_sites": [r["name"] for r in goldilocks_sites],
     }
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(output_data, f, indent=2)
 
     print(f"\nResults saved to: {output_file}")

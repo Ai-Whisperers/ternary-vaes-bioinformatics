@@ -14,21 +14,21 @@ Usage:
     python 07_genetic_code_padic.py
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
+import warnings
 from datetime import datetime
 from itertools import combinations
-import warnings
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
+import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from scipy import stats
 from scipy.spatial.distance import squareform
-import matplotlib.pyplot as plt
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")

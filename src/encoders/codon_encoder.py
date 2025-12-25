@@ -22,9 +22,10 @@ Usage:
     z = encoder(codon_indices)
 """
 
+from typing import Optional
+
 import torch
 import torch.nn as nn
-from typing import Optional
 
 
 class CodonEncoder(nn.Module):

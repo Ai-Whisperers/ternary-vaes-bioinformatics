@@ -17,26 +17,24 @@ Goal: Boost 3-adic correlation from r=0.62 to r>0.9+
 Single responsibility: p-Adic geometry alignment.
 """
 
+from typing import Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple
 
 # STRUCTURAL FIX: Use core module's TERNARY singleton as single source of truth
 from ..core import TERNARY
-
 # Use geometry module for hyperbolic operations (single source of truth)
-from ..geometry import poincare_distance, poincare_distance_matrix, project_to_poincare
-
+from ..geometry import (poincare_distance, poincare_distance_matrix,
+                        project_to_poincare)
 
 # Note: Full 19683x19683 distance matrix removed (was O(n²) dead code).
 # Use TERNARY.distance() for efficient on-demand computation.
 
 
 def compute_3adic_distance_batch(
-    idx_i: torch.Tensor,
-    idx_j: torch.Tensor,
-    device: torch.device
+    idx_i: torch.Tensor, idx_j: torch.Tensor, device: torch.device
 ) -> torch.Tensor:
     """Compute 3-adic distances for batches of index pairs.
 
@@ -54,8 +52,7 @@ def compute_3adic_distance_batch(
 
 
 def compute_3adic_valuation_batch(
-    idx_i: torch.Tensor,
-    idx_j: torch.Tensor
+    idx_i: torch.Tensor, idx_j: torch.Tensor
 ) -> torch.Tensor:
     """Compute 3-adic valuations for batches of index pairs.
 
@@ -83,11 +80,7 @@ class PAdicMetricLoss(nn.Module):
     of the 3-adic integers.
     """
 
-    def __init__(
-        self,
-        scale: float = 1.0,
-        n_pairs: int = 1000
-    ):
+    def __init__(self, scale: float = 1.0, n_pairs: int = 1000):
         """Initialize p-Adic Metric Loss.
 
         Args:
@@ -98,11 +91,7 @@ class PAdicMetricLoss(nn.Module):
         self.scale = scale
         self.n_pairs = n_pairs
 
-    def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, z: torch.Tensor, batch_indices: torch.Tensor) -> torch.Tensor:
         """Compute p-Adic metric loss.
 
         Args:
@@ -131,9 +120,7 @@ class PAdicMetricLoss(nn.Module):
 
         # Compute 3-adic distances
         d_3adic = compute_3adic_distance_batch(
-            batch_indices[i_idx],
-            batch_indices[j_idx],
-            z.device
+            batch_indices[i_idx], batch_indices[j_idx], z.device
         )
 
         # MSE loss: (d_latent - C * d_3adic)^2
@@ -157,11 +144,7 @@ class PAdicRankingLoss(nn.Module):
     Uses margin-based triplet loss for stability.
     """
 
-    def __init__(
-        self,
-        margin: float = 0.1,
-        n_triplets: int = 500
-    ):
+    def __init__(self, margin: float = 0.1, n_triplets: int = 500):
         """Initialize p-Adic Ranking Loss.
 
         Args:
@@ -172,11 +155,7 @@ class PAdicRankingLoss(nn.Module):
         self.margin = margin
         self.n_triplets = n_triplets
 
-    def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, z: torch.Tensor, batch_indices: torch.Tensor) -> torch.Tensor:
         """Compute p-Adic ranking loss.
 
         Args:
@@ -224,9 +203,7 @@ class PAdicRankingLoss(nn.Module):
 
         # Triplet loss: we want d_latent_pos < d_latent_neg
         # Loss = max(0, d_pos - d_neg + margin)
-        loss = F.relu(
-            d_anchor_pos[valid] - d_anchor_neg[valid] + self.margin
-        ).mean()
+        loss = F.relu(d_anchor_pos[valid] - d_anchor_neg[valid] + self.margin).mean()
 
         return loss
 
@@ -250,7 +227,7 @@ class PAdicRankingLossV2(nn.Module):
         margin_scale: float = 0.15,
         n_triplets: int = 500,
         hard_negative_ratio: float = 0.5,
-        semi_hard: bool = True
+        semi_hard: bool = True,
     ):
         """Initialize Enhanced p-Adic Ranking Loss.
 
@@ -269,9 +246,7 @@ class PAdicRankingLossV2(nn.Module):
         self.semi_hard = semi_hard
 
     def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
+        self, z: torch.Tensor, batch_indices: torch.Tensor
     ) -> Tuple[torch.Tensor, dict]:
         """Compute enhanced p-Adic ranking loss.
 
@@ -286,7 +261,10 @@ class PAdicRankingLossV2(nn.Module):
         device = z.device
 
         if batch_size < 3:
-            return torch.tensor(0.0, device=device), {'hard_ratio': 0.0, 'violations': 0}
+            return torch.tensor(0.0, device=device), {
+                "hard_ratio": 0.0,
+                "violations": 0,
+            }
 
         n_triplets = min(self.n_triplets, batch_size)
         n_hard = int(n_triplets * self.hard_negative_ratio)
@@ -312,7 +290,10 @@ class PAdicRankingLossV2(nn.Module):
             all_triplets.append(random_triplets)
 
         if len(all_triplets) == 0:
-            return torch.tensor(0.0, device=device), {'hard_ratio': 0.0, 'violations': 0}
+            return torch.tensor(0.0, device=device), {
+                "hard_ratio": 0.0,
+                "violations": 0,
+            }
 
         # Concatenate all triplets
         anchor_idx = torch.cat([t[0] for t in all_triplets])
@@ -340,19 +321,16 @@ class PAdicRankingLossV2(nn.Module):
         actual_hard_ratio = n_hard / max(anchor_idx.size(0), 1)
 
         metrics = {
-            'hard_ratio': actual_hard_ratio,
-            'violations': n_violations,
-            'mean_margin': hierarchical_margin.mean().item(),
-            'total_triplets': anchor_idx.size(0)
+            "hard_ratio": actual_hard_ratio,
+            "violations": n_violations,
+            "mean_margin": hierarchical_margin.mean().item(),
+            "total_triplets": anchor_idx.size(0),
         }
 
         return loss, metrics
 
     def _mine_hard_negatives(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor,
-        n_hard: int
+        self, z: torch.Tensor, batch_indices: torch.Tensor, n_hard: int
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Mine hard negative triplets.
 
@@ -389,8 +367,7 @@ class PAdicRankingLossV2(nn.Module):
 
             # Compute 3-adic valuations from anchor to all others
             v_to_all = compute_3adic_valuation_batch(
-                anchor_idx_val.expand(batch_size),
-                batch_indices
+                anchor_idx_val.expand(batch_size), batch_indices
             )
 
             # Find candidate positives (high valuation = close in 3-adic)
@@ -405,8 +382,8 @@ class PAdicRankingLossV2(nn.Module):
 
             # Top half are potential positives, bottom half are potential negatives
             n_half = len(v_sorted_idx) // 2
-            pos_candidates = v_sorted_idx[:max(n_half, 1)]
-            neg_candidates = v_sorted_idx[max(n_half, 1):]
+            pos_candidates = v_sorted_idx[: max(n_half, 1)]
+            neg_candidates = v_sorted_idx[max(n_half, 1) :]
 
             if len(neg_candidates) == 0:
                 continue
@@ -428,7 +405,9 @@ class PAdicRankingLossV2(nn.Module):
                     # Check for violation or semi-hard condition
                     if self.semi_hard:
                         # Semi-hard: d_ap < d_an < d_ap + margin OR d_an < d_ap
-                        is_hard = d_an < d_ap + self.base_margin + self.margin_scale * (v_pos_val - v_neg_val)
+                        is_hard = d_an < d_ap + self.base_margin + self.margin_scale * (
+                            v_pos_val - v_neg_val
+                        )
                     else:
                         # Pure hard: d_an <= d_ap (actual violation)
                         is_hard = d_an <= d_ap
@@ -451,7 +430,7 @@ class PAdicRankingLossV2(nn.Module):
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], device=device),
-                torch.tensor([], device=device)
+                torch.tensor([], device=device),
             )
 
         return (
@@ -459,14 +438,11 @@ class PAdicRankingLossV2(nn.Module):
             torch.stack(hard_pos),
             torch.stack(hard_neg),
             torch.stack(hard_v_pos),
-            torch.stack(hard_v_neg)
+            torch.stack(hard_v_neg),
         )
 
     def _sample_random_triplets(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor,
-        n_random: int
+        self, z: torch.Tensor, batch_indices: torch.Tensor, n_random: int
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Sample random valid triplets (for diversity)."""
         batch_size = z.size(0)
@@ -489,7 +465,7 @@ class PAdicRankingLossV2(nn.Module):
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], device=device),
-                torch.tensor([], device=device)
+                torch.tensor([], device=device),
             )
 
         # Compute valuations
@@ -536,7 +512,7 @@ class PAdicRankingLossHyperbolic(nn.Module):
         hard_negative_ratio: float = 0.5,
         curvature: float = 1.0,
         radial_weight: float = 0.1,
-        max_norm: float = 0.95
+        max_norm: float = 0.95,
     ):
         """Initialize Hyperbolic p-Adic Ranking Loss.
 
@@ -586,9 +562,7 @@ class PAdicRankingLossHyperbolic(nn.Module):
         return poincare_distance_matrix(z, c=self.curvature)
 
     def _compute_radial_loss(
-        self,
-        z_hyp: torch.Tensor,
-        batch_indices: torch.Tensor
+        self, z_hyp: torch.Tensor, batch_indices: torch.Tensor
     ) -> torch.Tensor:
         """Compute radial hierarchy loss.
 
@@ -624,9 +598,7 @@ class PAdicRankingLossHyperbolic(nn.Module):
         return TERNARY.valuation(indices).float()
 
     def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
+        self, z: torch.Tensor, batch_indices: torch.Tensor
     ) -> Tuple[torch.Tensor, dict]:
         """Compute hyperbolic p-Adic ranking loss.
 
@@ -642,7 +614,9 @@ class PAdicRankingLossHyperbolic(nn.Module):
 
         if batch_size < 3:
             return torch.tensor(0.0, device=device), {
-                'hard_ratio': 0.0, 'violations': 0, 'poincare_dist_mean': 0.0
+                "hard_ratio": 0.0,
+                "violations": 0,
+                "poincare_dist_mean": 0.0,
             }
 
         # Project to Poincaré ball
@@ -678,8 +652,10 @@ class PAdicRankingLossHyperbolic(nn.Module):
         if len(all_triplets) == 0:
             total_loss = self.radial_weight * radial_loss
             return total_loss, {
-                'hard_ratio': 0.0, 'violations': 0,
-                'poincare_dist_mean': 0.0, 'radial_loss': radial_loss.item()
+                "hard_ratio": 0.0,
+                "violations": 0,
+                "poincare_dist_mean": 0.0,
+                "radial_loss": radial_loss.item(),
             }
 
         # Concatenate all triplets
@@ -710,22 +686,19 @@ class PAdicRankingLossHyperbolic(nn.Module):
         mean_poincare_dist = (d_anchor_pos.mean() + d_anchor_neg.mean()).item() / 2
 
         metrics = {
-            'hard_ratio': actual_hard_ratio,
-            'violations': n_violations,
-            'mean_margin': hierarchical_margin.mean().item(),
-            'total_triplets': anchor_idx.size(0),
-            'poincare_dist_mean': mean_poincare_dist,
-            'radial_loss': radial_loss.item(),
-            'ranking_loss': ranking_loss.item()
+            "hard_ratio": actual_hard_ratio,
+            "violations": n_violations,
+            "mean_margin": hierarchical_margin.mean().item(),
+            "total_triplets": anchor_idx.size(0),
+            "poincare_dist_mean": mean_poincare_dist,
+            "radial_loss": radial_loss.item(),
+            "ranking_loss": ranking_loss.item(),
         }
 
         return total_loss, metrics
 
     def _mine_hard_negatives_hyperbolic(
-        self,
-        z_hyp: torch.Tensor,
-        batch_indices: torch.Tensor,
-        n_hard: int
+        self, z_hyp: torch.Tensor, batch_indices: torch.Tensor, n_hard: int
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Mine hard negatives using Poincaré distances."""
         batch_size = z_hyp.size(0)
@@ -761,8 +734,8 @@ class PAdicRankingLossHyperbolic(nn.Module):
                 continue
 
             n_half = len(v_sorted_idx) // 2
-            pos_candidates = v_sorted_idx[:max(n_half, 1)]
-            neg_candidates = v_sorted_idx[max(n_half, 1):]
+            pos_candidates = v_sorted_idx[: max(n_half, 1)]
+            neg_candidates = v_sorted_idx[max(n_half, 1) :]
 
             if len(neg_candidates) == 0:
                 continue
@@ -778,7 +751,9 @@ class PAdicRankingLossHyperbolic(nn.Module):
                     if v_pos_val <= v_neg_val:
                         continue
 
-                    margin = self.base_margin + self.margin_scale * (v_pos_val - v_neg_val)
+                    margin = self.base_margin + self.margin_scale * (
+                        v_pos_val - v_neg_val
+                    )
                     is_hard = d_an < d_ap + margin
 
                     if is_hard:
@@ -799,7 +774,7 @@ class PAdicRankingLossHyperbolic(nn.Module):
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], device=device),
-                torch.tensor([], device=device)
+                torch.tensor([], device=device),
             )
 
         return (
@@ -807,14 +782,11 @@ class PAdicRankingLossHyperbolic(nn.Module):
             torch.stack(hard_pos),
             torch.stack(hard_neg),
             torch.stack(hard_v_pos),
-            torch.stack(hard_v_neg)
+            torch.stack(hard_v_neg),
         )
 
     def _sample_random_triplets(
-        self,
-        z_hyp: torch.Tensor,
-        batch_indices: torch.Tensor,
-        n_random: int
+        self, z_hyp: torch.Tensor, batch_indices: torch.Tensor, n_random: int
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         """Sample random valid triplets."""
         batch_size = z_hyp.size(0)
@@ -835,7 +807,7 @@ class PAdicRankingLossHyperbolic(nn.Module):
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], dtype=torch.long, device=device),
                 torch.tensor([], device=device),
-                torch.tensor([], device=device)
+                torch.tensor([], device=device),
             )
 
         v_pos = compute_3adic_valuation_batch(
@@ -878,13 +850,9 @@ class PAdicNormLoss(nn.Module):
         # Precompute weights: 3^(-i) for i in [0, latent_dim)
         # Higher indices = LSB = smaller weight
         weights = torch.tensor([3.0 ** (-i) for i in range(latent_dim)])
-        self.register_buffer('weights', weights)
+        self.register_buffer("weights", weights)
 
-    def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
-    ) -> torch.Tensor:
+    def forward(self, z: torch.Tensor, batch_indices: torch.Tensor) -> torch.Tensor:
         """Compute p-Adic norm loss.
 
         Args:

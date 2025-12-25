@@ -16,10 +16,11 @@ Purpose = understanding that r → addition_accuracy.
 Single responsibility: Learn and predict consequence of metric structure.
 """
 
+from typing import Dict, List, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, List, Optional, Tuple
 
 
 class ConsequencePredictor(nn.Module):
@@ -49,13 +50,13 @@ class ConsequencePredictor(nn.Module):
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 1),
-            nn.Sigmoid()
+            nn.Sigmoid(),
         )
 
         # Running statistics for normalization
-        self.register_buffer('r_mean', torch.tensor(0.5))
-        self.register_buffer('r_std', torch.tensor(0.2))
-        self.register_buffer('n_updates', torch.tensor(0))
+        self.register_buffer("r_mean", torch.tensor(0.5))
+        self.register_buffer("r_std", torch.tensor(0.2))
+        self.register_buffer("n_updates", torch.tensor(0))
 
         # History for computing actual addition accuracy
         self.actual_accuracy_history: List[float] = []
@@ -74,10 +75,7 @@ class ConsequencePredictor(nn.Module):
         return norms.mean().item(), z.std().item()
 
     def forward(
-        self,
-        ranking_correlation: float,
-        z: torch.Tensor,
-        coverage_pct: float = 0.0
+        self, ranking_correlation: float, z: torch.Tensor, coverage_pct: float = 0.0
     ) -> torch.Tensor:
         """Predict addition accuracy from current state.
 
@@ -96,12 +94,11 @@ class ConsequencePredictor(nn.Module):
         coverage_norm = coverage_pct / 100.0
 
         # Build input tensor
-        features = torch.tensor([
-            ranking_correlation,
-            z_mean_norm,
-            z_std,
-            coverage_norm
-        ], device=z.device, dtype=torch.float32).unsqueeze(0)
+        features = torch.tensor(
+            [ranking_correlation, z_mean_norm, z_std, coverage_norm],
+            device=z.device,
+            dtype=torch.float32,
+        ).unsqueeze(0)
 
         # Predict
         predicted_accuracy = self.predictor(features)
@@ -109,9 +106,7 @@ class ConsequencePredictor(nn.Module):
         return predicted_accuracy.squeeze()
 
     def compute_loss(
-        self,
-        predicted_accuracy: torch.Tensor,
-        actual_accuracy: float
+        self, predicted_accuracy: torch.Tensor, actual_accuracy: float
     ) -> torch.Tensor:
         """Compute prediction error.
 
@@ -125,12 +120,7 @@ class ConsequencePredictor(nn.Module):
         actual = torch.tensor(actual_accuracy, device=predicted_accuracy.device)
         return F.mse_loss(predicted_accuracy, actual)
 
-    def update_history(
-        self,
-        predicted: float,
-        actual: float,
-        max_history: int = 100
-    ):
+    def update_history(self, predicted: float, actual: float, max_history: int = 100):
         """Track prediction quality over time.
 
         Args:
@@ -162,7 +152,7 @@ class ConsequencePredictor(nn.Module):
         actual_centered = actual - actual.mean()
 
         numerator = (pred_centered * actual_centered).sum()
-        denominator = torch.sqrt((pred_centered ** 2).sum() * (actual_centered ** 2).sum())
+        denominator = torch.sqrt((pred_centered**2).sum() * (actual_centered**2).sum())
 
         if denominator < 1e-8:
             return 0.0
@@ -171,9 +161,7 @@ class ConsequencePredictor(nn.Module):
 
 
 def evaluate_addition_accuracy(
-    model: nn.Module,
-    device: str,
-    n_samples: int = 1000
+    model: nn.Module, device: str, n_samples: int = 1000
 ) -> float:
     """Evaluate model's emergent addition capability.
 
@@ -207,21 +195,21 @@ def evaluate_addition_accuracy(
 
         # Encode operations
         # Handle both DualNeuralVAEV5 and wrapped models
-        if hasattr(model, 'base'):
+        if hasattr(model, "base"):
             # AppetitiveDualVAE wrapper
             outputs = model.base(ternary_data.float(), 1.0, 1.0, 0.5, 0.5)
         else:
             # Direct DualNeuralVAEV5
             outputs = model(ternary_data.float(), 1.0, 1.0, 0.5, 0.5)
 
-        z_A = outputs['z_A']  # (n_ops, latent_dim)
+        z_A = outputs["z_A"]  # (n_ops, latent_dim)
 
         # Encode zero operation
-        if hasattr(model, 'base'):
+        if hasattr(model, "base"):
             z0_outputs = model.base(zero_op.float(), 1.0, 1.0, 0.5, 0.5)
         else:
             z0_outputs = model(zero_op.float(), 1.0, 1.0, 0.5, 0.5)
-        z_0 = z0_outputs['z_A']  # (1, latent_dim)
+        z_0 = z0_outputs["z_A"]  # (1, latent_dim)
 
         # Test 1: Identity operation should be near origin (small norm)
         # A well-structured latent space places identity centrally
@@ -265,7 +253,11 @@ def evaluate_addition_accuracy(
             # Simplified: check correlation between v_3adic and -latent_dist
             correlation = torch.corrcoef(torch.stack([v_norm, -d_norm]))[0, 1].item()
             # Map correlation [-1, 1] to accuracy [0, 1]
-            structure_accuracy = (correlation + 1) / 2 if not torch.isnan(torch.tensor(correlation)) else 0.5
+            structure_accuracy = (
+                (correlation + 1) / 2
+                if not torch.isnan(torch.tensor(correlation))
+                else 0.5
+            )
         else:
             structure_accuracy = 0.5
 
@@ -282,11 +274,7 @@ class PurposefulRankingLoss(nn.Module):
     the model to understand why ranking matters for closure.
     """
 
-    def __init__(
-        self,
-        latent_dim: int = 16,
-        consequence_weight: float = 0.1
-    ):
+    def __init__(self, latent_dim: int = 16, consequence_weight: float = 0.1):
         """Initialize purposeful ranking loss.
 
         Args:
@@ -306,7 +294,7 @@ class PurposefulRankingLoss(nn.Module):
         ranking_correlation: float,
         z: torch.Tensor,
         coverage_pct: float,
-        actual_addition_accuracy: Optional[float] = None
+        actual_addition_accuracy: Optional[float] = None,
     ) -> Dict[str, torch.Tensor]:
         """Compute consequence-aware loss.
 
@@ -320,13 +308,11 @@ class PurposefulRankingLoss(nn.Module):
             Dict with 'predicted_accuracy', 'consequence_loss'
         """
         # Predict what addition accuracy should be given current ranking
-        predicted = self.consequence_predictor(
-            ranking_correlation, z, coverage_pct
-        )
+        predicted = self.consequence_predictor(ranking_correlation, z, coverage_pct)
 
         result = {
-            'predicted_accuracy': predicted,
-            'consequence_loss': torch.tensor(0.0, device=z.device)
+            "predicted_accuracy": predicted,
+            "consequence_loss": torch.tensor(0.0, device=z.device),
         }
 
         # If we have ground truth, compute prediction error
@@ -334,7 +320,7 @@ class PurposefulRankingLoss(nn.Module):
             consequence_loss = self.consequence_predictor.compute_loss(
                 predicted, actual_addition_accuracy
             )
-            result['consequence_loss'] = consequence_loss * self.consequence_weight
+            result["consequence_loss"] = consequence_loss * self.consequence_weight
 
             # Update history for tracking
             self.consequence_predictor.update_history(

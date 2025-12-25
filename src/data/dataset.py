@@ -12,10 +12,11 @@ This module provides PyTorch dataset classes for ternary operations.
 Single responsibility: Dataset definition only.
 """
 
+from typing import Union
+
+import numpy as np
 import torch
 from torch.utils.data import Dataset
-import numpy as np
-from typing import Union
 
 
 class TernaryOperationDataset(Dataset):
@@ -72,15 +73,15 @@ class TernaryOperationDataset(Dataset):
             Dict with mean, std, and value distribution
         """
         return {
-            'size': len(self),
-            'shape': tuple(self.operations.shape),
-            'mean': self.operations.mean().item(),
-            'std': self.operations.std().item(),
-            'min': self.operations.min().item(),
-            'max': self.operations.max().item(),
-            'value_counts': {
-                '-1': (self.operations == -1).sum().item(),
-                '0': (self.operations == 0).sum().item(),
-                '1': (self.operations == 1).sum().item()
-            }
+            "size": len(self),
+            "shape": tuple(self.operations.shape),
+            "mean": self.operations.mean().item(),
+            "std": self.operations.std().item(),
+            "min": self.operations.min().item(),
+            "max": self.operations.max().item(),
+            "value_counts": {
+                "-1": (self.operations == -1).sum().item(),
+                "0": (self.operations == 0).sum().item(),
+                "1": (self.operations == 1).sum().item(),
+            },
         }

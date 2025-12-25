@@ -21,9 +21,10 @@ Usage:
     stats = evaluator.evaluate_detailed('A')
 """
 
-import torch
-from typing import Tuple, Dict, Optional
 from dataclasses import dataclass
+from typing import Dict, Optional, Tuple
+
+import torch
 
 from ..core import TERNARY
 
@@ -31,6 +32,7 @@ from ..core import TERNARY
 @dataclass
 class CoverageStats:
     """Detailed coverage statistics."""
+
     unique_count: int
     coverage_pct: float
     total_possible: int = TERNARY.N_OPERATIONS
@@ -51,10 +53,7 @@ class CoverageEvaluator:
     """
 
     def __init__(
-        self,
-        model: torch.nn.Module,
-        device: str = 'cuda',
-        batch_size: int = 1000
+        self, model: torch.nn.Module, device: str = "cuda", batch_size: int = 1000
     ):
         """Initialize coverage evaluator.
 
@@ -67,11 +66,7 @@ class CoverageEvaluator:
         self.device = device
         self.batch_size = batch_size
 
-    def evaluate(
-        self,
-        vae: str = 'A',
-        n_samples: int = 10000
-    ) -> Tuple[int, float]:
+    def evaluate(self, vae: str = "A", n_samples: int = 10000) -> Tuple[int, float]:
         """Evaluate operation coverage.
 
         Uses vectorized torch.unique - O(n log n) instead of O(n) with Python sets,
@@ -105,9 +100,7 @@ class CoverageEvaluator:
         return unique_count, coverage_pct
 
     def evaluate_detailed(
-        self,
-        vae: str = 'A',
-        n_samples: int = 10000
+        self, vae: str = "A", n_samples: int = 10000
     ) -> CoverageStats:
         """Evaluate coverage with detailed statistics.
 
@@ -142,13 +135,10 @@ class CoverageEvaluator:
         return CoverageStats(
             unique_count=unique_count,
             coverage_pct=(unique_count / TERNARY.N_OPERATIONS) * 100,
-            valuation_histogram=valuation_hist
+            valuation_histogram=valuation_hist,
         )
 
-    def evaluate_union(
-        self,
-        n_samples: int = 10000
-    ) -> Tuple[int, float, int, float]:
+    def evaluate_union(self, n_samples: int = 10000) -> Tuple[int, float, int, float]:
         """Evaluate coverage for both VAEs and their union.
 
         Args:
@@ -157,16 +147,13 @@ class CoverageEvaluator:
         Returns:
             Tuple of (unique_A, pct_A, unique_B, pct_B)
         """
-        count_A, pct_A = self.evaluate('A', n_samples)
-        count_B, pct_B = self.evaluate('B', n_samples)
+        count_A, pct_A = self.evaluate("A", n_samples)
+        count_B, pct_B = self.evaluate("B", n_samples)
         return count_A, pct_A, count_B, pct_B
 
 
 def evaluate_model_coverage(
-    model: torch.nn.Module,
-    device: str = 'cuda',
-    n_samples: int = 10000,
-    vae: str = 'A'
+    model: torch.nn.Module, device: str = "cuda", n_samples: int = 10000, vae: str = "A"
 ) -> Tuple[int, float]:
     """Convenience function for one-off coverage evaluation.
 
@@ -183,4 +170,4 @@ def evaluate_model_coverage(
     return evaluator.evaluate(vae, n_samples)
 
 
-__all__ = ['CoverageEvaluator', 'CoverageStats', 'evaluate_model_coverage']
+__all__ = ["CoverageEvaluator", "CoverageStats", "evaluate_model_coverage"]

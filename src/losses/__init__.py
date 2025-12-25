@@ -35,137 +35,96 @@ Loss Types:
     - Radial: Stratification for 3-adic hierarchy
 """
 
-from .dual_vae_loss import (
-    ReconstructionLoss,
-    KLDivergenceLoss,
-    EntropyRegularization,
-    RepulsionLoss,
-    DualVAELoss
-)
-
-from .padic_losses import (
-    PAdicMetricLoss,
-    PAdicRankingLoss,
-    PAdicRankingLossV2,
-    PAdicRankingLossHyperbolic,
-    PAdicNormLoss
-)
+# New structural components (LossRegistry pattern)
+from .base import DualVAELossComponent, LossComponent, LossResult
+from .components import (EntropyAlignmentComponent, EntropyLossComponent,
+                         KLDivergenceLossComponent,
+                         PAdicHyperbolicLossComponent,
+                         PAdicRankingLossComponent,
+                         RadialStratificationLossComponent,
+                         ReconstructionLossComponent, RepulsionLossComponent)
+from .consequence_predictor import (ConsequencePredictor,
+                                    PurposefulRankingLoss,
+                                    evaluate_addition_accuracy)
+from .dual_vae_loss import (DualVAELoss, EntropyRegularization,
+                            KLDivergenceLoss, ReconstructionLoss,
+                            RepulsionLoss)
+from .hyperbolic_prior import HomeostaticHyperbolicPrior, HyperbolicPrior
+from .hyperbolic_recon import (HomeostaticReconLoss, HyperbolicCentroidLoss,
+                               HyperbolicReconLoss)
+from .padic_geodesic import (CombinedGeodesicLoss, GlobalRankLoss,
+                             MonotonicRadialLoss, PAdicGeodesicLoss,
+                             RadialHierarchyLoss, poincare_distance)
+from .padic_losses import (PAdicMetricLoss, PAdicNormLoss, PAdicRankingLoss,
+                           PAdicRankingLossHyperbolic, PAdicRankingLossV2)
+from .radial_stratification import (RadialStratificationLoss,
+                                    compute_single_index_valuation)
+from .registry import LossGroup, LossRegistry, create_registry_from_config
+from .zero_structure import (CombinedZeroStructureLoss, ZeroSparsityLoss,
+                             ZeroValuationLoss, compute_operation_zero_count,
+                             compute_operation_zero_valuation)
 
 # Appetitive losses archived (unused in active training)
 # See src/losses/archive/appetitive_losses.py for legacy code
 
-from .hyperbolic_prior import (
-    HyperbolicPrior,
-    HomeostaticHyperbolicPrior
-)
 
-from .hyperbolic_recon import (
-    HyperbolicReconLoss,
-    HomeostaticReconLoss,
-    HyperbolicCentroidLoss
-)
 
-from .radial_stratification import (
-    RadialStratificationLoss,
-    compute_single_index_valuation
-)
 
-from .zero_structure import (
-    ZeroValuationLoss,
-    ZeroSparsityLoss,
-    CombinedZeroStructureLoss,
-    compute_operation_zero_valuation,
-    compute_operation_zero_count
-)
 
-from .padic_geodesic import (
-    poincare_distance,
-    PAdicGeodesicLoss,
-    RadialHierarchyLoss,
-    CombinedGeodesicLoss,
-    GlobalRankLoss,
-    MonotonicRadialLoss
-)
 
-from .consequence_predictor import (
-    ConsequencePredictor,
-    evaluate_addition_accuracy,
-    PurposefulRankingLoss
-)
 
-# New structural components (LossRegistry pattern)
-from .base import (
-    LossResult,
-    LossComponent,
-    DualVAELossComponent
-)
 
-from .registry import (
-    LossRegistry,
-    LossGroup,
-    create_registry_from_config
-)
 
-from .components import (
-    ReconstructionLossComponent,
-    KLDivergenceLossComponent,
-    EntropyLossComponent,
-    RepulsionLossComponent,
-    EntropyAlignmentComponent,
-    PAdicRankingLossComponent,
-    PAdicHyperbolicLossComponent,
-    RadialStratificationLossComponent
-)
 
 __all__ = [
     # Legacy classes (backwards compatibility)
-    'ReconstructionLoss',
-    'KLDivergenceLoss',
-    'EntropyRegularization',
-    'RepulsionLoss',
-    'DualVAELoss',
-    'PAdicMetricLoss',
-    'PAdicRankingLoss',
-    'PAdicRankingLossV2',
-    'PAdicRankingLossHyperbolic',
-    'PAdicNormLoss',
+    "ReconstructionLoss",
+    "KLDivergenceLoss",
+    "EntropyRegularization",
+    "RepulsionLoss",
+    "DualVAELoss",
+    "PAdicMetricLoss",
+    "PAdicRankingLoss",
+    "PAdicRankingLossV2",
+    "PAdicRankingLossHyperbolic",
+    "PAdicNormLoss",
     # Appetitive exports removed (archived)
-    'HyperbolicPrior',
-    'HomeostaticHyperbolicPrior',
-    'HyperbolicReconLoss',
-    'HomeostaticReconLoss',
-    'HyperbolicCentroidLoss',
-    'RadialStratificationLoss',
-    'compute_single_index_valuation',
+    "HyperbolicPrior",
+    "HomeostaticHyperbolicPrior",
+    "HyperbolicReconLoss",
+    "HomeostaticReconLoss",
+    "HyperbolicCentroidLoss",
+    "RadialStratificationLoss",
+    "compute_single_index_valuation",
     # V5.11.9 Zero Structure Loss
-    'ZeroValuationLoss',
-    'ZeroSparsityLoss',
-    'CombinedZeroStructureLoss',
-    'compute_operation_zero_valuation',
-    'compute_operation_zero_count',
+    "ZeroValuationLoss",
+    "ZeroSparsityLoss",
+    "CombinedZeroStructureLoss",
+    "compute_operation_zero_valuation",
+    "compute_operation_zero_count",
     # V5.11 Unified Geodesic Loss
-    'poincare_distance',
-    'PAdicGeodesicLoss',
-    'RadialHierarchyLoss',
-    'CombinedGeodesicLoss',
-    'GlobalRankLoss',
-    'MonotonicRadialLoss',
-    'ConsequencePredictor',
-    'evaluate_addition_accuracy',
-    'PurposefulRankingLoss',
+    "poincare_distance",
+    "PAdicGeodesicLoss",
+    "RadialHierarchyLoss",
+    "CombinedGeodesicLoss",
+    "GlobalRankLoss",
+    "MonotonicRadialLoss",
+    "ConsequencePredictor",
+    "evaluate_addition_accuracy",
+    "PurposefulRankingLoss",
     # New structural components (LossRegistry pattern)
-    'LossResult',
-    'LossComponent',
-    'DualVAELossComponent',
-    'LossRegistry',
-    'LossGroup',
-    'create_registry_from_config',
-    'ReconstructionLossComponent',
-    'KLDivergenceLossComponent',
-    'EntropyLossComponent',
-    'RepulsionLossComponent',
-    'EntropyAlignmentComponent',
-    'PAdicRankingLossComponent',
-    'PAdicHyperbolicLossComponent',
-    'RadialStratificationLossComponent'
+    "LossResult",
+    "LossComponent",
+    "DualVAELossComponent",
+    "LossRegistry",
+    "LossGroup",
+    "create_registry_from_config",
+    "ReconstructionLossComponent",
+    "KLDivergenceLossComponent",
+    "EntropyLossComponent",
+    "RepulsionLossComponent",
+    "EntropyAlignmentComponent",
+    "PAdicRankingLossComponent",
+    "PAdicHyperbolicLossComponent",
+    "RadialStratificationLossComponent",
 ]

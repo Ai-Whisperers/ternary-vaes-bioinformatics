@@ -15,6 +15,4 @@ This module handles checkpoint and artifact lifecycle management:
 
 from .checkpoint_manager import CheckpointManager
 
-__all__ = [
-    'CheckpointManager'
-]
+__all__ = ["CheckpointManager"]

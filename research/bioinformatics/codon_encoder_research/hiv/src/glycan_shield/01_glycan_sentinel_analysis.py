@@ -9,22 +9,19 @@ Conjecture: Deglycosylation events that shift epitopes into the Goldilocks Zone
 (15-30% p-adic shift) should correlate with known bnAb target glycans.
 """
 
-import sys
 import json
-import numpy as np
-import torch
+import sys
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple
-from dataclasses import dataclass
+
+import numpy as np
+import torch
 
 # Import shared utilities from local scripts folder
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from hyperbolic_utils import (
-    load_codon_encoder,
-    poincare_distance,
-    codon_to_onehot,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot, load_codon_encoder,
+                              poincare_distance)
 
 # =============================================================================
 # HIV ENV SEQUENCE DATA

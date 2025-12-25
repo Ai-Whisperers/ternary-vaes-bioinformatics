@@ -11,14 +11,15 @@ Version: 1.0
 """
 
 import json
-import requests
-import numpy as np
-import pandas as pd
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from collections import defaultdict
-import matplotlib.pyplot as plt
+
 import matplotlib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import requests
 
 matplotlib.use("Agg")
 

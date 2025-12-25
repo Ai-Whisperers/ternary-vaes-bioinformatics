@@ -30,6 +30,7 @@ except ImportError:
 
 class PDBEntry(NamedTuple):
     """PDB entry with metadata."""
+
     pdb_id: str
     description: str
     category: str
@@ -43,32 +44,27 @@ INTEGRASE_STRUCTURES = [
     PDBEntry("1BIS", "HIV-1 IN F185K mutant", "core"),
     PDBEntry("1BIU", "HIV-1 IN W131E mutant", "core"),
     PDBEntry("1BIZ", "HIV-1 IN F185K/C280S mutant", "core"),
-
     # HIV-1 Integrase-LEDGF complexes (critical for reveal mutations)
     PDBEntry("2B4J", "HIV-1 IN CCD with LEDGF IBD", "ledgf"),
     PDBEntry("3LPU", "HIV-1 IN with LEDGF", "ledgf"),
     PDBEntry("3LPT", "HIV-1 IN with LEDGF variant", "ledgf"),
     PDBEntry("4E7I", "HIV-1 IN with LEDGF and raltegravir", "ledgf"),
     PDBEntry("4E7K", "HIV-1 IN with LEDGF and elvitegravir", "ledgf"),
-
     # HIV-1 Intasome structures (DNA-bound)
     PDBEntry("3OYA", "HIV-1 IN intasome", "intasome"),
     PDBEntry("5U1C", "HIV-1 IN strand transfer complex", "intasome"),
     PDBEntry("6PUT", "HIV-1 IN intasome with DNA", "intasome"),
     PDBEntry("6PUW", "HIV-1 IN intasome variant", "intasome"),
     PDBEntry("6PUY", "HIV-1 IN intasome with target DNA", "intasome"),
-
     # Drug resistance structures
     PDBEntry("3OYM", "HIV-1 IN Y143R with raltegravir", "resistance"),
     PDBEntry("3OYN", "HIV-1 IN N155H with raltegravir", "resistance"),
     PDBEntry("3L2T", "HIV-1 IN G140S/Q148H", "resistance"),
     PDBEntry("3L2U", "HIV-1 IN E92Q", "resistance"),
     PDBEntry("3L2V", "HIV-1 IN with MK-2048", "resistance"),
-
     # LEDGF/p75 alone (host factor)
     PDBEntry("2B4L", "LEDGF IBD domain", "host"),
     PDBEntry("3HPH", "LEDGF PWWP domain", "host"),
-
     # Related retroviral integrases (evolutionary context)
     PDBEntry("1C6V", "ASV integrase", "related"),
     PDBEntry("3OS0", "PFV intasome", "related"),
@@ -102,7 +98,7 @@ def download_structure(pdb_id: str, output_dir: Path, format: str = "cif") -> bo
                 f.write(response.content)
             # Verify it's valid gzip
             try:
-                with gzip.open(output_path, 'rb') as f:
+                with gzip.open(output_path, "rb") as f:
                     f.read(100)  # Read first 100 bytes to verify
                 print(f"  [OK] {pdb_id}")
                 return True
@@ -183,18 +179,16 @@ def main():
         "--output-dir",
         type=Path,
         default=Path(__file__).parent.parent / "data" / "pdb",
-        help="Output directory for PDB files"
+        help="Output directory for PDB files",
     )
     parser.add_argument(
         "--format",
         choices=["cif", "pdb"],
         default="cif",
-        help="Structure file format (default: cif)"
+        help="Structure file format (default: cif)",
     )
     parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="List structures without downloading"
+        "--dry-run", action="store_true", help="List structures without downloading"
     )
 
     args = parser.parse_args()

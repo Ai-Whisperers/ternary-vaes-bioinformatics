@@ -26,10 +26,11 @@ hyperbolic-weighted cross-entropy where the loss is modulated
 by the hyperbolic position of the latent code.
 """
 
+from typing import Dict, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Optional, Dict
 
 # P2 FIX: Use core module for vectorized prefix computation
 from ..core import TERNARY
@@ -52,12 +53,12 @@ class HyperbolicReconLoss(nn.Module):
 
     def __init__(
         self,
-        mode: str = 'hybrid',
+        mode: str = "hybrid",
         curvature: float = 1.0,
         max_norm: float = 0.95,
         geodesic_weight: float = 0.3,
         radius_weighting: bool = True,
-        radius_power: float = 2.0
+        radius_power: float = 2.0,
     ):
         """Initialize Hyperbolic Reconstruction Loss.
 
@@ -107,7 +108,7 @@ class HyperbolicReconLoss(nn.Module):
         self,
         z_enc: torch.Tensor,
         z_dec: torch.Tensor,
-        z_enc_hyp: Optional[torch.Tensor] = None
+        z_enc_hyp: Optional[torch.Tensor] = None,
     ) -> torch.Tensor:
         """Compute geodesic reconstruction loss.
 
@@ -136,17 +137,14 @@ class HyperbolicReconLoss(nn.Module):
         # Apply radius weighting if enabled
         if self.radius_weighting:
             weights = self._compute_radius_weights(z_enc_hyp)
-            loss = (weights * distances ** 2).mean()
+            loss = (weights * distances**2).mean()
         else:
-            loss = (distances ** 2).mean()
+            loss = (distances**2).mean()
 
         return loss
 
     def weighted_cross_entropy(
-        self,
-        logits: torch.Tensor,
-        targets: torch.Tensor,
-        z_hyp: torch.Tensor
+        self, logits: torch.Tensor, targets: torch.Tensor, z_hyp: torch.Tensor
     ) -> torch.Tensor:
         """Compute radius-weighted cross-entropy loss.
 
@@ -164,11 +162,13 @@ class HyperbolicReconLoss(nn.Module):
         target_classes = (targets + 1).long()  # {-1,0,1} -> {0,1,2}
 
         # Compute per-sample cross-entropy
-        ce_per_sample = F.cross_entropy(
-            logits.view(-1, 3),
-            target_classes.view(-1),
-            reduction='none'
-        ).view(batch_size, -1).sum(dim=1)
+        ce_per_sample = (
+            F.cross_entropy(
+                logits.view(-1, 3), target_classes.view(-1), reduction="none"
+            )
+            .view(batch_size, -1)
+            .sum(dim=1)
+        )
 
         # Apply radius weighting if enabled
         if self.radius_weighting:
@@ -184,7 +184,7 @@ class HyperbolicReconLoss(nn.Module):
         logits: torch.Tensor,
         targets: torch.Tensor,
         z_enc: torch.Tensor,
-        z_dec: Optional[torch.Tensor] = None
+        z_dec: Optional[torch.Tensor] = None,
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
         """Compute hyperbolic reconstruction loss.
 
@@ -199,27 +199,25 @@ class HyperbolicReconLoss(nn.Module):
         """
         z_enc_hyp = self._project_to_poincare(z_enc)
 
-        metrics = {
-            'mean_radius': torch.norm(z_enc_hyp, dim=-1).mean().item()
-        }
+        metrics = {"mean_radius": torch.norm(z_enc_hyp, dim=-1).mean().item()}
 
-        if self.mode == 'geodesic':
+        if self.mode == "geodesic":
             if z_dec is None:
                 raise ValueError("z_dec required for geodesic mode")
             loss = self.geodesic_reconstruction_loss(z_enc, z_dec, z_enc_hyp)
-            metrics['geodesic_loss'] = loss.item()
+            metrics["geodesic_loss"] = loss.item()
 
-        elif self.mode == 'weighted_ce':
+        elif self.mode == "weighted_ce":
             loss = self.weighted_cross_entropy(logits, targets, z_enc_hyp)
-            metrics['weighted_ce'] = loss.item()
+            metrics["weighted_ce"] = loss.item()
 
-        elif self.mode == 'hybrid':
+        elif self.mode == "hybrid":
             ce_loss = self.weighted_cross_entropy(logits, targets, z_enc_hyp)
-            metrics['weighted_ce'] = ce_loss.item()
+            metrics["weighted_ce"] = ce_loss.item()
 
             if z_dec is not None:
                 geo_loss = self.geodesic_reconstruction_loss(z_enc, z_dec, z_enc_hyp)
-                metrics['geodesic_loss'] = geo_loss.item()
+                metrics["geodesic_loss"] = geo_loss.item()
                 loss = ce_loss + self.geodesic_weight * geo_loss
             else:
                 loss = ce_loss
@@ -244,7 +242,7 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
 
     def __init__(
         self,
-        mode: str = 'hybrid',
+        mode: str = "hybrid",
         curvature: float = 1.0,
         max_norm: float = 0.95,
         geodesic_weight: float = 0.3,
@@ -255,7 +253,7 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
         geodesic_weight_max: float = 0.8,
         radius_power_min: float = 1.0,
         radius_power_max: float = 4.0,
-        adaptation_rate: float = 0.01
+        adaptation_rate: float = 0.01,
     ):
         """Initialize Homeostatic Reconstruction Loss.
 
@@ -270,7 +268,9 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
             radius_power_min/max: Bounds for radius power
             adaptation_rate: Rate of homeostatic adaptation
         """
-        super().__init__(mode, curvature, max_norm, geodesic_weight, radius_weighting, radius_power)
+        super().__init__(
+            mode, curvature, max_norm, geodesic_weight, radius_weighting, radius_power
+        )
 
         self.geodesic_weight_min = geodesic_weight_min
         self.geodesic_weight_max = geodesic_weight_max
@@ -279,18 +279,15 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
         self.adaptation_rate = adaptation_rate
 
         # Adaptive parameters
-        self.register_buffer('adaptive_geodesic_weight', torch.tensor(geodesic_weight))
-        self.register_buffer('adaptive_radius_power', torch.tensor(radius_power))
+        self.register_buffer("adaptive_geodesic_weight", torch.tensor(geodesic_weight))
+        self.register_buffer("adaptive_radius_power", torch.tensor(radius_power))
 
         # EMA tracking
-        self.register_buffer('loss_ema', torch.tensor(1.0))
-        self.register_buffer('coverage_ema', torch.tensor(50.0))
+        self.register_buffer("loss_ema", torch.tensor(1.0))
+        self.register_buffer("coverage_ema", torch.tensor(50.0))
 
     def update_homeostatic_state(
-        self,
-        loss: torch.Tensor,
-        coverage: float,
-        correlation: float = 0.0
+        self, loss: torch.Tensor, coverage: float, correlation: float = 0.0
     ):
         """Update homeostatic parameters based on training state.
 
@@ -333,16 +330,14 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
     def get_homeostatic_state(self) -> dict:
         """Return current homeostatic state."""
         return {
-            'geodesic_weight': self.adaptive_geodesic_weight.item(),
-            'radius_power': self.adaptive_radius_power.item(),
-            'loss_ema': self.loss_ema.item(),
-            'coverage_ema': self.coverage_ema.item()
+            "geodesic_weight": self.adaptive_geodesic_weight.item(),
+            "radius_power": self.adaptive_radius_power.item(),
+            "loss_ema": self.loss_ema.item(),
+            "coverage_ema": self.coverage_ema.item(),
         }
 
     def set_from_statenet(
-        self,
-        delta_geodesic_weight: float = 0.0,
-        delta_radius_power: float = 0.0
+        self, delta_geodesic_weight: float = 0.0, delta_radius_power: float = 0.0
     ):
         """Apply StateNet corrections.
 
@@ -385,7 +380,7 @@ class HyperbolicCentroidLoss(nn.Module):
         max_level: int = 4,
         curvature: float = 1.0,
         max_norm: float = 0.95,
-        level_weights: Optional[torch.Tensor] = None
+        level_weights: Optional[torch.Tensor] = None,
     ):
         """Initialize Hyperbolic Centroid Loss.
 
@@ -402,8 +397,8 @@ class HyperbolicCentroidLoss(nn.Module):
 
         if level_weights is None:
             # Higher levels (finer clusters) get lower weight
-            level_weights = torch.tensor([0.5 ** i for i in range(max_level)])
-        self.register_buffer('level_weights', level_weights)
+            level_weights = torch.tensor([0.5**i for i in range(max_level)])
+        self.register_buffer("level_weights", level_weights)
 
     def _get_prefix(self, idx: int, level: int) -> int:
         """Get base-3 prefix of an index at given level.
@@ -424,7 +419,7 @@ class HyperbolicCentroidLoss(nn.Module):
         points: torch.Tensor,
         weights: Optional[torch.Tensor] = None,
         n_iter: int = 10,
-        tol: float = 1e-6
+        tol: float = 1e-6,
     ) -> torch.Tensor:
         """Compute Frechet mean (hyperbolic centroid) of points.
 
@@ -448,7 +443,9 @@ class HyperbolicCentroidLoss(nn.Module):
 
         # Initialize with weighted Euclidean mean
         mean = (points * weights.unsqueeze(1)).sum(dim=0)
-        mean = project_to_poincare(mean.unsqueeze(0), max_norm=self.max_norm, c=self.curvature).squeeze(0)
+        mean = project_to_poincare(
+            mean.unsqueeze(0), max_norm=self.max_norm, c=self.curvature
+        ).squeeze(0)
 
         # Iterative refinement with convergence check
         for _ in range(n_iter):
@@ -458,7 +455,9 @@ class HyperbolicCentroidLoss(nn.Module):
             direction = direction.sum(dim=0)
             mean = mean + 0.1 * direction
             # Re-project to ball
-            mean = project_to_poincare(mean.unsqueeze(0), max_norm=self.max_norm, c=self.curvature).squeeze(0)
+            mean = project_to_poincare(
+                mean.unsqueeze(0), max_norm=self.max_norm, c=self.curvature
+            ).squeeze(0)
             # Check convergence
             if torch.norm(mean - prev_mean) < tol:
                 break
@@ -466,9 +465,7 @@ class HyperbolicCentroidLoss(nn.Module):
         return mean
 
     def forward(
-        self,
-        z: torch.Tensor,
-        batch_indices: torch.Tensor
+        self, z: torch.Tensor, batch_indices: torch.Tensor
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
         """Compute hyperbolic centroid loss.
 
@@ -508,7 +505,7 @@ class HyperbolicCentroidLoss(nn.Module):
                 distances = poincare_distance(
                     cluster_points,
                     centroid.unsqueeze(0).expand_as(cluster_points),
-                    c=self.curvature
+                    c=self.curvature,
                 )
 
                 level_loss = level_loss + distances.mean()
@@ -516,7 +513,7 @@ class HyperbolicCentroidLoss(nn.Module):
             # Weight by level
             weight = self.level_weights[level - 1]
             total_loss = total_loss + weight * level_loss / max(len(unique_prefixes), 1)
-            metrics[f'centroid_loss_level_{level}'] = level_loss.item()
+            metrics[f"centroid_loss_level_{level}"] = level_loss.item()
 
-        metrics['total_centroid_loss'] = total_loss.item()
+        metrics["total_centroid_loss"] = total_loss.item()
         return total_loss, metrics

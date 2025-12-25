@@ -24,27 +24,27 @@ import argparse
 import sys
 from pathlib import Path
 
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-from sklearn.decomposition import PCA
 from scipy.stats import spearmanr
-import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data.generation import generate_all_ternary_operations
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
-def load_model_and_encode(checkpoint_path: Path, device: str = 'cpu'):
+def load_model_and_encode(checkpoint_path: Path, device: str = "cpu"):
     """Load model and encode all operations."""
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
-    use_statenet = checkpoint.get('statenet_enabled', False)
+    use_statenet = checkpoint.get("statenet_enabled", False)
 
     model = DualNeuralVAEV5(input_dim=9, latent_dim=16, use_statenet=use_statenet)
-    model.load_state_dict(checkpoint['model'])
+    model.load_state_dict(checkpoint["model"])
     model.to(device)
     model.eval()
 
@@ -56,11 +56,11 @@ def load_model_and_encode(checkpoint_path: Path, device: str = 'cpu'):
         mu_B, _ = model.encoder_B(x)
 
     return {
-        'operations': operations,
-        'z_A': mu_A.cpu().numpy(),
-        'z_B': mu_B.cpu().numpy(),
-        'model': model,
-        'device': device
+        "operations": operations,
+        "z_A": mu_A.cpu().numpy(),
+        "z_B": mu_B.cpu().numpy(),
+        "model": model,
+        "device": device,
     }
 
 
@@ -68,7 +68,7 @@ def op_to_index(op: np.ndarray) -> int:
     """Convert operation vector to index (3-adic representation)."""
     idx = 0
     for i, val in enumerate(op):
-        idx += (int(val) + 1) * (3 ** i)
+        idx += (int(val) + 1) * (3**i)
     return idx
 
 
@@ -133,14 +133,14 @@ def compose_operations(op1: np.ndarray, op2: np.ndarray) -> np.ndarray:
 
 def analyze_3adic_clustering(data: dict, output_path: Path):
     """Analyze if 3-adic neighbors cluster together in latent space."""
-    operations = data['operations']
-    z_A = data['z_A']
-    z_B = data['z_B']
+    operations = data["operations"]
+    z_A = data["z_A"]
+    z_B = data["z_B"]
     n_ops = len(operations)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("3-ADIC DISTANCE vs LATENT DISTANCE ANALYSIS")
-    print("="*60)
+    print("=" * 60)
 
     # Sample pairs for analysis (full pairwise is 19683^2 / 2 ~ 193M pairs)
     n_samples = 50000
@@ -172,10 +172,18 @@ def analyze_3adic_clustering(data: dict, output_path: Path):
     corr_B_val, p_B_val = spearmanr(adic_vals, latent_dists_B)
 
     print(f"\nSpearman correlations (n={len(pairs)} pairs):")
-    print(f"  VAE-A: 3-adic digit distance vs latent: r={corr_A_dist:.4f} (p={p_A_dist:.2e})")
-    print(f"  VAE-B: 3-adic digit distance vs latent: r={corr_B_dist:.4f} (p={p_B_dist:.2e})")
-    print(f"  VAE-A: 3-adic valuation vs latent:      r={corr_A_val:.4f} (p={p_A_val:.2e})")
-    print(f"  VAE-B: 3-adic valuation vs latent:      r={corr_B_val:.4f} (p={p_B_val:.2e})")
+    print(
+        f"  VAE-A: 3-adic digit distance vs latent: r={corr_A_dist:.4f} (p={p_A_dist:.2e})"
+    )
+    print(
+        f"  VAE-B: 3-adic digit distance vs latent: r={corr_B_dist:.4f} (p={p_B_dist:.2e})"
+    )
+    print(
+        f"  VAE-A: 3-adic valuation vs latent:      r={corr_A_val:.4f} (p={p_A_val:.2e})"
+    )
+    print(
+        f"  VAE-B: 3-adic valuation vs latent:      r={corr_B_val:.4f} (p={p_B_val:.2e})"
+    )
 
     # Visualization
     fig, axes = plt.subplots(2, 3, figsize=(18, 12))
@@ -185,22 +193,30 @@ def analyze_3adic_clustering(data: dict, output_path: Path):
     for d in range(1, 10):
         mask = adic_dists == d
         if mask.sum() > 0:
-            ax.scatter(np.full(mask.sum(), d) + np.random.randn(mask.sum())*0.1,
-                      latent_dists_A[mask], alpha=0.1, s=1)
-    ax.set_xlabel('3-adic Digit Distance')
-    ax.set_ylabel('Latent Distance (VAE-A)')
-    ax.set_title(f'VAE-A: 3-adic vs Latent Distance\nr={corr_A_dist:.3f}')
+            ax.scatter(
+                np.full(mask.sum(), d) + np.random.randn(mask.sum()) * 0.1,
+                latent_dists_A[mask],
+                alpha=0.1,
+                s=1,
+            )
+    ax.set_xlabel("3-adic Digit Distance")
+    ax.set_ylabel("Latent Distance (VAE-A)")
+    ax.set_title(f"VAE-A: 3-adic vs Latent Distance\nr={corr_A_dist:.3f}")
 
     # VAE-B: 3-adic digit distance vs latent distance
     ax = axes[0, 1]
     for d in range(1, 10):
         mask = adic_dists == d
         if mask.sum() > 0:
-            ax.scatter(np.full(mask.sum(), d) + np.random.randn(mask.sum())*0.1,
-                      latent_dists_B[mask], alpha=0.1, s=1)
-    ax.set_xlabel('3-adic Digit Distance')
-    ax.set_ylabel('Latent Distance (VAE-B)')
-    ax.set_title(f'VAE-B: 3-adic vs Latent Distance\nr={corr_B_dist:.3f}')
+            ax.scatter(
+                np.full(mask.sum(), d) + np.random.randn(mask.sum()) * 0.1,
+                latent_dists_B[mask],
+                alpha=0.1,
+                s=1,
+            )
+    ax.set_xlabel("3-adic Digit Distance")
+    ax.set_ylabel("Latent Distance (VAE-B)")
+    ax.set_title(f"VAE-B: 3-adic vs Latent Distance\nr={corr_B_dist:.3f}")
 
     # Mean latent distance by 3-adic distance
     ax = axes[0, 2]
@@ -209,11 +225,11 @@ def analyze_3adic_clustering(data: dict, output_path: Path):
     stds_A = [latent_dists_A[adic_dists == d].std() for d in range(1, 10)]
     stds_B = [latent_dists_B[adic_dists == d].std() for d in range(1, 10)]
     x = np.arange(1, 10)
-    ax.errorbar(x - 0.1, means_A, yerr=stds_A, fmt='o-', label='VAE-A', capsize=3)
-    ax.errorbar(x + 0.1, means_B, yerr=stds_B, fmt='s-', label='VAE-B', capsize=3)
-    ax.set_xlabel('3-adic Digit Distance')
-    ax.set_ylabel('Mean Latent Distance')
-    ax.set_title('Mean Latent Distance by 3-adic Distance')
+    ax.errorbar(x - 0.1, means_A, yerr=stds_A, fmt="o-", label="VAE-A", capsize=3)
+    ax.errorbar(x + 0.1, means_B, yerr=stds_B, fmt="s-", label="VAE-B", capsize=3)
+    ax.set_xlabel("3-adic Digit Distance")
+    ax.set_ylabel("Mean Latent Distance")
+    ax.set_title("Mean Latent Distance by 3-adic Distance")
     ax.legend()
 
     # 3-adic valuation analysis
@@ -221,54 +237,66 @@ def analyze_3adic_clustering(data: dict, output_path: Path):
     for v in range(10):
         mask = adic_vals == v
         if mask.sum() > 0:
-            ax.scatter(np.full(mask.sum(), v) + np.random.randn(mask.sum())*0.1,
-                      latent_dists_A[mask], alpha=0.1, s=1, c='blue')
-    ax.set_xlabel('3-adic Valuation (higher = closer)')
-    ax.set_ylabel('Latent Distance (VAE-A)')
-    ax.set_title(f'VAE-A: Valuation vs Latent\nr={corr_A_val:.3f}')
+            ax.scatter(
+                np.full(mask.sum(), v) + np.random.randn(mask.sum()) * 0.1,
+                latent_dists_A[mask],
+                alpha=0.1,
+                s=1,
+                c="blue",
+            )
+    ax.set_xlabel("3-adic Valuation (higher = closer)")
+    ax.set_ylabel("Latent Distance (VAE-A)")
+    ax.set_title(f"VAE-A: Valuation vs Latent\nr={corr_A_val:.3f}")
 
     ax = axes[1, 1]
     for v in range(10):
         mask = adic_vals == v
         if mask.sum() > 0:
-            ax.scatter(np.full(mask.sum(), v) + np.random.randn(mask.sum())*0.1,
-                      latent_dists_B[mask], alpha=0.1, s=1, c='orange')
-    ax.set_xlabel('3-adic Valuation (higher = closer)')
-    ax.set_ylabel('Latent Distance (VAE-B)')
-    ax.set_title(f'VAE-B: Valuation vs Latent\nr={corr_B_val:.3f}')
+            ax.scatter(
+                np.full(mask.sum(), v) + np.random.randn(mask.sum()) * 0.1,
+                latent_dists_B[mask],
+                alpha=0.1,
+                s=1,
+                c="orange",
+            )
+    ax.set_xlabel("3-adic Valuation (higher = closer)")
+    ax.set_ylabel("Latent Distance (VAE-B)")
+    ax.set_title(f"VAE-B: Valuation vs Latent\nr={corr_B_val:.3f}")
 
     # Histogram of distances
     ax = axes[1, 2]
-    ax.hist(latent_dists_A, bins=50, alpha=0.5, label='VAE-A', density=True)
-    ax.hist(latent_dists_B, bins=50, alpha=0.5, label='VAE-B', density=True)
-    ax.set_xlabel('Latent Distance')
-    ax.set_ylabel('Density')
-    ax.set_title('Distribution of Latent Distances')
+    ax.hist(latent_dists_A, bins=50, alpha=0.5, label="VAE-A", density=True)
+    ax.hist(latent_dists_B, bins=50, alpha=0.5, label="VAE-B", density=True)
+    ax.set_xlabel("Latent Distance")
+    ax.set_ylabel("Density")
+    ax.set_title("Distribution of Latent Distances")
     ax.legend()
 
     plt.tight_layout()
-    plt.savefig(output_path / '3adic_distance_analysis.png', dpi=150, bbox_inches='tight')
+    plt.savefig(
+        output_path / "3adic_distance_analysis.png", dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {output_path / '3adic_distance_analysis.png'}")
 
     return {
-        'corr_A_dist': corr_A_dist,
-        'corr_B_dist': corr_B_dist,
-        'corr_A_val': corr_A_val,
-        'corr_B_val': corr_B_val
+        "corr_A_dist": corr_A_dist,
+        "corr_B_dist": corr_B_dist,
+        "corr_A_val": corr_A_val,
+        "corr_B_val": corr_B_val,
     }
 
 
 def analyze_single_digit_neighbors(data: dict, output_path: Path):
     """Analyze operations that differ by exactly one 3-adic digit."""
-    operations = data['operations']
-    z_A = data['z_A']
-    z_B = data['z_B']
+    operations = data["operations"]
+    z_A = data["z_A"]
+    z_B = data["z_B"]
     n_ops = len(operations)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SINGLE-DIGIT NEIGHBOR ANALYSIS")
-    print("="*60)
+    print("=" * 60)
 
     # For each position, find pairs differing only at that position
     neighbor_dists_A = {pos: [] for pos in range(9)}
@@ -287,8 +315,12 @@ def analyze_single_digit_neighbors(data: dict, output_path: Path):
                     op[pos] = new_val
                     neighbor_idx = op_to_index(op)
                     if neighbor_idx < n_ops:
-                        neighbor_dists_A[pos].append(np.linalg.norm(z_A[idx] - z_A[neighbor_idx]))
-                        neighbor_dists_B[pos].append(np.linalg.norm(z_B[idx] - z_B[neighbor_idx]))
+                        neighbor_dists_A[pos].append(
+                            np.linalg.norm(z_A[idx] - z_A[neighbor_idx])
+                        )
+                        neighbor_dists_B[pos].append(
+                            np.linalg.norm(z_B[idx] - z_B[neighbor_idx])
+                        )
             op[pos] = original_val
 
     # Analyze by position
@@ -306,7 +338,9 @@ def analyze_single_digit_neighbors(data: dict, output_path: Path):
             std_B = np.std(neighbor_dists_B[pos])
             means_A.append(mean_A)
             means_B.append(mean_B)
-            print(f"   {pos}     | {mean_A:.4f} ({std_A:.4f}) | {mean_B:.4f} ({std_B:.4f})")
+            print(
+                f"   {pos}     | {mean_A:.4f} ({std_A:.4f}) | {mean_B:.4f} ({std_B:.4f})"
+            )
 
     # In 3-adic topology, lower positions should have larger "jumps"
     # because changing digit 0 is a larger change than digit 8
@@ -323,11 +357,13 @@ def analyze_single_digit_neighbors(data: dict, output_path: Path):
     ax = axes[0]
     x = np.arange(9)
     width = 0.35
-    ax.bar(x - width/2, means_A, width, label='VAE-A', color='blue', alpha=0.7)
-    ax.bar(x + width/2, means_B, width, label='VAE-B', color='orange', alpha=0.7)
-    ax.set_xlabel('Digit Position (0=LSB, 8=MSB)')
-    ax.set_ylabel('Mean Latent Distance')
-    ax.set_title('Single-Digit Change: Latent Distance by Position\n(3-adic: lower pos = larger jump)')
+    ax.bar(x - width / 2, means_A, width, label="VAE-A", color="blue", alpha=0.7)
+    ax.bar(x + width / 2, means_B, width, label="VAE-B", color="orange", alpha=0.7)
+    ax.set_xlabel("Digit Position (0=LSB, 8=MSB)")
+    ax.set_ylabel("Mean Latent Distance")
+    ax.set_title(
+        "Single-Digit Change: Latent Distance by Position\n(3-adic: lower pos = larger jump)"
+    )
     ax.legend()
     ax.set_xticks(x)
 
@@ -346,14 +382,20 @@ def analyze_single_digit_neighbors(data: dict, output_path: Path):
                 op[0] = new_val
                 neighbor_idx = op_to_index(op)
                 if neighbor_idx < n_ops:
-                    ax.plot([z_A_2d[idx, 0], z_A_2d[neighbor_idx, 0]],
-                           [z_A_2d[idx, 1], z_A_2d[neighbor_idx, 1]],
-                           'b-', alpha=0.1, linewidth=0.5)
+                    ax.plot(
+                        [z_A_2d[idx, 0], z_A_2d[neighbor_idx, 0]],
+                        [z_A_2d[idx, 1], z_A_2d[neighbor_idx, 1]],
+                        "b-",
+                        alpha=0.1,
+                        linewidth=0.5,
+                    )
                 op[0] = operations[idx][0]
-    ax.scatter(z_A_2d[:, 0], z_A_2d[:, 1], c='gray', s=1, alpha=0.3)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_title('VAE-A: Digit-0 Neighbor Connections\n(Blue lines = single LSB change)')
+    ax.scatter(z_A_2d[:, 0], z_A_2d[:, 1], c="gray", s=1, alpha=0.3)
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_title(
+        "VAE-A: Digit-0 Neighbor Connections\n(Blue lines = single LSB change)"
+    )
 
     # Same for digit-8 (MSB)
     ax = axes[2]
@@ -365,33 +407,39 @@ def analyze_single_digit_neighbors(data: dict, output_path: Path):
                 op[8] = new_val
                 neighbor_idx = op_to_index(op)
                 if neighbor_idx < n_ops:
-                    ax.plot([z_A_2d[idx, 0], z_A_2d[neighbor_idx, 0]],
-                           [z_A_2d[idx, 1], z_A_2d[neighbor_idx, 1]],
-                           'r-', alpha=0.1, linewidth=0.5)
+                    ax.plot(
+                        [z_A_2d[idx, 0], z_A_2d[neighbor_idx, 0]],
+                        [z_A_2d[idx, 1], z_A_2d[neighbor_idx, 1]],
+                        "r-",
+                        alpha=0.1,
+                        linewidth=0.5,
+                    )
                 op[8] = operations[idx][8]
-    ax.scatter(z_A_2d[:, 0], z_A_2d[:, 1], c='gray', s=1, alpha=0.3)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_title('VAE-A: Digit-8 Neighbor Connections\n(Red lines = single MSB change)')
+    ax.scatter(z_A_2d[:, 0], z_A_2d[:, 1], c="gray", s=1, alpha=0.3)
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_title("VAE-A: Digit-8 Neighbor Connections\n(Red lines = single MSB change)")
 
     plt.tight_layout()
-    plt.savefig(output_path / '3adic_single_digit_analysis.png', dpi=150, bbox_inches='tight')
+    plt.savefig(
+        output_path / "3adic_single_digit_analysis.png", dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {output_path / '3adic_single_digit_analysis.png'}")
 
-    return {'position_corr_A': corr_A, 'position_corr_B': corr_B}
+    return {"position_corr_A": corr_A, "position_corr_B": corr_B}
 
 
 def analyze_algebraic_structure(data: dict, output_path: Path):
     """Analyze special algebraic operations and their positions."""
-    operations = data['operations']
-    z_A = data['z_A']
-    z_B = data['z_B']
+    operations = data["operations"]
+    z_A = data["z_A"]
+    z_B = data["z_B"]
     n_ops = len(operations)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ALGEBRAIC STRUCTURE ANALYSIS")
-    print("="*60)
+    print("=" * 60)
 
     # Find special operations
     special_ops = {}
@@ -399,32 +447,32 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
     # Identity-like operations
     for idx, op in enumerate(operations):
         # Projection to first argument: op(a,b) = a
-        if np.array_equal(op, np.array([-1,-1,-1, 0,0,0, 1,1,1])):
-            special_ops['proj_1'] = idx
+        if np.array_equal(op, np.array([-1, -1, -1, 0, 0, 0, 1, 1, 1])):
+            special_ops["proj_1"] = idx
         # Projection to second argument: op(a,b) = b
-        if np.array_equal(op, np.array([-1,0,1, -1,0,1, -1,0,1])):
-            special_ops['proj_2'] = idx
+        if np.array_equal(op, np.array([-1, 0, 1, -1, 0, 1, -1, 0, 1])):
+            special_ops["proj_2"] = idx
         # Constant -1
         if np.all(op == -1):
-            special_ops['const_-1'] = idx
+            special_ops["const_-1"] = idx
         # Constant 0
         if np.all(op == 0):
-            special_ops['const_0'] = idx
+            special_ops["const_0"] = idx
         # Constant 1
         if np.all(op == 1):
-            special_ops['const_1'] = idx
+            special_ops["const_1"] = idx
         # Min operation
-        if np.array_equal(op, np.array([-1,-1,-1, -1,0,0, -1,0,1])):
-            special_ops['min'] = idx
+        if np.array_equal(op, np.array([-1, -1, -1, -1, 0, 0, -1, 0, 1])):
+            special_ops["min"] = idx
         # Max operation
-        if np.array_equal(op, np.array([-1,-1,-1, -1,0,1, -1,1,1])):
-            special_ops['max'] = idx
+        if np.array_equal(op, np.array([-1, -1, -1, -1, 0, 1, -1, 1, 1])):
+            special_ops["max"] = idx
         # Addition mod 3 (shifted)
-        if np.array_equal(op, np.array([-1,0,1, 0,1,-1, 1,-1,0])):
-            special_ops['add_mod3'] = idx
+        if np.array_equal(op, np.array([-1, 0, 1, 0, 1, -1, 1, -1, 0])):
+            special_ops["add_mod3"] = idx
         # Multiplication (ternary)
-        if np.array_equal(op, np.array([1,0,-1, 0,0,0, -1,0,1])):
-            special_ops['mult'] = idx
+        if np.array_equal(op, np.array([1, 0, -1, 0, 0, 0, -1, 0, 1])):
+            special_ops["mult"] = idx
 
     print(f"\nFound {len(special_ops)} special operations:")
     for name, idx in special_ops.items():
@@ -436,7 +484,7 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
         names = list(special_ops.keys())
         print("\nVAE-A distances:")
         for i, name1 in enumerate(names):
-            for name2 in names[i+1:]:
+            for name2 in names[i + 1 :]:
                 idx1, idx2 = special_ops[name1], special_ops[name2]
                 dist_A = np.linalg.norm(z_A[idx1] - z_A[idx2])
                 np.linalg.norm(z_B[idx1] - z_B[idx2])
@@ -450,9 +498,9 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
     z_B_3d = pca_B.fit_transform(z_B)
 
     # Analyze what each PC captures
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PCA COMPONENT INTERPRETATION")
-    print("="*60)
+    print("=" * 60)
 
     # Correlate PCs with operation properties
     # Sum of outputs (bias)
@@ -474,8 +522,10 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
         corr_first, _ = spearmanr(pc, first_elem)
         corr_center, _ = spearmanr(pc, center_elem)
         corr_last, _ = spearmanr(pc, last_elem)
-        print(f"  PC{pc_idx+1}: sum={corr_sum:.3f}, var={corr_var:.3f}, "
-              f"elem[0]={corr_first:.3f}, elem[4]={corr_center:.3f}, elem[8]={corr_last:.3f}")
+        print(
+            f"  PC{pc_idx+1}: sum={corr_sum:.3f}, var={corr_var:.3f}, "
+            f"elem[0]={corr_first:.3f}, elem[4]={corr_center:.3f}, elem[8]={corr_last:.3f}"
+        )
 
     print("\nVAE-B PC correlations with operation properties:")
     for pc_idx in range(3):
@@ -485,79 +535,127 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
         corr_first, _ = spearmanr(pc, first_elem)
         corr_center, _ = spearmanr(pc, center_elem)
         corr_last, _ = spearmanr(pc, last_elem)
-        print(f"  PC{pc_idx+1}: sum={corr_sum:.3f}, var={corr_var:.3f}, "
-              f"elem[0]={corr_first:.3f}, elem[4]={corr_center:.3f}, elem[8]={corr_last:.3f}")
+        print(
+            f"  PC{pc_idx+1}: sum={corr_sum:.3f}, var={corr_var:.3f}, "
+            f"elem[0]={corr_first:.3f}, elem[4]={corr_center:.3f}, elem[8]={corr_last:.3f}"
+        )
 
     # Visualization
     fig = plt.figure(figsize=(18, 12))
 
     # 3D plot with special ops highlighted
-    ax = fig.add_subplot(231, projection='3d')
-    ax.scatter(z_A_3d[:, 0], z_A_3d[:, 1], z_A_3d[:, 2], c='gray', s=1, alpha=0.3)
+    ax = fig.add_subplot(231, projection="3d")
+    ax.scatter(z_A_3d[:, 0], z_A_3d[:, 1], z_A_3d[:, 2], c="gray", s=1, alpha=0.3)
     colors = plt.cm.tab10(np.linspace(0, 1, len(special_ops)))
     for (name, idx), color in zip(special_ops.items(), colors):
-        ax.scatter([z_A_3d[idx, 0]], [z_A_3d[idx, 1]], [z_A_3d[idx, 2]],
-                  c=[color], s=100, marker='*', label=name, edgecolors='black')
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Special Operations in Latent Space')
-    ax.legend(loc='upper left', fontsize=8)
+        ax.scatter(
+            [z_A_3d[idx, 0]],
+            [z_A_3d[idx, 1]],
+            [z_A_3d[idx, 2]],
+            c=[color],
+            s=100,
+            marker="*",
+            label=name,
+            edgecolors="black",
+        )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Special Operations in Latent Space")
+    ax.legend(loc="upper left", fontsize=8)
 
-    ax = fig.add_subplot(232, projection='3d')
-    ax.scatter(z_B_3d[:, 0], z_B_3d[:, 1], z_B_3d[:, 2], c='gray', s=1, alpha=0.3)
+    ax = fig.add_subplot(232, projection="3d")
+    ax.scatter(z_B_3d[:, 0], z_B_3d[:, 1], z_B_3d[:, 2], c="gray", s=1, alpha=0.3)
     for (name, idx), color in zip(special_ops.items(), colors):
-        ax.scatter([z_B_3d[idx, 0]], [z_B_3d[idx, 1]], [z_B_3d[idx, 2]],
-                  c=[color], s=100, marker='*', label=name, edgecolors='black')
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-B: Special Operations in Latent Space')
-    ax.legend(loc='upper left', fontsize=8)
+        ax.scatter(
+            [z_B_3d[idx, 0]],
+            [z_B_3d[idx, 1]],
+            [z_B_3d[idx, 2]],
+            c=[color],
+            s=100,
+            marker="*",
+            label=name,
+            edgecolors="black",
+        )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-B: Special Operations in Latent Space")
+    ax.legend(loc="upper left", fontsize=8)
 
     # Color by output sum (bias)
-    ax = fig.add_subplot(233, projection='3d')
-    scatter = ax.scatter(z_A_3d[:, 0], z_A_3d[:, 1], z_A_3d[:, 2],
-                        c=output_sums, cmap='RdBu', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Colored by Output Sum (Bias)')
+    ax = fig.add_subplot(233, projection="3d")
+    scatter = ax.scatter(
+        z_A_3d[:, 0],
+        z_A_3d[:, 1],
+        z_A_3d[:, 2],
+        c=output_sums,
+        cmap="RdBu",
+        s=2,
+        alpha=0.5,
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Colored by Output Sum (Bias)")
     fig.colorbar(scatter, ax=ax, shrink=0.5)
 
     # Color by center element (identity behavior)
-    ax = fig.add_subplot(234, projection='3d')
-    scatter = ax.scatter(z_A_3d[:, 0], z_A_3d[:, 1], z_A_3d[:, 2],
-                        c=center_elem, cmap='viridis', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Colored by op(0,0) Value')
+    ax = fig.add_subplot(234, projection="3d")
+    scatter = ax.scatter(
+        z_A_3d[:, 0],
+        z_A_3d[:, 1],
+        z_A_3d[:, 2],
+        c=center_elem,
+        cmap="viridis",
+        s=2,
+        alpha=0.5,
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Colored by op(0,0) Value")
     fig.colorbar(scatter, ax=ax, shrink=0.5)
 
     # Color by 3-adic index directly
-    ax = fig.add_subplot(235, projection='3d')
+    ax = fig.add_subplot(235, projection="3d")
     indices = np.arange(n_ops)
-    scatter = ax.scatter(z_A_3d[:, 0], z_A_3d[:, 1], z_A_3d[:, 2],
-                        c=indices, cmap='twilight', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Colored by 3-adic Index')
+    scatter = ax.scatter(
+        z_A_3d[:, 0],
+        z_A_3d[:, 1],
+        z_A_3d[:, 2],
+        c=indices,
+        cmap="twilight",
+        s=2,
+        alpha=0.5,
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Colored by 3-adic Index")
     fig.colorbar(scatter, ax=ax, shrink=0.5)
 
     # Same for VAE-B
-    ax = fig.add_subplot(236, projection='3d')
-    scatter = ax.scatter(z_B_3d[:, 0], z_B_3d[:, 1], z_B_3d[:, 2],
-                        c=indices, cmap='twilight', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-B: Colored by 3-adic Index')
+    ax = fig.add_subplot(236, projection="3d")
+    scatter = ax.scatter(
+        z_B_3d[:, 0],
+        z_B_3d[:, 1],
+        z_B_3d[:, 2],
+        c=indices,
+        cmap="twilight",
+        s=2,
+        alpha=0.5,
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-B: Colored by 3-adic Index")
     fig.colorbar(scatter, ax=ax, shrink=0.5)
 
     plt.tight_layout()
-    plt.savefig(output_path / '3adic_algebraic_structure.png', dpi=150, bbox_inches='tight')
+    plt.savefig(
+        output_path / "3adic_algebraic_structure.png", dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {output_path / '3adic_algebraic_structure.png'}")
 
@@ -566,13 +664,13 @@ def analyze_algebraic_structure(data: dict, output_path: Path):
 
 def analyze_cayley_structure(data: dict, output_path: Path):
     """Visualize the Cayley graph structure in latent space."""
-    operations = data['operations']
-    z_A = data['z_A']
+    operations = data["operations"]
+    z_A = data["z_A"]
     n_ops = len(operations)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("CAYLEY GRAPH STRUCTURE")
-    print("="*60)
+    print("=" * 60)
 
     pca = PCA(n_components=3)
     z_3d = pca.fit_transform(z_A)
@@ -580,68 +678,92 @@ def analyze_cayley_structure(data: dict, output_path: Path):
     fig = plt.figure(figsize=(18, 6))
 
     # Visualize 3-adic "shells" - operations at fixed Hamming distance from origin
-    ax = fig.add_subplot(131, projection='3d')
+    ax = fig.add_subplot(131, projection="3d")
 
     # Reference: the "zero" operation (all zeros)
     zero_idx = op_to_index(np.zeros(9))
 
     # Color by Hamming distance from zero op
-    hamming_from_zero = np.array([compute_3adic_distance(zero_idx, i) for i in range(n_ops)])
-    scatter = ax.scatter(z_3d[:, 0], z_3d[:, 1], z_3d[:, 2],
-                        c=hamming_from_zero, cmap='viridis', s=2, alpha=0.5)
-    ax.scatter([z_3d[zero_idx, 0]], [z_3d[zero_idx, 1]], [z_3d[zero_idx, 2]],
-              c='red', s=200, marker='*', label='Zero Op')
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: 3-adic Distance from Zero Op\n(Cayley Graph Shells)')
+    hamming_from_zero = np.array(
+        [compute_3adic_distance(zero_idx, i) for i in range(n_ops)]
+    )
+    scatter = ax.scatter(
+        z_3d[:, 0],
+        z_3d[:, 1],
+        z_3d[:, 2],
+        c=hamming_from_zero,
+        cmap="viridis",
+        s=2,
+        alpha=0.5,
+    )
+    ax.scatter(
+        [z_3d[zero_idx, 0]],
+        [z_3d[zero_idx, 1]],
+        [z_3d[zero_idx, 2]],
+        c="red",
+        s=200,
+        marker="*",
+        label="Zero Op",
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: 3-adic Distance from Zero Op\n(Cayley Graph Shells)")
     ax.legend()
-    fig.colorbar(scatter, ax=ax, shrink=0.5, label='Hamming dist')
+    fig.colorbar(scatter, ax=ax, shrink=0.5, label="Hamming dist")
 
     # Visualize operations by their first 3 3-adic digits (coarse structure)
-    ax = fig.add_subplot(132, projection='3d')
+    ax = fig.add_subplot(132, projection="3d")
     coarse_idx = np.array([i % 27 for i in range(n_ops)])  # First 3 digits = mod 27
-    scatter = ax.scatter(z_3d[:, 0], z_3d[:, 1], z_3d[:, 2],
-                        c=coarse_idx, cmap='tab20', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Colored by First 3 Digits\n(27 Coarse Classes)')
-    fig.colorbar(scatter, ax=ax, shrink=0.5, label='mod 27')
+    scatter = ax.scatter(
+        z_3d[:, 0], z_3d[:, 1], z_3d[:, 2], c=coarse_idx, cmap="tab20", s=2, alpha=0.5
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Colored by First 3 Digits\n(27 Coarse Classes)")
+    fig.colorbar(scatter, ax=ax, shrink=0.5, label="mod 27")
 
     # Visualize operations by their last 3 3-adic digits
-    ax = fig.add_subplot(133, projection='3d')
+    ax = fig.add_subplot(133, projection="3d")
     fine_idx = np.array([i // (3**6) for i in range(n_ops)])  # Last 3 digits
-    scatter = ax.scatter(z_3d[:, 0], z_3d[:, 1], z_3d[:, 2],
-                        c=fine_idx, cmap='tab20', s=2, alpha=0.5)
-    ax.set_xlabel('PC1')
-    ax.set_ylabel('PC2')
-    ax.set_zlabel('PC3')
-    ax.set_title('VAE-A: Colored by Last 3 Digits\n(27 Fine Classes)')
-    fig.colorbar(scatter, ax=ax, shrink=0.5, label='div 729')
+    scatter = ax.scatter(
+        z_3d[:, 0], z_3d[:, 1], z_3d[:, 2], c=fine_idx, cmap="tab20", s=2, alpha=0.5
+    )
+    ax.set_xlabel("PC1")
+    ax.set_ylabel("PC2")
+    ax.set_zlabel("PC3")
+    ax.set_title("VAE-A: Colored by Last 3 Digits\n(27 Fine Classes)")
+    fig.colorbar(scatter, ax=ax, shrink=0.5, label="div 729")
 
     plt.tight_layout()
-    plt.savefig(output_path / '3adic_cayley_structure.png', dpi=150, bbox_inches='tight')
+    plt.savefig(
+        output_path / "3adic_cayley_structure.png", dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {output_path / '3adic_cayley_structure.png'}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Analyze 3-adic structure of Ternary VAE')
-    parser.add_argument('--checkpoint', type=str, default='latest.pt')
-    parser.add_argument('--output', type=str, default='outputs/manifold_viz')
-    parser.add_argument('--device', type=str, default='cuda' if torch.cuda.is_available() else 'cpu')
+    parser = argparse.ArgumentParser(
+        description="Analyze 3-adic structure of Ternary VAE"
+    )
+    parser.add_argument("--checkpoint", type=str, default="latest.pt")
+    parser.add_argument("--output", type=str, default="outputs/manifold_viz")
+    parser.add_argument(
+        "--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu"
+    )
 
     args = parser.parse_args()
 
-    checkpoint_dir = PROJECT_ROOT / 'sandbox-training' / 'checkpoints' / 'v5_5'
+    checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5"
     checkpoint_path = checkpoint_dir / args.checkpoint
     output_path = PROJECT_ROOT / args.output
     output_path.mkdir(parents=True, exist_ok=True)
 
-    print("="*60)
+    print("=" * 60)
     print("3-ADIC ALGEBRAIC STRUCTURE ANALYSIS")
-    print("="*60)
+    print("=" * 60)
     print(f"Checkpoint: {checkpoint_path}")
     print(f"Output: {output_path}")
 
@@ -656,9 +778,9 @@ def main():
     analyze_cayley_structure(data, output_path)
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("SUMMARY: 3-ADIC STRUCTURE PRESERVATION")
-    print("="*60)
+    print("=" * 60)
     print("\n3-adic distance correlation:")
     print(f"  VAE-A: r={clustering_results['corr_A_dist']:.4f}")
     print(f"  VAE-B: r={clustering_results['corr_B_dist']:.4f}")
@@ -667,18 +789,18 @@ def main():
     print(f"  VAE-B: r={neighbor_results['position_corr_B']:.4f}")
 
     interpretation = ""
-    if clustering_results['corr_A_dist'] > 0.3:
+    if clustering_results["corr_A_dist"] > 0.3:
         interpretation = "STRONG 3-adic structure preservation"
-    elif clustering_results['corr_A_dist'] > 0.1:
+    elif clustering_results["corr_A_dist"] > 0.1:
         interpretation = "MODERATE 3-adic structure preservation"
     else:
         interpretation = "WEAK 3-adic structure (VAE learned different coordinates)"
 
     print(f"\nInterpretation: {interpretation}")
     print("\nGenerated files:")
-    for f in sorted(output_path.glob('3adic*.png')):
+    for f in sorted(output_path.glob("3adic*.png")):
         print(f"  - {f.name}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

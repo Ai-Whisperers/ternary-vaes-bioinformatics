@@ -10,6 +10,7 @@ Tests the PyTorch module for Poincare ball geometry.
 
 import pytest
 import torch
+
 from src.geometry.poincare import PoincareModule, project_to_poincare
 
 
@@ -201,6 +202,7 @@ class TestPoincareModuleAsModule:
     def test_is_nn_module(self):
         """Should be a valid nn.Module."""
         import torch.nn as nn
+
         module = PoincareModule()
         assert isinstance(module, nn.Module)
 

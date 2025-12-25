@@ -16,7 +16,7 @@ The hybrid approach eliminates the need for AlphaFold3's massive requirements:
 - Only ~100MB of HIV integrase structures required
 """
 
-from .structure_predictor import HybridStructurePredictor
 from .pdb_analyzer import PDBAnalyzer
+from .structure_predictor import HybridStructurePredictor
 
 __all__ = ["HybridStructurePredictor", "PDBAnalyzer"]

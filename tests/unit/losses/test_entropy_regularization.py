@@ -10,6 +10,7 @@ Tests entropy regularization for prediction distribution shaping.
 
 import pytest
 import torch
+
 from src.losses.dual_vae_loss import EntropyRegularization
 
 

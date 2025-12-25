@@ -11,13 +11,14 @@ Output directory: results/proteome_wide/12_human_proteome/
 Version: 1.0
 """
 
-import requests
-import json
 import gzip
+import json
 import time
+from io import StringIO
 from pathlib import Path
 from typing import Dict, List, Optional
-from io import StringIO
+
+import requests
 
 # ============================================================================
 # CONFIGURATION
@@ -57,6 +58,7 @@ OUTPUT_SUBDIR = f"{SCRIPT_NUM}_human_proteome"
 # OUTPUT DIRECTORY SETUP
 # ============================================================================
 
+
 def get_output_dir() -> Path:
     """Get output directory for this script."""
     script_dir = Path(__file__).parent
@@ -68,6 +70,7 @@ def get_output_dir() -> Path:
 # ============================================================================
 # UNIPROT DOWNLOAD FUNCTIONS
 # ============================================================================
+
 
 def download_proteome_fasta(output_dir: Path) -> Path:
     """
@@ -99,17 +102,20 @@ def download_proteome_fasta(output_dir: Path) -> Path:
     response.raise_for_status()
 
     # Get total size if available
-    total_size = int(response.headers.get('content-length', 0))
+    total_size = int(response.headers.get("content-length", 0))
 
     # Download with progress
     downloaded = 0
-    with open(output_path, 'wb') as f:
+    with open(output_path, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
             downloaded += len(chunk)
             if total_size > 0:
                 pct = 100 * downloaded / total_size
-                print(f"\r  Progress: {downloaded:,} / {total_size:,} bytes ({pct:.1f}%)", end="")
+                print(
+                    f"\r  Progress: {downloaded:,} / {total_size:,} bytes ({pct:.1f}%)",
+                    end="",
+                )
 
     print(f"\n  Saved: {output_path}")
     print(f"  Size: {output_path.stat().st_size:,} bytes")
@@ -146,7 +152,7 @@ def download_proteome_metadata(output_dir: Path) -> Path:
     response.raise_for_status()
 
     # Download
-    with open(output_path, 'wb') as f:
+    with open(output_path, "wb") as f:
         for chunk in response.iter_content(chunk_size=8192):
             f.write(chunk)
 
@@ -159,6 +165,7 @@ def download_proteome_metadata(output_dir: Path) -> Path:
 # ============================================================================
 # PARSING FUNCTIONS
 # ============================================================================
+
 
 def parse_fasta(fasta_path: Path) -> Dict[str, Dict]:
     """
@@ -175,29 +182,30 @@ def parse_fasta(fasta_path: Path) -> Dict[str, Dict]:
     current_desc = ""
 
     # Handle gzipped or plain
-    if str(fasta_path).endswith('.gz'):
+    if str(fasta_path).endswith(".gz"):
         import gzip
-        opener = lambda p: gzip.open(p, 'rt')
+
+        opener = lambda p: gzip.open(p, "rt")
     else:
-        opener = lambda p: open(p, 'r')
+        opener = lambda p: open(p, "r")
 
     with opener(fasta_path) as f:
         for line in f:
             line = line.strip()
-            if line.startswith('>'):
+            if line.startswith(">"):
                 # Save previous protein
                 if current_acc:
-                    seq = ''.join(current_seq)
+                    seq = "".join(current_seq)
                     proteins[current_acc] = {
-                        'sequence': seq,
-                        'length': len(seq),
-                        'description': current_desc,
-                        'n_arginines': seq.count('R'),
+                        "sequence": seq,
+                        "length": len(seq),
+                        "description": current_desc,
+                        "n_arginines": seq.count("R"),
                     }
 
                 # Parse new header
                 # Format: >sp|P12345|NAME_HUMAN Description OS=...
-                parts = line[1:].split('|')
+                parts = line[1:].split("|")
                 if len(parts) >= 2:
                     current_acc = parts[1]
                     current_desc = parts[2] if len(parts) > 2 else ""
@@ -211,19 +219,19 @@ def parse_fasta(fasta_path: Path) -> Dict[str, Dict]:
 
         # Don't forget last protein
         if current_acc:
-            seq = ''.join(current_seq)
+            seq = "".join(current_seq)
             proteins[current_acc] = {
-                'sequence': seq,
-                'length': len(seq),
-                'description': current_desc,
-                'n_arginines': seq.count('R'),
+                "sequence": seq,
+                "length": len(seq),
+                "description": current_desc,
+                "n_arginines": seq.count("R"),
             }
 
     print(f"  Parsed {len(proteins):,} proteins")
 
     # Statistics
-    total_length = sum(p['length'] for p in proteins.values())
-    total_arginines = sum(p['n_arginines'] for p in proteins.values())
+    total_length = sum(p["length"] for p in proteins.values())
+    total_arginines = sum(p["n_arginines"] for p in proteins.values())
 
     print(f"  Total residues: {total_length:,}")
     print(f"  Total arginines: {total_arginines:,}")
@@ -244,34 +252,44 @@ def parse_metadata(tsv_path: Path) -> Dict[str, Dict]:
 
     metadata = {}
 
-    with open(tsv_path, 'r', encoding='utf-8') as f:
+    with open(tsv_path, "r", encoding="utf-8") as f:
         # Read header
-        header = f.readline().strip().split('\t')
+        header = f.readline().strip().split("\t")
 
         for line in f:
-            parts = line.strip().split('\t')
+            parts = line.strip().split("\t")
             if len(parts) < 2:
                 continue
 
             row = dict(zip(header, parts))
-            acc = row.get('Entry', row.get('accession', ''))
+            acc = row.get("Entry", row.get("accession", ""))
 
             if acc:
                 metadata[acc] = {
-                    'accession': acc,
-                    'entry_name': row.get('Entry Name', ''),
-                    'gene_names': row.get('Gene Names', ''),
-                    'protein_name': row.get('Protein names', ''),
-                    'length': int(row.get('Length', 0)) if row.get('Length', '').isdigit() else 0,
-                    'go_cellular_component': row.get('Gene Ontology (cellular component)', ''),
-                    'go_molecular_function': row.get('Gene Ontology (molecular function)', ''),
-                    'go_biological_process': row.get('Gene Ontology (biological process)', ''),
-                    'subcellular_location': row.get('Subcellular location [CC]', ''),
-                    'tissue_specificity': row.get('Tissue specificity', ''),
-                    'disease': row.get('Involvement in disease', ''),
-                    'domains': row.get('Domain [FT]', ''),
-                    'regions': row.get('Region', ''),
-                    'pdb_structures': row.get('PDB', ''),
+                    "accession": acc,
+                    "entry_name": row.get("Entry Name", ""),
+                    "gene_names": row.get("Gene Names", ""),
+                    "protein_name": row.get("Protein names", ""),
+                    "length": (
+                        int(row.get("Length", 0))
+                        if row.get("Length", "").isdigit()
+                        else 0
+                    ),
+                    "go_cellular_component": row.get(
+                        "Gene Ontology (cellular component)", ""
+                    ),
+                    "go_molecular_function": row.get(
+                        "Gene Ontology (molecular function)", ""
+                    ),
+                    "go_biological_process": row.get(
+                        "Gene Ontology (biological process)", ""
+                    ),
+                    "subcellular_location": row.get("Subcellular location [CC]", ""),
+                    "tissue_specificity": row.get("Tissue specificity", ""),
+                    "disease": row.get("Involvement in disease", ""),
+                    "domains": row.get("Domain [FT]", ""),
+                    "regions": row.get("Region", ""),
+                    "pdb_structures": row.get("PDB", ""),
                 }
 
     print(f"  Parsed metadata for {len(metadata):,} proteins")
@@ -294,20 +312,22 @@ def merge_data(proteins: Dict, metadata: Dict) -> Dict:
             matched += 1
         else:
             # Add empty metadata fields
-            merged[acc].update({
-                'entry_name': '',
-                'gene_names': '',
-                'protein_name': prot.get('description', ''),
-                'go_cellular_component': '',
-                'go_molecular_function': '',
-                'go_biological_process': '',
-                'subcellular_location': '',
-                'tissue_specificity': '',
-                'disease': '',
-                'domains': '',
-                'regions': '',
-                'pdb_structures': '',
-            })
+            merged[acc].update(
+                {
+                    "entry_name": "",
+                    "gene_names": "",
+                    "protein_name": prot.get("description", ""),
+                    "go_cellular_component": "",
+                    "go_molecular_function": "",
+                    "go_biological_process": "",
+                    "subcellular_location": "",
+                    "tissue_specificity": "",
+                    "disease": "",
+                    "domains": "",
+                    "regions": "",
+                    "pdb_structures": "",
+                }
+            )
 
     print(f"  Matched {matched:,} / {len(proteins):,} proteins with metadata")
 
@@ -318,36 +338,41 @@ def merge_data(proteins: Dict, metadata: Dict) -> Dict:
 # SUMMARY STATISTICS
 # ============================================================================
 
+
 def compute_statistics(data: Dict, output_dir: Path):
     """Compute and save summary statistics."""
     print("\n[6] Computing statistics...")
 
     stats = {
-        'total_proteins': len(data),
-        'total_residues': sum(p['length'] for p in data.values()),
-        'total_arginines': sum(p['n_arginines'] for p in data.values()),
-        'proteins_with_arginine': sum(1 for p in data.values() if p['n_arginines'] > 0),
-        'proteins_with_go': sum(1 for p in data.values() if p.get('go_biological_process')),
-        'proteins_with_disease': sum(1 for p in data.values() if p.get('disease')),
-        'proteins_with_structure': sum(1 for p in data.values() if p.get('pdb_structures')),
+        "total_proteins": len(data),
+        "total_residues": sum(p["length"] for p in data.values()),
+        "total_arginines": sum(p["n_arginines"] for p in data.values()),
+        "proteins_with_arginine": sum(1 for p in data.values() if p["n_arginines"] > 0),
+        "proteins_with_go": sum(
+            1 for p in data.values() if p.get("go_biological_process")
+        ),
+        "proteins_with_disease": sum(1 for p in data.values() if p.get("disease")),
+        "proteins_with_structure": sum(
+            1 for p in data.values() if p.get("pdb_structures")
+        ),
     }
 
     # Length distribution
-    lengths = [p['length'] for p in data.values()]
-    stats['length_min'] = min(lengths)
-    stats['length_max'] = max(lengths)
-    stats['length_mean'] = sum(lengths) / len(lengths)
-    stats['length_median'] = sorted(lengths)[len(lengths)//2]
+    lengths = [p["length"] for p in data.values()]
+    stats["length_min"] = min(lengths)
+    stats["length_max"] = max(lengths)
+    stats["length_mean"] = sum(lengths) / len(lengths)
+    stats["length_median"] = sorted(lengths)[len(lengths) // 2]
 
     # Arginine distribution
-    arg_counts = [p['n_arginines'] for p in data.values()]
-    stats['arginines_min'] = min(arg_counts)
-    stats['arginines_max'] = max(arg_counts)
-    stats['arginines_mean'] = sum(arg_counts) / len(arg_counts)
+    arg_counts = [p["n_arginines"] for p in data.values()]
+    stats["arginines_min"] = min(arg_counts)
+    stats["arginines_max"] = max(arg_counts)
+    stats["arginines_mean"] = sum(arg_counts) / len(arg_counts)
 
     # Save statistics
     stats_path = output_dir / "proteome_statistics.json"
-    with open(stats_path, 'w') as f:
+    with open(stats_path, "w") as f:
         json.dump(stats, f, indent=2)
 
     print(f"  Saved: {stats_path}")
@@ -367,6 +392,7 @@ def compute_statistics(data: Dict, output_dir: Path):
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main():
     print("=" * 80)
@@ -398,15 +424,17 @@ def main():
 
     # Save full data with sequences
     full_path = output_dir / "human_proteome_full.json"
-    with open(full_path, 'w') as f:
+    with open(full_path, "w") as f:
         json.dump(data, f)
     print(f"  Saved: {full_path} ({full_path.stat().st_size:,} bytes)")
 
     # Save index (without sequences) for quick loading
-    index = {acc: {k: v for k, v in prot.items() if k != 'sequence'}
-             for acc, prot in data.items()}
+    index = {
+        acc: {k: v for k, v in prot.items() if k != "sequence"}
+        for acc, prot in data.items()
+    }
     index_path = output_dir / "human_proteome_index.json"
-    with open(index_path, 'w') as f:
+    with open(index_path, "w") as f:
         json.dump(index, f, indent=2)
     print(f"  Saved: {index_path} ({index_path.stat().st_size:,} bytes)")
 
@@ -425,5 +453,5 @@ def main():
     return data
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

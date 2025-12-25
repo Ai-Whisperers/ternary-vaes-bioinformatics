@@ -21,20 +21,20 @@ Usage:
     python 09_binary_ternary_decomposition.py
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
 from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
+import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from scipy import stats
 from scipy.linalg import svd
 from sklearn.decomposition import PCA
-import matplotlib.pyplot as plt
 
 
 def v_p(n: int, p: int) -> int:

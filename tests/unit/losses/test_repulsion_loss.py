@@ -10,6 +10,7 @@ Tests latent space diversity through pairwise repulsion.
 
 import pytest
 import torch
+
 from src.losses.dual_vae_loss import RepulsionLoss
 
 

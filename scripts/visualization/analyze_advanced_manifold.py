@@ -19,15 +19,16 @@ Usage:
     python scripts/visualization/analyze_advanced_manifold.py
 """
 
+import json
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.spatial import Voronoi, voronoi_plot_2d
 from scipy.ndimage import gaussian_filter
-from pathlib import Path
-import sys
-import json
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -36,30 +37,30 @@ sys.path.insert(0, str(project_root))
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
-def load_checkpoint(checkpoint_path: str, device: str = 'cuda'):
+def load_checkpoint(checkpoint_path: str, device: str = "cuda"):
     """Load model from checkpoint."""
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     # Extract config
-    if 'config' in checkpoint:
-        config = checkpoint['config']
+    if "config" in checkpoint:
+        config = checkpoint["config"]
     else:
         config = {
-            'input_dim': 9,
-            'latent_dim': 16,
+            "input_dim": 9,
+            "latent_dim": 16,
         }
 
     # Create model
     model = DualNeuralVAEV5(
-        input_dim=config.get('input_dim', 9),
-        latent_dim=config.get('latent_dim', 16),
+        input_dim=config.get("input_dim", 9),
+        latent_dim=config.get("latent_dim", 16),
     ).to(device)
 
     # Load state - handle different checkpoint formats
-    if 'model' in checkpoint:
-        model.load_state_dict(checkpoint['model'])
-    elif 'model_state_dict' in checkpoint:
-        model.load_state_dict(checkpoint['model_state_dict'])
+    if "model" in checkpoint:
+        model.load_state_dict(checkpoint["model"])
+    elif "model_state_dict" in checkpoint:
+        model.load_state_dict(checkpoint["model_state_dict"])
     else:
         model.load_state_dict(checkpoint)
 
@@ -67,9 +68,9 @@ def load_checkpoint(checkpoint_path: str, device: str = 'cuda'):
     return model, config
 
 
-def generate_all_operations(device: str = 'cuda'):
+def generate_all_operations(device: str = "cuda"):
     """Generate all 19683 ternary operations as one-hot tensors."""
-    num_ops = 3 ** 9
+    num_ops = 3**9
     operations = torch.zeros(num_ops, 8, 3, device=device)
 
     for idx in range(num_ops):
@@ -94,7 +95,7 @@ def encode_all_operations(model, operations, batch_size: int = 1024):
 
     with torch.no_grad():
         for i in range(0, len(operations), batch_size):
-            batch = operations[i:i+batch_size]
+            batch = operations[i : i + batch_size]
             # Flatten one-hot to input format: [batch, 8, 3] -> [batch, 8*3] -> use argmax [batch, 8]
             batch_flat = batch.argmax(dim=-1).float()  # [batch, 8]
             # Pad to 9 dimensions (input_dim=9)
@@ -109,12 +110,14 @@ def encode_all_operations(model, operations, batch_size: int = 1024):
             all_mu.append(mu.cpu())
             all_logvar.append(logvar.cpu())
 
-    return (torch.cat(all_z, dim=0),
-            torch.cat(all_mu, dim=0),
-            torch.cat(all_logvar, dim=0))
+    return (
+        torch.cat(all_z, dim=0),
+        torch.cat(all_mu, dim=0),
+        torch.cat(all_logvar, dim=0),
+    )
 
 
-def compute_jacobian_surface(model, latent_codes, device='cuda', grid_size=50):
+def compute_jacobian_surface(model, latent_codes, device="cuda", grid_size=50):
     """
     Compute Jacobian norm surface showing decoder sensitivity.
 
@@ -149,7 +152,9 @@ def compute_jacobian_surface(model, latent_codes, device='cuda', grid_size=50):
             # Use the two principal components, rest at mean
             z_point = mean_z.copy()
             z_point = z_point + X[i, j] * Vt[0] + Y[i, j] * Vt[1]
-            z_tensor = torch.tensor(z_point, dtype=torch.float32, device=device).unsqueeze(0)
+            z_tensor = torch.tensor(
+                z_point, dtype=torch.float32, device=device
+            ).unsqueeze(0)
             z_tensor.requires_grad_(True)
 
             # Forward through decoder
@@ -196,12 +201,14 @@ def compute_voronoi_cells(latent_codes, n_display=200):
     # Add boundary points to bound the diagram
     x_range = z_2d[:, 0].max() - z_2d[:, 0].min()
     y_range = z_2d[:, 1].max() - z_2d[:, 1].min()
-    boundary = np.array([
-        [z_2d[:, 0].min() - x_range, z_2d[:, 1].min() - y_range],
-        [z_2d[:, 0].max() + x_range, z_2d[:, 1].min() - y_range],
-        [z_2d[:, 0].min() - x_range, z_2d[:, 1].max() + y_range],
-        [z_2d[:, 0].max() + x_range, z_2d[:, 1].max() + y_range],
-    ])
+    boundary = np.array(
+        [
+            [z_2d[:, 0].min() - x_range, z_2d[:, 1].min() - y_range],
+            [z_2d[:, 0].max() + x_range, z_2d[:, 1].min() - y_range],
+            [z_2d[:, 0].min() - x_range, z_2d[:, 1].max() + y_range],
+            [z_2d[:, 0].max() + x_range, z_2d[:, 1].max() + y_range],
+        ]
+    )
     points_with_boundary = np.vstack([points, boundary])
 
     vor = Voronoi(points_with_boundary)
@@ -233,8 +240,7 @@ def detect_latent_holes(latent_codes, grid_size=100, threshold_percentile=10):
 
     # Compute density via histogram
     density, x_edges, y_edges = np.histogram2d(
-        z_2d[:, 0], z_2d[:, 1], bins=grid_size,
-        range=[[x_min, x_max], [y_min, y_max]]
+        z_2d[:, 0], z_2d[:, 1], bins=grid_size, range=[[x_min, x_max], [y_min, y_max]]
     )
 
     # Smooth density
@@ -242,6 +248,7 @@ def detect_latent_holes(latent_codes, grid_size=100, threshold_percentile=10):
 
     # Find holes (low density regions within the convex hull)
     from scipy.spatial import ConvexHull, Delaunay
+
     hull = ConvexHull(z_2d)
     hull_delaunay = Delaunay(z_2d[hull.vertices])
 
@@ -257,7 +264,7 @@ def detect_latent_holes(latent_codes, grid_size=100, threshold_percentile=10):
     return X, Y, density_smooth.T, holes, z_2d
 
 
-def compute_operation_difficulty(model, operations, batch_size=1024, device='cuda'):
+def compute_operation_difficulty(model, operations, batch_size=1024, device="cuda"):
     """
     Rank operations by reconstruction difficulty.
 
@@ -270,7 +277,7 @@ def compute_operation_difficulty(model, operations, batch_size=1024, device='cud
 
     with torch.no_grad():
         for i in range(0, len(operations), batch_size):
-            batch = operations[i:i+batch_size]
+            batch = operations[i : i + batch_size]
             # Convert to model input format
             batch_flat = batch.argmax(dim=-1).float()  # [batch, 8]
             batch_padded = F.pad(batch_flat, (0, 1), value=0)  # [batch, 9]
@@ -287,7 +294,7 @@ def compute_operation_difficulty(model, operations, batch_size=1024, device='cud
             recon_flat = recon_8.reshape(-1, 3)
             target_flat = batch.argmax(dim=-1).view(-1)
 
-            ce_loss = F.cross_entropy(recon_flat, target_flat, reduction='none')
+            ce_loss = F.cross_entropy(recon_flat, target_flat, reduction="none")
             ce_loss = ce_loss.view(batch.size(0), -1).mean(dim=1)
 
             # KL divergence per sample
@@ -307,13 +314,13 @@ def get_operation_string(idx):
     for _ in range(9):
         digits.append(str(temp % 3))
         temp //= 3
-    return ''.join(digits[:8])
+    return "".join(digits[:8])
 
 
-def plot_all_analyses(model, operations, latent_codes, device='cuda'):
+def plot_all_analyses(model, operations, latent_codes, device="cuda"):
     """Generate all 4 advanced visualizations."""
 
-    output_dir = project_root / 'outputs' / 'manifold_viz'
+    output_dir = project_root / "outputs" / "manifold_viz"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # 1. Jacobian Norm Surface
@@ -325,28 +332,30 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
     fig = plt.figure(figsize=(14, 5))
 
     # 3D surface
-    ax1 = fig.add_subplot(121, projection='3d')
-    surf = ax1.plot_surface(X_j, Y_j, jacobian_norms, cmap='magma', alpha=0.8)
-    ax1.set_xlabel('PC1')
-    ax1.set_ylabel('PC2')
-    ax1.set_zlabel('||∂f/∂z||')
-    ax1.set_title('Decoder Jacobian Norm Surface\n(Higher = More Sensitive)')
-    fig.colorbar(surf, ax=ax1, shrink=0.5, label='Jacobian Norm')
+    ax1 = fig.add_subplot(121, projection="3d")
+    surf = ax1.plot_surface(X_j, Y_j, jacobian_norms, cmap="magma", alpha=0.8)
+    ax1.set_xlabel("PC1")
+    ax1.set_ylabel("PC2")
+    ax1.set_zlabel("||∂f/∂z||")
+    ax1.set_title("Decoder Jacobian Norm Surface\n(Higher = More Sensitive)")
+    fig.colorbar(surf, ax=ax1, shrink=0.5, label="Jacobian Norm")
 
     # 2D heatmap with points
     ax2 = fig.add_subplot(122)
-    im = ax2.contourf(X_j, Y_j, jacobian_norms, levels=20, cmap='magma')
-    ax2.scatter(z_2d_j[:, 0], z_2d_j[:, 1], c='white', s=1, alpha=0.3)
-    ax2.set_xlabel('PC1')
-    ax2.set_ylabel('PC2')
-    ax2.set_title('Jacobian Sensitivity Map\n(Operations shown in white)')
-    fig.colorbar(im, ax=ax2, label='Jacobian Norm')
+    im = ax2.contourf(X_j, Y_j, jacobian_norms, levels=20, cmap="magma")
+    ax2.scatter(z_2d_j[:, 0], z_2d_j[:, 1], c="white", s=1, alpha=0.3)
+    ax2.set_xlabel("PC1")
+    ax2.set_ylabel("PC2")
+    ax2.set_title("Jacobian Sensitivity Map\n(Operations shown in white)")
+    fig.colorbar(im, ax=ax2, label="Jacobian Norm")
 
     plt.tight_layout()
-    plt.savefig(output_dir / 'jacobian_surface.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "jacobian_surface.png", dpi=150, bbox_inches="tight")
     plt.close()
 
-    print(f"  Jacobian norm range: [{jacobian_norms.min():.3f}, {jacobian_norms.max():.3f}]")
+    print(
+        f"  Jacobian norm range: [{jacobian_norms.min():.3f}, {jacobian_norms.max():.3f}]"
+    )
     print(f"  Mean sensitivity: {jacobian_norms.mean():.3f}")
     print("  Saved: jacobian_surface.png")
 
@@ -358,44 +367,63 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
 
     # Full Voronoi diagram
     ax1 = axes[0]
-    voronoi_plot_2d(vor, ax=ax1, show_vertices=False, line_colors='blue',
-                    line_width=0.5, line_alpha=0.6, point_size=2)
-    ax1.scatter(z_2d_v[:, 0], z_2d_v[:, 1], c='gray', s=1, alpha=0.2, label='All ops')
-    ax1.scatter(points[:, 0], points[:, 1], c='red', s=10, alpha=0.8, label='Sampled')
+    voronoi_plot_2d(
+        vor,
+        ax=ax1,
+        show_vertices=False,
+        line_colors="blue",
+        line_width=0.5,
+        line_alpha=0.6,
+        point_size=2,
+    )
+    ax1.scatter(z_2d_v[:, 0], z_2d_v[:, 1], c="gray", s=1, alpha=0.2, label="All ops")
+    ax1.scatter(points[:, 0], points[:, 1], c="red", s=10, alpha=0.8, label="Sampled")
     ax1.set_xlim(z_2d_v[:, 0].min() - 0.5, z_2d_v[:, 0].max() + 0.5)
     ax1.set_ylim(z_2d_v[:, 1].min() - 0.5, z_2d_v[:, 1].max() + 0.5)
-    ax1.set_xlabel('PC1')
-    ax1.set_ylabel('PC2')
-    ax1.set_title('Voronoi Decision Boundaries\n(Each cell → one operation)')
-    ax1.legend(loc='upper right')
+    ax1.set_xlabel("PC1")
+    ax1.set_ylabel("PC2")
+    ax1.set_title("Voronoi Decision Boundaries\n(Each cell → one operation)")
+    ax1.legend(loc="upper right")
 
     # Zoomed region
     ax2 = axes[1]
     center_x, center_y = z_2d_v[:, 0].mean(), z_2d_v[:, 1].mean()
     zoom_range = 1.0
-    voronoi_plot_2d(vor, ax=ax2, show_vertices=False, line_colors='blue',
-                    line_width=1.0, line_alpha=0.8, point_size=5)
-    ax2.scatter(points[:, 0], points[:, 1], c='red', s=30, alpha=0.9)
+    voronoi_plot_2d(
+        vor,
+        ax=ax2,
+        show_vertices=False,
+        line_colors="blue",
+        line_width=1.0,
+        line_alpha=0.8,
+        point_size=5,
+    )
+    ax2.scatter(points[:, 0], points[:, 1], c="red", s=30, alpha=0.9)
     ax2.set_xlim(center_x - zoom_range, center_x + zoom_range)
     ax2.set_ylim(center_y - zoom_range, center_y + zoom_range)
-    ax2.set_xlabel('PC1')
-    ax2.set_ylabel('PC2')
-    ax2.set_title('Zoomed Voronoi Cells\n(Center region)')
+    ax2.set_xlabel("PC1")
+    ax2.set_ylabel("PC2")
+    ax2.set_title("Zoomed Voronoi Cells\n(Center region)")
 
     plt.tight_layout()
-    plt.savefig(output_dir / 'voronoi_cells.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "voronoi_cells.png", dpi=150, bbox_inches="tight")
     plt.close()
 
     # Compute cell size statistics
     cell_areas = []
-    for region_idx in vor.point_region[:len(points)]:
+    for region_idx in vor.point_region[: len(points)]:
         region = vor.regions[region_idx]
         if -1 not in region and len(region) > 0:
             polygon = vor.vertices[region]
             # Shoelace formula for area
             n = len(polygon)
-            area = 0.5 * abs(sum(polygon[i,0]*polygon[(i+1)%n,1] -
-                                 polygon[(i+1)%n,0]*polygon[i,1] for i in range(n)))
+            area = 0.5 * abs(
+                sum(
+                    polygon[i, 0] * polygon[(i + 1) % n, 1]
+                    - polygon[(i + 1) % n, 0] * polygon[i, 1]
+                    for i in range(n)
+                )
+            )
             cell_areas.append(area)
 
     print(f"  Voronoi cells computed: {len(points)}")
@@ -412,32 +440,37 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
 
     # Density map
     ax1 = axes[0]
-    im1 = ax1.contourf(X_h, Y_h, density, levels=30, cmap='viridis')
-    ax1.set_xlabel('PC1')
-    ax1.set_ylabel('PC2')
-    ax1.set_title('Latent Density Map')
-    fig.colorbar(im1, ax=ax1, label='Point Density')
+    im1 = ax1.contourf(X_h, Y_h, density, levels=30, cmap="viridis")
+    ax1.set_xlabel("PC1")
+    ax1.set_ylabel("PC2")
+    ax1.set_title("Latent Density Map")
+    fig.colorbar(im1, ax=ax1, label="Point Density")
 
     # Holes overlay
     ax2 = axes[1]
-    ax2.contourf(X_h, Y_h, density, levels=30, cmap='viridis', alpha=0.5)
-    ax2.contour(X_h, Y_h, holes.astype(float), levels=[0.5], colors='red', linewidths=2)
-    ax2.scatter(z_2d_h[:, 0], z_2d_h[:, 1], c='white', s=1, alpha=0.3)
-    ax2.set_xlabel('PC1')
-    ax2.set_ylabel('PC2')
-    ax2.set_title('Manifold Holes\n(Red = gaps in coverage)')
+    ax2.contourf(X_h, Y_h, density, levels=30, cmap="viridis", alpha=0.5)
+    ax2.contour(X_h, Y_h, holes.astype(float), levels=[0.5], colors="red", linewidths=2)
+    ax2.scatter(z_2d_h[:, 0], z_2d_h[:, 1], c="white", s=1, alpha=0.3)
+    ax2.set_xlabel("PC1")
+    ax2.set_ylabel("PC2")
+    ax2.set_title("Manifold Holes\n(Red = gaps in coverage)")
 
     # Hole regions only
     ax3 = axes[2]
-    ax3.imshow(holes.astype(float), extent=[X_h.min(), X_h.max(), Y_h.min(), Y_h.max()],
-                     origin='lower', cmap='Reds', aspect='auto')
-    ax3.scatter(z_2d_h[:, 0], z_2d_h[:, 1], c='blue', s=1, alpha=0.2)
-    ax3.set_xlabel('PC1')
-    ax3.set_ylabel('PC2')
-    ax3.set_title('Hole Regions\n(Red = low density)')
+    ax3.imshow(
+        holes.astype(float),
+        extent=[X_h.min(), X_h.max(), Y_h.min(), Y_h.max()],
+        origin="lower",
+        cmap="Reds",
+        aspect="auto",
+    )
+    ax3.scatter(z_2d_h[:, 0], z_2d_h[:, 1], c="blue", s=1, alpha=0.2)
+    ax3.set_xlabel("PC1")
+    ax3.set_ylabel("PC2")
+    ax3.set_title("Hole Regions\n(Red = low density)")
 
     plt.tight_layout()
-    plt.savefig(output_dir / 'latent_holes.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "latent_holes.png", dpi=150, bbox_inches="tight")
     plt.close()
 
     hole_fraction = holes.sum() / (holes.shape[0] * holes.shape[1]) * 100
@@ -453,14 +486,22 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
 
     # Difficulty histogram
     ax1 = axes[0, 0]
-    ax1.hist(difficulties, bins=50, color='steelblue', edgecolor='black', alpha=0.7)
-    ax1.axvline(np.percentile(difficulties, 95), color='red', linestyle='--',
-                label=f'95th percentile: {np.percentile(difficulties, 95):.4f}')
-    ax1.axvline(np.percentile(difficulties, 99), color='darkred', linestyle='--',
-                label=f'99th percentile: {np.percentile(difficulties, 99):.4f}')
-    ax1.set_xlabel('Reconstruction Difficulty')
-    ax1.set_ylabel('Count')
-    ax1.set_title('Distribution of Operation Difficulty')
+    ax1.hist(difficulties, bins=50, color="steelblue", edgecolor="black", alpha=0.7)
+    ax1.axvline(
+        np.percentile(difficulties, 95),
+        color="red",
+        linestyle="--",
+        label=f"95th percentile: {np.percentile(difficulties, 95):.4f}",
+    )
+    ax1.axvline(
+        np.percentile(difficulties, 99),
+        color="darkred",
+        linestyle="--",
+        label=f"99th percentile: {np.percentile(difficulties, 99):.4f}",
+    )
+    ax1.set_xlabel("Reconstruction Difficulty")
+    ax1.set_ylabel("Count")
+    ax1.set_title("Distribution of Operation Difficulty")
     ax1.legend()
 
     # Top 20 hardest operations
@@ -471,11 +512,11 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
     hardest_vals = difficulties[hardest_indices]
 
     y_pos = np.arange(top_k)
-    ax2.barh(y_pos, hardest_vals, color='crimson', alpha=0.8)
+    ax2.barh(y_pos, hardest_vals, color="crimson", alpha=0.8)
     ax2.set_yticks(y_pos)
-    ax2.set_yticklabels(hardest_ops, fontsize=8, fontfamily='monospace')
-    ax2.set_xlabel('Difficulty')
-    ax2.set_title(f'Top {top_k} Hardest Operations')
+    ax2.set_yticklabels(hardest_ops, fontsize=8, fontfamily="monospace")
+    ax2.set_xlabel("Difficulty")
+    ax2.set_title(f"Top {top_k} Hardest Operations")
     ax2.invert_yaxis()
 
     # Difficulty by operation property
@@ -492,7 +533,9 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
         # Symmetric if output same when inputs swapped
         # Input (0,0),(0,1),(0,2),(1,0),(1,1),(1,2),(2,0),(2,1),(2,2)
         # Indices:  0,    1,    2,    3,    4,    5,    6,    7,    8
-        return (digits[1] == digits[3] and digits[2] == digits[6] and digits[5] == digits[7])
+        return (
+            digits[1] == digits[3] and digits[2] == digits[6] and digits[5] == digits[7]
+        )
 
     def is_zero_preserving(idx):
         """Check if op(0,0) = 0"""
@@ -501,27 +544,33 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
     symmetric_mask = np.array([is_symmetric(i) for i in range(len(difficulties))])
     zero_pres_mask = np.array([is_zero_preserving(i) for i in range(len(difficulties))])
 
-    categories = ['Symmetric', 'Non-Symmetric', 'Zero-Pres', 'Non-Zero-Pres']
+    categories = ["Symmetric", "Non-Symmetric", "Zero-Pres", "Non-Zero-Pres"]
     means = [
         difficulties[symmetric_mask].mean(),
         difficulties[~symmetric_mask].mean(),
         difficulties[zero_pres_mask].mean(),
-        difficulties[~zero_pres_mask].mean()
+        difficulties[~zero_pres_mask].mean(),
     ]
     stds = [
         difficulties[symmetric_mask].std(),
         difficulties[~symmetric_mask].std(),
         difficulties[zero_pres_mask].std(),
-        difficulties[~zero_pres_mask].std()
+        difficulties[~zero_pres_mask].std(),
     ]
 
     x_pos = np.arange(len(categories))
-    ax3.bar(x_pos, means, yerr=stds, color=['blue', 'orange', 'green', 'red'],
-                   alpha=0.7, capsize=5)
+    ax3.bar(
+        x_pos,
+        means,
+        yerr=stds,
+        color=["blue", "orange", "green", "red"],
+        alpha=0.7,
+        capsize=5,
+    )
     ax3.set_xticks(x_pos)
     ax3.set_xticklabels(categories)
-    ax3.set_ylabel('Mean Difficulty')
-    ax3.set_title('Difficulty by Operation Property')
+    ax3.set_ylabel("Mean Difficulty")
+    ax3.set_title("Difficulty by Operation Property")
 
     # Difficulty in latent space
     ax4 = axes[1, 1]
@@ -530,52 +579,55 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
     U, S, Vt = np.linalg.svd(z_centered, full_matrices=False)
     z_2d = z_centered @ Vt[:2].T
 
-    scatter = ax4.scatter(z_2d[:, 0], z_2d[:, 1], c=difficulties, cmap='hot',
-                          s=2, alpha=0.6)
-    ax4.set_xlabel('PC1')
-    ax4.set_ylabel('PC2')
-    ax4.set_title('Difficulty in Latent Space\n(Yellow = Hard)')
-    fig.colorbar(scatter, ax=ax4, label='Difficulty')
+    scatter = ax4.scatter(
+        z_2d[:, 0], z_2d[:, 1], c=difficulties, cmap="hot", s=2, alpha=0.6
+    )
+    ax4.set_xlabel("PC1")
+    ax4.set_ylabel("PC2")
+    ax4.set_title("Difficulty in Latent Space\n(Yellow = Hard)")
+    fig.colorbar(scatter, ax=ax4, label="Difficulty")
 
     plt.tight_layout()
-    plt.savefig(output_dir / 'operation_difficulty.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_dir / "operation_difficulty.png", dpi=150, bbox_inches="tight")
     plt.close()
 
     print(f"  Difficulty range: [{difficulties.min():.6f}, {difficulties.max():.6f}]")
     print(f"  Mean difficulty: {difficulties.mean():.6f}")
     print(f"  Std difficulty: {difficulties.std():.6f}")
-    print(f"  Hardest operation: {get_operation_string(hardest_indices[0])} (loss={hardest_vals[0]:.6f})")
+    print(
+        f"  Hardest operation: {get_operation_string(hardest_indices[0])} (loss={hardest_vals[0]:.6f})"
+    )
     print(f"  Symmetric ops mean: {means[0]:.6f}, Non-symmetric: {means[1]:.6f}")
     print("  Saved: operation_difficulty.png")
 
     # Save summary statistics
     summary = {
-        'jacobian': {
-            'min': float(jacobian_norms.min()),
-            'max': float(jacobian_norms.max()),
-            'mean': float(jacobian_norms.mean())
+        "jacobian": {
+            "min": float(jacobian_norms.min()),
+            "max": float(jacobian_norms.max()),
+            "mean": float(jacobian_norms.mean()),
         },
-        'holes': {
-            'fraction_percent': float(hole_fraction),
-            'density_range': [float(density.min()), float(density.max())]
+        "holes": {
+            "fraction_percent": float(hole_fraction),
+            "density_range": [float(density.min()), float(density.max())],
         },
-        'difficulty': {
-            'min': float(difficulties.min()),
-            'max': float(difficulties.max()),
-            'mean': float(difficulties.mean()),
-            'std': float(difficulties.std()),
-            'top_5_hardest': [
-                {'op': get_operation_string(idx), 'loss': float(difficulties[idx])}
+        "difficulty": {
+            "min": float(difficulties.min()),
+            "max": float(difficulties.max()),
+            "mean": float(difficulties.mean()),
+            "std": float(difficulties.std()),
+            "top_5_hardest": [
+                {"op": get_operation_string(idx), "loss": float(difficulties[idx])}
                 for idx in hardest_indices[:5]
             ],
-            'symmetric_mean': float(means[0]),
-            'non_symmetric_mean': float(means[1]),
-            'zero_preserving_mean': float(means[2]),
-            'non_zero_preserving_mean': float(means[3])
-        }
+            "symmetric_mean": float(means[0]),
+            "non_symmetric_mean": float(means[1]),
+            "zero_preserving_mean": float(means[2]),
+            "non_zero_preserving_mean": float(means[3]),
+        },
     }
 
-    with open(output_dir / 'advanced_manifold_summary.json', 'w') as f:
+    with open(output_dir / "advanced_manifold_summary.json", "w") as f:
         json.dump(summary, f, indent=2)
     print("\n  Summary saved: advanced_manifold_summary.json")
 
@@ -584,27 +636,27 @@ def plot_all_analyses(model, operations, latent_codes, device='cuda'):
 
 def main():
     """Main execution."""
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
     # Find latest checkpoint
     checkpoint_dirs = [
-        project_root / 'sandbox-training' / 'checkpoints' / 'v5_6',
-        project_root / 'sandbox-training' / 'checkpoints' / 'v5_5',
-        project_root / 'checkpoints',
+        project_root / "sandbox-training" / "checkpoints" / "v5_6",
+        project_root / "sandbox-training" / "checkpoints" / "v5_5",
+        project_root / "checkpoints",
     ]
 
     checkpoints = []
     for checkpoint_dir in checkpoint_dirs:
         if checkpoint_dir.exists():
-            checkpoints.extend(list(checkpoint_dir.glob('*.pt')))
+            checkpoints.extend(list(checkpoint_dir.glob("*.pt")))
 
     if not checkpoints:
         print("No checkpoints found!")
         return
 
     # Prefer 'best.pt' from v5_6
-    best_v56 = project_root / 'sandbox-training' / 'checkpoints' / 'v5_6' / 'best.pt'
+    best_v56 = project_root / "sandbox-training" / "checkpoints" / "v5_6" / "best.pt"
     if best_v56.exists():
         checkpoint_path = best_v56
     else:
@@ -625,15 +677,15 @@ def main():
     print(f"Encoded shape: {latent_codes.shape}")
 
     # Run all analyses
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ADVANCED MANIFOLD ANALYSIS")
-    print("="*60)
+    print("=" * 60)
 
     plot_all_analyses(model, operations, latent_codes, device=device)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ANALYSIS COMPLETE")
-    print("="*60)
+    print("=" * 60)
     print("\nOutput directory: outputs/manifold_viz/")
     print("Generated files:")
     print("  - jacobian_surface.png")
@@ -643,5 +695,5 @@ def main():
     print("  - advanced_manifold_summary.json")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

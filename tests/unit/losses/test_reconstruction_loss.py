@@ -10,6 +10,7 @@ Tests cross-entropy reconstruction loss for ternary operations.
 
 import pytest
 import torch
+
 from src.losses.dual_vae_loss import ReconstructionLoss
 
 
@@ -43,7 +44,9 @@ class TestReconstructionLossBasic:
         loss = loss_fn(sample_logits, sample_input)
         assert loss >= 0
 
-    def test_random_logits_have_reasonable_loss(self, loss_fn, sample_logits, sample_input):
+    def test_random_logits_have_reasonable_loss(
+        self, loss_fn, sample_logits, sample_input
+    ):
         """Random logits should have reasonable loss."""
         loss = loss_fn(sample_logits, sample_input)
 

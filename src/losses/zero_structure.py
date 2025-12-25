@@ -104,7 +104,7 @@ class ZeroValuationLoss(nn.Module):
         inner_radius: float = 0.1,
         outer_radius: float = 0.85,
         weight: float = 1.0,
-        loss_type: str = 'smooth_l1'
+        loss_type: str = "smooth_l1",
     ):
         """Initialize Zero Valuation Loss.
 
@@ -122,10 +122,7 @@ class ZeroValuationLoss(nn.Module):
         self.radius_range = outer_radius - inner_radius
 
     def forward(
-        self,
-        z: torch.Tensor,
-        operations: torch.Tensor,
-        return_metrics: bool = False
+        self, z: torch.Tensor, operations: torch.Tensor, return_metrics: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute zero-valuation radial loss.
 
@@ -148,7 +145,7 @@ class ZeroValuationLoss(nn.Module):
         target_radius = self.outer_radius - normalized_v * self.radius_range
 
         # Compute loss
-        if self.loss_type == 'smooth_l1':
+        if self.loss_type == "smooth_l1":
             loss = F.smooth_l1_loss(actual_radius, target_radius)
         else:
             loss = F.mse_loss(actual_radius, target_radius)
@@ -161,13 +158,21 @@ class ZeroValuationLoss(nn.Module):
                 corr = torch.corrcoef(torch.stack([valuations, actual_radius]))[0, 1]
 
                 metrics = {
-                    'zero_val_loss': loss.item(),
-                    'zero_val_radius_corr': corr.item() if not torch.isnan(corr) else 0.0,
-                    'mean_zero_valuation': valuations.mean().item(),
-                    'high_val_radius': actual_radius[valuations >= 3].mean().item()
-                        if (valuations >= 3).any() else 0.0,
-                    'low_val_radius': actual_radius[valuations == 0].mean().item()
-                        if (valuations == 0).any() else 0.0,
+                    "zero_val_loss": loss.item(),
+                    "zero_val_radius_corr": (
+                        corr.item() if not torch.isnan(corr) else 0.0
+                    ),
+                    "mean_zero_valuation": valuations.mean().item(),
+                    "high_val_radius": (
+                        actual_radius[valuations >= 3].mean().item()
+                        if (valuations >= 3).any()
+                        else 0.0
+                    ),
+                    "low_val_radius": (
+                        actual_radius[valuations == 0].mean().item()
+                        if (valuations == 0).any()
+                        else 0.0
+                    ),
                 }
                 return loss, metrics
 
@@ -185,11 +190,7 @@ class ZeroSparsityLoss(nn.Module):
     representations when multiple encodings are equivalent.
     """
 
-    def __init__(
-        self,
-        target_correlation: float = -0.3,
-        weight: float = 0.5
-    ):
+    def __init__(self, target_correlation: float = -0.3, weight: float = 0.5):
         """Initialize Zero Sparsity Loss.
 
         Args:
@@ -202,10 +203,7 @@ class ZeroSparsityLoss(nn.Module):
         self.weight = weight
 
     def forward(
-        self,
-        z: torch.Tensor,
-        operations: torch.Tensor,
-        return_metrics: bool = False
+        self, z: torch.Tensor, operations: torch.Tensor, return_metrics: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute zero-sparsity loss.
 
@@ -232,19 +230,27 @@ class ZeroSparsityLoss(nn.Module):
         current_corr = (zero_std * radius_std).mean()
 
         # Loss: push correlation toward target (negative)
-        loss = F.mse_loss(current_corr, torch.tensor(self.target_correlation, device=z.device))
+        loss = F.mse_loss(
+            current_corr, torch.tensor(self.target_correlation, device=z.device)
+        )
         loss = loss * self.weight
 
         if return_metrics:
             with torch.no_grad():
                 metrics = {
-                    'zero_sparsity_loss': loss.item(),
-                    'zero_count_radius_corr': current_corr.item(),
-                    'mean_zero_count': zero_counts.mean().item(),
-                    'high_zero_radius': radius[zero_counts >= 6].mean().item()
-                        if (zero_counts >= 6).any() else 0.0,
-                    'low_zero_radius': radius[zero_counts <= 2].mean().item()
-                        if (zero_counts <= 2).any() else 0.0,
+                    "zero_sparsity_loss": loss.item(),
+                    "zero_count_radius_corr": current_corr.item(),
+                    "mean_zero_count": zero_counts.mean().item(),
+                    "high_zero_radius": (
+                        radius[zero_counts >= 6].mean().item()
+                        if (zero_counts >= 6).any()
+                        else 0.0
+                    ),
+                    "low_zero_radius": (
+                        radius[zero_counts <= 2].mean().item()
+                        if (zero_counts <= 2).any()
+                        else 0.0
+                    ),
                 }
                 return loss, metrics
 
@@ -267,7 +273,7 @@ class CombinedZeroStructureLoss(nn.Module):
         sparsity_weight: float = 0.5,
         inner_radius: float = 0.1,
         outer_radius: float = 0.85,
-        target_correlation: float = -0.3
+        target_correlation: float = -0.3,
     ):
         """Initialize Combined Zero Structure Loss.
 
@@ -283,19 +289,15 @@ class CombinedZeroStructureLoss(nn.Module):
         self.valuation_loss = ZeroValuationLoss(
             inner_radius=inner_radius,
             outer_radius=outer_radius,
-            weight=valuation_weight
+            weight=valuation_weight,
         )
 
         self.sparsity_loss = ZeroSparsityLoss(
-            target_correlation=target_correlation,
-            weight=sparsity_weight
+            target_correlation=target_correlation, weight=sparsity_weight
         )
 
     def forward(
-        self,
-        z: torch.Tensor,
-        operations: torch.Tensor,
-        return_metrics: bool = False
+        self, z: torch.Tensor, operations: torch.Tensor, return_metrics: bool = False
     ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute combined zero-structure loss.
 
@@ -308,15 +310,19 @@ class CombinedZeroStructureLoss(nn.Module):
             loss: Combined scalar loss
         """
         if return_metrics:
-            val_loss, val_metrics = self.valuation_loss(z, operations, return_metrics=True)
-            spar_loss, spar_metrics = self.sparsity_loss(z, operations, return_metrics=True)
+            val_loss, val_metrics = self.valuation_loss(
+                z, operations, return_metrics=True
+            )
+            spar_loss, spar_metrics = self.sparsity_loss(
+                z, operations, return_metrics=True
+            )
 
             combined_loss = val_loss + spar_loss
 
             metrics = {
-                'zero_structure_loss': combined_loss.item(),
+                "zero_structure_loss": combined_loss.item(),
                 **val_metrics,
-                **spar_metrics
+                **spar_metrics,
             }
             return combined_loss, metrics
         else:

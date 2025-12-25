@@ -16,7 +16,6 @@ These modules contain no C++ dependencies and can be used directly.
 Original source: https://github.com/google-deepmind/alphafold3
 """
 
-from . import residue_names
-from . import atom_types
+from . import atom_types, residue_names
 
 __all__ = ["residue_names", "atom_types"]

@@ -22,11 +22,12 @@ Usage:
     loss, metrics = criterion(z_latent)
 """
 
+import math
+from typing import Dict, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Tuple, Dict, Optional
-import math
 
 
 class GeometricAlignmentLoss(nn.Module):

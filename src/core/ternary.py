@@ -38,8 +38,9 @@ Why this matters:
     After: Canonical implementation in one place
 """
 
-import torch
 from typing import Optional
+
+import torch
 
 
 class TernarySpace:
@@ -54,14 +55,14 @@ class TernarySpace:
     """
 
     # Class constants - canonical values
-    N_DIGITS = 9                    # 9 trits per operation
-    N_OPERATIONS = 19683            # 3^9 = 19,683 total operations
-    MAX_VALUATION = 9               # Maximum 3-adic valuation
-    TERNARY_VALUES = (-1, 0, 1)     # Valid trit values
+    N_DIGITS = 9  # 9 trits per operation
+    N_OPERATIONS = 19683  # 3^9 = 19,683 total operations
+    MAX_VALUATION = 9  # Maximum 3-adic valuation
+    TERNARY_VALUES = (-1, 0, 1)  # Valid trit values
 
     def __init__(self):
         """Initialize precomputed lookup tables."""
-        self._device = 'cpu'
+        self._device = "cpu"
 
         # Precompute valuation LUT: index -> v_3(index)
         # Memory: 19,683 * 8 bytes = ~157 KB
@@ -73,8 +74,7 @@ class TernarySpace:
 
         # Base-3 weights for index computation: [1, 3, 9, 27, ...]
         self._base3_weights = torch.tensor(
-            [3**i for i in range(self.N_DIGITS)],
-            dtype=torch.long
+            [3**i for i in range(self.N_DIGITS)], dtype=torch.long
         )
 
         # Device-cached versions (populated on first use)
@@ -107,7 +107,9 @@ class TernarySpace:
             ternary.append(digits)
         return torch.tensor(ternary, dtype=torch.float32)
 
-    def _get_cached_lut(self, name: str, lut: torch.Tensor, device: torch.device) -> torch.Tensor:
+    def _get_cached_lut(
+        self, name: str, lut: torch.Tensor, device: torch.device
+    ) -> torch.Tensor:
         """Get device-cached version of a LUT."""
         device_str = str(device)
         cache_key = f"{name}_{device_str}"
@@ -134,16 +136,14 @@ class TernarySpace:
             Tensor of valuations (long), same shape as input
         """
         device = indices.device
-        lut = self._get_cached_lut('valuation', self._valuation_lut, device)
+        lut = self._get_cached_lut("valuation", self._valuation_lut, device)
 
         # Clamp to valid range
         indices = torch.clamp(indices.long(), 0, self.N_OPERATIONS - 1)
         return lut[indices]
 
     def valuation_of_difference(
-        self,
-        idx_i: torch.Tensor,
-        idx_j: torch.Tensor
+        self, idx_i: torch.Tensor, idx_j: torch.Tensor
     ) -> torch.Tensor:
         """Compute v_3(|i - j|) for pairs of indices.
 
@@ -159,11 +159,7 @@ class TernarySpace:
         diff = torch.clamp(diff, 0, self.N_OPERATIONS - 1)
         return self.valuation(diff)
 
-    def distance(
-        self,
-        idx_i: torch.Tensor,
-        idx_j: torch.Tensor
-    ) -> torch.Tensor:
+    def distance(self, idx_i: torch.Tensor, idx_j: torch.Tensor) -> torch.Tensor:
         """Compute 3-adic distance between pairs of indices.
 
         d_3(i, j) = 3^(-v_3(|i - j|))
@@ -200,7 +196,7 @@ class TernarySpace:
             Values in {-1, 0, 1}
         """
         device = indices.device
-        lut = self._get_cached_lut('ternary', self._ternary_lut, device)
+        lut = self._get_cached_lut("ternary", self._ternary_lut, device)
 
         indices = torch.clamp(indices.long(), 0, self.N_OPERATIONS - 1)
         return lut[indices]
@@ -215,7 +211,7 @@ class TernarySpace:
             Tensor of indices, shape (...)
         """
         device = ternary.device
-        weights = self._get_cached_lut('weights', self._base3_weights, device)
+        weights = self._get_cached_lut("weights", self._base3_weights, device)
 
         # Convert {-1, 0, 1} to {0, 1, 2}
         digits = (ternary + 1).long()
@@ -236,9 +232,7 @@ class TernarySpace:
         return ((ternary == -1) | (ternary == 0) | (ternary == 1)).all(dim=-1)
 
     def sample_indices(
-        self,
-        n: int,
-        device: Optional[torch.device] = None
+        self, n: int, device: Optional[torch.device] = None
     ) -> torch.Tensor:
         """Sample random operation indices.
 
@@ -272,13 +266,9 @@ class TernarySpace:
         """
         if device is None:
             return self._ternary_lut.clone()
-        return self._get_cached_lut('ternary', self._ternary_lut, device)
+        return self._get_cached_lut("ternary", self._ternary_lut, device)
 
-    def prefix(
-        self,
-        indices: torch.Tensor,
-        level: int
-    ) -> torch.Tensor:
+    def prefix(self, indices: torch.Tensor, level: int) -> torch.Tensor:
         """Compute tree prefix for given level (vectorized).
 
         In the 3-adic tree, nodes at level k share the same prefix.
@@ -297,11 +287,7 @@ class TernarySpace:
         divisor = 3 ** (self.N_DIGITS - level)
         return indices.long() // divisor
 
-    def level_mask(
-        self,
-        indices: torch.Tensor,
-        level: int
-    ) -> torch.Tensor:
+    def level_mask(self, indices: torch.Tensor, level: int) -> torch.Tensor:
         """Get mask for indices at specific tree level.
 
         Args:
@@ -355,6 +341,7 @@ TERNARY = TernarySpace()
 # Module-level convenience functions (delegate to singleton)
 # =============================================================================
 
+
 def valuation(indices: torch.Tensor) -> torch.Tensor:
     """Compute 3-adic valuation. See TernarySpace.valuation."""
     return TERNARY.valuation(indices)
@@ -376,10 +363,10 @@ def from_ternary(ternary: torch.Tensor) -> torch.Tensor:
 
 
 __all__ = [
-    'TernarySpace',
-    'TERNARY',
-    'valuation',
-    'distance',
-    'to_ternary',
-    'from_ternary',
+    "TernarySpace",
+    "TERNARY",
+    "valuation",
+    "distance",
+    "to_ternary",
+    "from_ternary",
 ]

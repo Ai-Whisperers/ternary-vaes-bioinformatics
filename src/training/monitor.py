@@ -18,21 +18,23 @@ This module handles training progress monitoring:
 Single responsibility: Monitoring and logging only.
 """
 
-import torch
-import logging
-import sys
-from typing import Dict, Any, List, Optional
-from collections import defaultdict  # noqa: F401
 import datetime
-from pathlib import Path
+import logging
 import random
+import sys
+from collections import defaultdict  # noqa: F401
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import numpy as np
+import torch
 
 from src.data.generation import generate_all_ternary_operations
 
 # TensorBoard integration (optional)
 try:
     from torch.utils.tensorboard import SummaryWriter
+
     TENSORBOARD_AVAILABLE = True
 except ImportError:
     TENSORBOARD_AVAILABLE = False
@@ -91,7 +93,9 @@ class TrainingMonitor:
 
         # Setup file logging
         self.logger = (
-            self._setup_file_logging(log_dir, experiment_name) if log_to_file and log_dir else None
+            self._setup_file_logging(log_dir, experiment_name)
+            if log_to_file and log_dir
+            else None
         )
 
         # TensorBoard setup

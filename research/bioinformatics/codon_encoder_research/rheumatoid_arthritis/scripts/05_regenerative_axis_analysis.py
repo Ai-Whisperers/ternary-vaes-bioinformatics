@@ -32,24 +32,19 @@ Chronic stress shifts cells to "defensive" states with boundary-crossing risk.
 Version: 2.0 - Updated to use Poincaré ball geometry
 """
 
-import torch
-import torch.nn as nn
-import numpy as np
-from pathlib import Path
-from collections import defaultdict
 import json
+from collections import defaultdict
+from pathlib import Path
 from typing import Dict, List
 
+import numpy as np
+import torch
+import torch.nn as nn
 # Import hyperbolic utilities
-from hyperbolic_utils import (
-    poincare_distance as hyp_poincare_distance,
-    project_to_poincare,
-    load_codon_encoder,
-    get_results_dir,
-    codon_to_onehot,
-    CodonEncoder,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, CodonEncoder, codon_to_onehot,
+                              get_results_dir, load_codon_encoder)
+from hyperbolic_utils import poincare_distance as hyp_poincare_distance
+from hyperbolic_utils import project_to_poincare
 
 # ============================================================================
 # KEY PROTEINS IN REGENERATIVE AXIS
@@ -60,189 +55,180 @@ REGENERATIVE_AXIS_PROTEINS = {
     # PARASYMPATHETIC / CHOLINERGIC PATHWAY
     # "Rest and Digest" - promotes regeneration
     # =========================================
-
-    'CHRNA7': {
-        'name': 'Nicotinic Acetylcholine Receptor Alpha-7',
-        'pathway': 'parasympathetic',
-        'function': 'Cholinergic anti-inflammatory pathway - key vagal receptor',
-        'regeneration_role': 'positive',
+    "CHRNA7": {
+        "name": "Nicotinic Acetylcholine Receptor Alpha-7",
+        "pathway": "parasympathetic",
+        "function": "Cholinergic anti-inflammatory pathway - key vagal receptor",
+        "regeneration_role": "positive",
         # Active site / key epitope region
-        'sequence': 'YNKVIRPVTQQ',  # Ligand binding domain
-        'notes': 'Activated by vagal stimulation, suppresses TNF-α',
+        "sequence": "YNKVIRPVTQQ",  # Ligand binding domain
+        "notes": "Activated by vagal stimulation, suppresses TNF-α",
     },
-    'CHAT': {
-        'name': 'Choline Acetyltransferase',
-        'pathway': 'parasympathetic',
-        'function': 'Synthesizes acetylcholine',
-        'regeneration_role': 'positive',
-        'sequence': 'RRLSEGDLFTQ',  # Catalytic region
-        'notes': 'Marker of cholinergic neurons',
+    "CHAT": {
+        "name": "Choline Acetyltransferase",
+        "pathway": "parasympathetic",
+        "function": "Synthesizes acetylcholine",
+        "regeneration_role": "positive",
+        "sequence": "RRLSEGDLFTQ",  # Catalytic region
+        "notes": "Marker of cholinergic neurons",
     },
-    'CHRM3': {
-        'name': 'Muscarinic Acetylcholine Receptor M3',
-        'pathway': 'parasympathetic',
-        'function': 'Gut motility, gland secretion',
-        'regeneration_role': 'positive',
-        'sequence': 'TLSAFILNRLV',  # Transmembrane domain
-        'notes': 'Gut-brain axis signaling',
+    "CHRM3": {
+        "name": "Muscarinic Acetylcholine Receptor M3",
+        "pathway": "parasympathetic",
+        "function": "Gut motility, gland secretion",
+        "regeneration_role": "positive",
+        "sequence": "TLSAFILNRLV",  # Transmembrane domain
+        "notes": "Gut-brain axis signaling",
     },
-    'VIP': {
-        'name': 'Vasoactive Intestinal Peptide',
-        'pathway': 'parasympathetic',
-        'function': 'Anti-inflammatory neuropeptide',
-        'regeneration_role': 'positive',
-        'sequence': 'HSDAVFTDNYT',  # Active peptide
-        'notes': 'Suppresses Th1/Th17, promotes Treg',
+    "VIP": {
+        "name": "Vasoactive Intestinal Peptide",
+        "pathway": "parasympathetic",
+        "function": "Anti-inflammatory neuropeptide",
+        "regeneration_role": "positive",
+        "sequence": "HSDAVFTDNYT",  # Active peptide
+        "notes": "Suppresses Th1/Th17, promotes Treg",
     },
-
     # =========================================
     # SYMPATHETIC / STRESS PATHWAY
     # "Fight or Flight" - inhibits regeneration
     # =========================================
-
-    'ADRB2': {
-        'name': 'Beta-2 Adrenergic Receptor',
-        'pathway': 'sympathetic',
-        'function': 'Catecholamine signaling',
-        'regeneration_role': 'negative',
-        'sequence': 'VTNYFITSLAC',  # Ligand binding
-        'notes': 'Chronic activation promotes inflammation',
+    "ADRB2": {
+        "name": "Beta-2 Adrenergic Receptor",
+        "pathway": "sympathetic",
+        "function": "Catecholamine signaling",
+        "regeneration_role": "negative",
+        "sequence": "VTNYFITSLAC",  # Ligand binding
+        "notes": "Chronic activation promotes inflammation",
     },
-    'NR3C1': {
-        'name': 'Glucocorticoid Receptor',
-        'pathway': 'sympathetic',
-        'function': 'Cortisol signaling',
-        'regeneration_role': 'context_dependent',
-        'sequence': 'CLVCSDEASGC',  # DNA binding domain
-        'notes': 'Acute: anti-inflammatory; Chronic: immunosuppressive',
+    "NR3C1": {
+        "name": "Glucocorticoid Receptor",
+        "pathway": "sympathetic",
+        "function": "Cortisol signaling",
+        "regeneration_role": "context_dependent",
+        "sequence": "CLVCSDEASGC",  # DNA binding domain
+        "notes": "Acute: anti-inflammatory; Chronic: immunosuppressive",
     },
-    'TH': {
-        'name': 'Tyrosine Hydroxylase',
-        'pathway': 'sympathetic',
-        'function': 'Rate-limiting enzyme for catecholamines',
-        'regeneration_role': 'negative',
-        'sequence': 'SPRFIGRRQSL',  # Regulatory domain
-        'notes': 'Marker of sympathetic activity',
+    "TH": {
+        "name": "Tyrosine Hydroxylase",
+        "pathway": "sympathetic",
+        "function": "Rate-limiting enzyme for catecholamines",
+        "regeneration_role": "negative",
+        "sequence": "SPRFIGRRQSL",  # Regulatory domain
+        "notes": "Marker of sympathetic activity",
     },
-    'CRH': {
-        'name': 'Corticotropin Releasing Hormone',
-        'pathway': 'sympathetic',
-        'function': 'Initiates stress response (HPA axis)',
-        'regeneration_role': 'negative',
-        'sequence': 'SEEPPISLDLT',  # Active peptide
-        'notes': 'Central stress mediator',
+    "CRH": {
+        "name": "Corticotropin Releasing Hormone",
+        "pathway": "sympathetic",
+        "function": "Initiates stress response (HPA axis)",
+        "regeneration_role": "negative",
+        "sequence": "SEEPPISLDLT",  # Active peptide
+        "notes": "Central stress mediator",
     },
-
     # =========================================
     # STEM CELL / REGENERATION SIGNALS
     # =========================================
-
-    'WNT3A': {
-        'name': 'Wnt Family Member 3A',
-        'pathway': 'regeneration',
-        'function': 'Canonical Wnt signaling - stem cell maintenance',
-        'regeneration_role': 'positive',
-        'sequence': 'CQRQFRELKHE',  # Receptor binding
-        'notes': 'Key regeneration signal in planarians',
+    "WNT3A": {
+        "name": "Wnt Family Member 3A",
+        "pathway": "regeneration",
+        "function": "Canonical Wnt signaling - stem cell maintenance",
+        "regeneration_role": "positive",
+        "sequence": "CQRQFRELKHE",  # Receptor binding
+        "notes": "Key regeneration signal in planarians",
     },
-    'CTNNB1': {
-        'name': 'Beta-Catenin',
-        'pathway': 'regeneration',
-        'function': 'Wnt signal transducer',
-        'regeneration_role': 'positive',
-        'sequence': 'RAAQLLAAGIR',  # Armadillo repeat
-        'notes': 'Nuclear translocation = regeneration',
+    "CTNNB1": {
+        "name": "Beta-Catenin",
+        "pathway": "regeneration",
+        "function": "Wnt signal transducer",
+        "regeneration_role": "positive",
+        "sequence": "RAAQLLAAGIR",  # Armadillo repeat
+        "notes": "Nuclear translocation = regeneration",
     },
-    'NOTCH1': {
-        'name': 'Notch Receptor 1',
-        'pathway': 'regeneration',
-        'function': 'Cell fate decisions',
-        'regeneration_role': 'context_dependent',
-        'sequence': 'CQPGFTGARCT',  # EGF-like domain
-        'notes': 'Lateral inhibition in stem cell niche',
+    "NOTCH1": {
+        "name": "Notch Receptor 1",
+        "pathway": "regeneration",
+        "function": "Cell fate decisions",
+        "regeneration_role": "context_dependent",
+        "sequence": "CQPGFTGARCT",  # EGF-like domain
+        "notes": "Lateral inhibition in stem cell niche",
     },
-    'SHH': {
-        'name': 'Sonic Hedgehog',
-        'pathway': 'regeneration',
-        'function': 'Patterning and regeneration',
-        'regeneration_role': 'positive',
-        'sequence': 'CGPGRRGFGKR',  # Signaling domain
-        'notes': 'Limb regeneration in amphibians',
+    "SHH": {
+        "name": "Sonic Hedgehog",
+        "pathway": "regeneration",
+        "function": "Patterning and regeneration",
+        "regeneration_role": "positive",
+        "sequence": "CGPGRRGFGKR",  # Signaling domain
+        "notes": "Limb regeneration in amphibians",
     },
-    'LGR5': {
-        'name': 'Leucine-rich repeat G-protein coupled receptor 5',
-        'pathway': 'regeneration',
-        'function': 'Stem cell marker (gut, joints)',
-        'regeneration_role': 'positive',
-        'sequence': 'SLEELDLSRNR',  # Extracellular domain
-        'notes': 'Wnt target gene, marks active stem cells',
+    "LGR5": {
+        "name": "Leucine-rich repeat G-protein coupled receptor 5",
+        "pathway": "regeneration",
+        "function": "Stem cell marker (gut, joints)",
+        "regeneration_role": "positive",
+        "sequence": "SLEELDLSRNR",  # Extracellular domain
+        "notes": "Wnt target gene, marks active stem cells",
     },
-
     # =========================================
     # GUT BARRIER / MICROBIOME INTERFACE
     # =========================================
-
-    'TJP1': {
-        'name': 'Tight Junction Protein 1 (ZO-1)',
-        'pathway': 'gut_barrier',
-        'function': 'Intestinal barrier integrity',
-        'regeneration_role': 'positive',
-        'sequence': 'RALPVAPRHRL',  # PDZ domain
-        'notes': 'Leaky gut → systemic inflammation',
+    "TJP1": {
+        "name": "Tight Junction Protein 1 (ZO-1)",
+        "pathway": "gut_barrier",
+        "function": "Intestinal barrier integrity",
+        "regeneration_role": "positive",
+        "sequence": "RALPVAPRHRL",  # PDZ domain
+        "notes": "Leaky gut → systemic inflammation",
     },
-    'OCLN': {
-        'name': 'Occludin',
-        'pathway': 'gut_barrier',
-        'function': 'Tight junction seal',
-        'regeneration_role': 'positive',
-        'sequence': 'YRHEGYASHY',  # Extracellular loop
-        'notes': 'Barrier dysfunction in RA',
+    "OCLN": {
+        "name": "Occludin",
+        "pathway": "gut_barrier",
+        "function": "Tight junction seal",
+        "regeneration_role": "positive",
+        "sequence": "YRHEGYASHY",  # Extracellular loop
+        "notes": "Barrier dysfunction in RA",
     },
-    'TLR4': {
-        'name': 'Toll-Like Receptor 4',
-        'pathway': 'gut_barrier',
-        'function': 'LPS recognition, innate immunity',
-        'regeneration_role': 'negative',
-        'sequence': 'RDLPSGCKKY',  # LRR domain
-        'notes': 'Microbiome-immune interface',
+    "TLR4": {
+        "name": "Toll-Like Receptor 4",
+        "pathway": "gut_barrier",
+        "function": "LPS recognition, innate immunity",
+        "regeneration_role": "negative",
+        "sequence": "RDLPSGCKKY",  # LRR domain
+        "notes": "Microbiome-immune interface",
     },
-    'MUC2': {
-        'name': 'Mucin 2',
-        'pathway': 'gut_barrier',
-        'function': 'Mucus layer protection',
-        'regeneration_role': 'positive',
-        'sequence': 'TTPTPTPTGTT',  # Mucin domain
-        'notes': 'First line of defense',
+    "MUC2": {
+        "name": "Mucin 2",
+        "pathway": "gut_barrier",
+        "function": "Mucus layer protection",
+        "regeneration_role": "positive",
+        "sequence": "TTPTPTPTGTT",  # Mucin domain
+        "notes": "First line of defense",
     },
-
     # =========================================
     # INFLAMMATORY CYTOKINES
     # (for comparison - these should be "far" from regeneration)
     # =========================================
-
-    'TNF': {
-        'name': 'Tumor Necrosis Factor Alpha',
-        'pathway': 'inflammation',
-        'function': 'Pro-inflammatory cytokine',
-        'regeneration_role': 'negative',
-        'sequence': 'RANALLANGV',  # Receptor binding
-        'notes': 'Key target in RA therapy',
+    "TNF": {
+        "name": "Tumor Necrosis Factor Alpha",
+        "pathway": "inflammation",
+        "function": "Pro-inflammatory cytokine",
+        "regeneration_role": "negative",
+        "sequence": "RANALLANGV",  # Receptor binding
+        "notes": "Key target in RA therapy",
     },
-    'IL6': {
-        'name': 'Interleukin 6',
-        'pathway': 'inflammation',
-        'function': 'Pro-inflammatory, acute phase',
-        'regeneration_role': 'negative',
-        'sequence': 'DKQIRYILDK',  # Receptor binding site
-        'notes': 'Elevated in RA, blocks regeneration',
+    "IL6": {
+        "name": "Interleukin 6",
+        "pathway": "inflammation",
+        "function": "Pro-inflammatory, acute phase",
+        "regeneration_role": "negative",
+        "sequence": "DKQIRYILDK",  # Receptor binding site
+        "notes": "Elevated in RA, blocks regeneration",
     },
-    'IL17A': {
-        'name': 'Interleukin 17A',
-        'pathway': 'inflammation',
-        'function': 'Th17 cytokine, bone erosion',
-        'regeneration_role': 'negative',
-        'sequence': 'RPSDYLNRST',  # Active region
-        'notes': 'Drives joint destruction',
+    "IL17A": {
+        "name": "Interleukin 17A",
+        "pathway": "inflammation",
+        "function": "Th17 cytokine, bone erosion",
+        "regeneration_role": "negative",
+        "sequence": "RPSDYLNRST",  # Active region
+        "notes": "Drives joint destruction",
     },
 }
 
@@ -266,7 +252,9 @@ def encode_sequence(aa_sequence, encoder, use_hyperbolic=True):
     for aa in aa_sequence.upper():
         if aa in AA_TO_CODON:
             codon = AA_TO_CODON[aa]
-            onehot = torch.tensor(codon_to_onehot(codon), dtype=torch.float32).unsqueeze(0)
+            onehot = torch.tensor(
+                codon_to_onehot(codon), dtype=torch.float32
+            ).unsqueeze(0)
             with torch.no_grad():
                 emb = encoder.encode(onehot).cpu().numpy().squeeze()
                 if use_hyperbolic:
@@ -279,6 +267,7 @@ def encode_sequence(aa_sequence, encoder, use_hyperbolic=True):
 # PATHWAY ANALYSIS
 # ============================================================================
 
+
 def analyze_pathway_geometry(proteins: Dict, encoder) -> Dict:
     """
     Analyze the p-adic geometry of different pathways.
@@ -290,16 +279,16 @@ def analyze_pathway_geometry(proteins: Dict, encoder) -> Dict:
     protein_embeddings = {}
 
     for protein_id, info in proteins.items():
-        embs = encode_sequence(info['sequence'], encoder)
+        embs = encode_sequence(info["sequence"], encoder)
         if embs is not None:
             centroid = np.mean(embs, axis=0)
             protein_embeddings[protein_id] = {
-                'centroid': centroid,
-                'pathway': info['pathway'],
-                'regeneration_role': info['regeneration_role'],
-                'name': info['name'],
+                "centroid": centroid,
+                "pathway": info["pathway"],
+                "regeneration_role": info["regeneration_role"],
+                "name": info["name"],
             }
-            pathway_embeddings[info['pathway']].append(centroid)
+            pathway_embeddings[info["pathway"]].append(centroid)
 
     # Compute pathway centroids
     pathway_centroids = {}
@@ -315,25 +304,27 @@ def analyze_pathway_geometry(proteins: Dict, encoder) -> Dict:
         centroid = pathway_centroids[pathway]
 
         # Within-pathway variance
-        within_var = np.mean([np.linalg.norm(e - centroid)**2 for e in embs])
+        within_var = np.mean([np.linalg.norm(e - centroid) ** 2 for e in embs])
 
         # Distance to other pathways
         between_dists = {}
         for other in pathways:
             if other != pathway:
-                between_dists[other] = np.linalg.norm(centroid - pathway_centroids[other])
+                between_dists[other] = np.linalg.norm(
+                    centroid - pathway_centroids[other]
+                )
 
         pathway_stats[pathway] = {
-            'n_proteins': len(embs),
-            'within_variance': within_var,
-            'between_distances': between_dists,
-            'centroid': centroid,
+            "n_proteins": len(embs),
+            "within_variance": within_var,
+            "between_distances": between_dists,
+            "centroid": centroid,
         }
 
     return {
-        'protein_embeddings': protein_embeddings,
-        'pathway_centroids': pathway_centroids,
-        'pathway_stats': pathway_stats,
+        "protein_embeddings": protein_embeddings,
+        "pathway_centroids": pathway_centroids,
+        "pathway_stats": pathway_stats,
     }
 
 
@@ -345,14 +336,14 @@ def test_regeneration_hypothesis(analysis: Dict) -> Dict:
     pro_regen = []
     anti_regen = []
 
-    for protein_id, info in analysis['protein_embeddings'].items():
-        if info['regeneration_role'] == 'positive':
-            pro_regen.append(info['centroid'])
-        elif info['regeneration_role'] == 'negative':
-            anti_regen.append(info['centroid'])
+    for protein_id, info in analysis["protein_embeddings"].items():
+        if info["regeneration_role"] == "positive":
+            pro_regen.append(info["centroid"])
+        elif info["regeneration_role"] == "negative":
+            anti_regen.append(info["centroid"])
 
     if not pro_regen or not anti_regen:
-        return {'valid': False}
+        return {"valid": False}
 
     pro_regen = np.array(pro_regen)
     anti_regen = np.array(anti_regen)
@@ -373,15 +364,15 @@ def test_regeneration_hypothesis(analysis: Dict) -> Dict:
     separation_ratio = between / avg_within if avg_within > 0 else 0
 
     return {
-        'valid': True,
-        'n_pro_regen': len(pro_regen),
-        'n_anti_regen': len(anti_regen),
-        'pro_within_dist': pro_within,
-        'anti_within_dist': anti_within,
-        'between_dist': between,
-        'separation_ratio': separation_ratio,
-        'pro_centroid': pro_centroid,
-        'anti_centroid': anti_centroid,
+        "valid": True,
+        "n_pro_regen": len(pro_regen),
+        "n_anti_regen": len(anti_regen),
+        "pro_within_dist": pro_within,
+        "anti_within_dist": anti_within,
+        "between_dist": between,
+        "separation_ratio": separation_ratio,
+        "pro_centroid": pro_centroid,
+        "anti_centroid": anti_centroid,
     }
 
 
@@ -392,35 +383,43 @@ def analyze_autonomic_balance(analysis: Dict) -> Dict:
     Hypothesis: These two systems occupy distinct regions of p-adic space,
     representing fundamentally different biological "states".
     """
-    para = analysis['pathway_stats'].get('parasympathetic', {})
-    symp = analysis['pathway_stats'].get('sympathetic', {})
+    para = analysis["pathway_stats"].get("parasympathetic", {})
+    symp = analysis["pathway_stats"].get("sympathetic", {})
 
     if not para or not symp:
-        return {'valid': False}
+        return {"valid": False}
 
-    para_centroid = para['centroid']
-    symp_centroid = symp['centroid']
+    para_centroid = para["centroid"]
+    symp_centroid = symp["centroid"]
 
     distance = np.linalg.norm(para_centroid - symp_centroid)
 
     # Compare to regeneration and inflammation
-    regen = analysis['pathway_stats'].get('regeneration', {})
-    inflam = analysis['pathway_stats'].get('inflammation', {})
+    regen = analysis["pathway_stats"].get("regeneration", {})
+    inflam = analysis["pathway_stats"].get("inflammation", {})
 
     results = {
-        'valid': True,
-        'para_symp_distance': distance,
-        'para_variance': para['within_variance'],
-        'symp_variance': symp['within_variance'],
+        "valid": True,
+        "para_symp_distance": distance,
+        "para_variance": para["within_variance"],
+        "symp_variance": symp["within_variance"],
     }
 
     if regen:
-        results['para_regen_distance'] = np.linalg.norm(para_centroid - regen['centroid'])
-        results['symp_regen_distance'] = np.linalg.norm(symp_centroid - regen['centroid'])
+        results["para_regen_distance"] = np.linalg.norm(
+            para_centroid - regen["centroid"]
+        )
+        results["symp_regen_distance"] = np.linalg.norm(
+            symp_centroid - regen["centroid"]
+        )
 
     if inflam:
-        results['para_inflam_distance'] = np.linalg.norm(para_centroid - inflam['centroid'])
-        results['symp_inflam_distance'] = np.linalg.norm(symp_centroid - inflam['centroid'])
+        results["para_inflam_distance"] = np.linalg.norm(
+            para_centroid - inflam["centroid"]
+        )
+        results["symp_inflam_distance"] = np.linalg.norm(
+            symp_centroid - inflam["centroid"]
+        )
 
     return results
 
@@ -429,7 +428,10 @@ def analyze_autonomic_balance(analysis: Dict) -> Dict:
 # VISUALIZATION
 # ============================================================================
 
-def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, output_path: Path):
+
+def create_visualization(
+    analysis: Dict, regen_test: Dict, autonomic: Dict, output_path: Path
+):
     """Create comprehensive visualization of regenerative axis."""
     import matplotlib.pyplot as plt
     from sklearn.decomposition import PCA
@@ -443,16 +445,16 @@ def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, outp
     colors = []
     labels = []
     pathway_colors = {
-        'parasympathetic': 'green',
-        'sympathetic': 'red',
-        'regeneration': 'blue',
-        'inflammation': 'orange',
-        'gut_barrier': 'purple',
+        "parasympathetic": "green",
+        "sympathetic": "red",
+        "regeneration": "blue",
+        "inflammation": "orange",
+        "gut_barrier": "purple",
     }
 
-    for protein_id, info in analysis['protein_embeddings'].items():
-        embeddings.append(info['centroid'])
-        colors.append(pathway_colors.get(info['pathway'], 'gray'))
+    for protein_id, info in analysis["protein_embeddings"].items():
+        embeddings.append(info["centroid"])
+        colors.append(pathway_colors.get(info["pathway"], "gray"))
         labels.append(protein_id)
 
     embeddings = np.array(embeddings)
@@ -461,16 +463,16 @@ def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, outp
 
     for i, (x, y) in enumerate(emb_2d):
         ax1.scatter(x, y, c=colors[i], s=100, alpha=0.7)
-        ax1.annotate(labels[i], (x, y), fontsize=6, ha='left')
+        ax1.annotate(labels[i], (x, y), fontsize=6, ha="left")
 
-    ax1.set_xlabel(f'PC1 ({pca.explained_variance_ratio_[0]:.1%})')
-    ax1.set_ylabel(f'PC2 ({pca.explained_variance_ratio_[1]:.1%})')
-    ax1.set_title('Proteins in P-Adic Embedding Space')
+    ax1.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]:.1%})")
+    ax1.set_ylabel(f"PC2 ({pca.explained_variance_ratio_[1]:.1%})")
+    ax1.set_title("Proteins in P-Adic Embedding Space")
 
     # Legend
     for pathway, color in pathway_colors.items():
         ax1.scatter([], [], c=color, label=pathway, s=100)
-    ax1.legend(loc='upper right', fontsize=8)
+    ax1.legend(loc="upper right", fontsize=8)
 
     # 2. Pathway centroids
     ax2 = axes[0, 1]
@@ -479,91 +481,109 @@ def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, outp
     pathway_names = []
     pathway_cols = []
 
-    for pathway, stats in analysis['pathway_stats'].items():
-        pathway_embs.append(stats['centroid'])
+    for pathway, stats in analysis["pathway_stats"].items():
+        pathway_embs.append(stats["centroid"])
         pathway_names.append(pathway)
-        pathway_cols.append(pathway_colors.get(pathway, 'gray'))
+        pathway_cols.append(pathway_colors.get(pathway, "gray"))
 
     pathway_embs = np.array(pathway_embs)
     pathway_2d = pca.transform(pathway_embs)
 
     ax2.scatter(pathway_2d[:, 0], pathway_2d[:, 1], c=pathway_cols, s=300, alpha=0.8)
     for i, name in enumerate(pathway_names):
-        ax2.annotate(name, (pathway_2d[i, 0], pathway_2d[i, 1]),
-                    fontsize=10, ha='center', va='bottom')
+        ax2.annotate(
+            name,
+            (pathway_2d[i, 0], pathway_2d[i, 1]),
+            fontsize=10,
+            ha="center",
+            va="bottom",
+        )
 
     # Draw connections
     for i in range(len(pathway_names)):
-        for j in range(i+1, len(pathway_names)):
-            ax2.plot([pathway_2d[i, 0], pathway_2d[j, 0]],
-                    [pathway_2d[i, 1], pathway_2d[j, 1]],
-                    'k-', alpha=0.2)
+        for j in range(i + 1, len(pathway_names)):
+            ax2.plot(
+                [pathway_2d[i, 0], pathway_2d[j, 0]],
+                [pathway_2d[i, 1], pathway_2d[j, 1]],
+                "k-",
+                alpha=0.2,
+            )
 
-    ax2.set_xlabel('PC1')
-    ax2.set_ylabel('PC2')
-    ax2.set_title('Pathway Centroids')
+    ax2.set_xlabel("PC1")
+    ax2.set_ylabel("PC2")
+    ax2.set_title("Pathway Centroids")
 
     # 3. Pro vs Anti regeneration
     ax3 = axes[0, 2]
 
-    if regen_test['valid']:
-        categories = ['Pro-Regen\nWithin', 'Anti-Regen\nWithin', 'Between']
-        values = [regen_test['pro_within_dist'],
-                  regen_test['anti_within_dist'],
-                  regen_test['between_dist']]
-        colors_bar = ['green', 'red', 'purple']
+    if regen_test["valid"]:
+        categories = ["Pro-Regen\nWithin", "Anti-Regen\nWithin", "Between"]
+        values = [
+            regen_test["pro_within_dist"],
+            regen_test["anti_within_dist"],
+            regen_test["between_dist"],
+        ]
+        colors_bar = ["green", "red", "purple"]
 
         ax3.bar(categories, values, color=colors_bar, alpha=0.7)
-        ax3.set_ylabel('Mean Distance')
-        ax3.set_title(f'Regeneration vs Anti-Regeneration\nSeparation Ratio: {regen_test["separation_ratio"]:.2f}x')
+        ax3.set_ylabel("Mean Distance")
+        ax3.set_title(
+            f'Regeneration vs Anti-Regeneration\nSeparation Ratio: {regen_test["separation_ratio"]:.2f}x'
+        )
 
     # 4. Autonomic balance
     ax4 = axes[1, 0]
 
-    if autonomic['valid']:
+    if autonomic["valid"]:
         # Bar chart of distances
-        metrics = ['Para↔Symp', 'Para↔Regen', 'Symp↔Regen', 'Para↔Inflam', 'Symp↔Inflam']
-        values = [
-            autonomic['para_symp_distance'],
-            autonomic.get('para_regen_distance', 0),
-            autonomic.get('symp_regen_distance', 0),
-            autonomic.get('para_inflam_distance', 0),
-            autonomic.get('symp_inflam_distance', 0),
+        metrics = [
+            "Para↔Symp",
+            "Para↔Regen",
+            "Symp↔Regen",
+            "Para↔Inflam",
+            "Symp↔Inflam",
         ]
-        colors_auto = ['purple', 'green', 'red', 'lightgreen', 'lightcoral']
+        values = [
+            autonomic["para_symp_distance"],
+            autonomic.get("para_regen_distance", 0),
+            autonomic.get("symp_regen_distance", 0),
+            autonomic.get("para_inflam_distance", 0),
+            autonomic.get("symp_inflam_distance", 0),
+        ]
+        colors_auto = ["purple", "green", "red", "lightgreen", "lightcoral"]
 
         ax4.barh(range(len(metrics)), values, color=colors_auto, alpha=0.7)
         ax4.set_yticks(range(len(metrics)))
         ax4.set_yticklabels(metrics)
-        ax4.set_xlabel('Distance in Embedding Space')
-        ax4.set_title('Autonomic Balance Geometry')
+        ax4.set_xlabel("Distance in Embedding Space")
+        ax4.set_title("Autonomic Balance Geometry")
         ax4.invert_yaxis()
 
     # 5. Pathway distance matrix
     ax5 = axes[1, 1]
 
-    pathways = list(analysis['pathway_stats'].keys())
+    pathways = list(analysis["pathway_stats"].keys())
     n = len(pathways)
     dist_matrix = np.zeros((n, n))
 
     for i, p1 in enumerate(pathways):
         for j, p2 in enumerate(pathways):
             if i != j:
-                c1 = analysis['pathway_stats'][p1]['centroid']
-                c2 = analysis['pathway_stats'][p2]['centroid']
+                c1 = analysis["pathway_stats"][p1]["centroid"]
+                c2 = analysis["pathway_stats"][p2]["centroid"]
                 dist_matrix[i, j] = np.linalg.norm(c1 - c2)
 
-    im = ax5.imshow(dist_matrix, cmap='viridis')
+    im = ax5.imshow(dist_matrix, cmap="viridis")
     ax5.set_xticks(range(n))
     ax5.set_yticks(range(n))
-    ax5.set_xticklabels([p[:10] for p in pathways], rotation=45, ha='right', fontsize=8)
+    ax5.set_xticklabels([p[:10] for p in pathways], rotation=45, ha="right", fontsize=8)
     ax5.set_yticklabels([p[:10] for p in pathways], fontsize=8)
-    ax5.set_title('Pathway Distance Matrix')
+    ax5.set_title("Pathway Distance Matrix")
     plt.colorbar(im, ax=ax5)
 
     # 6. Summary text
     ax6 = axes[1, 2]
-    ax6.axis('off')
+    ax6.axis("off")
 
     summary = f"""
     REGENERATIVE AXIS ANALYSIS
@@ -587,11 +607,18 @@ def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, outp
     {'Sympathetic closer to inflammation' if autonomic.get('symp_inflam_distance', 1) < autonomic.get('para_inflam_distance', 0) else 'Parasympathetic closer to inflammation'}
     """
 
-    ax6.text(0.1, 0.9, summary, transform=ax6.transAxes,
-             fontsize=10, family='monospace', verticalalignment='top')
+    ax6.text(
+        0.1,
+        0.9,
+        summary,
+        transform=ax6.transAxes,
+        fontsize=10,
+        family="monospace",
+        verticalalignment="top",
+    )
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"  Saved visualization to {output_path}")
 
@@ -599,6 +626,7 @@ def create_visualization(analysis: Dict, regen_test: Dict, autonomic: Dict, outp
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main():
     print("=" * 70)
@@ -614,7 +642,7 @@ def main():
     # Load encoder using utility function
     # Using '3adic' version (native hyperbolic from V5.11.3)
     print("\nLoading codon encoder (3-adic, V5.11.3)...")
-    encoder, codon_mapping, _ = load_codon_encoder(device='cpu', version='3adic')
+    encoder, codon_mapping, _ = load_codon_encoder(device="cpu", version="3adic")
 
     # Analyze pathways
     print("\nAnalyzing pathway geometry...")
@@ -623,7 +651,7 @@ def main():
     print(f"\n  Proteins encoded: {len(analysis['protein_embeddings'])}")
     print(f"  Pathways identified: {list(analysis['pathway_stats'].keys())}")
 
-    for pathway, stats in analysis['pathway_stats'].items():
+    for pathway, stats in analysis["pathway_stats"].items():
         print(f"\n  {pathway.upper()}:")
         print(f"    Proteins: {stats['n_proteins']}")
         print(f"    Within-variance: {stats['within_variance']:.4f}")
@@ -635,16 +663,20 @@ def main():
 
     regen_test = test_regeneration_hypothesis(analysis)
 
-    if regen_test['valid']:
+    if regen_test["valid"]:
         print(f"\n  Pro-regeneration proteins: {regen_test['n_pro_regen']}")
         print(f"  Anti-regeneration proteins: {regen_test['n_anti_regen']}")
         print(f"  Pro-regen within-group distance: {regen_test['pro_within_dist']:.4f}")
-        print(f"  Anti-regen within-group distance: {regen_test['anti_within_dist']:.4f}")
+        print(
+            f"  Anti-regen within-group distance: {regen_test['anti_within_dist']:.4f}"
+        )
         print(f"  Between-group distance: {regen_test['between_dist']:.4f}")
         print(f"  Separation ratio: {regen_test['separation_ratio']:.2f}x")
 
-        if regen_test['separation_ratio'] > 1.0:
-            print("\n  *** HYPOTHESIS SUPPORTED: Pro/Anti regeneration are geometrically separated ***")
+        if regen_test["separation_ratio"] > 1.0:
+            print(
+                "\n  *** HYPOTHESIS SUPPORTED: Pro/Anti regeneration are geometrically separated ***"
+            )
 
     # Analyze autonomic balance
     print("\n" + "-" * 70)
@@ -653,30 +685,46 @@ def main():
 
     autonomic = analyze_autonomic_balance(analysis)
 
-    if autonomic['valid']:
-        print(f"\n  Parasympathetic ↔ Sympathetic distance: {autonomic['para_symp_distance']:.4f}")
+    if autonomic["valid"]:
+        print(
+            f"\n  Parasympathetic ↔ Sympathetic distance: {autonomic['para_symp_distance']:.4f}"
+        )
         print(f"  Parasympathetic variance: {autonomic['para_variance']:.4f}")
         print(f"  Sympathetic variance: {autonomic['symp_variance']:.4f}")
 
-        if 'para_regen_distance' in autonomic:
-            print(f"\n  Parasympathetic ↔ Regeneration: {autonomic['para_regen_distance']:.4f}")
-            print(f"  Sympathetic ↔ Regeneration: {autonomic['symp_regen_distance']:.4f}")
+        if "para_regen_distance" in autonomic:
+            print(
+                f"\n  Parasympathetic ↔ Regeneration: {autonomic['para_regen_distance']:.4f}"
+            )
+            print(
+                f"  Sympathetic ↔ Regeneration: {autonomic['symp_regen_distance']:.4f}"
+            )
 
-            if autonomic['para_regen_distance'] < autonomic['symp_regen_distance']:
-                print("\n  *** FINDING: Parasympathetic is CLOSER to regeneration pathway ***")
+            if autonomic["para_regen_distance"] < autonomic["symp_regen_distance"]:
+                print(
+                    "\n  *** FINDING: Parasympathetic is CLOSER to regeneration pathway ***"
+                )
             else:
-                print("\n  *** FINDING: Sympathetic is closer to regeneration pathway ***")
+                print(
+                    "\n  *** FINDING: Sympathetic is closer to regeneration pathway ***"
+                )
 
-        if 'para_inflam_distance' in autonomic:
-            print(f"\n  Parasympathetic ↔ Inflammation: {autonomic['para_inflam_distance']:.4f}")
-            print(f"  Sympathetic ↔ Inflammation: {autonomic['symp_inflam_distance']:.4f}")
+        if "para_inflam_distance" in autonomic:
+            print(
+                f"\n  Parasympathetic ↔ Inflammation: {autonomic['para_inflam_distance']:.4f}"
+            )
+            print(
+                f"  Sympathetic ↔ Inflammation: {autonomic['symp_inflam_distance']:.4f}"
+            )
 
-            if autonomic['symp_inflam_distance'] < autonomic['para_inflam_distance']:
-                print("\n  *** FINDING: Sympathetic is CLOSER to inflammation pathway ***")
+            if autonomic["symp_inflam_distance"] < autonomic["para_inflam_distance"]:
+                print(
+                    "\n  *** FINDING: Sympathetic is CLOSER to inflammation pathway ***"
+                )
 
     # Create visualization
     print("\nGenerating visualization...")
-    vis_path = results_dir / 'regenerative_axis_analysis.png'
+    vis_path = results_dir / "regenerative_axis_analysis.png"
     create_visualization(analysis, regen_test, autonomic, vis_path)
 
     # Summary
@@ -684,7 +732,8 @@ def main():
     print("SUMMARY: REGENERATIVE AXIS IN P-ADIC SPACE")
     print("=" * 70)
 
-    print("""
+    print(
+        """
     The p-adic geometry reveals fundamental organization of biological states:
 
     1. PARASYMPATHETIC/VAGAL PATHWAY
@@ -718,28 +767,35 @@ def main():
     be entered by shifting the autonomic balance toward parasympathetic
     dominance, which moves cellular signaling toward the "regeneration
     region" of p-adic space.
-    """)
+    """
+    )
 
     # Save results
     output_data = {
-        'n_proteins': len(analysis['protein_embeddings']),
-        'pathways': list(analysis['pathway_stats'].keys()),
-        'regeneration_hypothesis': {
-            'separation_ratio': float(regen_test.get('separation_ratio', 0)),
-            'supported': bool(regen_test.get('separation_ratio', 0) > 1.0),
+        "n_proteins": len(analysis["protein_embeddings"]),
+        "pathways": list(analysis["pathway_stats"].keys()),
+        "regeneration_hypothesis": {
+            "separation_ratio": float(regen_test.get("separation_ratio", 0)),
+            "supported": bool(regen_test.get("separation_ratio", 0) > 1.0),
         },
-        'autonomic_analysis': {
-            'para_symp_distance': float(autonomic.get('para_symp_distance', 0)),
-            'para_closer_to_regen': bool(autonomic.get('para_regen_distance', 1) < autonomic.get('symp_regen_distance', 0)),
-            'symp_closer_to_inflam': bool(autonomic.get('symp_inflam_distance', 1) < autonomic.get('para_inflam_distance', 0)),
+        "autonomic_analysis": {
+            "para_symp_distance": float(autonomic.get("para_symp_distance", 0)),
+            "para_closer_to_regen": bool(
+                autonomic.get("para_regen_distance", 1)
+                < autonomic.get("symp_regen_distance", 0)
+            ),
+            "symp_closer_to_inflam": bool(
+                autonomic.get("symp_inflam_distance", 1)
+                < autonomic.get("para_inflam_distance", 0)
+            ),
         },
     }
 
-    output_path = results_dir / 'regenerative_axis_results.json'
-    with open(output_path, 'w') as f:
+    output_path = results_dir / "regenerative_axis_results.json"
+    with open(output_path, "w") as f:
         json.dump(output_data, f, indent=2)
     print(f"\n  Saved results to {output_path}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

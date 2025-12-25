@@ -15,11 +15,12 @@ Usage:
 """
 
 import argparse
-import pandas as pd
-import torch
-import numpy as np
 import sys
 from pathlib import Path
+
+import numpy as np
+import pandas as pd
+import torch
 
 # Add project root to path for imports
 project_root = Path(__file__).resolve().parents[2]
@@ -28,36 +29,40 @@ sys.path.append(str(project_root))
 try:
     # Attempt to import from the location found in research/
     from research.bioinformatics.codon_encoder_research.hiv.src.hyperbolic_utils import (
-        load_hyperbolic_encoder,
-        encode_sequence_hyperbolic,
-        AA_TO_CODON
-    )
+        AA_TO_CODON, encode_sequence_hyperbolic, load_hyperbolic_encoder)
 except ImportError:
-    print("Error: Could not import hyperbolic_utils. Please ensure the project structure is correct.")
+    print(
+        "Error: Could not import hyperbolic_utils. Please ensure the project structure is correct."
+    )
     sys.exit(1)
+
 
 def ingest_starpep(input_path: str, output_path: str):
     """
     Process StarPepDB data.
-    
+
     Args:
         input_path: Path to raw CSV file (columns: 'sequence', 'activity', etc.)
         output_path: Path to save processed .pt file
     """
     input_file = Path(input_path)
     output_file = Path(output_path)
-    
+
     # create output directory if it doesn't exist
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     print(f"Loading data from {input_file}...")
     if not input_file.exists():
-        print(f"Warning: Input file {input_file} not found. Creating dummy data for demonstration.")
+        print(
+            f"Warning: Input file {input_file} not found. Creating dummy data for demonstration."
+        )
         # Create dummy dataframe for testing/demo
-        df = pd.DataFrame({
-            'sequence': ['AKRGG', 'GGLKK', 'AKR', 'INVALIDX'],
-            'activity': [1, 1, 0, 0]
-        })
+        df = pd.DataFrame(
+            {
+                "sequence": ["AKRGG", "GGLKK", "AKR", "INVALIDX"],
+                "activity": [1, 1, 0, 0],
+            }
+        )
     else:
         df = pd.read_csv(input_file)
 
@@ -67,7 +72,7 @@ def ingest_starpep(input_path: str, output_path: str):
     print("Loading Hyperbolic Codon Encoder...")
     try:
         # Assuming '3adic' version is available
-        encoder, _ = load_hyperbolic_encoder(version='3adic', device='cpu')
+        encoder, _ = load_hyperbolic_encoder(version="3adic", device="cpu")
     except Exception as e:
         print(f"Failed to load 3adic encoder: {e}")
         print("Falling back to legacy/mock for structure verification.")
@@ -78,8 +83,8 @@ def ingest_starpep(input_path: str, output_path: str):
 
     print("Encoding sequences...")
     for idx, row in df.iterrows():
-        seq = str(row.get('sequence', '')).strip()
-        
+        seq = str(row.get("sequence", "")).strip()
+
         # Basic validation
         if not seq or any(c not in AA_TO_CODON for c in seq.upper()):
             continue
@@ -88,12 +93,12 @@ def ingest_starpep(input_path: str, output_path: str):
         try:
             # Returns (L, 16) array
             emb = encode_sequence_hyperbolic(seq, encoder, AA_TO_CODON)
-            
+
             # For fixed-size input, we might want to pool (mean/max) or pad.
             # Here we compute the hyperbolic centroid (average embedding of the peptide)
             # effectively a "geometric mean" in the p-adic space.
-            peptide_embedding = np.mean(emb, axis=0) 
-            
+            peptide_embedding = np.mean(emb, axis=0)
+
             embeddings_list.append(peptide_embedding)
             valid_indices.append(idx)
         except Exception as e:
@@ -106,25 +111,32 @@ def ingest_starpep(input_path: str, output_path: str):
 
     embeddings_tensor = torch.tensor(np.stack(embeddings_list), dtype=torch.float32)
     metadata = df.loc[valid_indices].reset_index(drop=True)
-    
+
     print(f"Successfully encoded {len(embeddings_list)} peptides.")
     print(f"Embedding shape: {embeddings_tensor.shape}")
 
     # Save
     save_dict = {
-        'embeddings': embeddings_tensor,
-        'metadata': metadata,
-        'encoder_version': '3adic'
+        "embeddings": embeddings_tensor,
+        "metadata": metadata,
+        "encoder_version": "3adic",
     }
-    
+
     torch.save(save_dict, output_file)
     print(f"Saved processed data to {output_file}")
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Ingest StarPepDB data")
-    parser.add_argument("--input", default="data/raw/starpep.csv", help="Path to input CSV")
-    parser.add_argument("--output", default="data/processed/starpep_hyperbolic.pt", help="Path to output .pt file")
-    
+    parser.add_argument(
+        "--input", default="data/raw/starpep.csv", help="Path to input CSV"
+    )
+    parser.add_argument(
+        "--output",
+        default="data/processed/starpep_hyperbolic.pt",
+        help="Path to output .pt file",
+    )
+
     args = parser.parse_args()
-    
+
     ingest_starpep(args.input, args.output)

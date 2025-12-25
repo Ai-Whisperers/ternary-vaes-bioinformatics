@@ -48,10 +48,11 @@ Usage:
     registry.set_weight('kl', new_weight)
 """
 
+from collections import OrderedDict
+from typing import Any, Callable, Dict, List, Optional
+
 import torch
 import torch.nn as nn
-from typing import Dict, List, Optional, Any, Callable
-from collections import OrderedDict
 
 from .base import LossComponent, LossResult
 
@@ -71,11 +72,8 @@ class LossRegistry(nn.Module):
         self._weight_overrides: Dict[str, float] = {}
 
     def register(
-        self,
-        name: str,
-        loss: LossComponent,
-        enabled: bool = True
-    ) -> 'LossRegistry':
+        self, name: str, loss: LossComponent, enabled: bool = True
+    ) -> "LossRegistry":
         """Register a loss component.
 
         Args:
@@ -99,7 +97,7 @@ class LossRegistry(nn.Module):
 
         return self
 
-    def unregister(self, name: str) -> 'LossRegistry':
+    def unregister(self, name: str) -> "LossRegistry":
         """Remove a loss component.
 
         Args:
@@ -189,10 +187,7 @@ class LossRegistry(nn.Module):
         return [name for name, enabled in self._enabled.items() if enabled]
 
     def compose(
-        self,
-        outputs: Dict[str, torch.Tensor],
-        targets: torch.Tensor,
-        **kwargs
+        self, outputs: Dict[str, torch.Tensor], targets: torch.Tensor, **kwargs
     ) -> LossResult:
         """Compose all enabled losses into single result.
 
@@ -209,7 +204,7 @@ class LossRegistry(nn.Module):
         Returns:
             LossResult with total loss and all metrics
         """
-        device = outputs.get('z_A', outputs.get('logits_A')).device
+        device = outputs.get("z_A", outputs.get("logits_A")).device
         total_loss = torch.tensor(0.0, device=device)
         all_metrics: Dict[str, float] = {}
 
@@ -234,24 +229,21 @@ class LossRegistry(nn.Module):
 
             # Merge metrics with loss name prefix
             for key, value in result.metrics.items():
-                metric_key = f'{name}/{key}'
+                metric_key = f"{name}/{key}"
                 all_metrics[metric_key] = value
 
             # Also record the loss value itself
-            all_metrics[f'{name}/loss'] = result.loss.item()
-            all_metrics[f'{name}/weight'] = effective_weight
+            all_metrics[f"{name}/loss"] = result.loss.item()
+            all_metrics[f"{name}/weight"] = effective_weight
 
         return LossResult(
             loss=total_loss,
             metrics=all_metrics,
-            weight=1.0  # Total is already weighted
+            weight=1.0,  # Total is already weighted
         )
 
     def compose_with_gradients(
-        self,
-        outputs: Dict[str, torch.Tensor],
-        targets: torch.Tensor,
-        **kwargs
+        self, outputs: Dict[str, torch.Tensor], targets: torch.Tensor, **kwargs
     ) -> tuple:
         """Compose losses and return individual gradients for analysis.
 
@@ -292,7 +284,7 @@ class LossGroup:
         self.name = name
         self._losses: Dict[str, LossComponent] = {}
 
-    def add(self, name: str, loss: LossComponent) -> 'LossGroup':
+    def add(self, name: str, loss: LossComponent) -> "LossGroup":
         """Add a loss to this group.
 
         Args:
@@ -331,47 +323,38 @@ def create_registry_from_config(config: Dict[str, Any]) -> LossRegistry:
             }
         }
     """
-    from .components import (
-        ReconstructionLossComponent,
-        KLDivergenceLossComponent,
-        EntropyLossComponent,
-        RepulsionLossComponent,
-        PAdicRankingLossComponent,
-        PAdicHyperbolicLossComponent
-    )
+    from .components import (EntropyLossComponent, KLDivergenceLossComponent,
+                             PAdicHyperbolicLossComponent,
+                             PAdicRankingLossComponent,
+                             ReconstructionLossComponent,
+                             RepulsionLossComponent)
 
     registry = LossRegistry()
-    losses_config = config.get('losses', {})
+    losses_config = config.get("losses", {})
 
     # Register each loss type if enabled
     loss_factories: Dict[str, Callable] = {
-        'reconstruction': lambda cfg: ReconstructionLossComponent(
-            weight=cfg.get('weight', 1.0)
+        "reconstruction": lambda cfg: ReconstructionLossComponent(
+            weight=cfg.get("weight", 1.0)
         ),
-        'kl': lambda cfg: KLDivergenceLossComponent(
-            weight=cfg.get('weight', 0.1),
-            free_bits=cfg.get('free_bits', 0.0)
+        "kl": lambda cfg: KLDivergenceLossComponent(
+            weight=cfg.get("weight", 0.1), free_bits=cfg.get("free_bits", 0.0)
         ),
-        'entropy': lambda cfg: EntropyLossComponent(
-            weight=cfg.get('weight', 0.01)
+        "entropy": lambda cfg: EntropyLossComponent(weight=cfg.get("weight", 0.01)),
+        "repulsion": lambda cfg: RepulsionLossComponent(
+            weight=cfg.get("weight", 0.01), sigma=cfg.get("sigma", 0.5)
         ),
-        'repulsion': lambda cfg: RepulsionLossComponent(
-            weight=cfg.get('weight', 0.01),
-            sigma=cfg.get('sigma', 0.5)
+        "padic_ranking": lambda cfg: PAdicRankingLossComponent(
+            weight=cfg.get("weight", 0.5), config=cfg
         ),
-        'padic_ranking': lambda cfg: PAdicRankingLossComponent(
-            weight=cfg.get('weight', 0.5),
-            config=cfg
-        ),
-        'padic_hyperbolic': lambda cfg: PAdicHyperbolicLossComponent(
-            weight=cfg.get('weight', 0.5),
-            config=cfg
+        "padic_hyperbolic": lambda cfg: PAdicHyperbolicLossComponent(
+            weight=cfg.get("weight", 0.5), config=cfg
         ),
     }
 
     for loss_name, factory in loss_factories.items():
         loss_cfg = losses_config.get(loss_name, {})
-        enabled = loss_cfg.get('enabled', False)
+        enabled = loss_cfg.get("enabled", False)
 
         if enabled:
             loss_component = factory(loss_cfg)
@@ -380,4 +363,4 @@ def create_registry_from_config(config: Dict[str, Any]) -> LossRegistry:
     return registry
 
 
-__all__ = ['LossRegistry', 'LossGroup', 'create_registry_from_config']
+__all__ = ["LossRegistry", "LossGroup", "create_registry_from_config"]

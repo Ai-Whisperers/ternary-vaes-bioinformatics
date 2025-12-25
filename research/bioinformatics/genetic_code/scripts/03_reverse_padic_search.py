@@ -14,22 +14,22 @@ Usage:
     python 07b_reverse_padic_search.py
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
+from collections import Counter
 from datetime import datetime
 from itertools import combinations
-from collections import Counter
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
-import numpy as np
-from scipy import stats
-from scipy.cluster.hierarchy import linkage, fcluster
-from scipy.spatial.distance import pdist, squareform
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from scipy import stats
+from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.spatial.distance import pdist, squareform
 
 # Genetic code degeneracy pattern: how many codons per amino acid
 # Sorted: [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 6, 6, 6]

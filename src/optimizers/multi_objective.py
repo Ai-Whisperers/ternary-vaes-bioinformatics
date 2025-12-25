@@ -3,8 +3,9 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
+from typing import List, Optional, Tuple
+
 import torch
-from typing import List, Tuple, Optional
 
 
 class ParetoFrontOptimizer:

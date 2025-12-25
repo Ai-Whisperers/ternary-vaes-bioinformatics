@@ -22,9 +22,9 @@ Date: 2025-12-24
 """
 
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List
-from datetime import datetime
 
 # =============================================================================
 # HIV-1 INTEGRASE SEQUENCE (HXB2 reference, 288 aa)
@@ -40,7 +40,23 @@ INTEGRASE_WT = (
 )
 
 # LEDGF/p75 binding domain residues (from crystal structure 2B4J)
-LEDGF_INTERFACE_RESIDUES = [128, 129, 130, 131, 132, 161, 166, 168, 170, 171, 173, 174, 175, 178, 179]
+LEDGF_INTERFACE_RESIDUES = [
+    128,
+    129,
+    130,
+    131,
+    132,
+    161,
+    166,
+    168,
+    170,
+    171,
+    173,
+    174,
+    175,
+    178,
+    179,
+]
 
 # Catalytic DDE motif (absolutely conserved)
 CATALYTIC_RESIDUES = [64, 116, 152]
@@ -53,7 +69,6 @@ CATALYTIC_RESIDUES = [64, 116, 152]
 REVEAL_MUTATIONS = {
     # Top candidates - using actual HXB2 sequence positions
     # The reveal scores are from codon-level analysis, mutations target LEDGF interface
-
     "W131A": {
         "position": 131,  # W in sequence
         "wt_aa": "W",
@@ -108,7 +123,12 @@ REVEAL_MUTATIONS = {
 RESISTANCE_MUTATIONS = {
     "Y143R": {"position": 143, "wt_aa": "Y", "mut_aa": "R", "drugs": ["RAL"]},
     "N155H": {"position": 155, "wt_aa": "N", "mut_aa": "H", "drugs": ["RAL", "EVG"]},
-    "Q148H": {"position": 148, "wt_aa": "Q", "mut_aa": "H", "drugs": ["RAL", "EVG", "DTG"]},
+    "Q148H": {
+        "position": 148,
+        "wt_aa": "Q",
+        "mut_aa": "H",
+        "drugs": ["RAL", "EVG", "DTG"],
+    },
 }
 
 
@@ -181,7 +201,11 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    generator = generate_alphafold_server_json if use_server_format else generate_alphafold3_json
+    generator = (
+        generate_alphafold_server_json
+        if use_server_format
+        else generate_alphafold3_json
+    )
     format_name = "AlphaFold Server" if use_server_format else "AlphaFold3 Local"
 
     print(f"Generating {format_name} inputs...")
@@ -197,7 +221,7 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
         description="HIV-1 Integrase wild-type (HXB2 reference)",
     )
     wt_path = output_dir / "01_IN_wildtype.json"
-    with open(wt_path, 'w') as f:
+    with open(wt_path, "w") as f:
         json.dump(wt_json, f, indent=2)
     generated_files.append(wt_path)
     print(f"  Saved: {wt_path.name}")
@@ -205,16 +229,12 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
     # 2. Top reveal mutations
     print("\n[2] Reveal Mutations (ranked by score)")
     sorted_mutations = sorted(
-        REVEAL_MUTATIONS.items(),
-        key=lambda x: x[1]["reveal_score"],
-        reverse=True
+        REVEAL_MUTATIONS.items(), key=lambda x: x[1]["reveal_score"], reverse=True
     )
 
     for i, (mut_name, mut_data) in enumerate(sorted_mutations, start=2):
         mut_seq = mutate_sequence(
-            INTEGRASE_WT,
-            mut_data["position"],
-            mut_data["mut_aa"]
+            INTEGRASE_WT, mut_data["position"], mut_data["mut_aa"]
         )
 
         description = (
@@ -236,20 +256,20 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
         assert mut_aa == mut_data["mut_aa"], f"Mut mismatch at {mut_data['position']}"
 
         mut_path = output_dir / f"{i:02d}_IN_{mut_name}.json"
-        with open(mut_path, 'w') as f:
+        with open(mut_path, "w") as f:
             json.dump(mut_json, f, indent=2)
         generated_files.append(mut_path)
 
-        print(f"  {mut_name}: score={mut_data['reveal_score']:.1f}, {mut_data['mechanism'][:40]}...")
+        print(
+            f"  {mut_name}: score={mut_data['reveal_score']:.1f}, {mut_data['mechanism'][:40]}..."
+        )
         print(f"    Saved: {mut_path.name}")
 
     # 3. Drug resistance mutations (for comparison)
     print("\n[3] Drug Resistance Mutations (comparison)")
     for mut_name, mut_data in RESISTANCE_MUTATIONS.items():
         mut_seq = mutate_sequence(
-            INTEGRASE_WT,
-            mut_data["position"],
-            mut_data["mut_aa"]
+            INTEGRASE_WT, mut_data["position"], mut_data["mut_aa"]
         )
 
         description = (
@@ -264,7 +284,7 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
         )
 
         mut_path = output_dir / f"resistance_{mut_name}.json"
-        with open(mut_path, 'w') as f:
+        with open(mut_path, "w") as f:
             json.dump(mut_json, f, indent=2)
         generated_files.append(mut_path)
 
@@ -286,7 +306,11 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
         "jobs": [
             {
                 "file": f.name,
-                "type": "wildtype" if "wildtype" in f.name else ("reveal" if "resistance" not in f.name else "resistance"),
+                "type": (
+                    "wildtype"
+                    if "wildtype" in f.name
+                    else ("reveal" if "resistance" not in f.name else "resistance")
+                ),
                 "priority": i + 1,
             }
             for i, f in enumerate(generated_files)
@@ -302,7 +326,7 @@ def generate_all_inputs(output_dir: Path, use_server_format: bool = False):
     }
 
     manifest_path = output_dir / "manifest.json"
-    with open(manifest_path, 'w') as f:
+    with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
     print(f"  Saved: {manifest_path.name}")
@@ -345,7 +369,8 @@ def main():
     print("\n" + "=" * 60)
     print("NEXT STEPS")
     print("=" * 60)
-    print("""
+    print(
+        """
   For AlphaFold Server (immediate):
     1. Go to https://alphafoldserver.com
     2. Upload files from inputs/integrase/server/
@@ -356,7 +381,8 @@ def main():
     1. Request model weights from Google
     2. Follow README.md setup instructions
     3. Use files from inputs/integrase/local/
-""")
+"""
+    )
 
 
 if __name__ == "__main__":

@@ -15,15 +15,13 @@ Tests the modular loss component architecture:
 
 import pytest
 import torch
-from src.losses.components import (
-    ReconstructionLossComponent,
-    KLDivergenceLossComponent,
-    EntropyLossComponent,
-    RepulsionLossComponent,
-    EntropyAlignmentComponent,
-)
-from src.losses.base import LossResult
 
+from src.losses.base import LossResult
+from src.losses.components import (EntropyAlignmentComponent,
+                                   EntropyLossComponent,
+                                   KLDivergenceLossComponent,
+                                   ReconstructionLossComponent,
+                                   RepulsionLossComponent)
 
 # =============================================================================
 # ReconstructionLossComponent Tests
@@ -40,7 +38,7 @@ class TestReconstructionLossComponent:
     def test_initialization(self, component):
         """Test component initializes correctly."""
         assert component.weight == 1.0
-        assert component.name == 'reconstruction'
+        assert component.name == "reconstruction"
 
     def test_forward_returns_loss_result(self, component, loss_test_outputs, device):
         """Test forward returns LossResult."""
@@ -48,9 +46,9 @@ class TestReconstructionLossComponent:
         result = component.forward(loss_test_outputs, targets)
 
         assert isinstance(result, LossResult)
-        assert hasattr(result, 'loss')
-        assert hasattr(result, 'metrics')
-        assert hasattr(result, 'weight')
+        assert hasattr(result, "loss")
+        assert hasattr(result, "metrics")
+        assert hasattr(result, "weight")
 
     def test_loss_is_non_negative(self, component, loss_test_outputs, device):
         """Test loss is non-negative."""
@@ -64,8 +62,8 @@ class TestReconstructionLossComponent:
         targets = torch.randint(-1, 2, (32, 9), device=device).float()
         result = component.forward(loss_test_outputs, targets)
 
-        assert 'ce_A' in result.metrics
-        assert 'ce_B' in result.metrics
+        assert "ce_A" in result.metrics
+        assert "ce_B" in result.metrics
 
     def test_perfect_prediction_low_loss(self, component, device):
         """Test perfect prediction results in low loss."""
@@ -79,8 +77,8 @@ class TestReconstructionLossComponent:
         logits[:, :, 1] = 10.0  # Strong prediction for class 1
 
         outputs = {
-            'logits_A': logits.clone(),
-            'logits_B': logits.clone(),
+            "logits_A": logits.clone(),
+            "logits_B": logits.clone(),
         }
 
         result = component.forward(outputs, targets)
@@ -113,7 +111,7 @@ class TestKLDivergenceLossComponent:
     def test_initialization(self, component):
         """Test component initializes correctly."""
         assert component.weight == 1.0
-        assert component.name == 'kl'
+        assert component.name == "kl"
         assert component.free_bits == 0.0
 
     def test_forward_returns_loss_result(self, component, loss_test_outputs, device):
@@ -131,12 +129,12 @@ class TestKLDivergenceLossComponent:
         latent_dim = 16
 
         outputs = {
-            'mu_A': torch.zeros(batch_size, latent_dim, device=device),
-            'logvar_A': torch.zeros(batch_size, latent_dim, device=device),
-            'mu_B': torch.zeros(batch_size, latent_dim, device=device),
-            'logvar_B': torch.zeros(batch_size, latent_dim, device=device),
-            'beta_A': 1.0,
-            'beta_B': 1.0,
+            "mu_A": torch.zeros(batch_size, latent_dim, device=device),
+            "logvar_A": torch.zeros(batch_size, latent_dim, device=device),
+            "mu_B": torch.zeros(batch_size, latent_dim, device=device),
+            "logvar_B": torch.zeros(batch_size, latent_dim, device=device),
+            "beta_A": 1.0,
+            "beta_B": 1.0,
         }
 
         targets = torch.zeros(batch_size, 9, device=device)
@@ -159,12 +157,12 @@ class TestKLDivergenceLossComponent:
         latent_dim = 16
 
         outputs = {
-            'mu_A': torch.randn(batch_size, latent_dim, device=device),
-            'logvar_A': torch.randn(batch_size, latent_dim, device=device),
-            'mu_B': torch.randn(batch_size, latent_dim, device=device),
-            'logvar_B': torch.randn(batch_size, latent_dim, device=device),
-            'beta_A': 1.0,
-            'beta_B': 1.0,
+            "mu_A": torch.randn(batch_size, latent_dim, device=device),
+            "logvar_A": torch.randn(batch_size, latent_dim, device=device),
+            "mu_B": torch.randn(batch_size, latent_dim, device=device),
+            "logvar_B": torch.randn(batch_size, latent_dim, device=device),
+            "beta_A": 1.0,
+            "beta_B": 1.0,
         }
         targets = torch.zeros(batch_size, 9, device=device)
 
@@ -182,8 +180,8 @@ class TestKLDivergenceLossComponent:
         targets = torch.zeros(32, 9, device=device)
         result = component.forward(loss_test_outputs, targets)
 
-        assert 'kl_A' in result.metrics
-        assert 'kl_B' in result.metrics
+        assert "kl_A" in result.metrics
+        assert "kl_B" in result.metrics
 
 
 # =============================================================================
@@ -196,13 +194,13 @@ class TestEntropyLossComponent:
 
     @pytest.fixture
     def component(self):
-        return EntropyLossComponent(weight=0.01, vae='B')
+        return EntropyLossComponent(weight=0.01, vae="B")
 
     def test_initialization(self, component):
         """Test component initializes correctly."""
         assert component.weight == 0.01
-        assert component.name == 'entropy'
-        assert component.vae == 'B'
+        assert component.name == "entropy"
+        assert component.vae == "B"
 
     def test_forward_returns_loss_result(self, component, loss_test_outputs, device):
         """Test forward returns LossResult."""
@@ -213,25 +211,25 @@ class TestEntropyLossComponent:
 
     def test_uniform_distribution_high_entropy(self, device):
         """Test uniform distribution has high entropy."""
-        component = EntropyLossComponent(weight=1.0, vae='B')
+        component = EntropyLossComponent(weight=1.0, vae="B")
 
         batch_size = 32
         # Uniform logits -> uniform distribution -> high entropy
         outputs = {
-            'logits_A': torch.zeros(batch_size, 9, 3, device=device),
-            'logits_B': torch.zeros(batch_size, 9, 3, device=device),
+            "logits_A": torch.zeros(batch_size, 9, 3, device=device),
+            "logits_B": torch.zeros(batch_size, 9, 3, device=device),
         }
         targets = torch.zeros(batch_size, 9, device=device)
 
         result = component.forward(outputs, targets)
 
         # Entropy should be close to max (log(3) * 9 per digit)
-        assert 'entropy_B' in result.metrics
-        assert result.metrics['entropy_B'] > 0  # High entropy value
+        assert "entropy_B" in result.metrics
+        assert result.metrics["entropy_B"] > 0  # High entropy value
 
     def test_peaked_distribution_low_entropy(self, device):
         """Test peaked distribution has low entropy."""
-        component = EntropyLossComponent(weight=1.0, vae='B')
+        component = EntropyLossComponent(weight=1.0, vae="B")
 
         batch_size = 32
         # Peaked logits -> low entropy
@@ -239,25 +237,25 @@ class TestEntropyLossComponent:
         logits[:, :, 0] = 10.0  # Strong peak at first class
 
         outputs = {
-            'logits_A': logits.clone(),
-            'logits_B': logits.clone(),
+            "logits_A": logits.clone(),
+            "logits_B": logits.clone(),
         }
         targets = torch.zeros(batch_size, 9, device=device)
 
         result = component.forward(outputs, targets)
 
         # Entropy should be low for peaked distribution
-        assert result.metrics['entropy_B'] < result.metrics.get('max_entropy', 100)
+        assert result.metrics["entropy_B"] < result.metrics.get("max_entropy", 100)
 
     def test_vae_both_computes_both(self, device, loss_test_outputs):
         """Test vae='both' computes entropy for both VAEs."""
-        component = EntropyLossComponent(weight=1.0, vae='both')
+        component = EntropyLossComponent(weight=1.0, vae="both")
         targets = torch.zeros(32, 9, device=device)
 
         result = component.forward(loss_test_outputs, targets)
 
-        assert 'entropy_A' in result.metrics
-        assert 'entropy_B' in result.metrics
+        assert "entropy_A" in result.metrics
+        assert "entropy_B" in result.metrics
 
 
 # =============================================================================
@@ -270,12 +268,12 @@ class TestRepulsionLossComponent:
 
     @pytest.fixture
     def component(self):
-        return RepulsionLossComponent(weight=0.01, sigma=0.5, vae='B')
+        return RepulsionLossComponent(weight=0.01, sigma=0.5, vae="B")
 
     def test_initialization(self, component):
         """Test component initializes correctly."""
         assert component.weight == 0.01
-        assert component.name == 'repulsion'
+        assert component.name == "repulsion"
         assert component.sigma == 0.5
 
     def test_forward_returns_loss_result(self, component, loss_test_outputs, device):
@@ -287,7 +285,7 @@ class TestRepulsionLossComponent:
 
     def test_identical_points_high_repulsion(self, device):
         """Test identical points result in high repulsion."""
-        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae='B')
+        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae="B")
 
         batch_size = 8
         latent_dim = 16
@@ -296,19 +294,19 @@ class TestRepulsionLossComponent:
         z = torch.zeros(batch_size, latent_dim, device=device)
 
         outputs = {
-            'z_A': z.clone(),
-            'z_B': z.clone(),
+            "z_A": z.clone(),
+            "z_B": z.clone(),
         }
         targets = torch.zeros(batch_size, 9, device=device)
 
         result = component.forward(outputs, targets)
 
         # Repulsion should be high (close to 1) for identical points
-        assert result.metrics['repulsion_B'] > 0.9
+        assert result.metrics["repulsion_B"] > 0.9
 
     def test_distant_points_low_repulsion(self, device):
         """Test distant points result in low repulsion."""
-        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae='B')
+        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae="B")
 
         batch_size = 8
         latent_dim = 16
@@ -317,23 +315,23 @@ class TestRepulsionLossComponent:
         z = torch.randn(batch_size, latent_dim, device=device) * 10
 
         outputs = {
-            'z_A': z.clone(),
-            'z_B': z.clone(),
+            "z_A": z.clone(),
+            "z_B": z.clone(),
         }
         targets = torch.zeros(batch_size, 9, device=device)
 
         result = component.forward(outputs, targets)
 
         # Repulsion should be low for distant points
-        assert result.metrics['repulsion_B'] < 0.5
+        assert result.metrics["repulsion_B"] < 0.5
 
     def test_single_sample_zero_repulsion(self, device):
         """Test single sample has zero repulsion."""
-        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae='B')
+        component = RepulsionLossComponent(weight=1.0, sigma=0.5, vae="B")
 
         outputs = {
-            'z_A': torch.randn(1, 16, device=device),
-            'z_B': torch.randn(1, 16, device=device),
+            "z_A": torch.randn(1, 16, device=device),
+            "z_B": torch.randn(1, 16, device=device),
         }
         targets = torch.zeros(1, 9, device=device)
 
@@ -358,7 +356,7 @@ class TestEntropyAlignmentComponent:
     def test_initialization(self, component):
         """Test component initializes correctly."""
         assert component.weight == 0.1
-        assert component.name == 'entropy_align'
+        assert component.name == "entropy_align"
 
     def test_forward_returns_loss_result(self, component, loss_test_outputs, device):
         """Test forward returns LossResult."""
@@ -370,8 +368,8 @@ class TestEntropyAlignmentComponent:
     def test_equal_entropies_zero_alignment(self, component, device):
         """Test equal entropies result in zero alignment loss."""
         outputs = {
-            'H_A': torch.tensor(2.0, device=device),
-            'H_B': torch.tensor(2.0, device=device),
+            "H_A": torch.tensor(2.0, device=device),
+            "H_B": torch.tensor(2.0, device=device),
         }
         targets = torch.zeros(4, 9, device=device)
 
@@ -382,8 +380,8 @@ class TestEntropyAlignmentComponent:
     def test_different_entropies_positive_alignment(self, component, device):
         """Test different entropies result in positive alignment loss."""
         outputs = {
-            'H_A': torch.tensor(1.0, device=device),
-            'H_B': torch.tensor(3.0, device=device),
+            "H_A": torch.tensor(1.0, device=device),
+            "H_B": torch.tensor(3.0, device=device),
         }
         targets = torch.zeros(4, 9, device=device)
 
@@ -396,9 +394,9 @@ class TestEntropyAlignmentComponent:
         targets = torch.zeros(32, 9, device=device)
         result = component.forward(loss_test_outputs, targets)
 
-        assert 'H_A' in result.metrics
-        assert 'H_B' in result.metrics
-        assert 'alignment' in result.metrics
+        assert "H_A" in result.metrics
+        assert "H_B" in result.metrics
+        assert "alignment" in result.metrics
 
 
 # =============================================================================
@@ -414,8 +412,8 @@ class TestComponentIntegration:
         components = [
             ReconstructionLossComponent(weight=1.0),
             KLDivergenceLossComponent(weight=1.0),
-            EntropyLossComponent(weight=0.01, vae='B'),
-            RepulsionLossComponent(weight=0.01, vae='B'),
+            EntropyLossComponent(weight=0.01, vae="B"),
+            RepulsionLossComponent(weight=0.01, vae="B"),
             EntropyAlignmentComponent(weight=0.1),
         ]
 
@@ -454,18 +452,26 @@ class TestComponentIntegration:
         logvar = torch.randn(batch_size, latent_dim, device=device, requires_grad=True)
 
         outputs = {
-            'logits_A': torch.randn(batch_size, 9, 3, device=device, requires_grad=True),
-            'logits_B': torch.randn(batch_size, 9, 3, device=device, requires_grad=True),
-            'mu_A': mu,
-            'mu_B': mu.clone(),
-            'logvar_A': logvar,
-            'logvar_B': logvar.clone(),
-            'z_A': torch.randn(batch_size, latent_dim, device=device, requires_grad=True),
-            'z_B': torch.randn(batch_size, latent_dim, device=device, requires_grad=True),
-            'H_A': torch.tensor(2.0, device=device),
-            'H_B': torch.tensor(2.1, device=device),
-            'beta_A': 1.0,
-            'beta_B': 1.0,
+            "logits_A": torch.randn(
+                batch_size, 9, 3, device=device, requires_grad=True
+            ),
+            "logits_B": torch.randn(
+                batch_size, 9, 3, device=device, requires_grad=True
+            ),
+            "mu_A": mu,
+            "mu_B": mu.clone(),
+            "logvar_A": logvar,
+            "logvar_B": logvar.clone(),
+            "z_A": torch.randn(
+                batch_size, latent_dim, device=device, requires_grad=True
+            ),
+            "z_B": torch.randn(
+                batch_size, latent_dim, device=device, requires_grad=True
+            ),
+            "H_A": torch.tensor(2.0, device=device),
+            "H_B": torch.tensor(2.1, device=device),
+            "beta_A": 1.0,
+            "beta_B": 1.0,
         }
 
         targets = torch.randint(-1, 2, (batch_size, 9), device=device).float()
@@ -476,5 +482,5 @@ class TestComponentIntegration:
         result.loss.backward()
 
         # Check gradients exist
-        assert outputs['logits_A'].grad is not None
-        assert outputs['logits_B'].grad is not None
+        assert outputs["logits_A"].grad is not None
+        assert outputs["logits_B"].grad is not None

@@ -17,20 +17,20 @@ Usage:
     python 07_adelic_analysis.py
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
 from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
-import numpy as np
-from scipy import stats
-from scipy.spatial.distance import pdist, squareform
-from scipy.linalg import eigvalsh
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from scipy import stats
+from scipy.linalg import eigvalsh
+from scipy.spatial.distance import pdist, squareform
 
 
 def v_p(n: int, p: int) -> int:

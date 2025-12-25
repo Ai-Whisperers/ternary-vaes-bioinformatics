@@ -4,4 +4,3 @@
 # See LICENSE file in the repository root for full license text.
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
-

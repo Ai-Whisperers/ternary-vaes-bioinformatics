@@ -18,19 +18,16 @@ create emergent drives toward:
 Single responsibility: Appetitive model integration.
 """
 
+from typing import Any, Dict, Optional
+
 import torch
 import torch.nn as nn
-from typing import Dict, Any, Optional
 
+from ..losses.appetitive_losses import (AdaptiveRankingLoss,
+                                        AlgebraicClosureLoss, CuriosityModule,
+                                        HierarchicalNormLoss, SymbioticBridge,
+                                        ViolationBuffer)
 from .ternary_vae_v5_6 import DualNeuralVAEV5
-from ..losses.appetitive_losses import (
-    AdaptiveRankingLoss,
-    HierarchicalNormLoss,
-    CuriosityModule,
-    SymbioticBridge,
-    AlgebraicClosureLoss,
-    ViolationBuffer
-)
 
 
 class AppetitiveDualVAE(nn.Module):
@@ -40,11 +37,7 @@ class AppetitiveDualVAE(nn.Module):
     through metric-gated phases toward algebraic closure.
     """
 
-    def __init__(
-        self,
-        base_model: DualNeuralVAEV5,
-        config: Dict[str, Any]
-    ):
+    def __init__(self, base_model: DualNeuralVAEV5, config: Dict[str, Any]):
         """Initialize appetitive dual VAE.
 
         Args:
@@ -53,45 +46,54 @@ class AppetitiveDualVAE(nn.Module):
         """
         super().__init__()
         self.base = base_model
-        self.latent_dim = config.get('latent_dim', 16)
+        self.latent_dim = config.get("latent_dim", 16)
 
         # Appetite modules
         self.ranking = AdaptiveRankingLoss(
-            base_margin=config.get('ranking_margin', 0.1),
-            n_triplets=config.get('ranking_n_triplets', 1000)
+            base_margin=config.get("ranking_margin", 0.1),
+            n_triplets=config.get("ranking_n_triplets", 1000),
         )
         self.hierarchy = HierarchicalNormLoss(
-            latent_dim=self.latent_dim,
-            n_groups=config.get('hierarchy_n_groups', 4)
+            latent_dim=self.latent_dim, n_groups=config.get("hierarchy_n_groups", 4)
         )
         self.curiosity = CuriosityModule(
             latent_dim=self.latent_dim,
-            bandwidth=config.get('curiosity_bandwidth', 1.0),
-            max_history=config.get('curiosity_max_history', 5000)
+            bandwidth=config.get("curiosity_bandwidth", 1.0),
+            max_history=config.get("curiosity_max_history", 5000),
         )
         self.symbiosis = SymbioticBridge(
             latent_dim=self.latent_dim,
-            hidden_dim=config.get('symbiosis_hidden_dim', 32)
+            hidden_dim=config.get("symbiosis_hidden_dim", 32),
         )
         self.closure = AlgebraicClosureLoss()
         self.violation_buffer = ViolationBuffer(
-            capacity=config.get('violation_capacity', 10000)
+            capacity=config.get("violation_capacity", 10000)
         )
 
         # Appetite weights (can be learned or scheduled)
-        self.register_buffer('appetite_ranking', torch.tensor(config.get('appetite_ranking', 0.5)))
-        self.register_buffer('appetite_hierarchy', torch.tensor(config.get('appetite_hierarchy', 0.1)))
-        self.register_buffer('appetite_curiosity', torch.tensor(config.get('appetite_curiosity', 0.1)))
-        self.register_buffer('appetite_symbiosis', torch.tensor(config.get('appetite_symbiosis', 0.1)))
-        self.register_buffer('appetite_closure', torch.tensor(config.get('appetite_closure', 0.0)))
+        self.register_buffer(
+            "appetite_ranking", torch.tensor(config.get("appetite_ranking", 0.5))
+        )
+        self.register_buffer(
+            "appetite_hierarchy", torch.tensor(config.get("appetite_hierarchy", 0.1))
+        )
+        self.register_buffer(
+            "appetite_curiosity", torch.tensor(config.get("appetite_curiosity", 0.1))
+        )
+        self.register_buffer(
+            "appetite_symbiosis", torch.tensor(config.get("appetite_symbiosis", 0.1))
+        )
+        self.register_buffer(
+            "appetite_closure", torch.tensor(config.get("appetite_closure", 0.0))
+        )
 
         # Phase tracking
         self.current_phase = 1
         self.phase_gates = {
-            'phase_1a_to_1b': config.get('phase_1a_gate', 0.8),  # r > 0.8
-            'phase_1b_to_2a': config.get('phase_1b_gate', 0.9),  # r > 0.9
-            'phase_2a_to_2b': config.get('phase_2a_gate', 2.0),  # MI > 2.0
-            'phase_2b_to_3': config.get('phase_2b_gate', 0.5),   # addition > 50%
+            "phase_1a_to_1b": config.get("phase_1a_gate", 0.8),  # r > 0.8
+            "phase_1b_to_2a": config.get("phase_1b_gate", 0.9),  # r > 0.9
+            "phase_2a_to_2b": config.get("phase_2a_gate", 2.0),  # MI > 2.0
+            "phase_2b_to_3": config.get("phase_2b_gate", 0.5),  # addition > 50%
         }
 
     def update_phase(self, metrics: Dict[str, float]):
@@ -100,26 +102,26 @@ class AppetitiveDualVAE(nn.Module):
         Args:
             metrics: Dictionary with 'correlation', 'mi', 'addition_accuracy'
         """
-        corr = metrics.get('correlation', 0.0)
-        mi = metrics.get('mi', 0.0)
-        add_acc = metrics.get('addition_accuracy', 0.0)
+        corr = metrics.get("correlation", 0.0)
+        mi = metrics.get("mi", 0.0)
+        add_acc = metrics.get("addition_accuracy", 0.0)
 
-        if self.current_phase == 1 and corr > self.phase_gates['phase_1a_to_1b']:
+        if self.current_phase == 1 and corr > self.phase_gates["phase_1a_to_1b"]:
             self.current_phase = 2
             self._set_phase_weights(2)
             print(f"Phase transition: 1A -> 1B (r={corr:.3f})")
 
-        elif self.current_phase == 2 and corr > self.phase_gates['phase_1b_to_2a']:
+        elif self.current_phase == 2 and corr > self.phase_gates["phase_1b_to_2a"]:
             self.current_phase = 3
             self._set_phase_weights(3)
             print(f"Phase transition: 1B -> 2A (r={corr:.3f})")
 
-        elif self.current_phase == 3 and mi > self.phase_gates['phase_2a_to_2b']:
+        elif self.current_phase == 3 and mi > self.phase_gates["phase_2a_to_2b"]:
             self.current_phase = 4
             self._set_phase_weights(4)
             print(f"Phase transition: 2A -> 2B (MI={mi:.3f})")
 
-        elif self.current_phase == 4 and add_acc > self.phase_gates['phase_2b_to_3']:
+        elif self.current_phase == 4 and add_acc > self.phase_gates["phase_2b_to_3"]:
             self.current_phase = 5
             self._set_phase_weights(5)
             print(f"Phase transition: 2B -> 3 (add_acc={add_acc:.1%})")
@@ -169,7 +171,7 @@ class AppetitiveDualVAE(nn.Module):
         self,
         x: torch.Tensor,
         indices: Optional[torch.Tensor] = None,
-        compute_appetites: bool = True
+        compute_appetites: bool = True,
     ) -> Dict[str, Any]:
         """Forward pass with appetite computation.
 
@@ -187,8 +189,8 @@ class AppetitiveDualVAE(nn.Module):
         if not compute_appetites or indices is None:
             return outputs
 
-        z_A = outputs['z_A']
-        z_B = outputs['z_B']
+        z_A = outputs["z_A"]
+        z_B = outputs["z_B"]
 
         # Compute appetite losses
         # 1. Ranking (metric structure)
@@ -208,7 +210,7 @@ class AppetitiveDualVAE(nn.Module):
 
         # 4. Symbiosis (A-B coupling)
         symbiosis_out = self.symbiosis(z_A, z_B)
-        symbiosis_loss = symbiosis_out['mi_loss']
+        symbiosis_loss = symbiosis_out["mi_loss"]
 
         # 5. Closure (algebraic)
         closure_loss_A = self.closure(z_A, indices)
@@ -217,32 +219,34 @@ class AppetitiveDualVAE(nn.Module):
 
         # Total appetite loss
         appetite_loss = (
-            self.appetite_ranking * ranking_loss +
-            self.appetite_hierarchy * hierarchy_loss +
-            self.appetite_curiosity * curiosity_loss +
-            self.appetite_symbiosis * symbiosis_loss +
-            self.appetite_closure * closure_loss
+            self.appetite_ranking * ranking_loss
+            + self.appetite_hierarchy * hierarchy_loss
+            + self.appetite_curiosity * curiosity_loss
+            + self.appetite_symbiosis * symbiosis_loss
+            + self.appetite_closure * closure_loss
         )
 
         # Update outputs
-        outputs.update({
-            'appetite_loss': appetite_loss,
-            'ranking_loss': ranking_loss,
-            'hierarchy_loss': hierarchy_loss,
-            'curiosity_loss': curiosity_loss,
-            'symbiosis_loss': symbiosis_loss,
-            'closure_loss': closure_loss,
-            'adaptive_rho': symbiosis_out['adaptive_rho'],
-            'estimated_mi': symbiosis_out['estimated_mi'],
-            'current_phase': self.current_phase,
-            # Individual VAE losses for logging
-            'ranking_loss_A': ranking_loss_A,
-            'ranking_loss_B': ranking_loss_B,
-        })
+        outputs.update(
+            {
+                "appetite_loss": appetite_loss,
+                "ranking_loss": ranking_loss,
+                "hierarchy_loss": hierarchy_loss,
+                "curiosity_loss": curiosity_loss,
+                "symbiosis_loss": symbiosis_loss,
+                "closure_loss": closure_loss,
+                "adaptive_rho": symbiosis_out["adaptive_rho"],
+                "estimated_mi": symbiosis_out["estimated_mi"],
+                "current_phase": self.current_phase,
+                # Individual VAE losses for logging
+                "ranking_loss_A": ranking_loss_A,
+                "ranking_loss_B": ranking_loss_B,
+            }
+        )
 
         return outputs
 
-    def sample(self, n_samples: int, device: str, vae: str = 'A') -> torch.Tensor:
+    def sample(self, n_samples: int, device: str, vae: str = "A") -> torch.Tensor:
         """Sample from the model.
 
         Args:
@@ -262,14 +266,15 @@ class AppetitiveDualVAE(nn.Module):
             2: "1B: Structural Consolidation (+ proprioception)",
             3: "2A: Symbiotic Coupling (+ MI)",
             4: "2B: Algebraic Awakening (+ closure)",
-            5: "3: Algebraic Satiation (closure dominant)"
+            5: "3: Algebraic Satiation (closure dominant)",
         }
-        return descriptions.get(self.current_phase, f"Unknown phase {self.current_phase}")
+        return descriptions.get(
+            self.current_phase, f"Unknown phase {self.current_phase}"
+        )
 
 
 def create_appetitive_vae(
-    config: Dict[str, Any],
-    device: str = 'cuda'
+    config: Dict[str, Any], device: str = "cuda"
 ) -> AppetitiveDualVAE:
     """Create a new AppetitiveDualVAE from config.
 
@@ -282,36 +287,36 @@ def create_appetitive_vae(
     """
     # Create base model
     base_model = DualNeuralVAEV5(
-        input_dim=config.get('input_dim', 9),
-        latent_dim=config.get('latent_dim', 16),
-        rho_min=config.get('rho_min', 0.1),
-        rho_max=config.get('rho_max', 0.7),
-        use_statenet=config.get('use_statenet', True),
-        statenet_lr_scale=config.get('statenet_lr_scale', 0.05),
-        statenet_lambda_scale=config.get('statenet_lambda_scale', 0.01)
+        input_dim=config.get("input_dim", 9),
+        latent_dim=config.get("latent_dim", 16),
+        rho_min=config.get("rho_min", 0.1),
+        rho_max=config.get("rho_max", 0.7),
+        use_statenet=config.get("use_statenet", True),
+        statenet_lr_scale=config.get("statenet_lr_scale", 0.05),
+        statenet_lambda_scale=config.get("statenet_lambda_scale", 0.01),
     )
 
     # Wrap with appetitive modules
     appetitive_config = {
-        'latent_dim': config.get('latent_dim', 16),
-        'ranking_margin': config.get('ranking_margin', 0.1),
-        'ranking_n_triplets': config.get('ranking_n_triplets', 1000),
-        'hierarchy_n_groups': config.get('hierarchy_n_groups', 4),
-        'curiosity_bandwidth': config.get('curiosity_bandwidth', 1.0),
-        'curiosity_max_history': config.get('curiosity_max_history', 5000),
-        'symbiosis_hidden_dim': config.get('symbiosis_hidden_dim', 32),
-        'violation_capacity': config.get('violation_capacity', 10000),
+        "latent_dim": config.get("latent_dim", 16),
+        "ranking_margin": config.get("ranking_margin", 0.1),
+        "ranking_n_triplets": config.get("ranking_n_triplets", 1000),
+        "hierarchy_n_groups": config.get("hierarchy_n_groups", 4),
+        "curiosity_bandwidth": config.get("curiosity_bandwidth", 1.0),
+        "curiosity_max_history": config.get("curiosity_max_history", 5000),
+        "symbiosis_hidden_dim": config.get("symbiosis_hidden_dim", 32),
+        "violation_capacity": config.get("violation_capacity", 10000),
         # Initial appetite weights (Phase 1A)
-        'appetite_ranking': config.get('appetite_ranking', 0.5),
-        'appetite_hierarchy': config.get('appetite_hierarchy', 0.1),
-        'appetite_curiosity': config.get('appetite_curiosity', 0.0),
-        'appetite_symbiosis': config.get('appetite_symbiosis', 0.0),
-        'appetite_closure': config.get('appetite_closure', 0.0),
+        "appetite_ranking": config.get("appetite_ranking", 0.5),
+        "appetite_hierarchy": config.get("appetite_hierarchy", 0.1),
+        "appetite_curiosity": config.get("appetite_curiosity", 0.0),
+        "appetite_symbiosis": config.get("appetite_symbiosis", 0.0),
+        "appetite_closure": config.get("appetite_closure", 0.0),
         # Phase gates
-        'phase_1a_gate': config.get('phase_1a_gate', 0.8),
-        'phase_1b_gate': config.get('phase_1b_gate', 0.9),
-        'phase_2a_gate': config.get('phase_2a_gate', 2.0),
-        'phase_2b_gate': config.get('phase_2b_gate', 0.5),
+        "phase_1a_gate": config.get("phase_1a_gate", 0.8),
+        "phase_1b_gate": config.get("phase_1b_gate", 0.9),
+        "phase_2a_gate": config.get("phase_2a_gate", 2.0),
+        "phase_2b_gate": config.get("phase_2b_gate", 0.5),
     }
 
     model = AppetitiveDualVAE(base_model, appetitive_config)

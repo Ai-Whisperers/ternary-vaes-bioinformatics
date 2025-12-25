@@ -35,26 +35,27 @@ Key features:
 
 import argparse
 import sys
-from pathlib import Path
 from datetime import datetime
-import yaml
+from pathlib import Path
 
 import torch
-from torch.utils.tensorboard import SummaryWriter
+import yaml
 from scipy.stats import spearmanr
+from torch.utils.tensorboard import SummaryWriter
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.models import TernaryVAEV5_11, TernaryVAEV5_11_OptionC, HomeostasisController
-from src.losses import PAdicGeodesicLoss, RadialHierarchyLoss, GlobalRankLoss
-from src.losses import CombinedZeroStructureLoss
-from src.losses.geometric_loss import GeometricAlignmentLoss
-from src.losses.drug_interaction import DrugInteractionPenalty
-from src.data.generation import generate_all_ternary_operations
 from src.core import TERNARY
+from src.data.generation import generate_all_ternary_operations
 from src.geometry import get_riemannian_optimizer
+from src.losses import (CombinedZeroStructureLoss, GlobalRankLoss,
+                        PAdicGeodesicLoss, RadialHierarchyLoss)
+from src.losses.drug_interaction import DrugInteractionPenalty
+from src.losses.geometric_loss import GeometricAlignmentLoss
+from src.models import (HomeostasisController, TernaryVAEV5_11,
+                        TernaryVAEV5_11_OptionC)
 
 
 def parse_args():

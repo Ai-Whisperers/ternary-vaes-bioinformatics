@@ -35,15 +35,16 @@ Input x ──► [FROZEN v5.5 Encoder] ──► z_euclidean (16D)
 Single responsibility: V5.11 model architecture.
 """
 
-import torch
-import torch.nn as nn
-
-import torch.optim as optim
 from pathlib import Path
 from typing import Dict, Tuple
 
-from .hyperbolic_projection import HyperbolicProjection, DualHyperbolicProjection
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
 from .differentiable_controller import DifferentiableController
+from .hyperbolic_projection import (DualHyperbolicProjection,
+                                    HyperbolicProjection)
 
 
 class FrozenEncoder(nn.Module):

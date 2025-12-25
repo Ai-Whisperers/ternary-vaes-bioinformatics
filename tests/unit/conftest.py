@@ -9,10 +9,10 @@ Fixtures specific to unit tests. These are lighter weight and focus on
 testing individual components in isolation.
 """
 
-import pytest
-import torch
 from unittest.mock import MagicMock, patch
 
+import pytest
+import torch
 
 # =============================================================================
 # Lightweight Mock Fixtures for Unit Tests
@@ -51,7 +51,7 @@ def mock_projection():
 def isolated_test(monkeypatch):
     """Fixture that ensures test isolation by preventing external calls."""
     # Prevent any accidental file writes
-    monkeypatch.setattr('builtins.open', MagicMock(side_effect=PermissionError))
+    monkeypatch.setattr("builtins.open", MagicMock(side_effect=PermissionError))
     yield
 
 
@@ -71,13 +71,17 @@ def deterministic_ternary_ops(device):
 @pytest.fixture
 def known_ternary_ops(device):
     """Returns known specific ternary operations for exact testing."""
-    return torch.tensor([
-        [-1, -1, -1, -1, -1, -1, -1, -1, -1],  # Index 0
-        [0, -1, -1, -1, -1, -1, -1, -1, -1],   # Index 1
-        [1, -1, -1, -1, -1, -1, -1, -1, -1],   # Index 2
-        [0, 0, 0, 0, 0, 0, 0, 0, 0],           # Index 9841 (middle)
-        [1, 1, 1, 1, 1, 1, 1, 1, 1],           # Index 19682 (max)
-    ], device=device, dtype=torch.float32)
+    return torch.tensor(
+        [
+            [-1, -1, -1, -1, -1, -1, -1, -1, -1],  # Index 0
+            [0, -1, -1, -1, -1, -1, -1, -1, -1],  # Index 1
+            [1, -1, -1, -1, -1, -1, -1, -1, -1],  # Index 2
+            [0, 0, 0, 0, 0, 0, 0, 0, 0],  # Index 9841 (middle)
+            [1, 1, 1, 1, 1, 1, 1, 1, 1],  # Index 19682 (max)
+        ],
+        device=device,
+        dtype=torch.float32,
+    )
 
 
 @pytest.fixture

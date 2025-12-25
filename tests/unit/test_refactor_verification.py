@@ -6,6 +6,7 @@
 import pytest
 import torch
 import torch.nn as nn
+
 from src.factories.model_factory import TernaryModelFactory
 from src.models.ternary_vae import TernaryVAEV5_11
 from tests.harnesses.model_harness import ModelTestHarness

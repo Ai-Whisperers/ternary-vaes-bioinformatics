@@ -10,6 +10,7 @@ Tests projection onto the Poincare ball manifold.
 
 import pytest
 import torch
+
 from src.geometry.poincare import project_to_poincare
 
 

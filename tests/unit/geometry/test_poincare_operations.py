@@ -10,13 +10,9 @@ Tests Mobius addition, conformal factor, and parallel transport.
 
 import pytest
 import torch
-from src.geometry.poincare import (
-    mobius_add,
-    lambda_x,
-    parallel_transport,
-    project_to_poincare,
-)
 
+from src.geometry.poincare import (lambda_x, mobius_add, parallel_transport,
+                                   project_to_poincare)
 
 # =============================================================================
 # Mobius Addition Tests

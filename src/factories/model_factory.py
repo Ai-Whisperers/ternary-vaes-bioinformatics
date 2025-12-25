@@ -3,16 +3,14 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-from typing import Dict, Any, Tuple, Optional
+from typing import Any, Dict, Optional, Tuple
+
 import torch.nn as nn
-from src.models.ternary_vae import (
-    TernaryVAEV5_11,
-    FrozenEncoder,
-    FrozenDecoder,
-    HyperbolicProjection,
-    DualHyperbolicProjection,
-    DifferentiableController,
-)
+
+from src.models.ternary_vae import (DifferentiableController,
+                                    DualHyperbolicProjection, FrozenDecoder,
+                                    FrozenEncoder, HyperbolicProjection,
+                                    TernaryVAEV5_11)
 
 
 class TernaryModelFactory:

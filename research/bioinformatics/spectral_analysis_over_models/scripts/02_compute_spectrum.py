@@ -8,21 +8,21 @@ Usage:
     python 02_compute_spectrum.py [--embeddings PATH] [--output DIR]
 """
 
-import sys
 import argparse
-from pathlib import Path
 import json
+import sys
 from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
+import matplotlib.pyplot as plt
 import numpy as np
+import torch
 from scipy import sparse
 from scipy.sparse.linalg import eigsh
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 
 def poincare_distance(

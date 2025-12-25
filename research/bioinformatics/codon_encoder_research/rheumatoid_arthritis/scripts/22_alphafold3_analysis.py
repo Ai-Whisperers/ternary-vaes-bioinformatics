@@ -11,12 +11,13 @@ Version: 1.0
 """
 
 import json
-import numpy as np
-import pandas as pd
+import re
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-from collections import defaultdict
-import re
+
+import numpy as np
+import pandas as pd
 
 # ============================================================================
 # CONFIGURATION
@@ -31,14 +32,15 @@ PREDICTIONS_DIRS = [
 
 # Epitope entropy changes from our analysis
 EPITOPE_ENTROPY = {
-    'vim_r71': 0.049,
-    'fga_r38': 0.041,
-    'fgb_r406': 0.038,
+    "vim_r71": 0.049,
+    "fga_r38": 0.041,
+    "fgb_r406": 0.038,
 }
 
 # ============================================================================
 # DIRECTORY SETUP
 # ============================================================================
+
 
 def get_output_dir() -> Path:
     """Get output directory for this script."""
@@ -58,6 +60,7 @@ def get_predictions_dirs() -> List[Path]:
 # PARSE PREDICTIONS
 # ============================================================================
 
+
 def parse_prediction_folder(folder: Path) -> Dict:
     """
     Parse a single prediction folder.
@@ -67,7 +70,7 @@ def parse_prediction_folder(folder: Path) -> Dict:
     name = folder.name
 
     # Parse name to extract epitope, state (native/cit), and HLA allele
-    parts = name.split('_')
+    parts = name.split("_")
 
     # Find epitope (e.g., vim_r71, fga_r38)
     epitope = None
@@ -75,11 +78,11 @@ def parse_prediction_folder(folder: Path) -> Dict:
     hla = None
 
     for i, part in enumerate(parts):
-        if part in ['vim', 'fga', 'fgb'] and i + 1 < len(parts):
+        if part in ["vim", "fga", "fgb"] and i + 1 < len(parts):
             epitope = f"{part}_{parts[i+1]}"
-        if part in ['native', 'cit']:
+        if part in ["native", "cit"]:
             state = part
-        if part == 'drb1' and i + 1 < len(parts):
+        if part == "drb1" and i + 1 < len(parts):
             hla = f"drb1_{parts[i+1]}"
 
     if not all([epitope, state, hla]):
@@ -102,31 +105,31 @@ def parse_prediction_folder(folder: Path) -> Dict:
                 all_confidences.append(json.load(f))
 
     # Average across models
-    avg_iptm = np.mean([c['iptm'] for c in all_confidences])
-    avg_ptm = np.mean([c['ptm'] for c in all_confidences])
-    avg_ranking = np.mean([c['ranking_score'] for c in all_confidences])
+    avg_iptm = np.mean([c["iptm"] for c in all_confidences])
+    avg_ptm = np.mean([c["ptm"] for c in all_confidences])
+    avg_ranking = np.mean([c["ranking_score"] for c in all_confidences])
 
     # Chain-specific metrics (chain A = peptide, chain B = HLA)
-    peptide_ptm = np.mean([c['chain_ptm'][0] for c in all_confidences])
-    hla_ptm = np.mean([c['chain_ptm'][1] for c in all_confidences])
+    peptide_ptm = np.mean([c["chain_ptm"][0] for c in all_confidences])
+    hla_ptm = np.mean([c["chain_ptm"][1] for c in all_confidences])
 
     # Interface metrics
-    peptide_hla_iptm = np.mean([c['chain_pair_iptm'][0][1] for c in all_confidences])
+    peptide_hla_iptm = np.mean([c["chain_pair_iptm"][0][1] for c in all_confidences])
 
     return {
-        'folder': name,
-        'epitope': epitope,
-        'state': state,
-        'hla': hla,
-        'iptm': avg_iptm,
-        'ptm': avg_ptm,
-        'ranking_score': avg_ranking,
-        'peptide_ptm': peptide_ptm,
-        'hla_ptm': hla_ptm,
-        'peptide_hla_iptm': peptide_hla_iptm,
-        'fraction_disordered': confidences.get('fraction_disordered', 0),
-        'has_clash': confidences.get('has_clash', 0),
-        'n_models': len(all_confidences),
+        "folder": name,
+        "epitope": epitope,
+        "state": state,
+        "hla": hla,
+        "iptm": avg_iptm,
+        "ptm": avg_ptm,
+        "ranking_score": avg_ranking,
+        "peptide_ptm": peptide_ptm,
+        "hla_ptm": hla_ptm,
+        "peptide_hla_iptm": peptide_hla_iptm,
+        "fraction_disordered": confidences.get("fraction_disordered", 0),
+        "has_clash": confidences.get("has_clash", 0),
+        "n_models": len(all_confidences),
     }
 
 
@@ -139,11 +142,11 @@ def load_all_predictions(predictions_dirs: List[Path]) -> List[Dict]:
             continue
 
         for folder in predictions_dir.iterdir():
-            if not folder.is_dir() or folder.name in ['msas', 'templates']:
+            if not folder.is_dir() or folder.name in ["msas", "templates"]:
                 continue
 
             # Skip duplicate runs (ending in _2)
-            if folder.name.endswith('_2'):
+            if folder.name.endswith("_2"):
                 continue
 
             parsed = parse_prediction_folder(folder)
@@ -157,6 +160,7 @@ def load_all_predictions(predictions_dirs: List[Path]) -> List[Dict]:
 # COMPARATIVE ANALYSIS
 # ============================================================================
 
+
 def compare_native_vs_citrullinated(results: List[Dict]) -> pd.DataFrame:
     """
     Compare native vs citrullinated predictions for each epitope-HLA pair.
@@ -165,47 +169,52 @@ def compare_native_vs_citrullinated(results: List[Dict]) -> pd.DataFrame:
     grouped = defaultdict(dict)
 
     for r in results:
-        key = (r['epitope'], r['hla'])
-        grouped[key][r['state']] = r
+        key = (r["epitope"], r["hla"])
+        grouped[key][r["state"]] = r
 
     comparisons = []
 
     for (epitope, hla), states in grouped.items():
-        if 'native' not in states or 'cit' not in states:
+        if "native" not in states or "cit" not in states:
             # Only native available
-            if 'native' in states:
-                comparisons.append({
-                    'epitope': epitope,
-                    'hla': hla,
-                    'native_iptm': states['native']['iptm'],
-                    'native_ranking': states['native']['ranking_score'],
-                    'native_peptide_hla_iptm': states['native']['peptide_hla_iptm'],
-                    'cit_iptm': None,
-                    'cit_ranking': None,
-                    'cit_peptide_hla_iptm': None,
-                    'delta_iptm': None,
-                    'delta_ranking': None,
-                    'entropy_change': EPITOPE_ENTROPY.get(epitope, None),
-                })
+            if "native" in states:
+                comparisons.append(
+                    {
+                        "epitope": epitope,
+                        "hla": hla,
+                        "native_iptm": states["native"]["iptm"],
+                        "native_ranking": states["native"]["ranking_score"],
+                        "native_peptide_hla_iptm": states["native"]["peptide_hla_iptm"],
+                        "cit_iptm": None,
+                        "cit_ranking": None,
+                        "cit_peptide_hla_iptm": None,
+                        "delta_iptm": None,
+                        "delta_ranking": None,
+                        "entropy_change": EPITOPE_ENTROPY.get(epitope, None),
+                    }
+                )
             continue
 
-        native = states['native']
-        cit = states['cit']
+        native = states["native"]
+        cit = states["cit"]
 
-        comparisons.append({
-            'epitope': epitope,
-            'hla': hla,
-            'native_iptm': native['iptm'],
-            'native_ranking': native['ranking_score'],
-            'native_peptide_hla_iptm': native['peptide_hla_iptm'],
-            'cit_iptm': cit['iptm'],
-            'cit_ranking': cit['ranking_score'],
-            'cit_peptide_hla_iptm': cit['peptide_hla_iptm'],
-            'delta_iptm': cit['iptm'] - native['iptm'],
-            'delta_ranking': cit['ranking_score'] - native['ranking_score'],
-            'delta_peptide_hla_iptm': cit['peptide_hla_iptm'] - native['peptide_hla_iptm'],
-            'entropy_change': EPITOPE_ENTROPY.get(epitope, None),
-        })
+        comparisons.append(
+            {
+                "epitope": epitope,
+                "hla": hla,
+                "native_iptm": native["iptm"],
+                "native_ranking": native["ranking_score"],
+                "native_peptide_hla_iptm": native["peptide_hla_iptm"],
+                "cit_iptm": cit["iptm"],
+                "cit_ranking": cit["ranking_score"],
+                "cit_peptide_hla_iptm": cit["peptide_hla_iptm"],
+                "delta_iptm": cit["iptm"] - native["iptm"],
+                "delta_ranking": cit["ranking_score"] - native["ranking_score"],
+                "delta_peptide_hla_iptm": cit["peptide_hla_iptm"]
+                - native["peptide_hla_iptm"],
+                "entropy_change": EPITOPE_ENTROPY.get(epitope, None),
+            }
+        )
 
     return pd.DataFrame(comparisons)
 
@@ -214,38 +223,43 @@ def analyze_binding_changes(comparisons: pd.DataFrame) -> Dict:
     """Analyze how citrullination affects HLA binding."""
 
     # Filter to pairs with both native and cit
-    complete = comparisons.dropna(subset=['delta_iptm'])
+    complete = comparisons.dropna(subset=["delta_iptm"])
 
     if len(complete) == 0:
-        return {'error': 'No complete native/cit pairs found'}
+        return {"error": "No complete native/cit pairs found"}
 
     analysis = {
-        'n_comparisons': len(complete),
-        'mean_delta_iptm': float(complete['delta_iptm'].mean()),
-        'mean_delta_ranking': float(complete['delta_ranking'].mean()),
-        'increased_binding': int((complete['delta_iptm'] > 0).sum()),
-        'decreased_binding': int((complete['delta_iptm'] < 0).sum()),
-        'percent_increased': float((complete['delta_iptm'] > 0).mean() * 100),
+        "n_comparisons": len(complete),
+        "mean_delta_iptm": float(complete["delta_iptm"].mean()),
+        "mean_delta_ranking": float(complete["delta_ranking"].mean()),
+        "increased_binding": int((complete["delta_iptm"] > 0).sum()),
+        "decreased_binding": int((complete["delta_iptm"] < 0).sum()),
+        "percent_increased": float((complete["delta_iptm"] > 0).mean() * 100),
     }
 
     # Correlation with entropy change
-    if 'entropy_change' in complete.columns and complete['entropy_change'].notna().any():
-        valid = complete.dropna(subset=['entropy_change'])
+    if (
+        "entropy_change" in complete.columns
+        and complete["entropy_change"].notna().any()
+    ):
+        valid = complete.dropna(subset=["entropy_change"])
         if len(valid) > 1:
-            corr = valid['delta_iptm'].corr(valid['entropy_change'])
-            analysis['entropy_iptm_correlation'] = float(corr) if not np.isnan(corr) else None
+            corr = valid["delta_iptm"].corr(valid["entropy_change"])
+            analysis["entropy_iptm_correlation"] = (
+                float(corr) if not np.isnan(corr) else None
+            )
 
     # Per-epitope summary
     epitope_summary = {}
-    for epitope in complete['epitope'].unique():
-        ep_data = complete[complete['epitope'] == epitope]
+    for epitope in complete["epitope"].unique():
+        ep_data = complete[complete["epitope"] == epitope]
         epitope_summary[epitope] = {
-            'mean_delta_iptm': float(ep_data['delta_iptm'].mean()),
-            'mean_delta_ranking': float(ep_data['delta_ranking'].mean()),
-            'n_hla_tested': len(ep_data),
-            'entropy_change': EPITOPE_ENTROPY.get(epitope),
+            "mean_delta_iptm": float(ep_data["delta_iptm"].mean()),
+            "mean_delta_ranking": float(ep_data["delta_ranking"].mean()),
+            "n_hla_tested": len(ep_data),
+            "entropy_change": EPITOPE_ENTROPY.get(epitope),
         }
-    analysis['epitope_summary'] = epitope_summary
+    analysis["epitope_summary"] = epitope_summary
 
     return analysis
 
@@ -253,6 +267,7 @@ def analyze_binding_changes(comparisons: pd.DataFrame) -> Dict:
 # ============================================================================
 # CIF STRUCTURE ANALYSIS
 # ============================================================================
+
 
 def parse_cif_coordinates(cif_path: Path) -> Dict:
     """
@@ -269,26 +284,28 @@ def parse_cif_coordinates(cif_path: Path) -> Dict:
         for line in f:
             line = line.strip()
 
-            if line.startswith('_atom_site.'):
-                headers.append(line.split('.')[1])
+            if line.startswith("_atom_site."):
+                headers.append(line.split(".")[1])
                 in_atom_site = True
                 continue
 
-            if in_atom_site and line.startswith('_'):
+            if in_atom_site and line.startswith("_"):
                 in_atom_site = False
                 continue
 
-            if in_atom_site and line and not line.startswith('#'):
+            if in_atom_site and line and not line.startswith("#"):
                 parts = line.split()
                 if len(parts) >= len(headers):
                     try:
                         data = dict(zip(headers, parts))
-                        chain = data.get('auth_asym_id', data.get('label_asym_id', 'A'))
-                        res_id = data.get('auth_seq_id', data.get('label_seq_id', '1'))
-                        atom_name = data.get('label_atom_id', data.get('auth_atom_id', 'CA'))
-                        x = float(data.get('Cartn_x', 0))
-                        y = float(data.get('Cartn_y', 0))
-                        z = float(data.get('Cartn_z', 0))
+                        chain = data.get("auth_asym_id", data.get("label_asym_id", "A"))
+                        res_id = data.get("auth_seq_id", data.get("label_seq_id", "1"))
+                        atom_name = data.get(
+                            "label_atom_id", data.get("auth_atom_id", "CA")
+                        )
+                        x = float(data.get("Cartn_x", 0))
+                        y = float(data.get("Cartn_y", 0))
+                        z = float(data.get("Cartn_z", 0))
                         coords[chain][res_id][atom_name] = (x, y, z)
                     except (ValueError, KeyError):
                         continue
@@ -296,7 +313,7 @@ def parse_cif_coordinates(cif_path: Path) -> Dict:
     return dict(coords)
 
 
-def compute_rmsd(coords1: Dict, coords2: Dict, chain: str = 'A') -> Optional[float]:
+def compute_rmsd(coords1: Dict, coords2: Dict, chain: str = "A") -> Optional[float]:
     """Compute RMSD between two structures for a given chain (CA atoms only)."""
     if chain not in coords1 or chain not in coords2:
         return None
@@ -313,9 +330,9 @@ def compute_rmsd(coords1: Dict, coords2: Dict, chain: str = 'A') -> Optional[flo
     # Collect CA coordinates
     diffs = []
     for res in common_res:
-        if 'CA' in c1[res] and 'CA' in c2[res]:
-            p1 = np.array(c1[res]['CA'])
-            p2 = np.array(c2[res]['CA'])
+        if "CA" in c1[res] and "CA" in c2[res]:
+            p1 = np.array(c1[res]["CA"])
+            p2 = np.array(c2[res]["CA"])
             diffs.append(np.sum((p1 - p2) ** 2))
 
     if len(diffs) == 0:
@@ -330,21 +347,21 @@ def analyze_structures(predictions_dirs: List[Path], results: List[Dict]) -> Dic
     # Group results
     grouped = defaultdict(dict)
     for r in results:
-        key = (r['epitope'], r['hla'])
-        grouped[key][r['state']] = r
+        key = (r["epitope"], r["hla"])
+        grouped[key][r["state"]] = r
 
     structural_analysis = []
 
     for (epitope, hla), states in grouped.items():
-        if 'native' not in states or 'cit' not in states:
+        if "native" not in states or "cit" not in states:
             continue
 
         # Find folders in any of the prediction directories
         native_folder = None
         cit_folder = None
         for pred_dir in predictions_dirs:
-            nf = pred_dir / states['native']['folder']
-            cf = pred_dir / states['cit']['folder']
+            nf = pred_dir / states["native"]["folder"]
+            cf = pred_dir / states["cit"]["folder"]
             if nf.exists():
                 native_folder = nf
             if cf.exists():
@@ -364,18 +381,20 @@ def analyze_structures(predictions_dirs: List[Path], results: List[Dict]) -> Dic
         cit_coords = parse_cif_coordinates(cit_cif[0])
 
         # Compute peptide RMSD (chain A)
-        peptide_rmsd = compute_rmsd(native_coords, cit_coords, 'A')
+        peptide_rmsd = compute_rmsd(native_coords, cit_coords, "A")
 
         # Compute HLA RMSD (chain B)
-        hla_rmsd = compute_rmsd(native_coords, cit_coords, 'B')
+        hla_rmsd = compute_rmsd(native_coords, cit_coords, "B")
 
-        structural_analysis.append({
-            'epitope': epitope,
-            'hla': hla,
-            'peptide_rmsd': peptide_rmsd,
-            'hla_rmsd': hla_rmsd,
-            'delta_iptm': states['cit']['iptm'] - states['native']['iptm'],
-        })
+        structural_analysis.append(
+            {
+                "epitope": epitope,
+                "hla": hla,
+                "peptide_rmsd": peptide_rmsd,
+                "hla_rmsd": hla_rmsd,
+                "delta_iptm": states["cit"]["iptm"] - states["native"]["iptm"],
+            }
+        )
 
     return structural_analysis
 
@@ -383,6 +402,7 @@ def analyze_structures(predictions_dirs: List[Path], results: List[Dict]) -> Dic
 # ============================================================================
 # MAIN ANALYSIS
 # ============================================================================
+
 
 def main():
     print("=" * 80)
@@ -418,14 +438,16 @@ def main():
     print("\n  Comparison Results:")
     print("-" * 80)
     for _, row in comparisons.iterrows():
-        epitope = row['epitope'].upper()
-        hla = row['hla'].upper().replace('_', '*')
+        epitope = row["epitope"].upper()
+        hla = row["hla"].upper().replace("_", "*")
 
-        if pd.notna(row['delta_iptm']):
-            delta = row['delta_iptm']
+        if pd.notna(row["delta_iptm"]):
+            delta = row["delta_iptm"]
             direction = "↑" if delta > 0 else "↓"
             print(f"  {epitope} + {hla}:")
-            print(f"    Native iPTM: {row['native_iptm']:.3f} -> Cit iPTM: {row['cit_iptm']:.3f} ({direction}{abs(delta):.3f})")
+            print(
+                f"    Native iPTM: {row['native_iptm']:.3f} -> Cit iPTM: {row['cit_iptm']:.3f} ({direction}{abs(delta):.3f})"
+            )
             print(f"    Entropy change: {row['entropy_change']:.4f}")
         else:
             print(f"  {epitope} + {hla}: Native only (iPTM: {row['native_iptm']:.3f})")
@@ -434,14 +456,18 @@ def main():
     print("\n[3] Analyzing binding changes...")
     binding_analysis = analyze_binding_changes(comparisons)
 
-    with open(output_dir / "binding_analysis.json", 'w') as f:
+    with open(output_dir / "binding_analysis.json", "w") as f:
         json.dump(binding_analysis, f, indent=2)
     print(f"  Saved: binding_analysis.json")
 
     print("\n  Binding Analysis Summary:")
-    print(f"    Comparisons with both states: {binding_analysis.get('n_comparisons', 0)}")
+    print(
+        f"    Comparisons with both states: {binding_analysis.get('n_comparisons', 0)}"
+    )
     print(f"    Mean Δ iPTM: {binding_analysis.get('mean_delta_iptm', 0):.4f}")
-    print(f"    Increased binding: {binding_analysis.get('increased_binding', 0)} ({binding_analysis.get('percent_increased', 0):.1f}%)")
+    print(
+        f"    Increased binding: {binding_analysis.get('increased_binding', 0)} ({binding_analysis.get('percent_increased', 0):.1f}%)"
+    )
     print(f"    Decreased binding: {binding_analysis.get('decreased_binding', 0)}")
 
     # Structural analysis
@@ -455,7 +481,11 @@ def main():
         print("\n  Structural Differences (RMSD in Å):")
         for s in structural:
             print(f"    {s['epitope'].upper()} + {s['hla'].upper()}:")
-            print(f"      Peptide RMSD: {s['peptide_rmsd']:.2f} Å" if s['peptide_rmsd'] else "      Peptide RMSD: N/A")
+            print(
+                f"      Peptide RMSD: {s['peptide_rmsd']:.2f} Å"
+                if s["peptide_rmsd"]
+                else "      Peptide RMSD: N/A"
+            )
             print(f"      Δ iPTM: {s['delta_iptm']:.3f}")
 
     # Summary report
@@ -463,9 +493,9 @@ def main():
     print("KEY FINDINGS")
     print("=" * 80)
 
-    complete = comparisons.dropna(subset=['delta_iptm'])
+    complete = comparisons.dropna(subset=["delta_iptm"])
     if len(complete) > 0:
-        if binding_analysis.get('mean_delta_iptm', 0) > 0:
+        if binding_analysis.get("mean_delta_iptm", 0) > 0:
             print("\n✓ CITRULLINATION INCREASES HLA BINDING (on average)")
             print(f"  Mean iPTM increase: +{binding_analysis['mean_delta_iptm']:.3f}")
         else:
@@ -473,9 +503,11 @@ def main():
 
         # Per-epitope findings
         print("\n  Per-epitope findings:")
-        for epitope, data in binding_analysis.get('epitope_summary', {}).items():
-            direction = "increases" if data['mean_delta_iptm'] > 0 else "decreases"
-            print(f"    {epitope.upper()}: Citrullination {direction} binding by {abs(data['mean_delta_iptm']):.3f} iPTM")
+        for epitope, data in binding_analysis.get("epitope_summary", {}).items():
+            direction = "increases" if data["mean_delta_iptm"] > 0 else "decreases"
+            print(
+                f"    {epitope.upper()}: Citrullination {direction} binding by {abs(data['mean_delta_iptm']):.3f} iPTM"
+            )
             print(f"      Entropy change: {data['entropy_change']:.4f}")
 
     print("\n" + "=" * 80)
@@ -484,11 +516,11 @@ def main():
     print("=" * 80)
 
     return {
-        'results': results,
-        'comparisons': comparisons,
-        'binding_analysis': binding_analysis,
+        "results": results,
+        "comparisons": comparisons,
+        "binding_analysis": binding_analysis,
     }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

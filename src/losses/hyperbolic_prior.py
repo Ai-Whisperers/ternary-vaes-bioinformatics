@@ -26,19 +26,15 @@ Poincare Variational Auto-Encoders" (2019)
 Note: Uses geoopt backend when available for numerical stability.
 """
 
+import math
+from typing import Tuple
+
 import torch
 import torch.nn as nn
-from typing import Tuple
-import math
 
 # Import from geometry module for stable operations
-from src.geometry import (
-    poincare_distance,
-    project_to_poincare,
-    exp_map_zero,
-    log_map_zero,
-    lambda_x
-)
+from src.geometry import (exp_map_zero, lambda_x, log_map_zero,
+                          poincare_distance, project_to_poincare)
 
 
 class HyperbolicPrior(nn.Module):
@@ -64,7 +60,7 @@ class HyperbolicPrior(nn.Module):
         latent_dim: int = 16,
         curvature: float = 1.0,
         prior_sigma: float = 1.0,
-        max_norm: float = 0.95
+        max_norm: float = 0.95,
     ):
         """Initialize Hyperbolic Prior.
 
@@ -116,10 +112,7 @@ class HyperbolicPrior(nn.Module):
         return log_map_zero(z, self.curvature, self.max_norm)
 
     def kl_divergence(
-        self,
-        mu: torch.Tensor,
-        logvar: torch.Tensor,
-        use_hyperbolic: bool = True
+        self, mu: torch.Tensor, logvar: torch.Tensor, use_hyperbolic: bool = True
     ) -> torch.Tensor:
         """Compute KL divergence from posterior to hyperbolic prior.
 
@@ -163,18 +156,19 @@ class HyperbolicPrior(nn.Module):
         # Effective variance in tangent space (scaled by conformal factor squared)
         # var_tangent = var_euclidean / lambda^2
         var = logvar.exp()
-        var_tangent = var / (lambda_mu ** 2 + 1e-10)
+        var_tangent = var / (lambda_mu**2 + 1e-10)
         logvar_tangent = torch.log(var_tangent + 1e-10)
 
         # 5. KL in tangent space (Euclidean, but with transformed parameters)
         # KL(N(v_mu, var_tangent) || N(0, sigma_prior^2))
-        prior_var = self.prior_sigma ** 2
+        prior_var = self.prior_sigma**2
 
         kl_per_dim = 0.5 * (
-            logvar_tangent.neg() - 1 +  # -log(var_tangent)
-            math.log(prior_var) +        # +log(prior_var)
-            var_tangent / prior_var +    # +var_tangent / prior_var
-            (v_mu ** 2) / prior_var      # +(v_mu - 0)^2 / prior_var
+            logvar_tangent.neg()
+            - 1  # -log(var_tangent)
+            + math.log(prior_var)  # +log(prior_var)
+            + var_tangent / prior_var  # +var_tangent / prior_var
+            + (v_mu**2) / prior_var  # +(v_mu - 0)^2 / prior_var
         )
 
         # 6. Jacobian correction for change of measure (exp map)
@@ -205,9 +199,7 @@ class HyperbolicPrior(nn.Module):
         return z
 
     def forward(
-        self,
-        mu: torch.Tensor,
-        logvar: torch.Tensor
+        self, mu: torch.Tensor, logvar: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Compute KL divergence and return projected samples.
 
@@ -262,7 +254,7 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         adaptation_rate: float = 0.01,
         ema_alpha: float = 0.1,
         kl_target: float = 1.0,
-        target_radius: float = 0.5
+        target_radius: float = 0.5,
     ):
         """Initialize Homeostatic Hyperbolic Prior.
 
@@ -293,18 +285,15 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
 
         # Learnable parameters for homeostatic control
         # (can be modulated by StateNet)
-        self.register_buffer('adaptive_sigma', torch.tensor(prior_sigma))
-        self.register_buffer('adaptive_curvature', torch.tensor(curvature))
+        self.register_buffer("adaptive_sigma", torch.tensor(prior_sigma))
+        self.register_buffer("adaptive_curvature", torch.tensor(curvature))
 
         # EMA for tracking statistics
-        self.register_buffer('mean_radius_ema', torch.tensor(0.5))
-        self.register_buffer('kl_ema', torch.tensor(1.0))
+        self.register_buffer("mean_radius_ema", torch.tensor(0.5))
+        self.register_buffer("kl_ema", torch.tensor(1.0))
 
     def update_homeostatic_state(
-        self,
-        z_hyperbolic: torch.Tensor,
-        kl: torch.Tensor,
-        coverage: float = 0.0
+        self, z_hyperbolic: torch.Tensor, kl: torch.Tensor, coverage: float = 0.0
     ):
         """Update homeostatic parameters based on current state.
 
@@ -318,7 +307,9 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
 
         # Update EMAs using configured alpha
         alpha = self.ema_alpha
-        self.mean_radius_ema = alpha * current_radius + (1 - alpha) * self.mean_radius_ema
+        self.mean_radius_ema = (
+            alpha * current_radius + (1 - alpha) * self.mean_radius_ema
+        )
         self.kl_ema = alpha * kl + (1 - alpha) * self.kl_ema
 
         # Homeostatic adaptation of sigma
@@ -340,23 +331,21 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         curvature_delta = self.adaptation_rate * kl_error * 0.1  # Slower adaptation
 
         new_curvature = self.adaptive_curvature + curvature_delta
-        self.adaptive_curvature = torch.clamp(new_curvature, self.curvature_min, self.curvature_max)
+        self.adaptive_curvature = torch.clamp(
+            new_curvature, self.curvature_min, self.curvature_max
+        )
         self.curvature = self.adaptive_curvature.item()
 
     def get_homeostatic_state(self) -> dict:
         """Return current homeostatic state for logging/StateNet."""
         return {
-            'prior_sigma': self.adaptive_sigma.item(),
-            'curvature': self.adaptive_curvature.item(),
-            'mean_radius_ema': self.mean_radius_ema.item(),
-            'kl_ema': self.kl_ema.item()
+            "prior_sigma": self.adaptive_sigma.item(),
+            "curvature": self.adaptive_curvature.item(),
+            "mean_radius_ema": self.mean_radius_ema.item(),
+            "kl_ema": self.kl_ema.item(),
         }
 
-    def set_from_statenet(
-        self,
-        delta_sigma: float = 0.0,
-        delta_curvature: float = 0.0
-    ):
+    def set_from_statenet(self, delta_sigma: float = 0.0, delta_curvature: float = 0.0):
         """Apply StateNet corrections to homeostatic parameters.
 
         Args:
@@ -367,6 +356,10 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         self.adaptive_sigma = torch.clamp(new_sigma, self.sigma_min, self.sigma_max)
         self.prior_sigma = self.adaptive_sigma.item()
 
-        new_curvature = self.adaptive_curvature + delta_curvature * self.adaptation_rate * 10
-        self.adaptive_curvature = torch.clamp(new_curvature, self.curvature_min, self.curvature_max)
+        new_curvature = (
+            self.adaptive_curvature + delta_curvature * self.adaptation_rate * 10
+        )
+        self.adaptive_curvature = torch.clamp(
+            new_curvature, self.curvature_min, self.curvature_max
+        )
         self.curvature = self.adaptive_curvature.item()

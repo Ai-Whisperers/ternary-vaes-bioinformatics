@@ -17,11 +17,12 @@ This module implements emergent drives toward:
 Single responsibility: Appetitive loss computation.
 """
 
+from typing import Dict, List, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, Tuple, List
 
 
 class AdaptiveRankingLoss(nn.Module):
@@ -44,7 +45,7 @@ class AdaptiveRankingLoss(nn.Module):
         self.base_margin = base_margin
         self.n_triplets = n_triplets
         # Precompute 3-adic valuations for all 19683 operations
-        self.register_buffer('valuations', self._precompute_valuations())
+        self.register_buffer("valuations", self._precompute_valuations())
 
     def _precompute_valuations(self) -> torch.Tensor:
         """Compute v_3(i) for i in [0, 19683)."""
@@ -179,7 +180,9 @@ class CuriosityModule(nn.Module):
     for visiting low-density regions.
     """
 
-    def __init__(self, latent_dim: int = 16, bandwidth: float = 1.0, max_history: int = 5000):
+    def __init__(
+        self, latent_dim: int = 16, bandwidth: float = 1.0, max_history: int = 5000
+    ):
         """Initialize curiosity module.
 
         Args:
@@ -191,7 +194,7 @@ class CuriosityModule(nn.Module):
         self.latent_dim = latent_dim
         self.bandwidth = bandwidth
         self.max_history = max_history
-        self.register_buffer('z_history', torch.zeros(0, latent_dim))
+        self.register_buffer("z_history", torch.zeros(0, latent_dim))
 
     def update_history(self, z: torch.Tensor):
         """Add new latent codes to history."""
@@ -199,7 +202,7 @@ class CuriosityModule(nn.Module):
         self.z_history = torch.cat([self.z_history, z_detached], dim=0)
         if self.z_history.size(0) > self.max_history:
             # Keep most recent
-            self.z_history = self.z_history[-self.max_history:]
+            self.z_history = self.z_history[-self.max_history :]
 
     def estimate_density(self, z: torch.Tensor) -> torch.Tensor:
         """Estimate p(z) using KDE.
@@ -261,12 +264,16 @@ class SymbioticBridge(nn.Module):
         # Cross-attention: z_A attends to z_B
         self.query_A = nn.Linear(latent_dim, hidden_dim)
         self.key_B = nn.Linear(latent_dim, hidden_dim)
-        self.value_B = nn.Linear(latent_dim, latent_dim)  # Output latent_dim for residual
+        self.value_B = nn.Linear(
+            latent_dim, latent_dim
+        )  # Output latent_dim for residual
 
         # Reverse attention: z_B attends to z_A
         self.query_B = nn.Linear(latent_dim, hidden_dim)
         self.key_A = nn.Linear(latent_dim, hidden_dim)
-        self.value_A = nn.Linear(latent_dim, latent_dim)  # Output latent_dim for residual
+        self.value_A = nn.Linear(
+            latent_dim, latent_dim
+        )  # Output latent_dim for residual
 
         # MI estimator (bilinear)
         self.mi_estimator = nn.Bilinear(latent_dim, latent_dim, 1)
@@ -306,7 +313,9 @@ class SymbioticBridge(nn.Module):
 
         return z_A_enhanced, z_B_enhanced
 
-    def estimate_mi(self, z_A: torch.Tensor, z_B: torch.Tensor) -> Tuple[torch.Tensor, float]:
+    def estimate_mi(
+        self, z_A: torch.Tensor, z_B: torch.Tensor
+    ) -> Tuple[torch.Tensor, float]:
         """Estimate mutual information using InfoNCE.
 
         Args:
@@ -334,7 +343,7 @@ class SymbioticBridge(nn.Module):
         # All pairwise scores
         all_scores = self.mi_estimator(
             z_A_expanded.reshape(-1, self.latent_dim),
-            z_B_expanded.reshape(-1, self.latent_dim)
+            z_B_expanded.reshape(-1, self.latent_dim),
         ).reshape(batch_size, batch_size)
 
         # InfoNCE: positive on diagonal, negatives off-diagonal
@@ -346,7 +355,9 @@ class SymbioticBridge(nn.Module):
 
         return mi_loss, estimated_mi
 
-    def compute_adaptive_rho(self, estimated_mi: float, target_mi: float = 2.0) -> float:
+    def compute_adaptive_rho(
+        self, estimated_mi: float, target_mi: float = 2.0
+    ) -> float:
         """Compute coupling strength based on MI.
 
         Low MI -> increase rho (need more coupling)
@@ -360,7 +371,9 @@ class SymbioticBridge(nn.Module):
             Adaptive rho value
         """
         mi_ratio = estimated_mi / (target_mi + 1e-8)
-        rho = self.rho_base + (self.rho_max - self.rho_base) * (1 - np.tanh(mi_ratio - 1))
+        rho = self.rho_base + (self.rho_max - self.rho_base) * (
+            1 - np.tanh(mi_ratio - 1)
+        )
         return float(np.clip(rho, self.rho_base, self.rho_max))
 
     def forward(self, z_A: torch.Tensor, z_B: torch.Tensor) -> Dict[str, torch.Tensor]:
@@ -378,11 +391,11 @@ class SymbioticBridge(nn.Module):
         adaptive_rho = self.compute_adaptive_rho(estimated_mi)
 
         return {
-            'z_A_enhanced': z_A_enhanced,
-            'z_B_enhanced': z_B_enhanced,
-            'mi_loss': mi_loss,
-            'estimated_mi': estimated_mi,
-            'adaptive_rho': adaptive_rho
+            "z_A_enhanced": z_A_enhanced,
+            "z_B_enhanced": z_B_enhanced,
+            "mi_loss": mi_loss,
+            "estimated_mi": estimated_mi,
+            "adaptive_rho": adaptive_rho,
         }
 
 
@@ -399,7 +412,7 @@ class AlgebraicClosureLoss(nn.Module):
         """Initialize algebraic closure loss."""
         super().__init__()
         # Identity operation index (all zeros -> maps to index 9841)
-        self.register_buffer('identity_idx', torch.tensor(9841))
+        self.register_buffer("identity_idx", torch.tensor(9841))
 
     def _idx_to_lut(self, idx: torch.Tensor) -> torch.Tensor:
         """Convert operation indices to LUT representation.
@@ -414,7 +427,7 @@ class AlgebraicClosureLoss(nn.Module):
         batch_size = idx.size(0)
         lut = torch.zeros(batch_size, 9, dtype=torch.long, device=device)
         for i in range(9):
-            lut[:, i] = (idx // (3 ** i)) % 3 - 1
+            lut[:, i] = (idx // (3**i)) % 3 - 1
         return lut
 
     def _lut_to_idx(self, lut: torch.Tensor) -> torch.Tensor:
@@ -429,7 +442,7 @@ class AlgebraicClosureLoss(nn.Module):
         device = lut.device
         idx = torch.zeros(lut.size(0), dtype=torch.long, device=device)
         for i in range(9):
-            idx += (lut[:, i] + 1) * (3 ** i)
+            idx += (lut[:, i] + 1) * (3**i)
         return idx
 
     def compose_operations(
@@ -459,10 +472,7 @@ class AlgebraicClosureLoss(nn.Module):
         return torch.full_like(a_idx, self.identity_idx, device=device)
 
     def forward(
-        self,
-        z: torch.Tensor,
-        indices: torch.Tensor,
-        n_pairs: int = 500
+        self, z: torch.Tensor, indices: torch.Tensor, n_pairs: int = 500
     ) -> torch.Tensor:
         """Compute algebraic closure loss.
 
@@ -483,7 +493,7 @@ class AlgebraicClosureLoss(nn.Module):
             return torch.tensor(0.0, device=device)
 
         # Find identity element in batch
-        identity_mask = (indices == self.identity_idx)
+        identity_mask = indices == self.identity_idx
         if identity_mask.any():
             z_0 = z[identity_mask].mean(dim=0)
         else:
@@ -573,8 +583,7 @@ class ViolationBuffer:
     def _prune(self, current_epoch: int, max_age: int = 50):
         """Remove violations older than max_age epochs."""
         self.violations = {
-            k: v for k, v in self.violations.items()
-            if current_epoch - v[1] < max_age
+            k: v for k, v in self.violations.items() if current_epoch - v[1] < max_age
         }
 
     def get_attention_weights(

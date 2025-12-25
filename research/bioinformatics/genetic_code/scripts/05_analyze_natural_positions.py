@@ -11,10 +11,10 @@ Usage:
     python 07d_analyze_natural_positions.py
 """
 
-import sys
-from pathlib import Path
 import json
+import sys
 from collections import Counter, defaultdict
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))

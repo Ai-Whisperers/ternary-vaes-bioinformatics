@@ -38,10 +38,7 @@ class BaseTrainer(ABC):
     """
 
     def __init__(
-        self,
-        model: torch.nn.Module,
-        config: Dict[str, Any],
-        device: str = 'cuda'
+        self, model: torch.nn.Module, config: Dict[str, Any], device: str = "cuda"
     ):
         """Initialize base trainer.
 
@@ -59,7 +56,7 @@ class BaseTrainer(ABC):
     def safe_average_losses(
         epoch_losses: Dict[str, float],
         num_batches: int,
-        exclude_keys: Optional[set] = None
+        exclude_keys: Optional[set] = None,
     ) -> Dict[str, float]:
         """Safely average accumulated losses, guarding against division by zero.
 
@@ -85,8 +82,7 @@ class BaseTrainer(ABC):
 
     @staticmethod
     def accumulate_losses(
-        epoch_losses: Dict[str, float],
-        batch_losses: Dict[str, Any]
+        epoch_losses: Dict[str, float], batch_losses: Dict[str, Any]
     ) -> None:
         """Accumulate batch losses into epoch losses (in-place).
 
@@ -103,9 +99,7 @@ class BaseTrainer(ABC):
                 epoch_losses[key] += val
 
     def run_validation(
-        self,
-        val_loader: Optional[DataLoader],
-        train_losses: Dict[str, float]
+        self, val_loader: Optional[DataLoader], train_losses: Dict[str, float]
     ) -> tuple[Dict[str, float], bool]:
         """Run validation with proper None-check.
 
@@ -159,19 +153,21 @@ class BaseTrainer(ABC):
 
 
 # Default keys to exclude from averaging (learning rates, deltas, etc.)
-STATENET_KEYS = frozenset([
-    'lr_corrected',
-    'delta_lr',
-    'delta_lambda1',
-    'delta_lambda2',
-    'delta_lambda3',
-    'delta_curriculum',
-    'delta_sigma',
-    'delta_curvature',
-])
+STATENET_KEYS = frozenset(
+    [
+        "lr_corrected",
+        "delta_lr",
+        "delta_lambda1",
+        "delta_lambda2",
+        "delta_lambda3",
+        "delta_curriculum",
+        "delta_sigma",
+        "delta_curvature",
+    ]
+)
 
 
 __all__ = [
-    'BaseTrainer',
-    'STATENET_KEYS',
+    "BaseTrainer",
+    "STATENET_KEYS",
 ]

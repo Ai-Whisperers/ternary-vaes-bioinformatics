@@ -18,11 +18,16 @@ Single responsibility: Parameter scheduling logic only.
 """
 
 import math
-from typing import Dict, List, Any
+from typing import Any, Dict, List
 
 
-def linear_schedule(epoch: int, start_val: float, end_val: float,
-                   total_epochs: int, start_epoch: int = 0) -> float:
+def linear_schedule(
+    epoch: int,
+    start_val: float,
+    end_val: float,
+    total_epochs: int,
+    start_epoch: int = 0,
+) -> float:
     """Linear scheduling from start_val to end_val.
 
     Args:
@@ -41,8 +46,9 @@ def linear_schedule(epoch: int, start_val: float, end_val: float,
     return start_val + (end_val - start_val) * progress
 
 
-def cyclic_schedule(epoch: int, base_val: float, amplitude: float,
-                   period: int) -> float:
+def cyclic_schedule(
+    epoch: int, base_val: float, amplitude: float, period: int
+) -> float:
     """Cyclic scheduling: base ± amplitude with given period.
 
     P3 FIX: Uses math.cos instead of numpy.cos to avoid potential
@@ -70,8 +76,7 @@ class TemperatureScheduler:
     - Phase-dependent boosting
     """
 
-    def __init__(self, config: Dict[str, Any], phase_4_start: int,
-                 temp_lag: int = 0):
+    def __init__(self, config: Dict[str, Any], phase_4_start: int, temp_lag: int = 0):
         """Initialize temperature scheduler.
 
         Args:
@@ -83,7 +88,7 @@ class TemperatureScheduler:
         self.phase_4_start = phase_4_start
         self.temp_lag = temp_lag
 
-    def get_temperature(self, epoch: int, vae: str = 'A') -> float:
+    def get_temperature(self, epoch: int, vae: str = "A") -> float:
         """Get temperature with proper Phase 4 support.
 
         Args:
@@ -93,23 +98,25 @@ class TemperatureScheduler:
         Returns:
             Temperature value
         """
-        if vae == 'A':
+        if vae == "A":
             # Chaotic regime: cyclic with boost in Phase 4
             base_temp = linear_schedule(
                 epoch,
-                self.config['vae_a']['temp_start'],
-                self.config['vae_a']['temp_end'],
-                self.config['total_epochs']
+                self.config["vae_a"]["temp_start"],
+                self.config["vae_a"]["temp_end"],
+                self.config["total_epochs"],
             )
 
-            if self.config['vae_a'].get('temp_cyclic', False):
+            if self.config["vae_a"].get("temp_cyclic", False):
                 # Phase 1-3: Small cyclic modulation
                 amplitude = 0.1 * base_temp
 
                 # Phase 4: Enhanced exploration with temp_boost_amplitude
-                if (epoch >= self.phase_4_start and
-                    'temp_boost_amplitude' in self.config['vae_a']):
-                    amplitude = self.config['vae_a']['temp_boost_amplitude']
+                if (
+                    epoch >= self.phase_4_start
+                    and "temp_boost_amplitude" in self.config["vae_a"]
+                ):
+                    amplitude = self.config["vae_a"]["temp_boost_amplitude"]
 
                 period = 30
                 return max(0.1, cyclic_schedule(epoch, base_temp, amplitude, period))
@@ -123,16 +130,16 @@ class TemperatureScheduler:
             if epoch < self.phase_4_start:
                 return linear_schedule(
                     epoch_lagged,
-                    self.config['vae_b']['temp_start'],
-                    self.config['vae_b']['temp_end'],
-                    self.config['total_epochs']
+                    self.config["vae_b"]["temp_start"],
+                    self.config["vae_b"]["temp_end"],
+                    self.config["total_epochs"],
                 )
             else:
                 # Phase 4: Use temp_phase4 if specified
-                if 'temp_phase4' in self.config['vae_b']:
-                    return self.config['vae_b']['temp_phase4']
+                if "temp_phase4" in self.config["vae_b"]:
+                    return self.config["vae_b"]["temp_phase4"]
                 else:
-                    return self.config['vae_b']['temp_end']
+                    return self.config["vae_b"]["temp_end"]
 
 
 class BetaScheduler:
@@ -153,7 +160,7 @@ class BetaScheduler:
         self.config = config
         self.beta_phase_lag = beta_phase_lag
 
-    def get_beta(self, epoch: int, vae: str = 'A') -> float:
+    def get_beta(self, epoch: int, vae: str = "A") -> float:
         """Get beta with KL warmup and phase offset for VAE-B.
 
         Args:
@@ -163,32 +170,32 @@ class BetaScheduler:
         Returns:
             Beta value
         """
-        if vae == 'A':
+        if vae == "A":
             # Get warmup parameters
-            warmup_epochs = self.config['vae_a'].get('beta_warmup_epochs', 0)
+            warmup_epochs = self.config["vae_a"].get("beta_warmup_epochs", 0)
 
             if warmup_epochs > 0 and epoch < warmup_epochs:
                 # Warmup: linearly increase from 0 to beta_start
-                beta_target = self.config['vae_a']['beta_start']
+                beta_target = self.config["vae_a"]["beta_start"]
                 return (epoch / warmup_epochs) * beta_target
             else:
                 # Normal schedule after warmup
                 return linear_schedule(
                     epoch - warmup_epochs,
-                    self.config['vae_a']['beta_start'],
-                    self.config['vae_a']['beta_end'],
-                    self.config['total_epochs'] - warmup_epochs
+                    self.config["vae_a"]["beta_start"],
+                    self.config["vae_a"]["beta_end"],
+                    self.config["total_epochs"] - warmup_epochs,
                 )
         else:
             # VAE-B warmup
-            warmup_epochs = self.config['vae_b'].get('beta_warmup_epochs', 0)
+            warmup_epochs = self.config["vae_b"].get("beta_warmup_epochs", 0)
 
             if warmup_epochs > 0 and epoch < warmup_epochs:
-                beta_target = self.config['vae_b']['beta_start']
+                beta_target = self.config["vae_b"]["beta_start"]
                 return (epoch / warmup_epochs) * beta_target
             else:
                 # After warmup, use phase offset from VAE-A
-                beta_A = self.get_beta(epoch, 'A')
+                beta_A = self.get_beta(epoch, "A")
                 return beta_A * abs(math.sin(self.beta_phase_lag))
 
 
@@ -215,8 +222,8 @@ class LearningRateScheduler:
         Returns:
             Learning rate
         """
-        lr = self.lr_schedule[0]['lr']
+        lr = self.lr_schedule[0]["lr"]
         for entry in self.lr_schedule:
-            if epoch >= entry['epoch']:
-                lr = entry['lr']
+            if epoch >= entry["epoch"]:
+                lr = entry["lr"]
         return lr

@@ -32,11 +32,12 @@ StateNet Evolution:
 - v5 (v5.10+): 20D input [+radial_loss, curriculum_tau] -> 8D [+delta_curriculum]
 """
 
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-import numpy as np
 
 
 class TernaryEncoderA(nn.Module):
@@ -51,7 +52,7 @@ class TernaryEncoderA(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -76,7 +77,7 @@ class TernaryDecoderA(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 64),
             nn.ReLU(),
-            nn.Linear(64, output_dim * 3)
+            nn.Linear(64, output_dim * 3),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -90,11 +91,7 @@ class ResidualBlock(nn.Module):
 
     def __init__(self, dim: int = 128):
         super().__init__()
-        self.block = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
+        self.block = nn.Sequential(nn.Linear(dim, dim), nn.ReLU(), nn.Linear(dim, dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.block(x)
@@ -112,7 +109,7 @@ class TernaryEncoderB(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -183,29 +180,30 @@ class StateNetV4(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, latent_dim)
+            nn.Linear(hidden_dim, latent_dim),
         )
 
         # Decoder: latent -> corrections (7D output)
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, 7),  # [delta_lr, delta_lambda1-3, delta_ranking, delta_sigma, delta_curvature]
-            nn.Tanh()  # Output in [-1, 1] for bounded corrections
+            nn.Linear(
+                hidden_dim, 7
+            ),  # [delta_lr, delta_lambda1-3, delta_ranking, delta_sigma, delta_curvature]
+            nn.Tanh(),  # Output in [-1, 1] for bounded corrections
         )
 
         # Metric-specific attention head (inherited from v3)
         # Learns which state dimensions most affect metrics
         self.metric_attention = nn.Sequential(
-            nn.Linear(state_dim, 10),  # Expanded for hyperbolic dims
-            nn.Softmax(dim=-1)
+            nn.Linear(state_dim, 10), nn.Softmax(dim=-1)  # Expanded for hyperbolic dims
         )
 
         # Hyperbolic-specific attention head (new in v4)
         # Learns which state dimensions affect hyperbolic params
         self.hyperbolic_attention = nn.Sequential(
             nn.Linear(state_dim, 6),  # For hyperbolic-specific weighting
-            nn.Softmax(dim=-1)
+            nn.Softmax(dim=-1),
         )
 
     def forward(self, state: torch.Tensor) -> tuple:
@@ -227,8 +225,12 @@ class StateNetV4(nn.Module):
         normalized_state[:, 0:2] = state[:, 0:2] / 3.0  # H_A, H_B typically 0-3
         # r_A, r_B already in [0,1]
         # mean_radius_A, mean_radius_B already in [0,1] (within Poincare ball)
-        normalized_state[:, 16:17] = state[:, 16:17] / 2.0  # prior_sigma typically 0.3-2.0
-        normalized_state[:, 17:18] = state[:, 17:18] / 4.0  # curvature typically 0.5-4.0
+        normalized_state[:, 16:17] = (
+            state[:, 16:17] / 2.0
+        )  # prior_sigma typically 0.3-2.0
+        normalized_state[:, 17:18] = (
+            state[:, 17:18] / 4.0
+        )  # curvature typically 0.5-4.0
 
         # Compute metric attention (v3 style)
         metric_attention = self.metric_attention(normalized_state)
@@ -237,17 +239,22 @@ class StateNetV4(nn.Module):
         hyp_attention = self.hyperbolic_attention(normalized_state)
 
         # Expand attention to match state dimensions (10 -> 18 for metric)
-        metric_attention_expanded = torch.cat([
-            metric_attention[:, 0:2].repeat(1, 1),   # For entropy (H_A, H_B)
-            metric_attention[:, 2:4].repeat(1, 1),   # For KL (kl_A, kl_B)
-            metric_attention[:, 4:5],                # For grad_ratio
-            metric_attention[:, 4:5],                # For rho
-            metric_attention[:, 5:6].repeat(1, 3),   # For lambdas
-            metric_attention[:, 6:7].repeat(1, 3),   # For coverage
-            metric_attention[:, 7:8].repeat(1, 2),   # For ranking (r_A, r_B)
-            metric_attention[:, 8:9].repeat(1, 2),   # For radii (mean_radius_A, mean_radius_B)
-            metric_attention[:, 9:10].repeat(1, 2),  # For hyperbolic params
-        ], dim=1)
+        metric_attention_expanded = torch.cat(
+            [
+                metric_attention[:, 0:2].repeat(1, 1),  # For entropy (H_A, H_B)
+                metric_attention[:, 2:4].repeat(1, 1),  # For KL (kl_A, kl_B)
+                metric_attention[:, 4:5],  # For grad_ratio
+                metric_attention[:, 4:5],  # For rho
+                metric_attention[:, 5:6].repeat(1, 3),  # For lambdas
+                metric_attention[:, 6:7].repeat(1, 3),  # For coverage
+                metric_attention[:, 7:8].repeat(1, 2),  # For ranking (r_A, r_B)
+                metric_attention[:, 8:9].repeat(
+                    1, 2
+                ),  # For radii (mean_radius_A, mean_radius_B)
+                metric_attention[:, 9:10].repeat(1, 2),  # For hyperbolic params
+            ],
+            dim=1,
+        )
 
         # Apply attention-weighted encoding
         attended_state = normalized_state * metric_attention_expanded
@@ -258,10 +265,7 @@ class StateNetV4(nn.Module):
         # Decode to corrections
         corrections = self.decoder(latent)
 
-        attention = {
-            'metric': metric_attention,
-            'hyperbolic': hyp_attention
-        }
+        attention = {"metric": metric_attention, "hyperbolic": hyp_attention}
 
         return corrections, latent, attention
 
@@ -305,7 +309,7 @@ class StateNetV5(nn.Module):
             nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU(),
-            nn.Linear(hidden_dim, latent_dim)
+            nn.Linear(hidden_dim, latent_dim),
         )
 
         # Decoder: latent -> corrections (8D output)
@@ -313,37 +317,37 @@ class StateNetV5(nn.Module):
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 8),  # +1 for delta_curriculum
-            nn.Tanh()  # Output in [-1, 1] for bounded corrections
+            nn.Tanh(),  # Output in [-1, 1] for bounded corrections
         )
 
         # Metric-specific attention head (inherited from v4)
         # v5.1: Expanded from 12 to 13 for r_AB dimension
         self.metric_attention = nn.Sequential(
-            nn.Linear(state_dim, 13),  # +1 for r_AB
-            nn.Softmax(dim=-1)
+            nn.Linear(state_dim, 13), nn.Softmax(dim=-1)  # +1 for r_AB
         )
 
         # Hyperbolic-specific attention head (inherited from v4)
         self.hyperbolic_attention = nn.Sequential(
-            nn.Linear(state_dim, 6),
-            nn.Softmax(dim=-1)
+            nn.Linear(state_dim, 6), nn.Softmax(dim=-1)
         )
 
         # Curriculum-specific attention head (new in v5)
         # Learns which state dimensions most affect curriculum decisions
         self.curriculum_attention = nn.Sequential(
             nn.Linear(state_dim, 4),  # Focus: radial_loss, tau, coverage, ranking
-            nn.Softmax(dim=-1)
+            nn.Softmax(dim=-1),
         )
 
         # GAP 5 FIX: Learnable attention head scaling (dynamic architecture)
         # These scalars learn which attention heads are most important
         # Initialized to equal importance (1.0 each), learned through backprop
-        self.attention_head_scales = nn.ParameterDict({
-            'metric': nn.Parameter(torch.tensor(1.0)),
-            'hyperbolic': nn.Parameter(torch.tensor(1.0)),
-            'curriculum': nn.Parameter(torch.tensor(1.0))
-        })
+        self.attention_head_scales = nn.ParameterDict(
+            {
+                "metric": nn.Parameter(torch.tensor(1.0)),
+                "hyperbolic": nn.Parameter(torch.tensor(1.0)),
+                "curriculum": nn.Parameter(torch.tensor(1.0)),
+            }
+        )
 
     def forward(self, state: torch.Tensor) -> tuple:
         """
@@ -366,8 +370,12 @@ class StateNetV5(nn.Module):
         normalized_state[:, 0:2] = state[:, 0:2] / 3.0  # H_A, H_B typically 0-3
         # r_A, r_B, r_AB already in [0,1] (indices 12-14)
         # mean_radius_A, mean_radius_B already in [0,1] (indices 15-16)
-        normalized_state[:, 17:18] = state[:, 17:18] / 2.0  # prior_sigma typically 0.3-2.0
-        normalized_state[:, 18:19] = state[:, 18:19] / 4.0  # curvature typically 0.5-4.0
+        normalized_state[:, 17:18] = (
+            state[:, 17:18] / 2.0
+        )  # prior_sigma typically 0.3-2.0
+        normalized_state[:, 18:19] = (
+            state[:, 18:19] / 4.0
+        )  # curvature typically 0.5-4.0
         # radial_loss_norm: normalize by expected range (0-1), at index 19
         normalized_state[:, 19:20] = torch.clamp(state[:, 19:20], 0, 2) / 2.0
         # curriculum_tau already in [0,1] at index 20
@@ -379,9 +387,11 @@ class StateNetV5(nn.Module):
 
         # GAP 5 FIX: Apply learnable attention head scaling (dynamic architecture)
         # Scales are learned through backprop, allowing network to focus on important heads
-        metric_scale = torch.sigmoid(self.attention_head_scales['metric']) * 2.0  # Range [0, 2]
-        hyp_scale = torch.sigmoid(self.attention_head_scales['hyperbolic']) * 2.0
-        curriculum_scale = torch.sigmoid(self.attention_head_scales['curriculum']) * 2.0
+        metric_scale = (
+            torch.sigmoid(self.attention_head_scales["metric"]) * 2.0
+        )  # Range [0, 2]
+        hyp_scale = torch.sigmoid(self.attention_head_scales["hyperbolic"]) * 2.0
+        curriculum_scale = torch.sigmoid(self.attention_head_scales["curriculum"]) * 2.0
 
         # Scale attention outputs
         metric_attention = metric_attention * metric_scale
@@ -391,19 +401,34 @@ class StateNetV5(nn.Module):
         # Expand metric attention to match state dimensions (13 -> 21 for v5.1)
         # 21D: [H_A, H_B, kl_A, kl_B, grad_ratio, rho, lambda1-3, coverage_A/B/missing,
         #       r_A, r_B, r_AB, mean_radius_A/B, prior_sigma, curvature, radial_loss, tau]
-        metric_attention_expanded = torch.cat([
-            metric_attention[:, 0:2].repeat(1, 1),   # For entropy (H_A, H_B) - indices 0-1
-            metric_attention[:, 2:4].repeat(1, 1),   # For KL (kl_A, kl_B) - indices 2-3
-            metric_attention[:, 4:5],                # For grad_ratio - index 4
-            metric_attention[:, 4:5],                # For rho - index 5
-            metric_attention[:, 5:6].repeat(1, 3),   # For lambdas - indices 6-8
-            metric_attention[:, 6:7].repeat(1, 3),   # For coverage - indices 9-11
-            metric_attention[:, 7:8].repeat(1, 2),   # For ranking (r_A, r_B) - indices 12-13
-            metric_attention[:, 8:9],                # For r_AB - index 14 (v5.1 Gap 6)
-            metric_attention[:, 9:10].repeat(1, 2),  # For radii (mean_radius_A/B) - indices 15-16
-            metric_attention[:, 10:11].repeat(1, 2), # For hyperbolic params - indices 17-18
-            metric_attention[:, 11:13],              # For curriculum (radial_loss, tau) - indices 19-20
-        ], dim=1)
+        metric_attention_expanded = torch.cat(
+            [
+                metric_attention[:, 0:2].repeat(
+                    1, 1
+                ),  # For entropy (H_A, H_B) - indices 0-1
+                metric_attention[:, 2:4].repeat(
+                    1, 1
+                ),  # For KL (kl_A, kl_B) - indices 2-3
+                metric_attention[:, 4:5],  # For grad_ratio - index 4
+                metric_attention[:, 4:5],  # For rho - index 5
+                metric_attention[:, 5:6].repeat(1, 3),  # For lambdas - indices 6-8
+                metric_attention[:, 6:7].repeat(1, 3),  # For coverage - indices 9-11
+                metric_attention[:, 7:8].repeat(
+                    1, 2
+                ),  # For ranking (r_A, r_B) - indices 12-13
+                metric_attention[:, 8:9],  # For r_AB - index 14 (v5.1 Gap 6)
+                metric_attention[:, 9:10].repeat(
+                    1, 2
+                ),  # For radii (mean_radius_A/B) - indices 15-16
+                metric_attention[:, 10:11].repeat(
+                    1, 2
+                ),  # For hyperbolic params - indices 17-18
+                metric_attention[
+                    :, 11:13
+                ],  # For curriculum (radial_loss, tau) - indices 19-20
+            ],
+            dim=1,
+        )
 
         # Apply attention-weighted encoding
         attended_state = normalized_state * metric_attention_expanded
@@ -415,13 +440,13 @@ class StateNetV5(nn.Module):
         corrections = self.decoder(latent)
 
         attention = {
-            'metric': metric_attention,
-            'hyperbolic': hyp_attention,
-            'curriculum': curriculum_attention,
+            "metric": metric_attention,
+            "hyperbolic": hyp_attention,
+            "curriculum": curriculum_attention,
             # GAP 5 FIX: Include learned attention head scales for monitoring
-            'metric_scale': metric_scale.item(),
-            'hyperbolic_scale': hyp_scale.item(),
-            'curriculum_scale': curriculum_scale.item()
+            "metric_scale": metric_scale.item(),
+            "hyperbolic_scale": hyp_scale.item(),
+            "curriculum_scale": curriculum_scale.item(),
         }
 
         return corrections, latent, attention
@@ -464,7 +489,7 @@ class DualNeuralVAEV5_10(nn.Module):
         statenet_ranking_scale: float = 0.3,
         statenet_hyp_sigma_scale: float = 0.05,
         statenet_hyp_curvature_scale: float = 0.02,
-        statenet_curriculum_scale: float = 0.1
+        statenet_curriculum_scale: float = 0.1,
     ):
         """Initialize Dual-Neural VAE v5.10.
 
@@ -526,24 +551,26 @@ class DualNeuralVAEV5_10(nn.Module):
             self.state_net = None
 
         # Gradient norm tracking (for adaptive balance)
-        self.register_buffer('grad_norm_A_ema', torch.tensor(1.0))
-        self.register_buffer('grad_norm_B_ema', torch.tensor(1.0))
+        self.register_buffer("grad_norm_A_ema", torch.tensor(1.0))
+        self.register_buffer("grad_norm_B_ema", torch.tensor(1.0))
 
         # Ranking correlation EMA (for StateNet v3/v4)
-        self.register_buffer('r_A_ema', torch.tensor(0.5))
-        self.register_buffer('r_B_ema', torch.tensor(0.5))
+        self.register_buffer("r_A_ema", torch.tensor(0.5))
+        self.register_buffer("r_B_ema", torch.tensor(0.5))
 
         # Hyperbolic state tracking (for StateNet v4)
-        self.register_buffer('mean_radius_A', torch.tensor(0.5))
-        self.register_buffer('mean_radius_B', torch.tensor(0.5))
-        self.register_buffer('prior_sigma', torch.tensor(1.0))
-        self.register_buffer('curvature', torch.tensor(2.0))
+        self.register_buffer("mean_radius_A", torch.tensor(0.5))
+        self.register_buffer("mean_radius_B", torch.tensor(0.5))
+        self.register_buffer("prior_sigma", torch.tensor(1.0))
+        self.register_buffer("curvature", torch.tensor(2.0))
 
         # GAP 4 FIX: Loss plateau detection for adaptive StateNet LR
         # When VAEs converge (loss plateaus), StateNet needs higher LR to explore
-        self.register_buffer('loss_ema', torch.tensor(10.0))  # EMA of training loss
-        self.register_buffer('loss_prev', torch.tensor(10.0))  # Previous loss (for gradient)
-        self.register_buffer('loss_grad_ema', torch.tensor(1.0))  # EMA of |loss change|
+        self.register_buffer("loss_ema", torch.tensor(10.0))  # EMA of training loss
+        self.register_buffer(
+            "loss_prev", torch.tensor(10.0)
+        )  # Previous loss (for gradient)
+        self.register_buffer("loss_grad_ema", torch.tensor(1.0))  # EMA of |loss change|
         self.statenet_lr_boost = 1.0  # Current adaptive boost (1.0 = no boost)
 
         # Adaptive parameters (inherited from v5.6/v5.7)
@@ -563,13 +590,13 @@ class DualNeuralVAEV5_10(nn.Module):
 
         # StateNet correction history
         self.statenet_corrections = {
-            'delta_lr': [],
-            'delta_lambda1': [],
-            'delta_lambda2': [],
-            'delta_lambda3': [],
-            'delta_ranking_weight': [],
-            'delta_sigma': [],
-            'delta_curvature': []
+            "delta_lr": [],
+            "delta_lambda1": [],
+            "delta_lambda2": [],
+            "delta_lambda3": [],
+            "delta_ranking_weight": [],
+            "delta_sigma": [],
+            "delta_curvature": [],
         }
 
     def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor) -> torch.Tensor:
@@ -584,7 +611,9 @@ class DualNeuralVAEV5_10(nn.Module):
         entropy = -(probs * torch.log(probs + 1e-10)).sum(dim=-1).mean()
         return entropy
 
-    def compute_latent_entropy(self, z: torch.Tensor, num_bins: int = 50) -> torch.Tensor:
+    def compute_latent_entropy(
+        self, z: torch.Tensor, num_bins: int = 50
+    ) -> torch.Tensor:
         """Estimate latent entropy using histogram method."""
         batch_size, latent_dim = z.shape
 
@@ -599,7 +628,9 @@ class DualNeuralVAEV5_10(nn.Module):
 
         return torch.stack(entropies).mean()
 
-    def compute_phase_scheduled_rho(self, epoch: int, phase_4_start: int = 250) -> float:
+    def compute_phase_scheduled_rho(
+        self, epoch: int, phase_4_start: int = 250
+    ) -> float:
         """Compute phase-scheduled latent permeability."""
         if epoch < 40:
             self.current_phase = 1
@@ -636,7 +667,9 @@ class DualNeuralVAEV5_10(nn.Module):
         else:
             self.grad_ema_momentum = 0.9
 
-    def update_adaptive_lambdas(self, grad_ratio: float, coverage_A: int, coverage_B: int):
+    def update_adaptive_lambdas(
+        self, grad_ratio: float, coverage_A: int, coverage_B: int
+    ):
         """Update lambda1 and lambda2 adaptively."""
         if not self.adaptive_scheduling:
             return
@@ -667,23 +700,31 @@ class DualNeuralVAEV5_10(nn.Module):
             return
 
         grad_norm_A = 0.0
-        for param in list(self.encoder_A.parameters()) + list(self.decoder_A.parameters()):
+        for param in list(self.encoder_A.parameters()) + list(
+            self.decoder_A.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_A += param.grad.norm().item() ** 2
         grad_norm_A = math.sqrt(grad_norm_A)
 
         grad_norm_B = 0.0
-        for param in list(self.encoder_B.parameters()) + list(self.decoder_B.parameters()):
+        for param in list(self.encoder_B.parameters()) + list(
+            self.decoder_B.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_B += param.grad.norm().item() ** 2
         grad_norm_B = math.sqrt(grad_norm_B)
 
         if grad_norm_A > 0:
-            self.grad_norm_A_ema = (self.grad_ema_momentum * self.grad_norm_A_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_A)
+            self.grad_norm_A_ema = (
+                self.grad_ema_momentum * self.grad_norm_A_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_A
+            )
         if grad_norm_B > 0:
-            self.grad_norm_B_ema = (self.grad_ema_momentum * self.grad_norm_B_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_B)
+            self.grad_norm_B_ema = (
+                self.grad_ema_momentum * self.grad_norm_B_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_B
+            )
 
     def get_ranking_weight(self) -> float:
         """Get current effective ranking loss weight."""
@@ -692,26 +733,46 @@ class DualNeuralVAEV5_10(nn.Module):
     def get_metric_state(self) -> dict:
         """Get current metric-related state for logging."""
         return {
-            'r_A_ema': self.r_A_ema.item() if torch.is_tensor(self.r_A_ema) else self.r_A_ema,
-            'r_B_ema': self.r_B_ema.item() if torch.is_tensor(self.r_B_ema) else self.r_B_ema,
-            'ranking_weight': self.ranking_weight,
-            'lambda1': self.lambda1,
-            'lambda2': self.lambda2,
-            'lambda3': self.lambda3,
-            'rho': self.rho,
-            'phase': self.current_phase,
-            'mean_radius_A': self.mean_radius_A.item() if torch.is_tensor(self.mean_radius_A) else self.mean_radius_A,
-            'mean_radius_B': self.mean_radius_B.item() if torch.is_tensor(self.mean_radius_B) else self.mean_radius_B,
-            'prior_sigma': self.prior_sigma.item() if torch.is_tensor(self.prior_sigma) else self.prior_sigma,
-            'curvature': self.curvature.item() if torch.is_tensor(self.curvature) else self.curvature
+            "r_A_ema": (
+                self.r_A_ema.item() if torch.is_tensor(self.r_A_ema) else self.r_A_ema
+            ),
+            "r_B_ema": (
+                self.r_B_ema.item() if torch.is_tensor(self.r_B_ema) else self.r_B_ema
+            ),
+            "ranking_weight": self.ranking_weight,
+            "lambda1": self.lambda1,
+            "lambda2": self.lambda2,
+            "lambda3": self.lambda3,
+            "rho": self.rho,
+            "phase": self.current_phase,
+            "mean_radius_A": (
+                self.mean_radius_A.item()
+                if torch.is_tensor(self.mean_radius_A)
+                else self.mean_radius_A
+            ),
+            "mean_radius_B": (
+                self.mean_radius_B.item()
+                if torch.is_tensor(self.mean_radius_B)
+                else self.mean_radius_B
+            ),
+            "prior_sigma": (
+                self.prior_sigma.item()
+                if torch.is_tensor(self.prior_sigma)
+                else self.prior_sigma
+            ),
+            "curvature": (
+                self.curvature.item()
+                if torch.is_tensor(self.curvature)
+                else self.curvature
+            ),
         }
 
     def get_phase_params(self, epoch: int, total_epochs: int = 300) -> dict:
         """Get phase-scheduled parameters (from v5.6)."""
         # Phase transitions
-        phase1_end = 40    # Entropy expansion
-        phase2_end = 120   # Consolidation
-        phase3_end = 250   # Resonant coupling
+        phase1_end = 40  # Entropy expansion
+        phase2_end = 120  # Consolidation
+        phase3_end = 250  # Resonant coupling
         # Phase 4: Ultra-exploration (250+)
 
         if epoch < phase1_end:
@@ -735,14 +796,16 @@ class DualNeuralVAEV5_10(nn.Module):
 
         # Cyclic lambda3 (entropy alignment)
         cycle_progress = (epoch % 30) / 30.0
-        lambda3 = self.lambda3_base + self.lambda3_amplitude * math.cos(2 * math.pi * cycle_progress)
+        lambda3 = self.lambda3_base + self.lambda3_amplitude * math.cos(
+            2 * math.pi * cycle_progress
+        )
 
         return {
-            'phase': phase,
-            'rho': rho,
-            'lambda1': lambda1,
-            'lambda2': lambda2,
-            'lambda3': lambda3
+            "phase": phase,
+            "rho": rho,
+            "lambda1": lambda1,
+            "lambda2": lambda2,
+            "lambda3": lambda3,
         }
 
     def build_state_vector(
@@ -762,7 +825,7 @@ class DualNeuralVAEV5_10(nn.Module):
         mean_radius_A: float = 0.5,
         mean_radius_B: float = 0.5,
         prior_sigma: float = 1.0,
-        curvature: float = 2.0
+        curvature: float = 2.0,
     ) -> torch.Tensor:
         """Build 18D state vector for StateNet v4."""
         device = H_A.device
@@ -776,26 +839,29 @@ class DualNeuralVAEV5_10(nn.Module):
         missing_ops = 19683 - max(coverage_A, coverage_B)
         missing_ops_norm = missing_ops / 19683.0
 
-        state = torch.tensor([
-            H_A.item() if torch.is_tensor(H_A) else H_A,
-            H_B.item() if torch.is_tensor(H_B) else H_B,
-            kl_A.item() if torch.is_tensor(kl_A) else kl_A,
-            kl_B.item() if torch.is_tensor(kl_B) else kl_B,
-            grad_ratio.item() if torch.is_tensor(grad_ratio) else grad_ratio,
-            rho,
-            lambda1,
-            lambda2,
-            lambda3,
-            coverage_A_norm,
-            coverage_B_norm,
-            missing_ops_norm,
-            r_A,                 # v3: ranking correlation A
-            r_B,                 # v3: ranking correlation B
-            mean_radius_A,       # v4: hyperbolic radius A
-            mean_radius_B,       # v4: hyperbolic radius B
-            prior_sigma,         # v4: current prior sigma
-            curvature            # v4: current curvature
-        ], device=device)
+        state = torch.tensor(
+            [
+                H_A.item() if torch.is_tensor(H_A) else H_A,
+                H_B.item() if torch.is_tensor(H_B) else H_B,
+                kl_A.item() if torch.is_tensor(kl_A) else kl_A,
+                kl_B.item() if torch.is_tensor(kl_B) else kl_B,
+                grad_ratio.item() if torch.is_tensor(grad_ratio) else grad_ratio,
+                rho,
+                lambda1,
+                lambda2,
+                lambda3,
+                coverage_A_norm,
+                coverage_B_norm,
+                missing_ops_norm,
+                r_A,  # v3: ranking correlation A
+                r_B,  # v3: ranking correlation B
+                mean_radius_A,  # v4: hyperbolic radius A
+                mean_radius_B,  # v4: hyperbolic radius B
+                prior_sigma,  # v4: current prior sigma
+                curvature,  # v4: current curvature
+            ],
+            device=device,
+        )
 
         return state
 
@@ -814,7 +880,7 @@ class DualNeuralVAEV5_10(nn.Module):
         mean_radius_A: float = 0.5,
         mean_radius_B: float = 0.5,
         prior_sigma: float = 1.0,
-        curvature: float = 2.0
+        curvature: float = 2.0,
     ) -> tuple:
         """Apply StateNet v4 corrections including hyperbolic parameter modulation.
 
@@ -854,14 +920,28 @@ class DualNeuralVAEV5_10(nn.Module):
 
         # Build 18D state vector (v4: with hyperbolic state)
         state_vec = torch.tensor(
-            [H_A, H_B, kl_A, kl_B, grad_ratio, self.rho,
-             self.lambda1, self.lambda2, self.lambda3,
-             coverage_A_norm, coverage_B_norm, missing_ops_norm,
-             r_A, r_B,
-             mean_radius_A, mean_radius_B,
-             prior_sigma, curvature],
+            [
+                H_A,
+                H_B,
+                kl_A,
+                kl_B,
+                grad_ratio,
+                self.rho,
+                self.lambda1,
+                self.lambda2,
+                self.lambda3,
+                coverage_A_norm,
+                coverage_B_norm,
+                missing_ops_norm,
+                r_A,
+                r_B,
+                mean_radius_A,
+                mean_radius_B,
+                prior_sigma,
+                curvature,
+            ],
             device=self.grad_norm_A_ema.device,
-            dtype=torch.float32
+            dtype=torch.float32,
         )
 
         corrections, latent, attention = self.state_net(state_vec)
@@ -878,9 +958,18 @@ class DualNeuralVAEV5_10(nn.Module):
         corrected_lr = max(1e-6, min(0.01, corrected_lr))
 
         # Apply lambda corrections
-        self.lambda1 = max(0.5, min(0.95, self.lambda1 + self.statenet_lambda_scale * delta_lambda1.item()))
-        self.lambda2 = max(0.5, min(0.95, self.lambda2 + self.statenet_lambda_scale * delta_lambda2.item()))
-        self.lambda3 = max(0.15, min(0.75, self.lambda3 + self.statenet_lambda_scale * delta_lambda3.item()))
+        self.lambda1 = max(
+            0.5,
+            min(0.95, self.lambda1 + self.statenet_lambda_scale * delta_lambda1.item()),
+        )
+        self.lambda2 = max(
+            0.5,
+            min(0.95, self.lambda2 + self.statenet_lambda_scale * delta_lambda2.item()),
+        )
+        self.lambda3 = max(
+            0.15,
+            min(0.75, self.lambda3 + self.statenet_lambda_scale * delta_lambda3.item()),
+        )
 
         # Apply ranking weight correction
         effective_ranking_weight = self.ranking_weight * (
@@ -890,17 +979,25 @@ class DualNeuralVAEV5_10(nn.Module):
         self.ranking_weight = effective_ranking_weight
 
         # Record corrections
-        self.statenet_corrections['delta_lr'].append(delta_lr.item())
-        self.statenet_corrections['delta_lambda1'].append(delta_lambda1.item())
-        self.statenet_corrections['delta_lambda2'].append(delta_lambda2.item())
-        self.statenet_corrections['delta_lambda3'].append(delta_lambda3.item())
-        self.statenet_corrections['delta_ranking_weight'].append(delta_ranking_weight.item())
-        self.statenet_corrections['delta_sigma'].append(delta_sigma.item())
-        self.statenet_corrections['delta_curvature'].append(delta_curvature.item())
+        self.statenet_corrections["delta_lr"].append(delta_lr.item())
+        self.statenet_corrections["delta_lambda1"].append(delta_lambda1.item())
+        self.statenet_corrections["delta_lambda2"].append(delta_lambda2.item())
+        self.statenet_corrections["delta_lambda3"].append(delta_lambda3.item())
+        self.statenet_corrections["delta_ranking_weight"].append(
+            delta_ranking_weight.item()
+        )
+        self.statenet_corrections["delta_sigma"].append(delta_sigma.item())
+        self.statenet_corrections["delta_curvature"].append(delta_curvature.item())
 
-        return (corrected_lr, delta_lr.item(), delta_lambda1.item(),
-                delta_lambda2.item(), delta_lambda3.item(),
-                delta_ranking_weight.item(), effective_ranking_weight)
+        return (
+            corrected_lr,
+            delta_lr.item(),
+            delta_lambda1.item(),
+            delta_lambda2.item(),
+            delta_lambda3.item(),
+            delta_ranking_weight.item(),
+            effective_ranking_weight,
+        )
 
     def build_state_vector_v5(
         self,
@@ -922,7 +1019,7 @@ class DualNeuralVAEV5_10(nn.Module):
         prior_sigma: float = 1.0,
         curvature: float = 2.0,
         radial_loss: float = 0.0,
-        curriculum_tau: float = 0.0
+        curriculum_tau: float = 0.0,
     ) -> torch.Tensor:
         """Build 21D state vector for StateNet v5.1.
 
@@ -945,29 +1042,33 @@ class DualNeuralVAEV5_10(nn.Module):
         # Normalize radial_loss (expected range 0-1, clamp at 2)
         radial_loss_norm = min(radial_loss, 2.0) / 2.0
 
-        state = torch.tensor([
-            H_A,
-            H_B,
-            kl_A,
-            kl_B,
-            grad_ratio.item() if torch.is_tensor(grad_ratio) else grad_ratio,
-            rho,
-            lambda1,
-            lambda2,
-            lambda3,
-            coverage_A_norm,
-            coverage_B_norm,
-            missing_ops_norm,
-            r_A,                 # v3: ranking correlation A
-            r_B,                 # v3: ranking correlation B
-            r_AB,                # v5.1: cross-VAE embedding correlation (Gap 6 fix)
-            mean_radius_A,       # v4: hyperbolic radius A
-            mean_radius_B,       # v4: hyperbolic radius B
-            prior_sigma,         # v4: current prior sigma
-            curvature,           # v4: current curvature
-            radial_loss_norm,    # v5: normalized radial stratification loss
-            curriculum_tau       # v5: current curriculum position
-        ], device=device, dtype=torch.float32)
+        state = torch.tensor(
+            [
+                H_A,
+                H_B,
+                kl_A,
+                kl_B,
+                grad_ratio.item() if torch.is_tensor(grad_ratio) else grad_ratio,
+                rho,
+                lambda1,
+                lambda2,
+                lambda3,
+                coverage_A_norm,
+                coverage_B_norm,
+                missing_ops_norm,
+                r_A,  # v3: ranking correlation A
+                r_B,  # v3: ranking correlation B
+                r_AB,  # v5.1: cross-VAE embedding correlation (Gap 6 fix)
+                mean_radius_A,  # v4: hyperbolic radius A
+                mean_radius_B,  # v4: hyperbolic radius B
+                prior_sigma,  # v4: current prior sigma
+                curvature,  # v4: current curvature
+                radial_loss_norm,  # v5: normalized radial stratification loss
+                curriculum_tau,  # v5: current curriculum position
+            ],
+            device=device,
+            dtype=torch.float32,
+        )
 
         return state
 
@@ -989,7 +1090,7 @@ class DualNeuralVAEV5_10(nn.Module):
         prior_sigma: float = 1.0,
         curvature: float = 2.0,
         radial_loss: float = 0.0,
-        curriculum_tau: float = 0.0
+        curriculum_tau: float = 0.0,
     ) -> dict:
         """Apply StateNet v5.1 corrections with curriculum control.
 
@@ -1020,36 +1121,47 @@ class DualNeuralVAEV5_10(nn.Module):
         """
         if not self.use_statenet or not self.training:
             return {
-                'corrected_lr': lr,
-                'delta_lr': 0.0,
-                'delta_lambda1': 0.0,
-                'delta_lambda2': 0.0,
-                'delta_lambda3': 0.0,
-                'delta_ranking_weight': 0.0,
-                'effective_ranking_weight': self.ranking_weight,
-                'delta_sigma': 0.0,
-                'delta_curvature': 0.0,
-                'delta_curriculum': 0.0
+                "corrected_lr": lr,
+                "delta_lr": 0.0,
+                "delta_lambda1": 0.0,
+                "delta_lambda2": 0.0,
+                "delta_lambda3": 0.0,
+                "delta_ranking_weight": 0.0,
+                "effective_ranking_weight": self.ranking_weight,
+                "delta_sigma": 0.0,
+                "delta_curvature": 0.0,
+                "delta_curriculum": 0.0,
             }
 
         if self.statenet_version != 5:
             # Fall back to v4 corrections if not using v5
             result = self.apply_statenet_corrections(
-                lr, H_A, H_B, kl_A, kl_B, grad_ratio,
-                coverage_A, coverage_B, r_A, r_B,
-                mean_radius_A, mean_radius_B, prior_sigma, curvature
+                lr,
+                H_A,
+                H_B,
+                kl_A,
+                kl_B,
+                grad_ratio,
+                coverage_A,
+                coverage_B,
+                r_A,
+                r_B,
+                mean_radius_A,
+                mean_radius_B,
+                prior_sigma,
+                curvature,
             )
             return {
-                'corrected_lr': result[0],
-                'delta_lr': result[1],
-                'delta_lambda1': result[2],
-                'delta_lambda2': result[3],
-                'delta_lambda3': result[4],
-                'delta_ranking_weight': result[5],
-                'effective_ranking_weight': result[6],
-                'delta_sigma': 0.0,
-                'delta_curvature': 0.0,
-                'delta_curriculum': 0.0
+                "corrected_lr": result[0],
+                "delta_lr": result[1],
+                "delta_lambda1": result[2],
+                "delta_lambda2": result[3],
+                "delta_lambda3": result[4],
+                "delta_ranking_weight": result[5],
+                "effective_ranking_weight": result[6],
+                "delta_sigma": 0.0,
+                "delta_curvature": 0.0,
+                "delta_curriculum": 0.0,
             }
 
         # Update ranking EMA
@@ -1057,11 +1169,25 @@ class DualNeuralVAEV5_10(nn.Module):
 
         # Build 21D state vector (v5.1: includes r_AB for cross-VAE correlation)
         state_vec = self.build_state_vector_v5(
-            H_A, H_B, kl_A, kl_B,
-            self.rho, self.lambda1, self.lambda2, self.lambda3,
-            coverage_A, coverage_B, r_A, r_B, r_AB,
-            mean_radius_A, mean_radius_B, prior_sigma, curvature,
-            radial_loss, curriculum_tau
+            H_A,
+            H_B,
+            kl_A,
+            kl_B,
+            self.rho,
+            self.lambda1,
+            self.lambda2,
+            self.lambda3,
+            coverage_A,
+            coverage_B,
+            r_A,
+            r_B,
+            r_AB,
+            mean_radius_A,
+            mean_radius_B,
+            prior_sigma,
+            curvature,
+            radial_loss,
+            curriculum_tau,
         )
 
         corrections, latent, attention = self.state_net(state_vec)
@@ -1081,9 +1207,18 @@ class DualNeuralVAEV5_10(nn.Module):
         corrected_lr = max(1e-6, min(0.01, corrected_lr))
 
         # Apply lambda corrections
-        self.lambda1 = max(0.5, min(0.95, self.lambda1 + self.statenet_lambda_scale * delta_lambda1.item()))
-        self.lambda2 = max(0.5, min(0.95, self.lambda2 + self.statenet_lambda_scale * delta_lambda2.item()))
-        self.lambda3 = max(0.15, min(0.75, self.lambda3 + self.statenet_lambda_scale * delta_lambda3.item()))
+        self.lambda1 = max(
+            0.5,
+            min(0.95, self.lambda1 + self.statenet_lambda_scale * delta_lambda1.item()),
+        )
+        self.lambda2 = max(
+            0.5,
+            min(0.95, self.lambda2 + self.statenet_lambda_scale * delta_lambda2.item()),
+        )
+        self.lambda3 = max(
+            0.15,
+            min(0.75, self.lambda3 + self.statenet_lambda_scale * delta_lambda3.item()),
+        )
 
         # Apply ranking weight correction
         effective_ranking_weight = self.ranking_weight * (
@@ -1093,31 +1228,33 @@ class DualNeuralVAEV5_10(nn.Module):
         self.ranking_weight = effective_ranking_weight
 
         # Record corrections (include new curriculum correction)
-        self.statenet_corrections['delta_lr'].append(delta_lr.item())
-        self.statenet_corrections['delta_lambda1'].append(delta_lambda1.item())
-        self.statenet_corrections['delta_lambda2'].append(delta_lambda2.item())
-        self.statenet_corrections['delta_lambda3'].append(delta_lambda3.item())
-        self.statenet_corrections['delta_ranking_weight'].append(delta_ranking_weight.item())
-        self.statenet_corrections['delta_sigma'].append(delta_sigma.item())
-        self.statenet_corrections['delta_curvature'].append(delta_curvature.item())
+        self.statenet_corrections["delta_lr"].append(delta_lr.item())
+        self.statenet_corrections["delta_lambda1"].append(delta_lambda1.item())
+        self.statenet_corrections["delta_lambda2"].append(delta_lambda2.item())
+        self.statenet_corrections["delta_lambda3"].append(delta_lambda3.item())
+        self.statenet_corrections["delta_ranking_weight"].append(
+            delta_ranking_weight.item()
+        )
+        self.statenet_corrections["delta_sigma"].append(delta_sigma.item())
+        self.statenet_corrections["delta_curvature"].append(delta_curvature.item())
 
         # Add delta_curriculum to tracking if not present
-        if 'delta_curriculum' not in self.statenet_corrections:
-            self.statenet_corrections['delta_curriculum'] = []
-        self.statenet_corrections['delta_curriculum'].append(delta_curriculum.item())
+        if "delta_curriculum" not in self.statenet_corrections:
+            self.statenet_corrections["delta_curriculum"] = []
+        self.statenet_corrections["delta_curriculum"].append(delta_curriculum.item())
 
         return {
-            'corrected_lr': corrected_lr,
-            'delta_lr': delta_lr.item(),
-            'delta_lambda1': delta_lambda1.item(),
-            'delta_lambda2': delta_lambda2.item(),
-            'delta_lambda3': delta_lambda3.item(),
-            'delta_ranking_weight': delta_ranking_weight.item(),
-            'effective_ranking_weight': effective_ranking_weight,
-            'delta_sigma': delta_sigma.item(),
-            'delta_curvature': delta_curvature.item(),
-            'delta_curriculum': delta_curriculum.item(),
-            'statenet_lr_boost': self.statenet_lr_boost  # GAP 4 FIX: Adaptive LR boost
+            "corrected_lr": corrected_lr,
+            "delta_lr": delta_lr.item(),
+            "delta_lambda1": delta_lambda1.item(),
+            "delta_lambda2": delta_lambda2.item(),
+            "delta_lambda3": delta_lambda3.item(),
+            "delta_ranking_weight": delta_ranking_weight.item(),
+            "effective_ranking_weight": effective_ranking_weight,
+            "delta_sigma": delta_sigma.item(),
+            "delta_curvature": delta_curvature.item(),
+            "delta_curriculum": delta_curriculum.item(),
+            "statenet_lr_boost": self.statenet_lr_boost,  # GAP 4 FIX: Adaptive LR boost
         }
 
     def update_ranking_ema(self, r_A: float, r_B: float, alpha: float = 0.7):
@@ -1135,7 +1272,7 @@ class DualNeuralVAEV5_10(nn.Module):
         mean_radius_B: float,
         prior_sigma: float,
         curvature: float,
-        alpha: float = 0.7
+        alpha: float = 0.7,
     ):
         """Update hyperbolic state tracking (for StateNet v4)."""
         self.mean_radius_A = alpha * self.mean_radius_A + (1 - alpha) * mean_radius_A
@@ -1148,7 +1285,7 @@ class DualNeuralVAEV5_10(nn.Module):
         current_loss: float,
         alpha: float = 0.9,
         plateau_threshold: float = 0.05,
-        max_boost: float = 3.0
+        max_boost: float = 3.0,
     ):
         """GAP 4 FIX: Update loss plateau detection and adaptive StateNet LR boost.
 
@@ -1184,8 +1321,14 @@ class DualNeuralVAEV5_10(nn.Module):
 
         return self.statenet_lr_boost
 
-    def forward(self, x: torch.Tensor, temp_A: float = 1.0, temp_B: float = 1.0,
-                beta_A: float = 1.0, beta_B: float = 1.0) -> dict:
+    def forward(
+        self,
+        x: torch.Tensor,
+        temp_A: float = 1.0,
+        temp_B: float = 1.0,
+        beta_A: float = 1.0,
+        beta_B: float = 1.0,
+    ) -> dict:
         """Forward pass through both VAEs with cross-injection.
 
         Args:
@@ -1219,28 +1362,28 @@ class DualNeuralVAEV5_10(nn.Module):
         H_B = self.compute_entropy(logits_B)
 
         return {
-            'logits_A': logits_A,
-            'logits_B': logits_B,
-            'mu_A': mu_A,
-            'mu_B': mu_B,
-            'logvar_A': logvar_A,
-            'logvar_B': logvar_B,
-            'z_A': z_A,
-            'z_B': z_B,
-            'z_A_injected': z_A_injected,
-            'z_B_injected': z_B_injected,
-            'H_A': H_A,
-            'H_B': H_B,
-            'beta_A': beta_A,
-            'beta_B': beta_B,
-            'temp_A': temp_A,
-            'temp_B': temp_B,
-            'rho': self.rho
+            "logits_A": logits_A,
+            "logits_B": logits_B,
+            "mu_A": mu_A,
+            "mu_B": mu_B,
+            "logvar_A": logvar_A,
+            "logvar_B": logvar_B,
+            "z_A": z_A,
+            "z_B": z_B,
+            "z_A_injected": z_A_injected,
+            "z_B_injected": z_B_injected,
+            "H_A": H_A,
+            "H_B": H_B,
+            "beta_A": beta_A,
+            "beta_B": beta_B,
+            "temp_A": temp_A,
+            "temp_B": temp_B,
+            "rho": self.rho,
         }
 
-
-    def sample(self, num_samples: int, device: str = 'cpu',
-               use_vae: str = 'A') -> torch.Tensor:
+    def sample(
+        self, num_samples: int, device: str = "cpu", use_vae: str = "A"
+    ) -> torch.Tensor:
         """Sample from the learned manifold.
 
         Args:
@@ -1255,7 +1398,7 @@ class DualNeuralVAEV5_10(nn.Module):
         with torch.no_grad():
             z = torch.randn(num_samples, self.latent_dim, device=device)
 
-            if use_vae == 'A':
+            if use_vae == "A":
                 logits = self.decoder_A(z)
             else:
                 logits = self.decoder_B(z)

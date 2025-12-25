@@ -20,14 +20,12 @@ Single responsibility: Hyperbolic geometry evaluation metrics only.
 Note: Uses geoopt backend when available for numerical stability.
 """
 
-import torch
 from typing import Tuple
 
+import torch
+
 # Use geoopt-backed geometry module
-from src.geometry import (
-    project_to_poincare,
-    poincare_distance,
-)
+from src.geometry import poincare_distance, project_to_poincare
 
 
 def compute_3adic_valuation(diff: torch.Tensor, max_depth: int = 10) -> torch.Tensor:
@@ -63,7 +61,7 @@ def compute_ranking_correlation_hyperbolic(
     n_samples: int = 5000,
     max_norm: float = 0.95,
     curvature: float = 2.0,
-    n_triplets: int = 1000
+    n_triplets: int = 1000,
 ) -> Tuple[float, float, float, float, float, float]:
     """Compute 3-adic ranking correlation using Poincare distance.
 
@@ -104,8 +102,8 @@ def compute_ranking_correlation_hyperbolic(
 
         # Forward pass through model
         outputs = model(ternary_data.float(), 1.0, 1.0, 0.5, 0.5)
-        z_A = outputs['z_A']
-        z_B = outputs['z_B']
+        z_A = outputs["z_A"]
+        z_B = outputs["z_B"]
 
         # Project to Poincare ball
         z_A_hyp = project_to_poincare(z_A, max_norm)
@@ -171,8 +169,8 @@ def compute_ranking_correlation_hyperbolic(
 
 
 __all__ = [
-    'project_to_poincare',
-    'poincare_distance',
-    'compute_3adic_valuation',
-    'compute_ranking_correlation_hyperbolic',
+    "project_to_poincare",
+    "poincare_distance",
+    "compute_3adic_valuation",
+    "compute_ranking_correlation_hyperbolic",
 ]

@@ -13,13 +13,14 @@ that correlate with disease progression milestones.
 Uses the 3-adic codon encoder (V5.11.3) in hyperbolic space.
 """
 
-import sys
 import json
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Tuple
+import sys
 from collections import defaultdict
 from itertools import combinations
+from pathlib import Path
+from typing import Dict, List, Tuple
+
+import numpy as np
 
 # Add paths
 # Path: .../codon_encoder_research/neurodegeneration/alzheimers/this_script.py
@@ -29,22 +30,11 @@ CODON_RESEARCH_DIR = SCRIPT_DIR.parent.parent
 sys.path.insert(0, str(SCRIPT_DIR / "data"))
 sys.path.insert(0, str(CODON_RESEARCH_DIR / "rheumatoid_arthritis" / "scripts"))
 
-from tau_phospho_database import (
-    TAU_2N4R_SEQUENCE,
-    TAU_PHOSPHO_SITES,
-    TAU_EPITOPES,
-    TAU_DOMAINS,
-    KXGS_MOTIFS
-)
-
-from hyperbolic_utils import (
-    load_hyperbolic_encoder,
-    encode_codon_hyperbolic,
-    hyperbolic_centroid,
-    poincare_distance,
-    AA_TO_CODON
-)
-
+from hyperbolic_utils import (AA_TO_CODON, encode_codon_hyperbolic,
+                              hyperbolic_centroid, load_hyperbolic_encoder,
+                              poincare_distance)
+from tau_phospho_database import (KXGS_MOTIFS, TAU_2N4R_SEQUENCE, TAU_DOMAINS,
+                                  TAU_EPITOPES, TAU_PHOSPHO_SITES)
 
 # ============================================================================
 # PATHOLOGICAL COMBINATIONS TO TEST
@@ -52,97 +42,93 @@ from hyperbolic_utils import (
 
 PATHOLOGICAL_COMBINATIONS = {
     # Clinical epitopes (antibody-defined)
-    'AT8': {
-        'sites': [202, 205],
-        'description': 'Early tangle marker, gold standard for AD staging',
-        'stage': 'early',
-        'clinical_use': 'Immunohistochemistry'
+    "AT8": {
+        "sites": [202, 205],
+        "description": "Early tangle marker, gold standard for AD staging",
+        "stage": "early",
+        "clinical_use": "Immunohistochemistry",
     },
-    'AT8_extended': {
-        'sites': [202, 205, 208],
-        'description': 'Extended AT8 with pS208',
-        'stage': 'early',
-        'clinical_use': 'Research'
+    "AT8_extended": {
+        "sites": [202, 205, 208],
+        "description": "Extended AT8 with pS208",
+        "stage": "early",
+        "clinical_use": "Research",
     },
-    'AT100': {
-        'sites': [212, 214],
-        'description': 'AD-specific phosphorylation pattern',
-        'stage': 'mid',
-        'clinical_use': 'Immunohistochemistry'
+    "AT100": {
+        "sites": [212, 214],
+        "description": "AD-specific phosphorylation pattern",
+        "stage": "mid",
+        "clinical_use": "Immunohistochemistry",
     },
-    'AT180': {
-        'sites': [231, 235],
-        'description': 'Conformational epitope, proline-directed',
-        'stage': 'early',
-        'clinical_use': 'Research'
+    "AT180": {
+        "sites": [231, 235],
+        "description": "Conformational epitope, proline-directed",
+        "stage": "early",
+        "clinical_use": "Research",
     },
-    'PHF-1': {
-        'sites': [396, 404],
-        'description': 'Paired helical filament marker',
-        'stage': 'late',
-        'clinical_use': 'Immunohistochemistry'
+    "PHF-1": {
+        "sites": [396, 404],
+        "description": "Paired helical filament marker",
+        "stage": "late",
+        "clinical_use": "Immunohistochemistry",
     },
-
     # MTBR combinations (microtubule binding disruption)
-    'MTBR_R1_R2': {
-        'sites': [262, 293],
-        'description': 'KXGS motifs in R1 and R2',
-        'stage': 'mid',
-        'clinical_use': 'Research'
+    "MTBR_R1_R2": {
+        "sites": [262, 293],
+        "description": "KXGS motifs in R1 and R2",
+        "stage": "mid",
+        "clinical_use": "Research",
     },
-    'MTBR_R3_R4': {
-        'sites': [324, 356],
-        'description': 'KXGS motifs in R3 and R4',
-        'stage': 'mid',
-        'clinical_use': 'Research'
+    "MTBR_R3_R4": {
+        "sites": [324, 356],
+        "description": "KXGS motifs in R3 and R4",
+        "stage": "mid",
+        "clinical_use": "Research",
     },
-    'MTBR_full': {
-        'sites': [262, 293, 324, 356],
-        'description': 'All four KXGS motifs',
-        'stage': 'mid-late',
-        'clinical_use': 'Research'
+    "MTBR_full": {
+        "sites": [262, 293, 324, 356],
+        "description": "All four KXGS motifs",
+        "stage": "mid-late",
+        "clinical_use": "Research",
     },
-
     # CSF biomarker combinations
-    'CSF_early': {
-        'sites': [181, 217],
-        'description': 'Clinical CSF biomarkers (p-tau181, p-tau217)',
-        'stage': 'early',
-        'clinical_use': 'Diagnosis'
+    "CSF_early": {
+        "sites": [181, 217],
+        "description": "Clinical CSF biomarkers (p-tau181, p-tau217)",
+        "stage": "early",
+        "clinical_use": "Diagnosis",
     },
-    'CSF_extended': {
-        'sites': [181, 217, 231],
-        'description': 'Extended CSF panel with p-tau231',
-        'stage': 'early',
-        'clinical_use': 'Diagnosis'
+    "CSF_extended": {
+        "sites": [181, 217, 231],
+        "description": "Extended CSF panel with p-tau231",
+        "stage": "early",
+        "clinical_use": "Diagnosis",
     },
-
     # Disease progression stages
-    'Braak_I_II': {
-        'sites': [181, 231, 202, 205],
-        'description': 'Transentorhinal stage phosphorylation',
-        'stage': 'early',
-        'clinical_use': 'Staging'
+    "Braak_I_II": {
+        "sites": [181, 231, 202, 205],
+        "description": "Transentorhinal stage phosphorylation",
+        "stage": "early",
+        "clinical_use": "Staging",
     },
-    'Braak_III_IV': {
-        'sites': [181, 231, 202, 205, 262, 396],
-        'description': 'Limbic stage phosphorylation',
-        'stage': 'mid',
-        'clinical_use': 'Staging'
+    "Braak_III_IV": {
+        "sites": [181, 231, 202, 205, 262, 396],
+        "description": "Limbic stage phosphorylation",
+        "stage": "mid",
+        "clinical_use": "Staging",
     },
-    'Braak_V_VI': {
-        'sites': [181, 231, 202, 205, 262, 293, 324, 356, 396, 404, 422],
-        'description': 'Neocortical stage (severe)',
-        'stage': 'late',
-        'clinical_use': 'Staging'
+    "Braak_V_VI": {
+        "sites": [181, 231, 202, 205, 262, 293, 324, 356, 396, 404, 422],
+        "description": "Neocortical stage (severe)",
+        "stage": "late",
+        "clinical_use": "Staging",
     },
-
     # C-terminal aggregation seed
-    'C_term_seed': {
-        'sites': [396, 404, 409, 422],
-        'description': 'C-terminal aggregation-prone region',
-        'stage': 'late',
-        'clinical_use': 'Research'
+    "C_term_seed": {
+        "sites": [396, 404, 409, 422],
+        "description": "C-terminal aggregation-prone region",
+        "stage": "late",
+        "clinical_use": "Research",
     },
 }
 
@@ -150,6 +136,7 @@ PATHOLOGICAL_COMBINATIONS = {
 # ============================================================================
 # ENCODING FUNCTIONS
 # ============================================================================
+
 
 def encode_sequence(sequence: str, encoder) -> np.ndarray:
     """Encode amino acid sequence to hyperbolic embeddings."""
@@ -167,9 +154,9 @@ def apply_multi_phosphomimic(sequence: str, positions: List[int]) -> str:
     seq_list = list(sequence)
     for pos in positions:
         idx = pos - 1  # Convert to 0-indexed
-        if 0 <= idx < len(seq_list) and seq_list[idx] in ['S', 'T', 'Y']:
-            seq_list[idx] = 'D'
-    return ''.join(seq_list)
+        if 0 <= idx < len(seq_list) and seq_list[idx] in ["S", "T", "Y"]:
+            seq_list[idx] = "D"
+    return "".join(seq_list)
 
 
 def compute_centroid_shift(sequence: str, positions: List[int], encoder) -> float:
@@ -192,7 +179,9 @@ def compute_centroid_shift(sequence: str, positions: List[int], encoder) -> floa
     return float(poincare_distance(wt_centroid, phospho_centroid))
 
 
-def compute_individual_shifts(sequence: str, positions: List[int], encoder) -> Dict[int, float]:
+def compute_individual_shifts(
+    sequence: str, positions: List[int], encoder
+) -> Dict[int, float]:
     """Compute individual shifts for each site."""
     shifts = {}
     for pos in positions:
@@ -205,10 +194,9 @@ def compute_individual_shifts(sequence: str, positions: List[int], encoder) -> D
 # SYNERGY ANALYSIS
 # ============================================================================
 
+
 def analyze_synergy(
-    combined_shift: float,
-    individual_shifts: Dict[int, float],
-    positions: List[int]
+    combined_shift: float, individual_shifts: Dict[int, float], positions: List[int]
 ) -> Dict:
     """
     Analyze whether a combination is synergistic, additive, or antagonistic.
@@ -222,36 +210,33 @@ def analyze_synergy(
 
     if expected_additive == 0:
         return {
-            'synergy_ratio': 0,
-            'synergy_type': 'UNDEFINED',
-            'expected_additive': 0,
-            'actual': combined_shift,
-            'excess': 0
+            "synergy_ratio": 0,
+            "synergy_type": "UNDEFINED",
+            "expected_additive": 0,
+            "actual": combined_shift,
+            "excess": 0,
         }
 
     synergy_ratio = combined_shift / expected_additive
 
     if synergy_ratio > 1.2:
-        synergy_type = 'SYNERGISTIC'
+        synergy_type = "SYNERGISTIC"
     elif synergy_ratio < 0.8:
-        synergy_type = 'ANTAGONISTIC'
+        synergy_type = "ANTAGONISTIC"
     else:
-        synergy_type = 'ADDITIVE'
+        synergy_type = "ADDITIVE"
 
     return {
-        'synergy_ratio': synergy_ratio,
-        'synergy_type': synergy_type,
-        'expected_additive': expected_additive,
-        'actual': combined_shift,
-        'excess': combined_shift - expected_additive
+        "synergy_ratio": synergy_ratio,
+        "synergy_type": synergy_type,
+        "expected_additive": expected_additive,
+        "actual": combined_shift,
+        "excess": combined_shift - expected_additive,
     }
 
 
 def find_minimal_tipping_point(
-    sequence: str,
-    available_sites: List[int],
-    encoder,
-    threshold: float = 0.35
+    sequence: str, available_sites: List[int], encoder, threshold: float = 0.35
 ) -> Dict:
     """
     Find the minimal set of phosphorylations that crosses the dysfunction threshold.
@@ -283,25 +268,28 @@ def find_minimal_tipping_point(
         remaining_sites.remove(best_site)
         current_shift = best_shift
 
-        trajectory.append({
-            'n_phospho': len(current_sites),
-            'added_site': best_site,
-            'cumulative_shift': current_shift,
-            'crossed_threshold': current_shift >= threshold
-        })
+        trajectory.append(
+            {
+                "n_phospho": len(current_sites),
+                "added_site": best_site,
+                "cumulative_shift": current_shift,
+                "crossed_threshold": current_shift >= threshold,
+            }
+        )
 
     return {
-        'threshold': threshold,
-        'minimal_sites': current_sites if current_shift >= threshold else None,
-        'final_shift': current_shift,
-        'crossed': current_shift >= threshold,
-        'trajectory': trajectory
+        "threshold": threshold,
+        "minimal_sites": current_sites if current_shift >= threshold else None,
+        "final_shift": current_shift,
+        "crossed": current_shift >= threshold,
+        "trajectory": trajectory,
     }
 
 
 # ============================================================================
 # MAIN ANALYSIS
 # ============================================================================
+
 
 def main():
     print("=" * 70)
@@ -315,17 +303,17 @@ def main():
     print("Encoder loaded successfully")
 
     results = {
-        'metadata': {
-            'analysis': 'Combinatorial Phosphorylation',
-            'encoder': '3-adic (V5.11.3)',
-            'tau_isoform': '2N4R (441 aa)',
-            'n_combinations': len(PATHOLOGICAL_COMBINATIONS)
+        "metadata": {
+            "analysis": "Combinatorial Phosphorylation",
+            "encoder": "3-adic (V5.11.3)",
+            "tau_isoform": "2N4R (441 aa)",
+            "n_combinations": len(PATHOLOGICAL_COMBINATIONS),
         },
-        'individual_shifts': {},
-        'combination_results': {},
-        'synergy_analysis': {},
-        'tipping_points': {},
-        'summary': {}
+        "individual_shifts": {},
+        "combination_results": {},
+        "synergy_analysis": {},
+        "tipping_points": {},
+        "summary": {},
     }
 
     # ========================================================================
@@ -338,7 +326,7 @@ def main():
     # Get all unique sites from combinations
     all_sites = set()
     for combo in PATHOLOGICAL_COMBINATIONS.values():
-        all_sites.update(combo['sites'])
+        all_sites.update(combo["sites"])
 
     individual_shifts = {}
     for site in sorted(all_sites):
@@ -346,11 +334,11 @@ def main():
         individual_shifts[site] = shift
 
         site_data = TAU_PHOSPHO_SITES.get(site, {})
-        aa = site_data.get('aa', '?')
-        domain = site_data.get('domain', '?')
+        aa = site_data.get("aa", "?")
+        domain = site_data.get("domain", "?")
         print(f"  {aa}{site} ({domain}): {shift*100:.1f}%")
 
-    results['individual_shifts'] = {str(k): v for k, v in individual_shifts.items()}
+    results["individual_shifts"] = {str(k): v for k, v in individual_shifts.items()}
 
     # ========================================================================
     # 2. Analyze Pathological Combinations
@@ -362,7 +350,7 @@ def main():
     combination_results = []
 
     for combo_name, combo_data in PATHOLOGICAL_COMBINATIONS.items():
-        sites = combo_data['sites']
+        sites = combo_data["sites"]
 
         # Compute combined shift
         combined_shift = compute_centroid_shift(TAU_2N4R_SEQUENCE, sites, encoder)
@@ -371,32 +359,34 @@ def main():
         synergy = analyze_synergy(combined_shift, individual_shifts, sites)
 
         result = {
-            'name': combo_name,
-            'sites': sites,
-            'n_sites': len(sites),
-            'description': combo_data['description'],
-            'stage': combo_data['stage'],
-            'combined_shift': combined_shift,
-            'combined_shift_pct': combined_shift * 100,
-            **synergy
+            "name": combo_name,
+            "sites": sites,
+            "n_sites": len(sites),
+            "description": combo_data["description"],
+            "stage": combo_data["stage"],
+            "combined_shift": combined_shift,
+            "combined_shift_pct": combined_shift * 100,
+            **synergy,
         }
 
         combination_results.append(result)
 
         # Print result
         synergy_marker = {
-            'SYNERGISTIC': '***',
-            'ANTAGONISTIC': '---',
-            'ADDITIVE': '   '
-        }[synergy['synergy_type']]
+            "SYNERGISTIC": "***",
+            "ANTAGONISTIC": "---",
+            "ADDITIVE": "   ",
+        }[synergy["synergy_type"]]
 
         print(f"\n  {combo_name} ({combo_data['stage']}):")
         print(f"    Sites: {sites}")
         print(f"    Combined shift: {combined_shift*100:.1f}%")
         print(f"    Expected (additive): {synergy['expected_additive']*100:.1f}%")
-        print(f"    Synergy ratio: {synergy['synergy_ratio']:.2f} [{synergy['synergy_type']}] {synergy_marker}")
+        print(
+            f"    Synergy ratio: {synergy['synergy_ratio']:.2f} [{synergy['synergy_type']}] {synergy_marker}"
+        )
 
-    results['combination_results'] = combination_results
+    results["combination_results"] = combination_results
 
     # ========================================================================
     # 3. Synergy Ranking
@@ -406,26 +396,34 @@ def main():
     print("-" * 70)
 
     # Sort by synergy ratio
-    synergistic = [r for r in combination_results if r['synergy_type'] == 'SYNERGISTIC']
-    antagonistic = [r for r in combination_results if r['synergy_type'] == 'ANTAGONISTIC']
-    additive = [r for r in combination_results if r['synergy_type'] == 'ADDITIVE']
+    synergistic = [r for r in combination_results if r["synergy_type"] == "SYNERGISTIC"]
+    antagonistic = [
+        r for r in combination_results if r["synergy_type"] == "ANTAGONISTIC"
+    ]
+    additive = [r for r in combination_results if r["synergy_type"] == "ADDITIVE"]
 
     print(f"\n  SYNERGISTIC combinations: {len(synergistic)}")
-    for r in sorted(synergistic, key=lambda x: x['synergy_ratio'], reverse=True):
-        print(f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%")
+    for r in sorted(synergistic, key=lambda x: x["synergy_ratio"], reverse=True):
+        print(
+            f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%"
+        )
 
     print(f"\n  ANTAGONISTIC combinations: {len(antagonistic)}")
-    for r in sorted(antagonistic, key=lambda x: x['synergy_ratio']):
-        print(f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%")
+    for r in sorted(antagonistic, key=lambda x: x["synergy_ratio"]):
+        print(
+            f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%"
+        )
 
     print(f"\n  ADDITIVE combinations: {len(additive)}")
     for r in additive:
-        print(f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%")
+        print(
+            f"    {r['name']}: ratio={r['synergy_ratio']:.2f}, shift={r['combined_shift_pct']:.1f}%"
+        )
 
-    results['synergy_analysis'] = {
-        'synergistic': [r['name'] for r in synergistic],
-        'antagonistic': [r['name'] for r in antagonistic],
-        'additive': [r['name'] for r in additive]
+    results["synergy_analysis"] = {
+        "synergistic": [r["name"] for r in synergistic],
+        "antagonistic": [r["name"] for r in antagonistic],
+        "additive": [r["name"] for r in additive],
     }
 
     # ========================================================================
@@ -444,15 +442,12 @@ def main():
     for threshold in thresholds:
         print(f"\n  Threshold: {threshold*100:.0f}%")
         tipping = find_minimal_tipping_point(
-            TAU_2N4R_SEQUENCE,
-            all_phospho_sites,
-            encoder,
-            threshold
+            TAU_2N4R_SEQUENCE, all_phospho_sites, encoder, threshold
         )
 
-        results['tipping_points'][str(threshold)] = tipping
+        results["tipping_points"][str(threshold)] = tipping
 
-        if tipping['crossed']:
+        if tipping["crossed"]:
             print(f"    Minimal sites needed: {len(tipping['minimal_sites'])}")
             print(f"    Sites: {tipping['minimal_sites']}")
             print(f"    Final shift: {tipping['final_shift']*100:.1f}%")
@@ -469,21 +464,21 @@ def main():
 
     stage_results = defaultdict(list)
     for r in combination_results:
-        stage_results[r['stage']].append(r)
+        stage_results[r["stage"]].append(r)
 
     print("\n  Mean shift by disease stage:")
     stage_summary = {}
-    for stage in ['early', 'mid', 'mid-late', 'late']:
+    for stage in ["early", "mid", "mid-late", "late"]:
         if stage in stage_results:
-            shifts = [r['combined_shift'] for r in stage_results[stage]]
+            shifts = [r["combined_shift"] for r in stage_results[stage]]
             mean_shift = np.mean(shifts) * 100
             stage_summary[stage] = {
-                'mean_shift_pct': mean_shift,
-                'n_combinations': len(shifts)
+                "mean_shift_pct": mean_shift,
+                "n_combinations": len(shifts),
             }
             print(f"    {stage}: {mean_shift:.1f}% (n={len(shifts)})")
 
-    results['stage_analysis'] = stage_summary
+    results["stage_analysis"] = stage_summary
 
     # ========================================================================
     # 6. MTBR Vulnerability Deep Dive
@@ -500,20 +495,18 @@ def main():
     for n in range(1, len(kxgs_sites) + 1):
         for combo in combinations(kxgs_sites, n):
             shift = compute_centroid_shift(TAU_2N4R_SEQUENCE, list(combo), encoder)
-            mtbr_trajectory.append({
-                'sites': list(combo),
-                'n_sites': n,
-                'shift': shift
-            })
+            mtbr_trajectory.append({"sites": list(combo), "n_sites": n, "shift": shift})
 
     # Group by number of sites
     for n in range(1, len(kxgs_sites) + 1):
-        combos_n = [t for t in mtbr_trajectory if t['n_sites'] == n]
-        shifts = [t['shift'] for t in combos_n]
-        print(f"    {n} KXGS site(s): mean shift = {np.mean(shifts)*100:.1f}%, "
-              f"max = {np.max(shifts)*100:.1f}%")
+        combos_n = [t for t in mtbr_trajectory if t["n_sites"] == n]
+        shifts = [t["shift"] for t in combos_n]
+        print(
+            f"    {n} KXGS site(s): mean shift = {np.mean(shifts)*100:.1f}%, "
+            f"max = {np.max(shifts)*100:.1f}%"
+        )
 
-    results['mtbr_analysis'] = mtbr_trajectory
+    results["mtbr_analysis"] = mtbr_trajectory
 
     # ========================================================================
     # Summary
@@ -523,31 +516,32 @@ def main():
     print("=" * 70)
 
     # Find highest synergy
-    max_synergy = max(combination_results, key=lambda x: x['synergy_ratio'])
+    max_synergy = max(combination_results, key=lambda x: x["synergy_ratio"])
 
     # Find highest shift
-    max_shift = max(combination_results, key=lambda x: x['combined_shift'])
+    max_shift = max(combination_results, key=lambda x: x["combined_shift"])
 
     summary = {
-        'total_combinations_tested': len(combination_results),
-        'synergistic_count': len(synergistic),
-        'antagonistic_count': len(antagonistic),
-        'additive_count': len(additive),
-        'highest_synergy': {
-            'name': max_synergy['name'],
-            'ratio': max_synergy['synergy_ratio'],
-            'sites': max_synergy['sites']
+        "total_combinations_tested": len(combination_results),
+        "synergistic_count": len(synergistic),
+        "antagonistic_count": len(antagonistic),
+        "additive_count": len(additive),
+        "highest_synergy": {
+            "name": max_synergy["name"],
+            "ratio": max_synergy["synergy_ratio"],
+            "sites": max_synergy["sites"],
         },
-        'highest_shift': {
-            'name': max_shift['name'],
-            'shift_pct': max_shift['combined_shift_pct'],
-            'sites': max_shift['sites']
-        }
+        "highest_shift": {
+            "name": max_shift["name"],
+            "shift_pct": max_shift["combined_shift_pct"],
+            "sites": max_shift["sites"],
+        },
     }
 
-    results['summary'] = summary
+    results["summary"] = summary
 
-    print(f"""
+    print(
+        f"""
 1. SYNERGY PATTERNS
    - Synergistic combinations: {len(synergistic)}
    - Antagonistic combinations: {len(antagonistic)}
@@ -575,7 +569,8 @@ def main():
    - Most combinations show {'ANTAGONISTIC' if len(antagonistic) > len(synergistic) else 'SYNERGISTIC'} behavior
    - MTBR full phosphorylation (4 KXGS sites) causes maximal dysfunction
    - Braak staging correlates with geometric shift magnitude
-""")
+"""
+    )
 
     # Save results
     output_path = SCRIPT_DIR / "results" / "tau_combinatorial_results.json"
@@ -593,7 +588,7 @@ def main():
             return [convert(i) for i in obj]
         return obj
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(convert(results), f, indent=2)
 
     print(f"\nResults saved to: {output_path}")

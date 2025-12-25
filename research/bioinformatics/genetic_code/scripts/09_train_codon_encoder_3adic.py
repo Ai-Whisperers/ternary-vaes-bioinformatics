@@ -14,21 +14,21 @@ Key differences from original codon encoder:
 Output: research/genetic_code/data/codon_encoder_3adic.pt
 """
 
-import sys
-from pathlib import Path
 import json
-from datetime import datetime
+import sys
 from collections import defaultdict
+from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
 from scipy.stats import spearmanr
 
 # =============================================================================

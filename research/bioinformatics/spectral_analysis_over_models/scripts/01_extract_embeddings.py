@@ -8,16 +8,16 @@ Usage:
     python 01_extract_embeddings.py [--checkpoint PATH] [--output DIR]
 """
 
-import sys
 import argparse
+import sys
 from pathlib import Path
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
 import numpy as np
+import torch
 from tqdm import tqdm
 
 from src.data.generation import generate_all_ternary_operations

@@ -1,10 +1,11 @@
 import pytest
 import torch
 import torch.nn as nn
+
 from tests.core.builders import VAEBuilder
-from tests.factories.data import TernaryOperationFactory
-from tests.core.matchers import expect_poincare
 from tests.core.helpers import MockFrozenModule
+from tests.core.matchers import expect_poincare
+from tests.factories.data import TernaryOperationFactory
 
 # Helper for mocking modules
 # (Kept for now if needed by builder internal logic, but builder handles patching)

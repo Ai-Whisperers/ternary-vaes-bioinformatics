@@ -14,12 +14,13 @@ Uses the 3-adic codon encoder to map sequences to hyperbolic space
 and compute geometric perturbations from S/T/Y → D (phosphomimic).
 """
 
-import sys
 import json
-import numpy as np
+import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Dict, List, Tuple
-from collections import defaultdict
+
+import numpy as np
 
 # Add paths
 # Path: .../codon_encoder_research/neurodegeneration/alzheimers/this_script.py
@@ -29,23 +30,12 @@ CODON_RESEARCH_DIR = SCRIPT_DIR.parent.parent
 sys.path.insert(0, str(SCRIPT_DIR / "data"))
 sys.path.insert(0, str(CODON_RESEARCH_DIR / "rheumatoid_arthritis" / "scripts"))
 
-from tau_phospho_database import (
-    TAU_2N4R_SEQUENCE,
-    TAU_PHOSPHO_SITES,
-    TAU_EPITOPES,
-    TAU_DOMAINS,
-    TAU_TUBULIN_CONTACTS,
-    KXGS_MOTIFS
-)
-
-from hyperbolic_utils import (
-    load_hyperbolic_encoder,
-    encode_codon_hyperbolic,
-    hyperbolic_centroid,
-    poincare_distance,
-    AA_TO_CODON
-)
-
+from hyperbolic_utils import (AA_TO_CODON, encode_codon_hyperbolic,
+                              hyperbolic_centroid, load_hyperbolic_encoder,
+                              poincare_distance)
+from tau_phospho_database import (KXGS_MOTIFS, TAU_2N4R_SEQUENCE, TAU_DOMAINS,
+                                  TAU_EPITOPES, TAU_PHOSPHO_SITES,
+                                  TAU_TUBULIN_CONTACTS)
 
 # ============================================================================
 # CONFIGURATION
@@ -53,8 +43,8 @@ from hyperbolic_utils import (
 
 # Dysfunction zone thresholds (different from Goldilocks for neurodegeneration)
 ZONE_THRESHOLDS = {
-    'tolerated': 0.15,       # <15%: Normal phosphorylation, tolerated
-    'transition': 0.35,      # 15-35%: Transition zone, early dysfunction
+    "tolerated": 0.15,  # <15%: Normal phosphorylation, tolerated
+    "transition": 0.35,  # 15-35%: Transition zone, early dysfunction
     # >35%: Severe dysfunction, aggregation-prone
 }
 
@@ -65,6 +55,7 @@ CONTEXT_WINDOW = 7  # 15-mer total
 # ============================================================================
 # ENCODING FUNCTIONS
 # ============================================================================
+
 
 def encode_sequence(sequence: str, encoder) -> np.ndarray:
     """Encode amino acid sequence to hyperbolic embeddings."""
@@ -77,7 +68,9 @@ def encode_sequence(sequence: str, encoder) -> np.ndarray:
     return np.array(embeddings) if embeddings else np.array([])
 
 
-def extract_context(sequence: str, position: int, window: int = CONTEXT_WINDOW) -> Tuple[str, int]:
+def extract_context(
+    sequence: str, position: int, window: int = CONTEXT_WINDOW
+) -> Tuple[str, int]:
     """
     Extract sequence context around a position.
 
@@ -104,20 +97,20 @@ def apply_phosphomimic(sequence: str, position: int) -> str:
     seq_list = list(sequence)
     pos_idx = position - 1
 
-    if seq_list[pos_idx] in ['S', 'T', 'Y']:
-        seq_list[pos_idx] = 'D'  # Aspartate mimics phosphate charge
+    if seq_list[pos_idx] in ["S", "T", "Y"]:
+        seq_list[pos_idx] = "D"  # Aspartate mimics phosphate charge
 
-    return ''.join(seq_list)
+    return "".join(seq_list)
 
 
 def classify_zone(shift: float) -> str:
     """Classify geometric shift into dysfunction zones."""
-    if shift < ZONE_THRESHOLDS['tolerated']:
-        return 'tolerated'
-    elif shift < ZONE_THRESHOLDS['transition']:
-        return 'transition'
+    if shift < ZONE_THRESHOLDS["tolerated"]:
+        return "tolerated"
+    elif shift < ZONE_THRESHOLDS["transition"]:
+        return "transition"
     else:
-        return 'severe'
+        return "severe"
 
 
 def compute_dysfunction_score(shift: float, zone: str) -> float:
@@ -125,15 +118,15 @@ def compute_dysfunction_score(shift: float, zone: str) -> float:
     Compute dysfunction score (0-1) based on geometric shift.
     Higher score = more likely to cause dysfunction.
     """
-    if zone == 'tolerated':
-        return shift / ZONE_THRESHOLDS['tolerated'] * 0.3
-    elif zone == 'transition':
-        range_size = ZONE_THRESHOLDS['transition'] - ZONE_THRESHOLDS['tolerated']
-        normalized = (shift - ZONE_THRESHOLDS['tolerated']) / range_size
+    if zone == "tolerated":
+        return shift / ZONE_THRESHOLDS["tolerated"] * 0.3
+    elif zone == "transition":
+        range_size = ZONE_THRESHOLDS["transition"] - ZONE_THRESHOLDS["tolerated"]
+        normalized = (shift - ZONE_THRESHOLDS["tolerated"]) / range_size
         return 0.3 + normalized * 0.4
     else:
         # Severe zone
-        excess = shift - ZONE_THRESHOLDS['transition']
+        excess = shift - ZONE_THRESHOLDS["transition"]
         return min(1.0, 0.7 + excess * 2)
 
 
@@ -141,12 +134,8 @@ def compute_dysfunction_score(shift: float, zone: str) -> float:
 # MAIN ANALYSIS
 # ============================================================================
 
-def analyze_single_site(
-    position: int,
-    site_data: Dict,
-    sequence: str,
-    encoder
-) -> Dict:
+
+def analyze_single_site(position: int, site_data: Dict, sequence: str, encoder) -> Dict:
     """Analyze phosphorylation at a single site."""
 
     # Extract context
@@ -154,8 +143,8 @@ def analyze_single_site(
 
     # Apply phosphomimic
     context_mut = list(context_wt)
-    context_mut[pos_in_ctx] = 'D'
-    context_mut = ''.join(context_mut)
+    context_mut[pos_in_ctx] = "D"
+    context_mut = "".join(context_mut)
 
     # Encode both
     emb_wt = encode_sequence(context_wt, encoder)
@@ -174,33 +163,30 @@ def analyze_single_site(
     dysfunction_score = compute_dysfunction_score(shift, zone)
 
     return {
-        'position': position,
-        'aa': site_data['aa'],
-        'domain': site_data['domain'],
-        'epitope': site_data.get('epitope'),
-        'stage': site_data['stage'],
-        'kinases': site_data.get('kinases', []),
-        'context_wt': context_wt,
-        'context_mut': context_mut,
-        'centroid_shift': shift,
-        'zone': zone,
-        'dysfunction_score': dysfunction_score,
-        'is_mtbr': site_data['domain'] in ['R1', 'R2', 'R3', 'R4', 'MTBR'],
-        'is_kxgs': position in [262, 293, 324, 356],  # KXGS motif serines
-        'near_tubulin_contact': position in TAU_TUBULIN_CONTACTS or
-                                any(abs(position - tc) <= 3 for tc in TAU_TUBULIN_CONTACTS)
+        "position": position,
+        "aa": site_data["aa"],
+        "domain": site_data["domain"],
+        "epitope": site_data.get("epitope"),
+        "stage": site_data["stage"],
+        "kinases": site_data.get("kinases", []),
+        "context_wt": context_wt,
+        "context_mut": context_mut,
+        "centroid_shift": shift,
+        "zone": zone,
+        "dysfunction_score": dysfunction_score,
+        "is_mtbr": site_data["domain"] in ["R1", "R2", "R3", "R4", "MTBR"],
+        "is_kxgs": position in [262, 293, 324, 356],  # KXGS motif serines
+        "near_tubulin_contact": position in TAU_TUBULIN_CONTACTS
+        or any(abs(position - tc) <= 3 for tc in TAU_TUBULIN_CONTACTS),
     }
 
 
 def analyze_epitope_combination(
-    epitope_name: str,
-    epitope_data: Dict,
-    sequence: str,
-    encoder
+    epitope_name: str, epitope_data: Dict, sequence: str, encoder
 ) -> Dict:
     """Analyze combined phosphorylation at an epitope."""
 
-    sites = epitope_data['sites']
+    sites = epitope_data["sites"]
     if not sites:
         return None
 
@@ -217,9 +203,9 @@ def analyze_epitope_combination(
     for site in sites:
         idx_in_context = site - start_pos - 1
         if 0 <= idx_in_context < len(context_mut):
-            context_mut[idx_in_context] = 'D'
+            context_mut[idx_in_context] = "D"
 
-    context_mut = ''.join(context_mut)
+    context_mut = "".join(context_mut)
 
     # Encode
     emb_wt = encode_sequence(context_wt, encoder)
@@ -235,15 +221,15 @@ def analyze_epitope_combination(
     zone = classify_zone(shift)
 
     return {
-        'epitope': epitope_name,
-        'sites': sites,
-        'description': epitope_data['description'],
-        'stage': epitope_data['stage'],
-        'context_wt': context_wt,
-        'context_mut': context_mut,
-        'combined_shift': shift,
-        'zone': zone,
-        'num_phospho': len(sites)
+        "epitope": epitope_name,
+        "sites": sites,
+        "description": epitope_data["description"],
+        "stage": epitope_data["stage"],
+        "context_wt": context_wt,
+        "context_mut": context_mut,
+        "combined_shift": shift,
+        "zone": zone,
+        "num_phospho": len(sites),
     }
 
 
@@ -262,16 +248,16 @@ def main():
     print(f"Phospho-sites to analyze: {len(TAU_PHOSPHO_SITES)}")
 
     results = {
-        'metadata': {
-            'protein': 'Tau (MAPT)',
-            'isoform': '2N4R (441 aa)',
-            'encoder': '3-adic (V5.11.3)',
-            'analysis': 'Single-site phosphorylation sweep',
-            'zone_thresholds': ZONE_THRESHOLDS
+        "metadata": {
+            "protein": "Tau (MAPT)",
+            "isoform": "2N4R (441 aa)",
+            "encoder": "3-adic (V5.11.3)",
+            "analysis": "Single-site phosphorylation sweep",
+            "zone_thresholds": ZONE_THRESHOLDS,
         },
-        'single_site_results': [],
-        'epitope_results': [],
-        'summary': {}
+        "single_site_results": [],
+        "epitope_results": [],
+        "summary": {},
     }
 
     # ========================================================================
@@ -289,11 +275,15 @@ def main():
             site_results.append(result)
 
             # Print progress
-            zone_marker = {'tolerated': '.', 'transition': '*', 'severe': '!'}[result['zone']]
-            print(f"  {result['aa']}{position:3d} ({result['domain']:12s}): "
-                  f"shift={result['centroid_shift']*100:5.1f}% [{result['zone']:10s}] {zone_marker}")
+            zone_marker = {"tolerated": ".", "transition": "*", "severe": "!"}[
+                result["zone"]
+            ]
+            print(
+                f"  {result['aa']}{position:3d} ({result['domain']:12s}): "
+                f"shift={result['centroid_shift']*100:5.1f}% [{result['zone']:10s}] {zone_marker}"
+            )
 
-    results['single_site_results'] = site_results
+    results["single_site_results"] = site_results
 
     # ========================================================================
     # Summary statistics
@@ -305,10 +295,10 @@ def main():
     # By zone
     zone_counts = defaultdict(int)
     for r in site_results:
-        zone_counts[r['zone']] += 1
+        zone_counts[r["zone"]] += 1
 
     print("\nSites by dysfunction zone:")
-    for zone in ['tolerated', 'transition', 'severe']:
+    for zone in ["tolerated", "transition", "severe"]:
         count = zone_counts[zone]
         pct = count / len(site_results) * 100
         print(f"  {zone:12s}: {count:3d} ({pct:5.1f}%)")
@@ -317,7 +307,7 @@ def main():
     print("\nMean shift by domain:")
     domain_shifts = defaultdict(list)
     for r in site_results:
-        domain_shifts[r['domain']].append(r['centroid_shift'])
+        domain_shifts[r["domain"]].append(r["centroid_shift"])
 
     for domain, shifts in sorted(domain_shifts.items(), key=lambda x: -np.mean(x[1])):
         mean_shift = np.mean(shifts) * 100
@@ -327,7 +317,7 @@ def main():
     print("\nMean shift by pathological stage:")
     stage_shifts = defaultdict(list)
     for r in site_results:
-        stage_shifts[r['stage']].append(r['centroid_shift'])
+        stage_shifts[r["stage"]].append(r["centroid_shift"])
 
     for stage, shifts in sorted(stage_shifts.items()):
         mean_shift = np.mean(shifts) * 100
@@ -340,17 +330,19 @@ def main():
     print("3. Top Dysfunction Sites (by geometric shift)")
     print("-" * 70)
 
-    sorted_sites = sorted(site_results, key=lambda x: x['centroid_shift'], reverse=True)
+    sorted_sites = sorted(site_results, key=lambda x: x["centroid_shift"], reverse=True)
 
     print("\n--- Top 15 Highest Geometric Perturbation ---")
     for i, r in enumerate(sorted_sites[:15]):
-        epitope_str = f"[{r['epitope']}]" if r['epitope'] else ""
-        mtbr_str = "[MTBR]" if r['is_mtbr'] else ""
-        kxgs_str = "[KXGS]" if r['is_kxgs'] else ""
+        epitope_str = f"[{r['epitope']}]" if r["epitope"] else ""
+        mtbr_str = "[MTBR]" if r["is_mtbr"] else ""
+        kxgs_str = "[KXGS]" if r["is_kxgs"] else ""
 
-        print(f"  {i+1:2d}. {r['aa']}{r['position']:3d} ({r['domain']:8s}): "
-              f"shift={r['centroid_shift']*100:5.1f}% [{r['zone']}] "
-              f"{epitope_str} {mtbr_str} {kxgs_str}")
+        print(
+            f"  {i+1:2d}. {r['aa']}{r['position']:3d} ({r['domain']:8s}): "
+            f"shift={r['centroid_shift']*100:5.1f}% [{r['zone']}] "
+            f"{epitope_str} {mtbr_str} {kxgs_str}"
+        )
 
     # ========================================================================
     # MTBR-specific analysis
@@ -359,18 +351,22 @@ def main():
     print("4. MTBR (Microtubule Binding Region) Analysis")
     print("-" * 70)
 
-    mtbr_sites = [r for r in site_results if r['is_mtbr']]
+    mtbr_sites = [r for r in site_results if r["is_mtbr"]]
     print(f"\nMTBR phospho-sites: {len(mtbr_sites)}")
 
     if mtbr_sites:
-        mtbr_sorted = sorted(mtbr_sites, key=lambda x: x['centroid_shift'], reverse=True)
+        mtbr_sorted = sorted(
+            mtbr_sites, key=lambda x: x["centroid_shift"], reverse=True
+        )
         print("\nMTBR sites ranked by dysfunction potential:")
         for r in mtbr_sorted:
-            kxgs_str = "[KXGS]" if r['is_kxgs'] else ""
-            tubulin_str = "[TUB]" if r['near_tubulin_contact'] else ""
-            print(f"  {r['aa']}{r['position']:3d} ({r['domain']:3s}): "
-                  f"shift={r['centroid_shift']*100:5.1f}% [{r['zone']}] "
-                  f"{kxgs_str} {tubulin_str}")
+            kxgs_str = "[KXGS]" if r["is_kxgs"] else ""
+            tubulin_str = "[TUB]" if r["near_tubulin_contact"] else ""
+            print(
+                f"  {r['aa']}{r['position']:3d} ({r['domain']:3s}): "
+                f"shift={r['centroid_shift']*100:5.1f}% [{r['zone']}] "
+                f"{kxgs_str} {tubulin_str}"
+            )
 
     # ========================================================================
     # Epitope combination analysis
@@ -393,7 +389,7 @@ def main():
             print(f"    Zone: {result['zone']}")
             print(f"    Stage: {result['stage']}")
 
-    results['epitope_results'] = epitope_results
+    results["epitope_results"] = epitope_results
 
     # ========================================================================
     # Synergy analysis
@@ -405,26 +401,31 @@ def main():
     print("\nComparing individual vs combined phosphorylation:")
 
     for epi in epitope_results:
-        if epi['num_phospho'] >= 2:
+        if epi["num_phospho"] >= 2:
             # Get individual shifts
             individual_shifts = []
-            for site in epi['sites']:
+            for site in epi["sites"]:
                 for r in site_results:
-                    if r['position'] == site:
-                        individual_shifts.append(r['centroid_shift'])
+                    if r["position"] == site:
+                        individual_shifts.append(r["centroid_shift"])
                         break
 
-            if len(individual_shifts) == len(epi['sites']):
+            if len(individual_shifts) == len(epi["sites"]):
                 additive_expected = sum(individual_shifts)
-                actual = epi['combined_shift']
+                actual = epi["combined_shift"]
 
                 if additive_expected > 0:
                     synergy_ratio = actual / additive_expected
-                    synergy_type = "SYNERGISTIC" if synergy_ratio > 1.2 else \
-                                   "ANTAGONISTIC" if synergy_ratio < 0.8 else "ADDITIVE"
+                    synergy_type = (
+                        "SYNERGISTIC"
+                        if synergy_ratio > 1.2
+                        else "ANTAGONISTIC" if synergy_ratio < 0.8 else "ADDITIVE"
+                    )
 
                     print(f"\n  {epi['epitope']}:")
-                    print(f"    Individual shifts: {[f'{s*100:.1f}%' for s in individual_shifts]}")
+                    print(
+                        f"    Individual shifts: {[f'{s*100:.1f}%' for s in individual_shifts]}"
+                    )
                     print(f"    Expected (additive): {additive_expected*100:.1f}%")
                     print(f"    Actual (combined): {actual*100:.1f}%")
                     print(f"    Synergy ratio: {synergy_ratio:.2f} [{synergy_type}]")
@@ -439,27 +440,27 @@ def main():
     # High-value targets: transition/severe zone + MTBR or early stage
     priority_targets = []
     for r in site_results:
-        if r['zone'] in ['transition', 'severe']:
+        if r["zone"] in ["transition", "severe"]:
             priority = 0
             reasons = []
 
-            if r['is_mtbr']:
+            if r["is_mtbr"]:
                 priority += 3
                 reasons.append("MTBR location")
-            if r['is_kxgs']:
+            if r["is_kxgs"]:
                 priority += 2
                 reasons.append("KXGS motif")
-            if r['stage'] == 'early':
+            if r["stage"] == "early":
                 priority += 2
                 reasons.append("Early pathology marker")
-            if r['epitope']:
+            if r["epitope"]:
                 priority += 1
                 reasons.append(f"Epitope: {r['epitope']}")
 
             if priority > 0:
                 priority_targets.append((r, priority, reasons))
 
-    priority_targets.sort(key=lambda x: (-x[1], -x[0]['centroid_shift']))
+    priority_targets.sort(key=lambda x: (-x[1], -x[0]["centroid_shift"]))
 
     print("\nPriority dephosphorylation targets (for therapeutic intervention):")
     for r, priority, reasons in priority_targets[:10]:
@@ -471,19 +472,20 @@ def main():
     # ========================================================================
     # Save results
     # ========================================================================
-    results['summary'] = {
-        'total_sites': len(site_results),
-        'zone_distribution': dict(zone_counts),
-        'mean_shift': float(np.mean([r['centroid_shift'] for r in site_results])),
-        'top_sites': [r['position'] for r in sorted_sites[:10]],
-        'mtbr_sites_in_transition_or_severe': len([r for r in mtbr_sites
-                                                    if r['zone'] in ['transition', 'severe']])
+    results["summary"] = {
+        "total_sites": len(site_results),
+        "zone_distribution": dict(zone_counts),
+        "mean_shift": float(np.mean([r["centroid_shift"] for r in site_results])),
+        "top_sites": [r["position"] for r in sorted_sites[:10]],
+        "mtbr_sites_in_transition_or_severe": len(
+            [r for r in mtbr_sites if r["zone"] in ["transition", "severe"]]
+        ),
     }
 
     output_path = SCRIPT_DIR / "results" / "tau_phospho_sweep_results.json"
     output_path.parent.mkdir(exist_ok=True)
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(results, f, indent=2, default=str)
 
     print(f"\n\nResults saved to: {output_path}")
@@ -495,10 +497,11 @@ def main():
     print("KEY FINDINGS")
     print("=" * 70)
 
-    severe_sites = [r for r in site_results if r['zone'] == 'severe']
-    transition_sites = [r for r in site_results if r['zone'] == 'transition']
+    severe_sites = [r for r in site_results if r["zone"] == "severe"]
+    transition_sites = [r for r in site_results if r["zone"] == "transition"]
 
-    print(f"""
+    print(
+        f"""
 1. DYSFUNCTION DISTRIBUTION
    - Severe zone (>35% shift): {len(severe_sites)} sites
    - Transition zone (15-35%): {len(transition_sites)} sites
@@ -519,7 +522,8 @@ def main():
 5. KINASE TARGETS FOR DRUG DEVELOPMENT
    Based on high-shift sites, prioritize inhibitors for:
    {', '.join(set([k for r in sorted_sites[:10] for k in r['kinases']]))}
-""")
+"""
+    )
 
 
 if __name__ == "__main__":

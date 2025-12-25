@@ -8,10 +8,10 @@
 Fixtures specialized for testing loss functions and components.
 """
 
-import pytest
-import torch
 from typing import Dict
 
+import pytest
+import torch
 
 # =============================================================================
 # VAE Output Fixtures for Loss Testing
@@ -27,20 +27,21 @@ def loss_test_outputs(device) -> Dict[str, torch.Tensor]:
     torch.manual_seed(42)  # Reproducible
 
     return {
-        'logits_A': torch.randn(batch_size, 9, 3, device=device),
-        'logits_B': torch.randn(batch_size, 9, 3, device=device),
-        'mu_A': torch.randn(batch_size, latent_dim, device=device),
-        'mu_B': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_A': torch.randn(batch_size, latent_dim, device=device) - 1,  # Reasonable logvar
-        'logvar_B': torch.randn(batch_size, latent_dim, device=device) - 1,
-        'z_A': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_B': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_A_hyp': torch.randn(batch_size, latent_dim, device=device) * 0.3,
-        'z_B_hyp': torch.randn(batch_size, latent_dim, device=device) * 0.3,
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.1, device=device),
-        'beta_A': torch.tensor(0.1, device=device),
-        'beta_B': torch.tensor(0.1, device=device),
+        "logits_A": torch.randn(batch_size, 9, 3, device=device),
+        "logits_B": torch.randn(batch_size, 9, 3, device=device),
+        "mu_A": torch.randn(batch_size, latent_dim, device=device),
+        "mu_B": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_A": torch.randn(batch_size, latent_dim, device=device)
+        - 1,  # Reasonable logvar
+        "logvar_B": torch.randn(batch_size, latent_dim, device=device) - 1,
+        "z_A": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_B": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_A_hyp": torch.randn(batch_size, latent_dim, device=device) * 0.3,
+        "z_B_hyp": torch.randn(batch_size, latent_dim, device=device) * 0.3,
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.1, device=device),
+        "beta_A": torch.tensor(0.1, device=device),
+        "beta_B": torch.tensor(0.1, device=device),
     }
 
 
@@ -51,18 +52,18 @@ def minimal_loss_outputs(device) -> Dict[str, torch.Tensor]:
     latent_dim = 8
 
     return {
-        'logits_A': torch.randn(batch_size, 9, 3, device=device),
-        'logits_B': torch.randn(batch_size, 9, 3, device=device),
-        'mu_A': torch.randn(batch_size, latent_dim, device=device),
-        'mu_B': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_A': torch.zeros(batch_size, latent_dim, device=device),
-        'logvar_B': torch.zeros(batch_size, latent_dim, device=device),
-        'z_A': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_B': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.0, device=device),
-        'beta_A': torch.tensor(1.0, device=device),
-        'beta_B': torch.tensor(1.0, device=device),
+        "logits_A": torch.randn(batch_size, 9, 3, device=device),
+        "logits_B": torch.randn(batch_size, 9, 3, device=device),
+        "mu_A": torch.randn(batch_size, latent_dim, device=device),
+        "mu_B": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_A": torch.zeros(batch_size, latent_dim, device=device),
+        "logvar_B": torch.zeros(batch_size, latent_dim, device=device),
+        "z_A": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_B": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.0, device=device),
+        "beta_A": torch.tensor(1.0, device=device),
+        "beta_B": torch.tensor(1.0, device=device),
     }
 
 
@@ -82,18 +83,18 @@ def perfect_reconstruction_outputs(device) -> Dict[str, torch.Tensor]:
     logits[:, :, 1] = 10.0  # Strongly predict class 1 (value 0)
 
     return {
-        'logits_A': logits.clone(),
-        'logits_B': logits.clone(),
-        'mu_A': torch.zeros(batch_size, latent_dim, device=device),
-        'mu_B': torch.zeros(batch_size, latent_dim, device=device),
-        'logvar_A': torch.zeros(batch_size, latent_dim, device=device),
-        'logvar_B': torch.zeros(batch_size, latent_dim, device=device),
-        'z_A': torch.zeros(batch_size, latent_dim, device=device),
-        'z_B': torch.zeros(batch_size, latent_dim, device=device),
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.0, device=device),
-        'beta_A': torch.tensor(1.0, device=device),
-        'beta_B': torch.tensor(1.0, device=device),
+        "logits_A": logits.clone(),
+        "logits_B": logits.clone(),
+        "mu_A": torch.zeros(batch_size, latent_dim, device=device),
+        "mu_B": torch.zeros(batch_size, latent_dim, device=device),
+        "logvar_A": torch.zeros(batch_size, latent_dim, device=device),
+        "logvar_B": torch.zeros(batch_size, latent_dim, device=device),
+        "z_A": torch.zeros(batch_size, latent_dim, device=device),
+        "z_B": torch.zeros(batch_size, latent_dim, device=device),
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.0, device=device),
+        "beta_A": torch.tensor(1.0, device=device),
+        "beta_B": torch.tensor(1.0, device=device),
     }
 
 
@@ -104,18 +105,19 @@ def high_kl_outputs(device) -> Dict[str, torch.Tensor]:
     latent_dim = 8
 
     return {
-        'logits_A': torch.randn(batch_size, 9, 3, device=device),
-        'logits_B': torch.randn(batch_size, 9, 3, device=device),
-        'mu_A': torch.ones(batch_size, latent_dim, device=device) * 5,  # Far from prior
-        'mu_B': torch.ones(batch_size, latent_dim, device=device) * 5,
-        'logvar_A': torch.ones(batch_size, latent_dim, device=device) * 2,  # High variance
-        'logvar_B': torch.ones(batch_size, latent_dim, device=device) * 2,
-        'z_A': torch.randn(batch_size, latent_dim, device=device) * 2,
-        'z_B': torch.randn(batch_size, latent_dim, device=device) * 2,
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.0, device=device),
-        'beta_A': torch.tensor(1.0, device=device),
-        'beta_B': torch.tensor(1.0, device=device),
+        "logits_A": torch.randn(batch_size, 9, 3, device=device),
+        "logits_B": torch.randn(batch_size, 9, 3, device=device),
+        "mu_A": torch.ones(batch_size, latent_dim, device=device) * 5,  # Far from prior
+        "mu_B": torch.ones(batch_size, latent_dim, device=device) * 5,
+        "logvar_A": torch.ones(batch_size, latent_dim, device=device)
+        * 2,  # High variance
+        "logvar_B": torch.ones(batch_size, latent_dim, device=device) * 2,
+        "z_A": torch.randn(batch_size, latent_dim, device=device) * 2,
+        "z_B": torch.randn(batch_size, latent_dim, device=device) * 2,
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.0, device=device),
+        "beta_A": torch.tensor(1.0, device=device),
+        "beta_B": torch.tensor(1.0, device=device),
     }
 
 
@@ -141,9 +143,9 @@ def padic_test_data(device):
     z = torch.randn(batch_size, latent_dim, device=device) * 0.5
 
     return {
-        'ops': ops,
-        'indices': indices,
-        'z': z,
+        "ops": ops,
+        "indices": indices,
+        "z": z,
     }
 
 
@@ -151,15 +153,18 @@ def padic_test_data(device):
 def hierarchical_indices(device):
     """Indices with known 3-adic hierarchical structure."""
     # Indices with different valuation levels
-    return torch.tensor([
-        0,      # v_3(0) = inf (or 9)
-        1,      # v_3(1) = 0
-        3,      # v_3(3) = 1
-        9,      # v_3(9) = 2
-        27,     # v_3(27) = 3
-        81,     # v_3(81) = 4
-        243,    # v_3(243) = 5
-        729,    # v_3(729) = 6
-        2187,   # v_3(2187) = 7
-        6561,   # v_3(6561) = 8
-    ], device=device)
+    return torch.tensor(
+        [
+            0,  # v_3(0) = inf (or 9)
+            1,  # v_3(1) = 0
+            3,  # v_3(3) = 1
+            9,  # v_3(9) = 2
+            27,  # v_3(27) = 3
+            81,  # v_3(81) = 4
+            243,  # v_3(243) = 5
+            729,  # v_3(729) = 6
+            2187,  # v_3(2187) = 7
+            6561,  # v_3(6561) = 8
+        ],
+        device=device,
+    )

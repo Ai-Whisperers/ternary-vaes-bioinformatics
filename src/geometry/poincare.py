@@ -28,15 +28,13 @@ Reference:
     Mathieu et al. (2019) "Continuous Hierarchical Representations with Poincare VAEs"
 """
 
-import torch
-import torch.nn as nn
-
 # geoopt is a required dependency
 import geoopt
-from geoopt import PoincareBall as GeooptPoincareBall
+import torch
+import torch.nn as nn
 from geoopt import ManifoldParameter, ManifoldTensor
+from geoopt import PoincareBall as GeooptPoincareBall
 from geoopt.optim import RiemannianAdam, RiemannianSGD
-
 
 # Global manifold cache for efficiency
 _manifold_cache = {}
@@ -58,10 +56,7 @@ def get_manifold(c: float = 1.0) -> GeooptPoincareBall:
 
 
 def poincare_distance(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    c: float = 1.0,
-    keepdim: bool = False
+    x: torch.Tensor, y: torch.Tensor, c: float = 1.0, keepdim: bool = False
 ) -> torch.Tensor:
     """Compute Poincare distance between points.
 
@@ -81,9 +76,7 @@ def poincare_distance(
 
 
 def project_to_poincare(
-    z: torch.Tensor,
-    max_norm: float = 0.95,
-    c: float = 1.0
+    z: torch.Tensor, max_norm: float = 0.95, c: float = 1.0
 ) -> torch.Tensor:
     """Project points onto the Poincare ball.
 
@@ -104,17 +97,12 @@ def project_to_poincare(
     # Apply additional max_norm constraint if needed
     norm = torch.norm(z_proj, dim=-1, keepdim=True)
     scale = torch.where(
-        norm > max_norm,
-        max_norm / (norm + 1e-10),
-        torch.ones_like(norm)
+        norm > max_norm, max_norm / (norm + 1e-10), torch.ones_like(norm)
     )
     return z_proj * scale
 
 
-def exp_map_zero(
-    v: torch.Tensor,
-    c: float = 1.0
-) -> torch.Tensor:
+def exp_map_zero(v: torch.Tensor, c: float = 1.0) -> torch.Tensor:
     """Exponential map from tangent space at origin to Poincare ball.
 
     exp_0(v) = tanh(sqrt(c) * ||v||) * v / (sqrt(c) * ||v||)
@@ -132,9 +120,7 @@ def exp_map_zero(
 
 
 def log_map_zero(
-    z: torch.Tensor,
-    c: float = 1.0,
-    max_norm: float = 0.95
+    z: torch.Tensor, c: float = 1.0, max_norm: float = 0.95
 ) -> torch.Tensor:
     """Logarithmic map from Poincare ball to tangent space at origin.
 
@@ -153,11 +139,7 @@ def log_map_zero(
     return manifold.logmap(origin, z)
 
 
-def mobius_add(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    c: float = 1.0
-) -> torch.Tensor:
+def mobius_add(x: torch.Tensor, y: torch.Tensor, c: float = 1.0) -> torch.Tensor:
     """Mobius addition on Poincare ball.
 
     x (+) y = ((1 + 2c<x,y> + c||y||^2)x + (1 - c||x||^2)y) /
@@ -175,11 +157,7 @@ def mobius_add(
     return manifold.mobius_add(x, y)
 
 
-def lambda_x(
-    x: torch.Tensor,
-    c: float = 1.0,
-    keepdim: bool = True
-) -> torch.Tensor:
+def lambda_x(x: torch.Tensor, c: float = 1.0, keepdim: bool = True) -> torch.Tensor:
     """Compute conformal factor lambda_x = 2 / (1 - c * ||x||^2).
 
     This factor relates Euclidean and Riemannian metrics at point x.
@@ -197,10 +175,7 @@ def lambda_x(
 
 
 def parallel_transport(
-    x: torch.Tensor,
-    y: torch.Tensor,
-    v: torch.Tensor,
-    c: float = 1.0
+    x: torch.Tensor, y: torch.Tensor, v: torch.Tensor, c: float = 1.0
 ) -> torch.Tensor:
     """Parallel transport tangent vector v from x to y.
 
@@ -267,15 +242,15 @@ class PoincareModule(nn.Module):
         """Conformal factor at x."""
         return lambda_x(x, self.c)
 
-    def transport(self, x: torch.Tensor, y: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
+    def transport(
+        self, x: torch.Tensor, y: torch.Tensor, v: torch.Tensor
+    ) -> torch.Tensor:
         """Parallel transport v from x to y."""
         return parallel_transport(x, y, v, self.c)
 
 
 def create_manifold_parameter(
-    data: torch.Tensor,
-    c: float = 1.0,
-    requires_grad: bool = True
+    data: torch.Tensor, c: float = 1.0, requires_grad: bool = True
 ) -> ManifoldParameter:
     """Create a learnable parameter that lives on the Poincare ball.
 
@@ -298,10 +273,7 @@ def create_manifold_parameter(
     return ManifoldParameter(data_proj, manifold=manifold, requires_grad=requires_grad)
 
 
-def create_manifold_tensor(
-    data: torch.Tensor,
-    c: float = 1.0
-) -> ManifoldTensor:
+def create_manifold_tensor(data: torch.Tensor, c: float = 1.0) -> ManifoldTensor:
     """Create a non-learnable tensor on the Poincare ball.
 
     Like ManifoldParameter but without gradients. Useful for
@@ -320,10 +292,7 @@ def create_manifold_tensor(
 
 
 def get_riemannian_optimizer(
-    params,
-    lr: float = 1e-3,
-    optimizer_type: str = 'adam',
-    **kwargs
+    params, lr: float = 1e-3, optimizer_type: str = "adam", **kwargs
 ):
     """Get a Riemannian optimizer for hyperbolic parameters.
 
@@ -336,18 +305,15 @@ def get_riemannian_optimizer(
     Returns:
         Riemannian optimizer
     """
-    if optimizer_type == 'adam':
+    if optimizer_type == "adam":
         return RiemannianAdam(params, lr=lr, **kwargs)
-    elif optimizer_type == 'sgd':
+    elif optimizer_type == "sgd":
         return RiemannianSGD(params, lr=lr, **kwargs)
 
     raise ValueError(f"Unknown optimizer type: {optimizer_type}")
 
 
-def poincare_distance_matrix(
-    z: torch.Tensor,
-    c: float = 1.0
-) -> torch.Tensor:
+def poincare_distance_matrix(z: torch.Tensor, c: float = 1.0) -> torch.Tensor:
     """Compute all pairwise Poincare distances (vectorized).
 
     Uses geoopt for numerical stability at the ball boundary.
@@ -371,21 +337,21 @@ def poincare_distance_matrix(
 
 
 __all__ = [
-    'get_manifold',
-    'poincare_distance',
-    'poincare_distance_matrix',
-    'project_to_poincare',
-    'exp_map_zero',
-    'log_map_zero',
-    'mobius_add',
-    'lambda_x',
-    'parallel_transport',
-    'PoincareModule',
-    'create_manifold_parameter',
-    'create_manifold_tensor',
-    'get_riemannian_optimizer',
-    'ManifoldParameter',
-    'ManifoldTensor',
-    'RiemannianAdam',
-    'RiemannianSGD',
+    "get_manifold",
+    "poincare_distance",
+    "poincare_distance_matrix",
+    "project_to_poincare",
+    "exp_map_zero",
+    "log_map_zero",
+    "mobius_add",
+    "lambda_x",
+    "parallel_transport",
+    "PoincareModule",
+    "create_manifold_parameter",
+    "create_manifold_tensor",
+    "get_riemannian_optimizer",
+    "ManifoldParameter",
+    "ManifoldTensor",
+    "RiemannianAdam",
+    "RiemannianSGD",
 ]

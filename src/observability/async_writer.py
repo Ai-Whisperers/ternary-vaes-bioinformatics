@@ -32,17 +32,18 @@ Usage:
     writer.close()
 """
 
-import threading
 import queue
-from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple, Union
+import threading
 import time
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .metrics_buffer import MetricRecord
 
 # TensorBoard integration (optional)
 try:
     from torch.utils.tensorboard import SummaryWriter
+
     TENSORBOARD_AVAILABLE = True
 except ImportError:
     TENSORBOARD_AVAILABLE = False
@@ -61,7 +62,7 @@ class AsyncTensorBoardWriter:
         log_dir: str,
         experiment_name: Optional[str] = None,
         flush_interval: float = 5.0,  # Seconds between auto-flushes
-        queue_size: int = 10000
+        queue_size: int = 10000,
     ):
         """Initialize async writer.
 
@@ -74,20 +75,25 @@ class AsyncTensorBoardWriter:
         self._enabled = TENSORBOARD_AVAILABLE
 
         if not self._enabled:
-            print("Warning: TensorBoard not available. Install with: pip install tensorboard")
+            print(
+                "Warning: TensorBoard not available. Install with: pip install tensorboard"
+            )
             return
 
         # Generate experiment name if not provided
         if experiment_name is None:
             import datetime
-            experiment_name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+
+            experiment_name = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
         log_path = Path(log_dir) / f"ternary_vae_{experiment_name}"
         self._writer = SummaryWriter(str(log_path))
         self._log_path = log_path
 
         # Async infrastructure
-        self._queue: queue.Queue[Union[List[MetricRecord], Tuple[str, None]]] = queue.Queue(maxsize=queue_size)
+        self._queue: queue.Queue[Union[List[MetricRecord], Tuple[str, None]]] = (
+            queue.Queue(maxsize=queue_size)
+        )
         self._flush_interval = flush_interval
         self._running = True
         self._last_flush = time.time()
@@ -116,7 +122,9 @@ class AsyncTensorBoardWriter:
         try:
             self._queue.put_nowait(records)
         except queue.Full:
-            print(f"Warning: TensorBoard write queue full, dropping {len(records)} records")
+            print(
+                f"Warning: TensorBoard write queue full, dropping {len(records)} records"
+            )
 
     def write_scalar(self, name: str, value: float, step: int) -> None:
         """Write a single scalar.
@@ -147,7 +155,7 @@ class AsyncTensorBoardWriter:
         The flush will happen in the background thread.
         """
         if self._enabled:
-            self._queue.put(('FLUSH', None))
+            self._queue.put(("FLUSH", None))
 
     def _writer_loop(self) -> None:
         """Background thread that processes the write queue."""
@@ -162,7 +170,7 @@ class AsyncTensorBoardWriter:
                         self._do_flush()
                     continue
 
-                if item == ('FLUSH', None):
+                if item == ("FLUSH", None):
                     self._do_flush()
                 elif isinstance(item, list):
                     self._write_records(item)
@@ -175,7 +183,7 @@ class AsyncTensorBoardWriter:
         for record in records:
             # Handle grouped scalars (metrics with tags)
             if record.tags:
-                tag_group = '/'.join(f"{k}_{v}" for k, v in record.tags.items())
+                tag_group = "/".join(f"{k}_{v}" for k, v in record.tags.items())
                 name = f"{record.name}/{tag_group}"
             else:
                 name = record.name
@@ -192,10 +200,10 @@ class AsyncTensorBoardWriter:
     def get_stats(self) -> Dict[str, Any]:
         """Get writer statistics."""
         return {
-            'records_written': self._records_written,
-            'flushes': self._flushes,
-            'queue_size': self._queue.qsize() if self._enabled else 0,
-            'log_path': str(self._log_path) if self._enabled else None
+            "records_written": self._records_written,
+            "flushes": self._flushes,
+            "queue_size": self._queue.qsize() if self._enabled else 0,
+            "log_path": str(self._log_path) if self._enabled else None,
         }
 
     def close(self) -> None:
@@ -215,7 +223,9 @@ class AsyncTensorBoardWriter:
         # Close TensorBoard writer
         self._writer.close()
 
-        print(f"AsyncTensorBoardWriter closed: {self._records_written} records, {self._flushes} flushes")
+        print(
+            f"AsyncTensorBoardWriter closed: {self._records_written} records, {self._flushes} flushes"
+        )
 
 
 class NullWriter:
@@ -237,16 +247,15 @@ class NullWriter:
         pass
 
     def get_stats(self) -> Dict[str, Any]:
-        return {'enabled': False}
+        return {"enabled": False}
 
     def close(self) -> None:
         pass
 
 
 def create_writer(
-    log_dir: Optional[str],
-    experiment_name: Optional[str] = None
-) -> 'AsyncTensorBoardWriter | NullWriter':
+    log_dir: Optional[str], experiment_name: Optional[str] = None
+) -> "AsyncTensorBoardWriter | NullWriter":
     """Factory to create appropriate writer.
 
     Args:
@@ -261,4 +270,4 @@ def create_writer(
     return AsyncTensorBoardWriter(log_dir, experiment_name)
 
 
-__all__ = ['AsyncTensorBoardWriter', 'NullWriter', 'create_writer']
+__all__ = ["AsyncTensorBoardWriter", "NullWriter", "create_writer"]

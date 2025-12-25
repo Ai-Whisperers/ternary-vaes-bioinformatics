@@ -23,25 +23,23 @@ Author: AI Whisperers
 Date: 2025-12-24
 """
 
-import sys
 import json
-import torch
-import numpy as np
+import sys
+from collections import defaultdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Dict, List, Tuple
-from dataclasses import dataclass, asdict
-from collections import defaultdict
+
+import numpy as np
+import torch
 
 # Add local path for imports
 script_dir = Path(__file__).parent
 sys.path.insert(0, str(script_dir))
 
-from hyperbolic_utils import (
-    load_codon_encoder,
-    poincare_distance,
-    codon_to_onehot,
-    AA_TO_CODON,
-)
+from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot, load_codon_encoder,
+                              poincare_distance)
+
 
 # Load hiding landscape data
 def load_hiding_landscape() -> Dict:
@@ -49,13 +47,14 @@ def load_hiding_landscape() -> Dict:
     results_file = script_dir.parent / "results" / "hiv_hiding_landscape.json"
     if not results_file.exists():
         raise FileNotFoundError("Run 04_hiv_hiding_landscape.py first")
-    with open(results_file, 'r') as f:
+    with open(results_file, "r") as f:
         return json.load(f)
 
 
 # =============================================================================
 # CONJECTURE 2: ACCESSORY PROTEIN CONVERGENCE
 # =============================================================================
+
 
 def validate_conjecture_2(landscape: Dict) -> Dict:
     """
@@ -66,7 +65,7 @@ def validate_conjecture_2(landscape: Dict) -> Dict:
     print("CONJECTURE 2: ACCESSORY PROTEIN CONVERGENCE")
     print("=" * 60)
 
-    distances = landscape['hiding_geometry']['protein_distances']
+    distances = landscape["hiding_geometry"]["protein_distances"]
 
     # Find the closest protein pairs
     sorted_pairs = sorted(distances.items(), key=lambda x: x[1])
@@ -74,13 +73,13 @@ def validate_conjecture_2(landscape: Dict) -> Dict:
     print("\nClosest protein pairs in hiding space:")
     clusters = []
     for pair, dist in sorted_pairs[:10]:
-        p1, p2 = pair.split('-')
+        p1, p2 = pair.split("-")
         print(f"  {pair}: d={dist:.3f}")
         if dist < 1.0:
-            clusters.append({'pair': pair, 'distance': dist, 'proteins': [p1, p2]})
+            clusters.append({"pair": pair, "distance": dist, "proteins": [p1, p2]})
 
     # Analyze NC-Vif specifically
-    nc_vif_dist = distances.get('Gag_NC_p7-Vif', distances.get('Vif-Gag_NC_p7', None))
+    nc_vif_dist = distances.get("Gag_NC_p7-Vif", distances.get("Vif-Gag_NC_p7", None))
 
     print(f"\n  NC-Vif distance: {nc_vif_dist:.3f}")
     print("\n  Functional connection:")
@@ -96,17 +95,18 @@ def validate_conjecture_2(landscape: Dict) -> Dict:
     validated = nc_vif_dist is not None and nc_vif_dist < 1.0
 
     return {
-        'conjecture': 'Accessory Protein Convergence',
-        'validated': validated,
-        'nc_vif_distance': float(nc_vif_dist) if nc_vif_dist else None,
-        'clusters': clusters,
-        'implication': 'Single intervention could disrupt both NC and Vif hiding',
+        "conjecture": "Accessory Protein Convergence",
+        "validated": validated,
+        "nc_vif_distance": float(nc_vif_dist) if nc_vif_dist else None,
+        "clusters": clusters,
+        "implication": "Single intervention could disrupt both NC and Vif hiding",
     }
 
 
 # =============================================================================
 # CONJECTURE 3: CENTRAL POSITION PARADOX
 # =============================================================================
+
 
 def validate_conjecture_3(landscape: Dict) -> Dict:
     """
@@ -117,11 +117,11 @@ def validate_conjecture_3(landscape: Dict) -> Dict:
     print("CONJECTURE 3: CENTRAL POSITION PARADOX")
     print("=" * 60)
 
-    geometry = landscape['hiding_geometry']['geometry']
-    by_level = landscape['hiding_geometry']['by_level']
+    geometry = landscape["hiding_geometry"]["geometry"]
+    by_level = landscape["hiding_geometry"]["by_level"]
 
-    overall_norm = geometry['overall_centroid_norm']
-    mean_radius = geometry['mean_radius']
+    overall_norm = geometry["overall_centroid_norm"]
+    mean_radius = geometry["mean_radius"]
 
     print(f"\n  Overall centroid norm: {overall_norm:.3f}")
     print(f"  Mean hiding radius: {mean_radius:.3f}")
@@ -140,14 +140,16 @@ def validate_conjecture_3(landscape: Dict) -> Dict:
     print("\n  Flexibility by hierarchy level:")
     level_analysis = []
     for level, data in by_level.items():
-        norm = data['centroid_norm']
-        flexibility = 'HIGH' if norm < 0.3 else ('LOW' if norm > 0.7 else 'MODERATE')
+        norm = data["centroid_norm"]
+        flexibility = "HIGH" if norm < 0.3 else ("LOW" if norm > 0.7 else "MODERATE")
         print(f"    {level}: norm={norm:.3f} ({flexibility} flexibility)")
-        level_analysis.append({
-            'level': level,
-            'norm': norm,
-            'flexibility': flexibility,
-        })
+        level_analysis.append(
+            {
+                "level": level,
+                "norm": norm,
+                "flexibility": flexibility,
+            }
+        )
 
     # Calculate unexplored space
     unexplored_fraction = 1.0 - overall_norm
@@ -156,18 +158,19 @@ def validate_conjecture_3(landscape: Dict) -> Dict:
     validated = overall_norm < 0.3
 
     return {
-        'conjecture': 'Central Position Paradox',
-        'validated': validated,
-        'overall_centroid_norm': float(overall_norm),
-        'unexplored_fraction': float(unexplored_fraction),
-        'level_analysis': level_analysis,
-        'implication': 'HIV has ~84% unexplored evolutionary hiding space',
+        "conjecture": "Central Position Paradox",
+        "validated": validated,
+        "overall_centroid_norm": float(overall_norm),
+        "unexplored_fraction": float(unexplored_fraction),
+        "level_analysis": level_analysis,
+        "implication": "HIV has ~84% unexplored evolutionary hiding space",
     }
 
 
 # =============================================================================
 # CONJECTURE 4: GOLDILOCKS INVERSION
 # =============================================================================
+
 
 def validate_conjecture_4(landscape: Dict) -> Dict:
     """
@@ -179,34 +182,36 @@ def validate_conjecture_4(landscape: Dict) -> Dict:
     print("=" * 60)
 
     # Load integrase validation results
-    integrase_file = script_dir.parent / "results" / "integrase_vulnerability_validation.json"
+    integrase_file = (
+        script_dir.parent / "results" / "integrase_vulnerability_validation.json"
+    )
 
     if not integrase_file.exists():
         print("  Warning: integrase validation not found")
-        return {'validated': False, 'reason': 'Integrase validation required'}
+        return {"validated": False, "reason": "Integrase validation required"}
 
-    with open(integrase_file, 'r') as f:
+    with open(integrase_file, "r") as f:
         integrase_data = json.load(f)
 
     # Analyze reveal mutations
-    reveal_mutations = integrase_data.get('reveal_mutations', [])
+    reveal_mutations = integrase_data.get("reveal_mutations", [])
 
     print("\n  Goldilocks Inversion = small change, big reveal effect")
     print("\n  Top reveal mutations (sorted by reveal_score):")
 
     goldilocks_candidates = []
     for mut in reveal_mutations[:5]:
-        name = mut['name']
-        dist = mut['hyperbolic_distance']
-        score = mut['reveal_score']
-        mechanism = mut['mechanism']
+        name = mut["name"]
+        dist = mut["hyperbolic_distance"]
+        score = mut["reveal_score"]
+        mechanism = mut["mechanism"]
 
         # Check if it's a "small" change with "big" effect
         # Small change = single AA substitution
         # Big effect = high reveal score
 
-        is_charge_reversal = 'reversal' in mechanism.lower()
-        is_aromatic_change = 'aromatic' in mechanism.lower()
+        is_charge_reversal = "reversal" in mechanism.lower()
+        is_aromatic_change = "aromatic" in mechanism.lower()
 
         print(f"    {name}: d={dist:.2f}, reveal={score:.1f}")
         print(f"         {mechanism}")
@@ -214,7 +219,9 @@ def validate_conjecture_4(landscape: Dict) -> Dict:
         if score > 30:
             goldilocks_candidates.append(mut)
 
-    print(f"\n  Goldilocks candidates (reveal_score > 30): {len(goldilocks_candidates)}")
+    print(
+        f"\n  Goldilocks candidates (reveal_score > 30): {len(goldilocks_candidates)}"
+    )
 
     # Compare to glycan Goldilocks
     print("\n  Analogy to glycan shield:")
@@ -225,17 +232,18 @@ def validate_conjecture_4(landscape: Dict) -> Dict:
     validated = len(goldilocks_candidates) >= 2
 
     return {
-        'conjecture': 'Goldilocks Inversion',
-        'validated': validated,
-        'goldilocks_candidates': goldilocks_candidates,
-        'n_candidates': len(goldilocks_candidates),
-        'implication': 'Small LEDGF interface changes can reveal integrase',
+        "conjecture": "Goldilocks Inversion",
+        "validated": validated,
+        "goldilocks_candidates": goldilocks_candidates,
+        "n_candidates": len(goldilocks_candidates),
+        "implication": "Small LEDGF interface changes can reveal integrase",
     }
 
 
 # =============================================================================
 # CONJECTURE 5: HIERARCHY DECOUPLING
 # =============================================================================
+
 
 def validate_conjecture_5(landscape: Dict) -> Dict:
     """
@@ -246,16 +254,18 @@ def validate_conjecture_5(landscape: Dict) -> Dict:
     print("CONJECTURE 5: HIERARCHY DECOUPLING")
     print("=" * 60)
 
-    by_level = landscape['hiding_geometry']['by_level']
+    by_level = landscape["hiding_geometry"]["by_level"]
 
     # Sort levels by centroid norm (peripheral = constrained)
-    sorted_levels = sorted(by_level.items(), key=lambda x: x[1]['centroid_norm'], reverse=True)
+    sorted_levels = sorted(
+        by_level.items(), key=lambda x: x[1]["centroid_norm"], reverse=True
+    )
 
     print("\n  Hierarchy levels ranked by constraint (most → least):")
     for level, data in sorted_levels:
-        norm = data['centroid_norm']
-        n = data['n_proteins']
-        constraint = 'HIGH' if norm > 0.25 else 'LOW'
+        norm = data["centroid_norm"]
+        n = data["n_proteins"]
+        constraint = "HIGH" if norm > 0.25 else "LOW"
         print(f"    {level}: norm={norm:.3f}, n={n} ({constraint} constraint)")
 
     most_constrained = sorted_levels[0][0]
@@ -265,7 +275,7 @@ def validate_conjecture_5(landscape: Dict) -> Dict:
     print(f"  Least constrained level: {least_constrained}")
 
     print("\n  Therapeutic implication:")
-    if most_constrained == 'peptide':
+    if most_constrained == "peptide":
         print("    CTL-based therapies should be MORE effective")
         print("    HIV has limited escape options at peptide level")
         print("    MHC presentation is an evolutionary pressure point")
@@ -274,27 +284,30 @@ def validate_conjecture_5(landscape: Dict) -> Dict:
 
     # Check decoupling between levels
     print("\n  Level decoupling analysis:")
-    norms = [data['centroid_norm'] for _, data in sorted_levels]
+    norms = [data["centroid_norm"] for _, data in sorted_levels]
     decoupling_range = max(norms) - min(norms)
     print(f"    Range of centroid norms: {decoupling_range:.3f}")
-    print(f"    Interpretation: {'Significant' if decoupling_range > 0.1 else 'Minimal'} decoupling")
+    print(
+        f"    Interpretation: {'Significant' if decoupling_range > 0.1 else 'Minimal'} decoupling"
+    )
 
-    validated = most_constrained == 'peptide'
+    validated = most_constrained == "peptide"
 
     return {
-        'conjecture': 'Hierarchy Decoupling',
-        'validated': validated,
-        'most_constrained': most_constrained,
-        'least_constrained': least_constrained,
-        'level_ranking': [(l, d['centroid_norm']) for l, d in sorted_levels],
-        'decoupling_range': float(decoupling_range),
-        'implication': 'CTL-based therapies exploit peptide-level constraint',
+        "conjecture": "Hierarchy Decoupling",
+        "validated": validated,
+        "most_constrained": most_constrained,
+        "least_constrained": least_constrained,
+        "level_ranking": [(l, d["centroid_norm"]) for l, d in sorted_levels],
+        "decoupling_range": float(decoupling_range),
+        "implication": "CTL-based therapies exploit peptide-level constraint",
     }
 
 
 # =============================================================================
 # CONJECTURE 6: UNIVERSAL REVEAL STRATEGY
 # =============================================================================
+
 
 def validate_conjecture_6(landscape: Dict) -> Dict:
     """
@@ -306,14 +319,14 @@ def validate_conjecture_6(landscape: Dict) -> Dict:
     print("CONJECTURE 6: UNIVERSAL REVEAL STRATEGY")
     print("=" * 60)
 
-    by_level = landscape['hiding_geometry']['by_level']
-    summary = landscape['summary']
+    by_level = landscape["hiding_geometry"]["by_level"]
+    summary = landscape["summary"]
 
-    total_mechanisms = sum(summary['mechanisms_by_level'].values())
+    total_mechanisms = sum(summary["mechanisms_by_level"].values())
 
     print(f"\n  Total hiding mechanisms: {total_mechanisms}")
     print("\n  Mechanisms by level (all encoded at codon level):")
-    for level, count in summary['mechanisms_by_level'].items():
+    for level, count in summary["mechanisms_by_level"].items():
         pct = count / total_mechanisms * 100
         print(f"    {level}: {count} ({pct:.1f}%)")
 
@@ -324,29 +337,30 @@ def validate_conjecture_6(landscape: Dict) -> Dict:
 
     # Identify shared signatures
     print("\n  Cascade potential:")
-    protein_level = summary['mechanisms_by_level'].get('protein', 0)
-    signaling_level = summary['mechanisms_by_level'].get('signaling', 0)
+    protein_level = summary["mechanisms_by_level"].get("protein", 0)
+    signaling_level = summary["mechanisms_by_level"].get("signaling", 0)
     cascade_reach = (protein_level + signaling_level) / total_mechanisms * 100
     print(f"    Protein + Signaling coverage: {cascade_reach:.1f}%")
 
     # The conjecture is validated if mechanisms span multiple levels
     # and all originate from codon substrate
-    n_levels = len(summary['mechanisms_by_level'])
+    n_levels = len(summary["mechanisms_by_level"])
     validated = n_levels >= 3 and total_mechanisms >= 30
 
     return {
-        'conjecture': 'Universal Reveal Strategy',
-        'validated': validated,
-        'total_mechanisms': total_mechanisms,
-        'n_levels': n_levels,
-        'cascade_reach_pct': float(cascade_reach),
-        'implication': 'Single codon-level intervention cascades to all hiding',
+        "conjecture": "Universal Reveal Strategy",
+        "validated": validated,
+        "total_mechanisms": total_mechanisms,
+        "n_levels": n_levels,
+        "cascade_reach_pct": float(cascade_reach),
+        "implication": "Single codon-level intervention cascades to all hiding",
     }
 
 
 # =============================================================================
 # CONJECTURE 7: 49 GAPS THERAPEUTIC MAP
 # =============================================================================
+
 
 def validate_conjecture_7(landscape: Dict) -> Dict:
     """
@@ -357,15 +371,15 @@ def validate_conjecture_7(landscape: Dict) -> Dict:
     print("CONJECTURE 7: 49 GAPS THERAPEUTIC MAP")
     print("=" * 60)
 
-    vulnerabilities = landscape['evolutionary_predictions']['vulnerability_zones']
+    vulnerabilities = landscape["evolutionary_predictions"]["vulnerability_zones"]
     n_gaps = len(vulnerabilities)
 
     print(f"\n  Total vulnerability zones: {n_gaps}")
 
     # Categorize gaps by distance
-    severe = [v for v in vulnerabilities if v['distance'] > 3.5]
-    moderate = [v for v in vulnerabilities if 2.5 < v['distance'] <= 3.5]
-    mild = [v for v in vulnerabilities if v['distance'] <= 2.5]
+    severe = [v for v in vulnerabilities if v["distance"] > 3.5]
+    moderate = [v for v in vulnerabilities if 2.5 < v["distance"] <= 3.5]
+    mild = [v for v in vulnerabilities if v["distance"] <= 2.5]
 
     print(f"\n  Gap severity distribution:")
     print(f"    Severe (d > 3.5): {len(severe)}")
@@ -375,10 +389,12 @@ def validate_conjecture_7(landscape: Dict) -> Dict:
     # Identify most connected and least connected proteins
     protein_gap_counts = defaultdict(int)
     for v in vulnerabilities:
-        for p in v['proteins'].split('-'):
+        for p in v["proteins"].split("-"):
             protein_gap_counts[p] += 1
 
-    sorted_proteins = sorted(protein_gap_counts.items(), key=lambda x: x[1], reverse=True)
+    sorted_proteins = sorted(
+        protein_gap_counts.items(), key=lambda x: x[1], reverse=True
+    )
 
     print("\n  Proteins with most vulnerability gaps:")
     for protein, count in sorted_proteins[:5]:
@@ -392,7 +408,7 @@ def validate_conjecture_7(landscape: Dict) -> Dict:
     # Calculate coverage
     all_proteins = set()
     for v in vulnerabilities:
-        for p in v['proteins'].split('-'):
+        for p in v["proteins"].split("-"):
             all_proteins.add(p)
 
     coverage = len(all_proteins)
@@ -401,21 +417,22 @@ def validate_conjecture_7(landscape: Dict) -> Dict:
     validated = n_gaps >= 40 and len(severe) >= 5
 
     return {
-        'conjecture': '49 Gaps Therapeutic Map',
-        'validated': validated,
-        'total_gaps': n_gaps,
-        'severe_gaps': len(severe),
-        'moderate_gaps': len(moderate),
-        'mild_gaps': len(mild),
-        'most_gapped_protein': sorted_proteins[0] if sorted_proteins else None,
-        'protein_coverage': coverage,
-        'implication': 'Complete therapeutic target map with severity ranking',
+        "conjecture": "49 Gaps Therapeutic Map",
+        "validated": validated,
+        "total_gaps": n_gaps,
+        "severe_gaps": len(severe),
+        "moderate_gaps": len(moderate),
+        "mild_gaps": len(mild),
+        "most_gapped_protein": sorted_proteins[0] if sorted_proteins else None,
+        "protein_coverage": coverage,
+        "implication": "Complete therapeutic target map with severity ranking",
     }
 
 
 # =============================================================================
 # MAIN VALIDATION SUITE
 # =============================================================================
+
 
 def run_all_validations() -> Dict:
     """Run all 7 conjecture validations."""
@@ -426,42 +443,44 @@ def run_all_validations() -> Dict:
     # Load data
     print("\nLoading hiding landscape data...")
     landscape = load_hiding_landscape()
-    print(f"  Loaded: {landscape['metadata']['total_proteins']} proteins, "
-          f"{landscape['metadata']['total_mechanisms']} mechanisms")
+    print(
+        f"  Loaded: {landscape['metadata']['total_proteins']} proteins, "
+        f"{landscape['metadata']['total_mechanisms']} mechanisms"
+    )
 
     # Run validations
     results = {}
 
     # Conjecture 1 is validated separately in script 06
     print("\n[Conjecture 1: Integrase Vulnerability - See script 06]")
-    results['conjecture_1'] = {
-        'conjecture': 'Integrase Vulnerability',
-        'validated': True,
-        'reference': '06_validate_integrase_vulnerability.py',
+    results["conjecture_1"] = {
+        "conjecture": "Integrase Vulnerability",
+        "validated": True,
+        "reference": "06_validate_integrase_vulnerability.py",
     }
 
-    results['conjecture_2'] = validate_conjecture_2(landscape)
-    results['conjecture_3'] = validate_conjecture_3(landscape)
-    results['conjecture_4'] = validate_conjecture_4(landscape)
-    results['conjecture_5'] = validate_conjecture_5(landscape)
-    results['conjecture_6'] = validate_conjecture_6(landscape)
-    results['conjecture_7'] = validate_conjecture_7(landscape)
+    results["conjecture_2"] = validate_conjecture_2(landscape)
+    results["conjecture_3"] = validate_conjecture_3(landscape)
+    results["conjecture_4"] = validate_conjecture_4(landscape)
+    results["conjecture_5"] = validate_conjecture_5(landscape)
+    results["conjecture_6"] = validate_conjecture_6(landscape)
+    results["conjecture_7"] = validate_conjecture_7(landscape)
 
     # Summary
     print("\n" + "=" * 70)
     print("VALIDATION SUMMARY")
     print("=" * 70)
 
-    validated_count = sum(1 for r in results.values() if r.get('validated', False))
+    validated_count = sum(1 for r in results.values() if r.get("validated", False))
     total = len(results)
 
     print(f"\n  Validated: {validated_count}/{total} conjectures")
     print("\n  Status by conjecture:")
 
     for key, result in results.items():
-        status = "VALIDATED" if result.get('validated', False) else "NEEDS WORK"
-        conjecture_name = result.get('conjecture', key)
-        implication = result.get('implication', '')
+        status = "VALIDATED" if result.get("validated", False) else "NEEDS WORK"
+        conjecture_name = result.get("conjecture", key)
+        implication = result.get("implication", "")
         print(f"    {key}: {status}")
         print(f"         {conjecture_name}")
         if implication:
@@ -479,7 +498,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
     output_file = output_dir / "all_conjectures_validation.json"
 
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(results, f, indent=2, default=str)
 
     print(f"\n  Results saved to: {output_file}")
@@ -488,7 +507,8 @@ def main():
     print("\n" + "=" * 70)
     print("CONCLUSION: MULTI-LEVEL HIDING HYPOTHESIS VALIDATED")
     print("=" * 70)
-    print("""
+    print(
+        """
   The 7 disruptive conjectures are largely confirmed:
 
   1. INTEGRASE IS THE ACHILLES' HEEL
@@ -520,7 +540,8 @@ def main():
      - Priority targets ranked by severity
 
   NEXT: AlphaFold3 validation of structural predictions
-""")
+"""
+    )
 
     return results
 

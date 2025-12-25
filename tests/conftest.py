@@ -22,12 +22,12 @@ Categories:
     - Training: Training utilities and mocks
 """
 
-import pytest
-import torch
-import numpy as np
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
 from unittest.mock import MagicMock
 
+import numpy as np
+import pytest
+import torch
 
 # =============================================================================
 # Device / Hardware Fixtures
@@ -87,6 +87,7 @@ def random_generator():
 def poincare():
     """Returns a PoincaréBall manifold instance with default curvature."""
     from src.geometry.poincare import get_manifold
+
     return get_manifold(c=1.0)
 
 
@@ -94,6 +95,7 @@ def poincare():
 def poincare_c2():
     """Returns a PoincaréBall manifold with curvature c=2.0."""
     from src.geometry.poincare import get_manifold
+
     return get_manifold(c=2.0)
 
 
@@ -127,6 +129,7 @@ def hyperbolic_batch(device):
 def ternary_space():
     """Returns the TERNARY singleton for 3-adic operations."""
     from src.core.ternary import TERNARY
+
     return TERNARY
 
 
@@ -156,6 +159,7 @@ def ternary_ops_large(device) -> torch.Tensor:
 def all_ternary_ops(cpu_device) -> torch.Tensor:
     """Returns all 19,683 ternary operations (CPU only due to size)."""
     from src.data.generation import generate_all_ternary_operations
+
     ops = generate_all_ternary_operations()
     return torch.tensor(ops, dtype=torch.float32, device=cpu_device)
 
@@ -172,11 +176,13 @@ def batch_indices(ternary_ops, ternary_space) -> torch.Tensor:
 def special_ternary_ops(device) -> Dict[str, torch.Tensor]:
     """Returns special ternary operations for edge case testing."""
     return {
-        'all_negative': torch.full((1, 9), -1.0, device=device),
-        'all_zero': torch.zeros((1, 9), device=device),
-        'all_positive': torch.full((1, 9), 1.0, device=device),
-        'mixed': torch.tensor([[-1, 0, 1, -1, 0, 1, -1, 0, 1]], device=device).float(),
-        'identity_like': torch.tensor([[0, 0, 0, 0, 0, 0, 0, 0, 0]], device=device).float(),
+        "all_negative": torch.full((1, 9), -1.0, device=device),
+        "all_zero": torch.zeros((1, 9), device=device),
+        "all_positive": torch.full((1, 9), 1.0, device=device),
+        "mixed": torch.tensor([[-1, 0, 1, -1, 0, 1, -1, 0, 1]], device=device).float(),
+        "identity_like": torch.tensor(
+            [[0, 0, 0, 0, 0, 0, 0, 0, 0]], device=device
+        ).float(),
     }
 
 
@@ -242,8 +248,8 @@ def full_model_config() -> Dict[str, Any]:
 def basic_loss_config() -> Dict[str, Any]:
     """Returns basic loss configuration without p-adic losses."""
     return {
-        'free_bits': 0.0,
-        'repulsion_sigma': 0.5,
+        "free_bits": 0.0,
+        "repulsion_sigma": 0.5,
     }
 
 
@@ -251,14 +257,14 @@ def basic_loss_config() -> Dict[str, Any]:
 def padic_loss_config() -> Dict[str, Any]:
     """Returns loss configuration with p-adic losses enabled."""
     return {
-        'enable_metric_loss': True,
-        'metric_loss_weight': 0.1,
-        'metric_loss_scale': 1.0,
-        'metric_n_pairs': 100,
-        'enable_ranking_loss': True,
-        'ranking_loss_weight': 0.5,
-        'ranking_margin': 0.1,
-        'ranking_n_triplets': 50,
+        "enable_metric_loss": True,
+        "metric_loss_weight": 0.1,
+        "metric_loss_scale": 1.0,
+        "metric_n_pairs": 100,
+        "enable_ranking_loss": True,
+        "ranking_loss_weight": 0.5,
+        "ranking_margin": 0.1,
+        "ranking_n_triplets": 50,
     }
 
 
@@ -266,17 +272,17 @@ def padic_loss_config() -> Dict[str, Any]:
 def hyperbolic_loss_config() -> Dict[str, Any]:
     """Returns loss configuration with hyperbolic losses enabled."""
     return {
-        'enable_ranking_loss_hyperbolic': True,
-        'ranking_hyperbolic': {
-            'base_margin': 0.05,
-            'margin_scale': 0.15,
-            'n_triplets': 50,
-            'hard_negative_ratio': 0.5,
-            'curvature': 1.0,
-            'radial_weight': 0.1,
-            'max_norm': 0.95,
-            'weight': 0.5,
-        }
+        "enable_ranking_loss_hyperbolic": True,
+        "ranking_hyperbolic": {
+            "base_margin": 0.05,
+            "margin_scale": 0.15,
+            "n_triplets": 50,
+            "hard_negative_ratio": 0.5,
+            "curvature": 1.0,
+            "radial_weight": 0.1,
+            "max_norm": 0.95,
+            "weight": 0.5,
+        },
     }
 
 
@@ -289,26 +295,26 @@ def hyperbolic_loss_config() -> Dict[str, Any]:
 def minimal_training_config(tmp_path) -> Dict[str, Any]:
     """Returns minimal training configuration for fast tests."""
     return {
-        'total_epochs': 2,
-        'checkpoint_dir': str(tmp_path / 'checkpoints'),
-        'checkpoint_freq': 1,
-        'eval_num_samples': 100,
-        'patience': 5,
-        'grad_clip': 1.0,
-        'optimizer': {
-            'lr_start': 1e-3,
-            'weight_decay': 0.0,
-            'lr_schedule': 'constant',
+        "total_epochs": 2,
+        "checkpoint_dir": str(tmp_path / "checkpoints"),
+        "checkpoint_freq": 1,
+        "eval_num_samples": 100,
+        "patience": 5,
+        "grad_clip": 1.0,
+        "optimizer": {
+            "lr_start": 1e-3,
+            "weight_decay": 0.0,
+            "lr_schedule": "constant",
         },
-        'phase_transitions': {},
-        'controller': {'enabled': False},
-        'temperature': {'initial': 1.0, 'final': 0.5},
-        'beta': {'initial': 0.01, 'final': 1.0},
-        'model': {
-            'latent_dim': 8,
-            'hidden_dim': 16,
+        "phase_transitions": {},
+        "controller": {"enabled": False},
+        "temperature": {"initial": 1.0, "final": 0.5},
+        "beta": {"initial": 0.01, "final": 1.0},
+        "model": {
+            "latent_dim": 8,
+            "hidden_dim": 16,
         },
-        'vae_b': {'entropy_weight': 0.01, 'repulsion_weight': 0.01},
+        "vae_b": {"entropy_weight": 0.01, "repulsion_weight": 0.01},
     }
 
 
@@ -340,6 +346,7 @@ def mock_optimizer():
 @pytest.fixture
 def mock_dataloader(ternary_ops):
     """Returns a mock dataloader that yields ternary operations."""
+
     class MockDataLoader:
         def __init__(self, data):
             self.data = data
@@ -368,20 +375,20 @@ def vae_outputs(device) -> Dict[str, torch.Tensor]:
     latent_dim = 16
 
     return {
-        'logits_A': torch.randn(batch_size, 9, 3, device=device),
-        'logits_B': torch.randn(batch_size, 9, 3, device=device),
-        'mu_A': torch.randn(batch_size, latent_dim, device=device),
-        'mu_B': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_A': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_B': torch.randn(batch_size, latent_dim, device=device),
-        'z_A': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_B': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_A_hyp': torch.randn(batch_size, latent_dim, device=device) * 0.3,
-        'z_B_hyp': torch.randn(batch_size, latent_dim, device=device) * 0.3,
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.1, device=device),
-        'beta_A': torch.tensor(0.1, device=device),
-        'beta_B': torch.tensor(0.1, device=device),
+        "logits_A": torch.randn(batch_size, 9, 3, device=device),
+        "logits_B": torch.randn(batch_size, 9, 3, device=device),
+        "mu_A": torch.randn(batch_size, latent_dim, device=device),
+        "mu_B": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_A": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_B": torch.randn(batch_size, latent_dim, device=device),
+        "z_A": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_B": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_A_hyp": torch.randn(batch_size, latent_dim, device=device) * 0.3,
+        "z_B_hyp": torch.randn(batch_size, latent_dim, device=device) * 0.3,
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.1, device=device),
+        "beta_A": torch.tensor(0.1, device=device),
+        "beta_B": torch.tensor(0.1, device=device),
     }
 
 
@@ -392,18 +399,18 @@ def vae_outputs_small(device) -> Dict[str, torch.Tensor]:
     latent_dim = 16
 
     return {
-        'logits_A': torch.randn(batch_size, 9, 3, device=device),
-        'logits_B': torch.randn(batch_size, 9, 3, device=device),
-        'mu_A': torch.randn(batch_size, latent_dim, device=device),
-        'mu_B': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_A': torch.randn(batch_size, latent_dim, device=device),
-        'logvar_B': torch.randn(batch_size, latent_dim, device=device),
-        'z_A': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'z_B': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-        'H_A': torch.tensor(2.0, device=device),
-        'H_B': torch.tensor(2.1, device=device),
-        'beta_A': torch.tensor(0.1, device=device),
-        'beta_B': torch.tensor(0.1, device=device),
+        "logits_A": torch.randn(batch_size, 9, 3, device=device),
+        "logits_B": torch.randn(batch_size, 9, 3, device=device),
+        "mu_A": torch.randn(batch_size, latent_dim, device=device),
+        "mu_B": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_A": torch.randn(batch_size, latent_dim, device=device),
+        "logvar_B": torch.randn(batch_size, latent_dim, device=device),
+        "z_A": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "z_B": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+        "H_A": torch.tensor(2.0, device=device),
+        "H_B": torch.tensor(2.1, device=device),
+        "beta_A": torch.tensor(0.1, device=device),
+        "beta_B": torch.tensor(0.1, device=device),
     }
 
 
@@ -416,15 +423,16 @@ def vae_outputs_small(device) -> Dict[str, torch.Tensor]:
 def tolerance() -> Dict[str, float]:
     """Returns standard tolerances for numerical comparisons."""
     return {
-        'atol': 1e-6,
-        'rtol': 1e-5,
-        'grad_atol': 1e-4,
+        "atol": 1e-6,
+        "rtol": 1e-5,
+        "grad_atol": 1e-4,
     }
 
 
 @pytest.fixture
 def tensor_factory(device):
     """Factory for creating test tensors on the correct device."""
+
     class TensorFactory:
         @staticmethod
         def randn(*shape):
@@ -469,7 +477,9 @@ def cleanup_cuda():
 
 def pytest_configure(config):
     """Register custom markers."""
-    config.addinivalue_line("markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')")
+    config.addinivalue_line(
+        "markers", "slow: marks tests as slow (deselect with '-m \"not slow\"')"
+    )
     config.addinivalue_line("markers", "gpu: marks tests that require GPU")
     config.addinivalue_line("markers", "integration: marks integration tests")
     config.addinivalue_line("markers", "e2e: marks end-to-end tests")

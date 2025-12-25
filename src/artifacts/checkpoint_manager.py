@@ -14,12 +14,13 @@ P3 FIX: Async checkpoint saving to avoid blocking training.
 Single responsibility: Checkpoint persistence only.
 """
 
-import torch
-from pathlib import Path
-from typing import Dict, Any, Optional
-import threading
-import queue
 import copy
+import queue
+import threading
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+import torch
 
 
 class AsyncCheckpointSaver:
@@ -113,10 +114,7 @@ class CheckpointManager:
     """
 
     def __init__(
-        self,
-        checkpoint_dir: Path,
-        checkpoint_freq: int = 10,
-        async_save: bool = True
+        self, checkpoint_dir: Path, checkpoint_freq: int = 10, async_save: bool = True
     ):
         """Initialize checkpoint manager.
 
@@ -139,7 +137,7 @@ class CheckpointManager:
         model: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         metadata: Dict[str, Any],
-        is_best: bool = False
+        is_best: bool = False,
     ) -> None:
         """Save checkpoint with model, optimizer, and metadata.
 
@@ -153,25 +151,25 @@ class CheckpointManager:
             is_best: Whether this is the best checkpoint
         """
         checkpoint = {
-            'epoch': epoch,
-            'model': model.state_dict(),
-            'optimizer': optimizer.state_dict(),
-            **metadata
+            "epoch": epoch,
+            "model": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+            **metadata,
         }
 
         # Choose save method based on async setting
         save_fn = self._save_async if self._async_save else self._save_sync
 
         # Always save latest
-        save_fn(checkpoint, self.checkpoint_dir / 'latest.pt')
+        save_fn(checkpoint, self.checkpoint_dir / "latest.pt")
 
         # Save best if indicated
         if is_best:
-            save_fn(checkpoint, self.checkpoint_dir / 'best.pt')
+            save_fn(checkpoint, self.checkpoint_dir / "best.pt")
 
         # Save numbered checkpoint at specified frequency
         if epoch % self.checkpoint_freq == 0:
-            save_fn(checkpoint, self.checkpoint_dir / f'epoch_{epoch}.pt')
+            save_fn(checkpoint, self.checkpoint_dir / f"epoch_{epoch}.pt")
 
     def _save_sync(self, checkpoint: Dict[str, Any], path: Path) -> None:
         """Synchronous (blocking) save."""
@@ -190,8 +188,8 @@ class CheckpointManager:
         self,
         model: torch.nn.Module,
         optimizer: Optional[torch.optim.Optimizer] = None,
-        checkpoint_name: str = 'latest',
-        device: str = 'cuda'
+        checkpoint_name: str = "latest",
+        device: str = "cuda",
     ) -> Dict[str, Any]:
         """Load checkpoint and restore model/optimizer state.
 
@@ -208,24 +206,26 @@ class CheckpointManager:
             FileNotFoundError: If checkpoint doesn't exist
         """
         # Construct checkpoint path
-        if checkpoint_name in ['latest', 'best']:
-            checkpoint_path = self.checkpoint_dir / f'{checkpoint_name}.pt'
+        if checkpoint_name in ["latest", "best"]:
+            checkpoint_path = self.checkpoint_dir / f"{checkpoint_name}.pt"
         else:
-            checkpoint_path = self.checkpoint_dir / f'{checkpoint_name}.pt'
+            checkpoint_path = self.checkpoint_dir / f"{checkpoint_name}.pt"
 
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
         # Load checkpoint (weights_only=False needed for optimizer state, metrics)
         # Security note: Only load checkpoints from trusted sources
-        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
+        checkpoint = torch.load(
+            checkpoint_path, map_location=device, weights_only=False
+        )
 
         # Restore model state
-        model.load_state_dict(checkpoint['model'])
+        model.load_state_dict(checkpoint["model"])
 
         # Restore optimizer state if provided
-        if optimizer is not None and 'optimizer' in checkpoint:
-            optimizer.load_state_dict(checkpoint['optimizer'])
+        if optimizer is not None and "optimizer" in checkpoint:
+            optimizer.load_state_dict(checkpoint["optimizer"])
 
         return checkpoint
 
@@ -238,16 +238,16 @@ class CheckpointManager:
         special = []
         epochs = []
 
-        for ckpt_file in self.checkpoint_dir.glob('*.pt'):
+        for ckpt_file in self.checkpoint_dir.glob("*.pt"):
             name = ckpt_file.stem
-            if name in ['latest', 'best']:
+            if name in ["latest", "best"]:
                 special.append(name)
-            elif name.startswith('epoch_'):
+            elif name.startswith("epoch_"):
                 epochs.append(name)
 
         return {
-            'special': sorted(special),
-            'epochs': sorted(epochs, key=lambda x: int(x.split('_')[1]))
+            "special": sorted(special),
+            "epochs": sorted(epochs, key=lambda x: int(x.split("_")[1])),
         }
 
     def get_latest_epoch(self) -> Optional[int]:
@@ -256,10 +256,10 @@ class CheckpointManager:
         Returns:
             Latest epoch number or None if no checkpoints exist
         """
-        latest_path = self.checkpoint_dir / 'latest.pt'
+        latest_path = self.checkpoint_dir / "latest.pt"
         if not latest_path.exists():
             return None
 
         # Security note: Only load checkpoints from trusted sources
-        checkpoint = torch.load(latest_path, map_location='cpu', weights_only=False)
-        return checkpoint.get('epoch')
+        checkpoint = torch.load(latest_path, map_location="cpu", weights_only=False)
+        return checkpoint.get("epoch")

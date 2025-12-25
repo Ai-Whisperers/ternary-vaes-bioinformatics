@@ -16,9 +16,9 @@ Version: 1.0
 """
 
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
-from datetime import datetime
 
 # ============================================================================
 # CONFIGURATION
@@ -30,8 +30,8 @@ CITRULLINE_CCD = "CIR"
 # Common HLA alleles for RA (for peptide-HLA complexes)
 # These are risk alleles associated with RA
 HLA_ALLELES = {
-    'HLA-DRB1*04:01': 'GDTRPRFLWQLKFECHFFNGTERVRLLERCIYNQEESVRFDSDVGEYRAVTELGRPDAEYWNSQKDLLEQRRAAVDTYCRHNYGVGESFTVQRR',
-    'HLA-DRB1*01:01': 'GDTRPRFLWQLKFECHFFNGTERVRLLERCIYNQEESVRFDSDVGEYRAVTELGRPDAEYWNSQKDLLEQKRAAVDTYCRHNYGVGESFTVQRR',
+    "HLA-DRB1*04:01": "GDTRPRFLWQLKFECHFFNGTERVRLLERCIYNQEESVRFDSDVGEYRAVTELGRPDAEYWNSQKDLLEQRRAAVDTYCRHNYGVGESFTVQRR",
+    "HLA-DRB1*01:01": "GDTRPRFLWQLKFECHFFNGTERVRLLERCIYNQEESVRFDSDVGEYRAVTELGRPDAEYWNSQKDLLEQKRAAVDTYCRHNYGVGESFTVQRR",
 }
 
 # Output configuration
@@ -42,6 +42,7 @@ OUTPUT_SUBDIR = f"{SCRIPT_NUM}_alphafold3_inputs"
 # ============================================================================
 # DIRECTORY SETUP
 # ============================================================================
+
 
 def get_output_dir() -> Path:
     """Get output directory for this script."""
@@ -55,29 +56,61 @@ def get_output_dir() -> Path:
 # EPITOPE DATA
 # ============================================================================
 
+
 def load_epitope_data() -> List[Dict]:
     """Load epitope data with entropy change values."""
     script_dir = Path(__file__).parent
-    results_path = script_dir.parent / "results" / "hyperbolic" / "goldilocks_validation" / "goldilocks_validation_results.json"
+    results_path = (
+        script_dir.parent
+        / "results"
+        / "hyperbolic"
+        / "goldilocks_validation"
+        / "goldilocks_validation_results.json"
+    )
 
     if not results_path.exists():
         print(f"  Warning: Goldilocks results not found at {results_path}")
         return get_default_epitopes()
 
-    with open(results_path, 'r') as f:
+    with open(results_path, "r") as f:
         data = json.load(f)
 
-    return data.get('epitope_details', [])
+    return data.get("epitope_details", [])
 
 
 def get_default_epitopes() -> List[Dict]:
     """Default key epitopes if results not found."""
     return [
-        {'epitope_id': 'VIM_R71', 'sequence': 'RLRSSVPGVR', 'immunodominant': True, 'mean_entropy_change': 0.049},
-        {'epitope_id': 'FGA_R38', 'sequence': 'GPRVVERHQS', 'immunodominant': True, 'mean_entropy_change': 0.041},
-        {'epitope_id': 'ENO1_CEP1', 'sequence': 'KIREEIFDSRGNP', 'immunodominant': True, 'mean_entropy_change': 0.026},
-        {'epitope_id': 'FLG_CCP', 'sequence': 'SHQESTRGRS', 'immunodominant': True, 'mean_entropy_change': 0.028},
-        {'epitope_id': 'FGB_R406', 'sequence': 'SARGHRPLDKK', 'immunodominant': True, 'mean_entropy_change': 0.038},
+        {
+            "epitope_id": "VIM_R71",
+            "sequence": "RLRSSVPGVR",
+            "immunodominant": True,
+            "mean_entropy_change": 0.049,
+        },
+        {
+            "epitope_id": "FGA_R38",
+            "sequence": "GPRVVERHQS",
+            "immunodominant": True,
+            "mean_entropy_change": 0.041,
+        },
+        {
+            "epitope_id": "ENO1_CEP1",
+            "sequence": "KIREEIFDSRGNP",
+            "immunodominant": True,
+            "mean_entropy_change": 0.026,
+        },
+        {
+            "epitope_id": "FLG_CCP",
+            "sequence": "SHQESTRGRS",
+            "immunodominant": True,
+            "mean_entropy_change": 0.028,
+        },
+        {
+            "epitope_id": "FGB_R406",
+            "sequence": "SARGHRPLDKK",
+            "immunodominant": True,
+            "mean_entropy_change": 0.038,
+        },
     ]
 
 
@@ -85,28 +118,22 @@ def get_default_epitopes() -> List[Dict]:
 # JSON GENERATION
 # ============================================================================
 
+
 def generate_native_peptide_json(epitope: Dict, seed: int = 1) -> Dict:
     """
     Generate AlphaFold 3 JSON for native (unmodified) peptide.
 
     Format: alphafold3 dialect version 1
     """
-    epitope_id = epitope['epitope_id']
-    sequence = epitope['sequence']
+    epitope_id = epitope["epitope_id"]
+    sequence = epitope["sequence"]
 
     return {
         "name": f"{epitope_id}_native",
-        "sequences": [
-            {
-                "protein": {
-                    "id": "A",
-                    "sequence": sequence
-                }
-            }
-        ],
+        "sequences": [{"protein": {"id": "A", "sequence": sequence}}],
         "modelSeeds": [seed],
         "dialect": "alphafold3",
-        "version": 1
+        "version": 1,
     }
 
 
@@ -117,11 +144,11 @@ def generate_citrullinated_peptide_json(epitope: Dict, seed: int = 1) -> Dict:
     Replaces arginine (R) with citrulline using CCD code CIR.
     Uses modifications array to specify citrulline positions.
     """
-    epitope_id = epitope['epitope_id']
-    sequence = epitope['sequence']
+    epitope_id = epitope["epitope_id"]
+    sequence = epitope["sequence"]
 
     # Find all arginine positions (1-indexed for AlphaFold)
-    r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == 'R']
+    r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == "R"]
 
     # Replace R with placeholder X in sequence (will be defined as CIR)
     # Actually, AlphaFold 3 uses modifications array
@@ -129,10 +156,7 @@ def generate_citrullinated_peptide_json(epitope: Dict, seed: int = 1) -> Dict:
     # Build modifications list for each R position
     modifications = []
     for pos in r_positions:
-        modifications.append({
-            "ptmType": CITRULLINE_CCD,
-            "ptmPosition": pos
-        })
+        modifications.append({"ptmType": CITRULLINE_CCD, "ptmPosition": pos})
 
     return {
         "name": f"{epitope_id}_citrullinated",
@@ -141,56 +165,52 @@ def generate_citrullinated_peptide_json(epitope: Dict, seed: int = 1) -> Dict:
                 "protein": {
                     "id": "A",
                     "sequence": sequence,
-                    "modifications": modifications
+                    "modifications": modifications,
                 }
             }
         ],
         "modelSeeds": [seed],
         "dialect": "alphafold3",
-        "version": 1
+        "version": 1,
     }
 
 
-def generate_peptide_hla_complex_json(epitope: Dict, hla_allele: str,
-                                       hla_sequence: str, citrullinated: bool = False,
-                                       seed: int = 1) -> Dict:
+def generate_peptide_hla_complex_json(
+    epitope: Dict,
+    hla_allele: str,
+    hla_sequence: str,
+    citrullinated: bool = False,
+    seed: int = 1,
+) -> Dict:
     """
     Generate AlphaFold 3 JSON for peptide-HLA complex.
 
     Models how the peptide binds to HLA for antigen presentation.
     """
-    epitope_id = epitope['epitope_id']
-    sequence = epitope['sequence']
+    epitope_id = epitope["epitope_id"]
+    sequence = epitope["sequence"]
     state = "cit" if citrullinated else "native"
 
     # Peptide chain
-    peptide_chain = {
-        "protein": {
-            "id": "A",
-            "sequence": sequence
-        }
-    }
+    peptide_chain = {"protein": {"id": "A", "sequence": sequence}}
 
     # Add citrullination modifications if needed
     if citrullinated:
-        r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == 'R']
-        modifications = [{"ptmType": CITRULLINE_CCD, "ptmPosition": pos} for pos in r_positions]
+        r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == "R"]
+        modifications = [
+            {"ptmType": CITRULLINE_CCD, "ptmPosition": pos} for pos in r_positions
+        ]
         peptide_chain["protein"]["modifications"] = modifications
 
     # HLA chain
-    hla_chain = {
-        "protein": {
-            "id": "B",
-            "sequence": hla_sequence
-        }
-    }
+    hla_chain = {"protein": {"id": "B", "sequence": hla_sequence}}
 
     return {
         "name": f"{epitope_id}_{state}_{hla_allele.replace('*', '_').replace(':', '_')}",
         "sequences": [peptide_chain, hla_chain],
         "modelSeeds": [seed],
         "dialect": "alphafold3",
-        "version": 1
+        "version": 1,
     }
 
 
@@ -199,39 +219,37 @@ def generate_comparison_pair_json(epitope: Dict, seed: int = 1) -> Dict:
     Generate a single JSON with both native and citrullinated versions
     as separate chains for direct structural comparison.
     """
-    epitope_id = epitope['epitope_id']
-    sequence = epitope['sequence']
+    epitope_id = epitope["epitope_id"]
+    sequence = epitope["sequence"]
 
     # Find R positions for citrullination
-    r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == 'R']
-    modifications = [{"ptmType": CITRULLINE_CCD, "ptmPosition": pos} for pos in r_positions]
+    r_positions = [i + 1 for i, aa in enumerate(sequence) if aa == "R"]
+    modifications = [
+        {"ptmType": CITRULLINE_CCD, "ptmPosition": pos} for pos in r_positions
+    ]
 
     return {
         "name": f"{epitope_id}_comparison",
         "sequences": [
-            {
-                "protein": {
-                    "id": "A",  # Native
-                    "sequence": sequence
-                }
-            },
+            {"protein": {"id": "A", "sequence": sequence}},  # Native
             {
                 "protein": {
                     "id": "B",  # Citrullinated
                     "sequence": sequence,
-                    "modifications": modifications
+                    "modifications": modifications,
                 }
-            }
+            },
         ],
         "modelSeeds": [seed],
         "dialect": "alphafold3",
-        "version": 1
+        "version": 1,
     }
 
 
 # ============================================================================
 # BATCH GENERATION
 # ============================================================================
+
 
 def generate_all_inputs(epitopes: List[Dict], output_dir: Path) -> Dict:
     """
@@ -245,10 +263,10 @@ def generate_all_inputs(epitopes: List[Dict], output_dir: Path) -> Dict:
     5. Batch file listing all inputs
     """
     generated_files = {
-        'native': [],
-        'citrullinated': [],
-        'comparison': [],
-        'hla_complexes': []
+        "native": [],
+        "citrullinated": [],
+        "comparison": [],
+        "hla_complexes": [],
     }
 
     # Create subdirectories
@@ -258,9 +276,9 @@ def generate_all_inputs(epitopes: List[Dict], output_dir: Path) -> Dict:
     (output_dir / "hla_complexes").mkdir(exist_ok=True)
 
     # Sort epitopes by entropy change (most immunodominant first)
-    sorted_epitopes = sorted(epitopes,
-                             key=lambda x: x.get('mean_entropy_change', 0),
-                             reverse=True)
+    sorted_epitopes = sorted(
+        epitopes, key=lambda x: x.get("mean_entropy_change", 0), reverse=True
+    )
 
     # Take top 10 most immunodominant for processing
     top_epitopes = sorted_epitopes[:10]
@@ -268,29 +286,29 @@ def generate_all_inputs(epitopes: List[Dict], output_dir: Path) -> Dict:
     print(f"\n  Generating JSONs for top {len(top_epitopes)} epitopes...")
 
     for epitope in top_epitopes:
-        epitope_id = epitope['epitope_id']
+        epitope_id = epitope["epitope_id"]
         print(f"    {epitope_id}: {epitope['sequence']}")
 
         # 1. Native peptide
         native_json = generate_native_peptide_json(epitope)
         native_path = output_dir / "native" / f"{epitope_id}_native.json"
-        with open(native_path, 'w') as f:
+        with open(native_path, "w") as f:
             json.dump(native_json, f, indent=2)
-        generated_files['native'].append(str(native_path))
+        generated_files["native"].append(str(native_path))
 
         # 2. Citrullinated peptide
         cit_json = generate_citrullinated_peptide_json(epitope)
         cit_path = output_dir / "citrullinated" / f"{epitope_id}_citrullinated.json"
-        with open(cit_path, 'w') as f:
+        with open(cit_path, "w") as f:
             json.dump(cit_json, f, indent=2)
-        generated_files['citrullinated'].append(str(cit_path))
+        generated_files["citrullinated"].append(str(cit_path))
 
         # 3. Comparison pair
         comp_json = generate_comparison_pair_json(epitope)
         comp_path = output_dir / "comparison" / f"{epitope_id}_comparison.json"
-        with open(comp_path, 'w') as f:
+        with open(comp_path, "w") as f:
             json.dump(comp_json, f, indent=2)
-        generated_files['comparison'].append(str(comp_path))
+        generated_files["comparison"].append(str(comp_path))
 
         # 4. HLA complexes (for top 5 only to limit compute)
         if epitope in top_epitopes[:5]:
@@ -299,25 +317,34 @@ def generate_all_inputs(epitopes: List[Dict], output_dir: Path) -> Dict:
                 native_hla = generate_peptide_hla_complex_json(
                     epitope, hla_name, hla_seq, citrullinated=False
                 )
-                native_hla_path = output_dir / "hla_complexes" / f"{epitope_id}_native_{hla_name.replace('*', '_').replace(':', '_')}.json"
-                with open(native_hla_path, 'w') as f:
+                native_hla_path = (
+                    output_dir
+                    / "hla_complexes"
+                    / f"{epitope_id}_native_{hla_name.replace('*', '_').replace(':', '_')}.json"
+                )
+                with open(native_hla_path, "w") as f:
                     json.dump(native_hla, f, indent=2)
-                generated_files['hla_complexes'].append(str(native_hla_path))
+                generated_files["hla_complexes"].append(str(native_hla_path))
 
                 # Citrullinated + HLA
                 cit_hla = generate_peptide_hla_complex_json(
                     epitope, hla_name, hla_seq, citrullinated=True
                 )
-                cit_hla_path = output_dir / "hla_complexes" / f"{epitope_id}_cit_{hla_name.replace('*', '_').replace(':', '_')}.json"
-                with open(cit_hla_path, 'w') as f:
+                cit_hla_path = (
+                    output_dir
+                    / "hla_complexes"
+                    / f"{epitope_id}_cit_{hla_name.replace('*', '_').replace(':', '_')}.json"
+                )
+                with open(cit_hla_path, "w") as f:
                     json.dump(cit_hla, f, indent=2)
-                generated_files['hla_complexes'].append(str(cit_hla_path))
+                generated_files["hla_complexes"].append(str(cit_hla_path))
 
     return generated_files
 
 
-def generate_batch_manifest(epitopes: List[Dict], generated_files: Dict,
-                            output_dir: Path):
+def generate_batch_manifest(
+    epitopes: List[Dict], generated_files: Dict, output_dir: Path
+):
     """
     Generate manifest file describing all inputs for batch processing.
     """
@@ -327,17 +354,19 @@ def generate_batch_manifest(epitopes: List[Dict], generated_files: Dict,
         "research_context": {
             "hypothesis": "Citrullination causes structural changes that correlate with immunogenicity",
             "goldilocks_zone": "Entropy change in [-0.12, +0.05] distinguishes immunodominant sites",
-            "key_metric": "Compare native vs citrullinated structures"
+            "key_metric": "Compare native vs citrullinated structures",
         },
         "epitopes_included": [
             {
-                "id": e['epitope_id'],
-                "sequence": e['sequence'],
-                "immunodominant": e.get('immunodominant', True),
-                "entropy_change": e.get('mean_entropy_change', 0),
-                "n_arginines": e['sequence'].count('R'),
+                "id": e["epitope_id"],
+                "sequence": e["sequence"],
+                "immunodominant": e.get("immunodominant", True),
+                "entropy_change": e.get("mean_entropy_change", 0),
+                "n_arginines": e["sequence"].count("R"),
             }
-            for e in sorted(epitopes, key=lambda x: x.get('mean_entropy_change', 0), reverse=True)[:10]
+            for e in sorted(
+                epitopes, key=lambda x: x.get("mean_entropy_change", 0), reverse=True
+            )[:10]
         ],
         "files": generated_files,
         "total_files": sum(len(v) for v in generated_files.values()),
@@ -346,19 +375,19 @@ def generate_batch_manifest(epitopes: List[Dict], generated_files: Dict,
             "recommended_order": [
                 "1. Run comparison JSONs first (native + cit in same prediction)",
                 "2. Run individual native/citrullinated for higher accuracy",
-                "3. Run HLA complexes for antigen presentation modeling"
-            ]
+                "3. Run HLA complexes for antigen presentation modeling",
+            ],
         },
         "expected_analyses": [
             "RMSD between native and citrullinated structures",
             "Contact map differences",
             "Surface accessibility changes at R/Cit positions",
-            "HLA binding groove occupancy differences"
-        ]
+            "HLA binding groove occupancy differences",
+        ],
     }
 
     manifest_path = output_dir / "batch_manifest.json"
-    with open(manifest_path, 'w') as f:
+    with open(manifest_path, "w") as f:
         json.dump(manifest, f, indent=2)
 
     return manifest_path
@@ -367,6 +396,7 @@ def generate_batch_manifest(epitopes: List[Dict], generated_files: Dict,
 # ============================================================================
 # MAIN
 # ============================================================================
+
 
 def main():
     print("=" * 80)
@@ -423,5 +453,5 @@ def main():
     return generated_files
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

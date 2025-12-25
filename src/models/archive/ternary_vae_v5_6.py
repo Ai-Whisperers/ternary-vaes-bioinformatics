@@ -27,11 +27,12 @@ Total parameters: ~168,770
 - StateNet: 1,068 params (0.63% overhead)
 """
 
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import math
-import numpy as np
 
 
 class TernaryEncoderA(nn.Module):
@@ -46,7 +47,7 @@ class TernaryEncoderA(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -71,7 +72,7 @@ class TernaryDecoderA(nn.Module):
             nn.ReLU(),
             nn.Linear(32, 64),
             nn.ReLU(),
-            nn.Linear(64, output_dim * 3)
+            nn.Linear(64, output_dim * 3),
         )
 
     def forward(self, z: torch.Tensor) -> torch.Tensor:
@@ -85,11 +86,7 @@ class ResidualBlock(nn.Module):
 
     def __init__(self, dim: int = 128):
         super().__init__()
-        self.block = nn.Sequential(
-            nn.Linear(dim, dim),
-            nn.ReLU(),
-            nn.Linear(dim, dim)
-        )
+        self.block = nn.Sequential(nn.Linear(dim, dim), nn.ReLU(), nn.Linear(dim, dim))
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return x + self.block(x)
@@ -107,7 +104,7 @@ class TernaryEncoderB(nn.Module):
             nn.Linear(256, 128),
             nn.ReLU(),
             nn.Linear(128, 64),
-            nn.ReLU()
+            nn.ReLU(),
         )
 
         self.fc_mu = nn.Linear(64, latent_dim)
@@ -175,7 +172,7 @@ class StateNet(nn.Module):
             nn.Linear(state_dim, hidden_dim),
             nn.LayerNorm(hidden_dim),
             nn.Tanh(),
-            nn.Linear(hidden_dim, latent_dim)
+            nn.Linear(hidden_dim, latent_dim),
         )
 
         # Decoder: latent → corrections
@@ -183,7 +180,7 @@ class StateNet(nn.Module):
             nn.Linear(latent_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, 4),  # [Δlr, Δλ₁, Δλ₂, Δλ₃]
-            nn.Tanh()  # Output in [-1, 1] for bounded corrections
+            nn.Tanh(),  # Output in [-1, 1] for bounded corrections
         )
 
     def forward(self, state: torch.Tensor) -> tuple:
@@ -228,7 +225,7 @@ class DualNeuralVAEV5(nn.Module):
         adaptive_scheduling: bool = True,
         use_statenet: bool = True,
         statenet_lr_scale: float = 0.05,
-        statenet_lambda_scale: float = 0.01
+        statenet_lambda_scale: float = 0.01,
     ):
         super().__init__()
 
@@ -273,19 +270,21 @@ class DualNeuralVAEV5(nn.Module):
         self.grad_balance_achieved = False
 
         # Gradient magnitude tracking
-        self.register_buffer('grad_norm_A_ema', torch.tensor(1.0))
-        self.register_buffer('grad_norm_B_ema', torch.tensor(1.0))
+        self.register_buffer("grad_norm_A_ema", torch.tensor(1.0))
+        self.register_buffer("grad_norm_B_ema", torch.tensor(1.0))
         self.grad_ema_momentum = 0.9
 
         # StateNet correction history
         self.statenet_corrections = {
-            'delta_lr': [],
-            'delta_lambda1': [],
-            'delta_lambda2': [],
-            'delta_lambda3': []
+            "delta_lr": [],
+            "delta_lambda1": [],
+            "delta_lambda2": [],
+            "delta_lambda3": [],
         }
 
-    def compute_phase_scheduled_rho(self, epoch: int, phase_4_start: int = 250) -> float:
+    def compute_phase_scheduled_rho(
+        self, epoch: int, phase_4_start: int = 250
+    ) -> float:
         """Compute phase-scheduled latent permeability.
 
         Phase 1 (0-40):     ρ=0.1  (isolation)
@@ -329,7 +328,9 @@ class DualNeuralVAEV5(nn.Module):
         else:
             self.grad_ema_momentum = 0.9
 
-    def update_adaptive_lambdas(self, grad_ratio: float, coverage_A: int, coverage_B: int):
+    def update_adaptive_lambdas(
+        self, grad_ratio: float, coverage_A: int, coverage_B: int
+    ):
         """Update λ1 and λ2 adaptively."""
         if not self.adaptive_scheduling:
             return
@@ -365,7 +366,7 @@ class DualNeuralVAEV5(nn.Module):
         kl_B: float,
         grad_ratio: float,
         coverage_A: int = 0,
-        coverage_B: int = 0
+        coverage_B: int = 0,
     ) -> tuple:
         """Apply StateNet v2 corrections to learning rate and lambdas.
 
@@ -397,11 +398,22 @@ class DualNeuralVAEV5(nn.Module):
 
         # Build 12D state vector with coverage feedback
         state_vec = torch.tensor(
-            [H_A, H_B, kl_A, kl_B, grad_ratio, self.rho,
-             self.lambda1, self.lambda2, self.lambda3,
-             coverage_A_norm, coverage_B_norm, missing_ops_norm],
+            [
+                H_A,
+                H_B,
+                kl_A,
+                kl_B,
+                grad_ratio,
+                self.rho,
+                self.lambda1,
+                self.lambda2,
+                self.lambda3,
+                coverage_A_norm,
+                coverage_B_norm,
+                missing_ops_norm,
+            ],
             device=self.grad_norm_A_ema.device,
-            dtype=torch.float32
+            dtype=torch.float32,
         )
 
         corrections, latent = self.state_net(state_vec)
@@ -412,27 +424,36 @@ class DualNeuralVAEV5(nn.Module):
 
         self.lambda1 = torch.clamp(
             torch.tensor(self.lambda1) + self.statenet_lambda_scale * delta_lambda1,
-            0.5, 0.95
+            0.5,
+            0.95,
         ).item()
         self.lambda2 = torch.clamp(
             torch.tensor(self.lambda2) + self.statenet_lambda_scale * delta_lambda2,
-            0.5, 0.95
+            0.5,
+            0.95,
         ).item()
         self.lambda3 = torch.clamp(
             torch.tensor(self.lambda3) + self.statenet_lambda_scale * delta_lambda3,
-            0.15, 0.75
+            0.15,
+            0.75,
         ).item()
 
-        self.statenet_corrections['delta_lr'].append(delta_lr.item())
-        self.statenet_corrections['delta_lambda1'].append(delta_lambda1.item())
-        self.statenet_corrections['delta_lambda2'].append(delta_lambda2.item())
-        self.statenet_corrections['delta_lambda3'].append(delta_lambda3.item())
+        self.statenet_corrections["delta_lr"].append(delta_lr.item())
+        self.statenet_corrections["delta_lambda1"].append(delta_lambda1.item())
+        self.statenet_corrections["delta_lambda2"].append(delta_lambda2.item())
+        self.statenet_corrections["delta_lambda3"].append(delta_lambda3.item())
 
-        return (corrected_lr, delta_lr.item(), delta_lambda1.item(),
-                delta_lambda2.item(), delta_lambda3.item())
+        return (
+            corrected_lr,
+            delta_lr.item(),
+            delta_lambda1.item(),
+            delta_lambda2.item(),
+            delta_lambda3.item(),
+        )
 
-    def reparameterize(self, mu: torch.Tensor, logvar: torch.Tensor,
-                       temperature: float = 1.0) -> torch.Tensor:
+    def reparameterize(
+        self, mu: torch.Tensor, logvar: torch.Tensor, temperature: float = 1.0
+    ) -> torch.Tensor:
         """Reparameterization trick with temperature."""
         if self.training:
             std = torch.exp(0.5 * logvar)
@@ -441,7 +462,9 @@ class DualNeuralVAEV5(nn.Module):
         else:
             return mu
 
-    def compute_latent_entropy(self, z: torch.Tensor, num_bins: int = 50) -> torch.Tensor:
+    def compute_latent_entropy(
+        self, z: torch.Tensor, num_bins: int = 50
+    ) -> torch.Tensor:
         """Estimate latent entropy using histogram method."""
         batch_size, latent_dim = z.shape
 
@@ -456,8 +479,14 @@ class DualNeuralVAEV5(nn.Module):
 
         return torch.stack(entropies).mean()
 
-    def forward(self, x: torch.Tensor, temp_A: float = 1.0, temp_B: float = 1.0,
-                beta_A: float = 1.0, beta_B: float = 1.0) -> dict:
+    def forward(
+        self,
+        x: torch.Tensor,
+        temp_A: float = 1.0,
+        temp_B: float = 1.0,
+        beta_A: float = 1.0,
+        beta_B: float = 1.0,
+    ) -> dict:
         """Forward pass with stop-gradient cross-injection."""
         # Encode
         mu_A, logvar_A = self.encoder_A(x)
@@ -484,20 +513,20 @@ class DualNeuralVAEV5(nn.Module):
             H_B = self.compute_latent_entropy(z_B)
 
         return {
-            'logits_A': logits_A,
-            'logits_B': logits_B,
-            'mu_A': mu_A,
-            'logvar_A': logvar_A,
-            'mu_B': mu_B,
-            'logvar_B': logvar_B,
-            'z_A': z_A,
-            'z_B': z_B,
-            'z_A_tilde': z_A_tilde,
-            'z_B_tilde': z_B_tilde,
-            'H_A': H_A,
-            'H_B': H_B,
-            'beta_A': beta_A,
-            'beta_B': beta_B
+            "logits_A": logits_A,
+            "logits_B": logits_B,
+            "mu_A": mu_A,
+            "logvar_A": logvar_A,
+            "mu_B": mu_B,
+            "logvar_B": logvar_B,
+            "z_A": z_A,
+            "z_B": z_B,
+            "z_A_tilde": z_A_tilde,
+            "z_B_tilde": z_B_tilde,
+            "H_A": H_A,
+            "H_B": H_B,
+            "beta_A": beta_A,
+            "beta_B": beta_B,
         }
 
     def update_gradient_norms(self):
@@ -506,32 +535,41 @@ class DualNeuralVAEV5(nn.Module):
             return
 
         grad_norm_A = 0.0
-        for param in list(self.encoder_A.parameters()) + list(self.decoder_A.parameters()):
+        for param in list(self.encoder_A.parameters()) + list(
+            self.decoder_A.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_A += param.grad.norm().item() ** 2
         grad_norm_A = math.sqrt(grad_norm_A)
 
         grad_norm_B = 0.0
-        for param in list(self.encoder_B.parameters()) + list(self.decoder_B.parameters()):
+        for param in list(self.encoder_B.parameters()) + list(
+            self.decoder_B.parameters()
+        ):
             if param.grad is not None:
                 grad_norm_B += param.grad.norm().item() ** 2
         grad_norm_B = math.sqrt(grad_norm_B)
 
         if grad_norm_A > 0:
-            self.grad_norm_A_ema = (self.grad_ema_momentum * self.grad_norm_A_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_A)
+            self.grad_norm_A_ema = (
+                self.grad_ema_momentum * self.grad_norm_A_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_A
+            )
         if grad_norm_B > 0:
-            self.grad_norm_B_ema = (self.grad_ema_momentum * self.grad_norm_B_ema +
-                                   (1 - self.grad_ema_momentum) * grad_norm_B)
+            self.grad_norm_B_ema = (
+                self.grad_ema_momentum * self.grad_norm_B_ema
+                + (1 - self.grad_ema_momentum) * grad_norm_B
+            )
 
-    def sample(self, num_samples: int, device: str = 'cpu',
-               use_vae: str = 'A') -> torch.Tensor:
+    def sample(
+        self, num_samples: int, device: str = "cpu", use_vae: str = "A"
+    ) -> torch.Tensor:
         """Sample from the learned manifold."""
         self.eval()
         with torch.no_grad():
             z = torch.randn(num_samples, self.latent_dim, device=device)
 
-            if use_vae == 'A':
+            if use_vae == "A":
                 logits = self.decoder_A(z)
             else:
                 logits = self.decoder_B(z)

@@ -8,20 +8,19 @@ Usage:
     python 03_compare_zeta.py [--results-dir PATH]
 """
 
-import sys
 import argparse
-from pathlib import Path
 import json
-from datetime import datetime
+import sys
 import urllib.request
+from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import stats
-import matplotlib.pyplot as plt
-
 
 # First 100 imaginary parts of Riemann zeta zeros (high precision known values)
 # Source: LMFDB / Andrew Odlyzko's tables

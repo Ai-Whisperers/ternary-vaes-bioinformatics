@@ -29,15 +29,16 @@ Usage:
     async_writer.write(metrics)
 """
 
+import threading
 from collections import defaultdict
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
-import threading
 
 
 @dataclass
 class MetricRecord:
     """Single metric record."""
+
     name: str
     value: float
     step: int
@@ -66,11 +67,7 @@ class MetricsBuffer:
         self._epoch_accumulators: Dict[str, List[float]] = defaultdict(list)
 
     def record(
-        self,
-        name: str,
-        value: float,
-        step: int,
-        tags: Optional[Dict[str, str]] = None
+        self, name: str, value: float, step: int, tags: Optional[Dict[str, str]] = None
     ) -> None:
         """Record a metric value.
 
@@ -82,25 +79,22 @@ class MetricsBuffer:
             step: Global step or epoch number
             tags: Optional tags for grouping (e.g., {'vae': 'A'})
         """
-        record = MetricRecord(
-            name=name,
-            value=value,
-            step=step,
-            tags=tags or {}
-        )
+        record = MetricRecord(name=name, value=value, step=step, tags=tags or {})
 
         with self._lock:
             self._records.append(record)
 
             if len(self._records) > self._max_size and not self._overflow_warned:
-                print(f"Warning: MetricsBuffer has {len(self._records)} records. Consider draining more frequently.")
+                print(
+                    f"Warning: MetricsBuffer has {len(self._records)} records. Consider draining more frequently."
+                )
                 self._overflow_warned = True
 
     def record_batch(
         self,
         metrics: Dict[str, float],
         step: int,
-        tags: Optional[Dict[str, str]] = None
+        tags: Optional[Dict[str, str]] = None,
     ) -> None:
         """Record multiple metrics at once.
 
@@ -186,7 +180,9 @@ class ScopedMetrics:
             m.record('accuracy', 0.95)
     """
 
-    def __init__(self, buffer: MetricsBuffer, step: int, tags: Optional[Dict[str, str]] = None):
+    def __init__(
+        self, buffer: MetricsBuffer, step: int, tags: Optional[Dict[str, str]] = None
+    ):
         self._buffer = buffer
         self._step = step
         self._tags = tags or {}
@@ -202,4 +198,4 @@ class ScopedMetrics:
         self._buffer.record(name, value, self._step, self._tags)
 
 
-__all__ = ['MetricsBuffer', 'MetricRecord', 'ScopedMetrics']
+__all__ = ["MetricsBuffer", "MetricRecord", "ScopedMetrics"]

@@ -13,9 +13,10 @@ to eliminate code duplication (D4 from DUPLICATION_REPORT).
 These projections map high-dimensional latent embeddings to 3D for visualization.
 """
 
+from typing import Union
+
 import numpy as np
 import torch
-from typing import Union
 
 
 def _to_numpy(z: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
@@ -30,7 +31,7 @@ def _normalize(z: np.ndarray) -> np.ndarray:
 
 def _to_complex_coords(z_norm: np.ndarray, n_pairs: int) -> list:
     """Convert normalized real coordinates to complex pairs."""
-    return [z_norm[:, 2*i] + 1j * z_norm[:, 2*i+1] for i in range(n_pairs)]
+    return [z_norm[:, 2 * i] + 1j * z_norm[:, 2 * i + 1] for i in range(n_pairs)]
 
 
 def quintic_fibration(z: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
@@ -88,7 +89,7 @@ def hopf_fibration(z: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
     z1, z2 = w[0], w[1]
     x = 2 * np.real(z1 * np.conj(z2))
     y = 2 * np.imag(z1 * np.conj(z2))
-    z_base = np.abs(z1)**2 - np.abs(z2)**2
+    z_base = np.abs(z1) ** 2 - np.abs(z2) ** 2
 
     # Fiber contribution
     if len(w) >= 4:
@@ -235,10 +236,10 @@ def torus_fibration(z: Union[np.ndarray, torch.Tensor]) -> np.ndarray:
 
 # Dictionary for easy access to all projections
 PROJECTIONS = {
-    'quintic': quintic_fibration,
-    'hopf': hopf_fibration,
-    'k3': k3_surface,
-    'mirror': mirror_symmetry,
-    'fermat': fermat_surface,
-    'torus': torus_fibration,
+    "quintic": quintic_fibration,
+    "hopf": hopf_fibration,
+    "k3": k3_surface,
+    "mirror": mirror_symmetry,
+    "fermat": fermat_surface,
+    "torus": torus_fibration,
 }

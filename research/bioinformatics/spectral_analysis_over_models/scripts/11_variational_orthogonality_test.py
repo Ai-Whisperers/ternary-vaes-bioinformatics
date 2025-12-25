@@ -16,13 +16,14 @@ meaning curvature "creates" effective degrees of freedom.
 Optimization: Use model's O(log n) hierarchical structure instead of O(n) brute force.
 """
 
-import sys
 import json
+import sys
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from pathlib import Path
-from datetime import datetime
 
 # Add project root to path
 PROJECT_ROOT = Path(__file__).resolve().parents[5]

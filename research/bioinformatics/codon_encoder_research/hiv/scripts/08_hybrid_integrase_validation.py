@@ -15,6 +15,7 @@ import json
 import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
+
 import numpy as np
 
 # Add paths for imports
@@ -28,6 +29,7 @@ sys.path.insert(0, str(alphafold_path))
 # Import hybrid predictor
 try:
     from hybrid.structure_predictor import HybridStructurePredictor
+
     HAS_HYBRID = True
 except ImportError as e:
     print(f"Warning: Could not import hybrid predictor: {e}")
@@ -35,12 +37,9 @@ except ImportError as e:
 
 # Import local hyperbolic utils for fallback
 try:
-    from hyperbolic_utils import (
-        encode_codon,
-        poincare_distance,
-        get_synonymous_codons,
-        CODON_TABLE
-    )
+    from hyperbolic_utils import (CODON_TABLE, encode_codon,
+                                  get_synonymous_codons, poincare_distance)
+
     HAS_LOCAL_ENCODER = True
 except ImportError:
     HAS_LOCAL_ENCODER = False
@@ -176,14 +175,30 @@ def compute_fallback_reveal_score(wt_aa: str, mut_aa: str) -> float:
     """Compute reveal score without the full model."""
     # Representative codons for each amino acid
     REPRESENTATIVE_CODONS = {
-        'A': 'GCT', 'R': 'CGT', 'N': 'AAT', 'D': 'GAT', 'C': 'TGT',
-        'Q': 'CAA', 'E': 'GAA', 'G': 'GGT', 'H': 'CAT', 'I': 'ATT',
-        'L': 'CTT', 'K': 'AAA', 'M': 'ATG', 'F': 'TTT', 'P': 'CCT',
-        'S': 'TCT', 'T': 'ACT', 'W': 'TGG', 'Y': 'TAT', 'V': 'GTT',
+        "A": "GCT",
+        "R": "CGT",
+        "N": "AAT",
+        "D": "GAT",
+        "C": "TGT",
+        "Q": "CAA",
+        "E": "GAA",
+        "G": "GGT",
+        "H": "CAT",
+        "I": "ATT",
+        "L": "CTT",
+        "K": "AAA",
+        "M": "ATG",
+        "F": "TTT",
+        "P": "CCT",
+        "S": "TCT",
+        "T": "ACT",
+        "W": "TGG",
+        "Y": "TAT",
+        "V": "GTT",
     }
 
-    wt_codon = REPRESENTATIVE_CODONS.get(wt_aa, 'NNN')
-    mut_codon = REPRESENTATIVE_CODONS.get(mut_aa, 'NNN')
+    wt_codon = REPRESENTATIVE_CODONS.get(wt_aa, "NNN")
+    mut_codon = REPRESENTATIVE_CODONS.get(mut_aa, "NNN")
 
     # Simple Hamming-based distance with position weights
     weights = [3.0, 2.0, 1.0]  # First position most conserved
@@ -237,18 +252,19 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
         if predictor is not None:
             try:
                 prediction = predictor.predict_reveal_effect(
-                    wt_sequence=HIV1_INTEGRASE_SEQUENCE,
-                    mutation=mut_name
+                    wt_sequence=HIV1_INTEGRASE_SEQUENCE, mutation=mut_name
                 )
-                reveal_score = prediction.get('reveal_score', 0)
-                mechanism = prediction.get('primary_mechanism', 'unknown')
+                reveal_score = prediction.get("reveal_score", 0)
+                mechanism = prediction.get("primary_mechanism", "unknown")
             except Exception as e:
                 print(f"  Predictor error: {e}, using fallback")
-                reveal_score = compute_fallback_reveal_score(data['wt_aa'], data['mut_aa'])
-                mechanism = data['mechanism']
+                reveal_score = compute_fallback_reveal_score(
+                    data["wt_aa"], data["mut_aa"]
+                )
+                mechanism = data["mechanism"]
         else:
-            reveal_score = compute_fallback_reveal_score(data['wt_aa'], data['mut_aa'])
-            mechanism = data['mechanism']
+            reveal_score = compute_fallback_reveal_score(data["wt_aa"], data["mut_aa"])
+            mechanism = data["mechanism"]
 
         result = {
             "mutation": mut_name,
@@ -266,7 +282,9 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
 
         print(f"  Reveal Score: {reveal_score:.2f}")
         print(f"  Clinical p-adic: {data['clinical_padic_distance']:.2f}")
-        print(f"  Resistance: {data['resistance_level']}, Fitness: {data['fitness_impact']}")
+        print(
+            f"  Resistance: {data['resistance_level']}, Fitness: {data['fitness_impact']}"
+        )
 
     # ==========================================================================
     # PART 2: Analyze Reveal Candidates
@@ -281,21 +299,22 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
         if predictor is not None:
             try:
                 prediction = predictor.predict_reveal_effect(
-                    wt_sequence=HIV1_INTEGRASE_SEQUENCE,
-                    mutation=mut_name
+                    wt_sequence=HIV1_INTEGRASE_SEQUENCE, mutation=mut_name
                 )
-                reveal_score = prediction.get('reveal_score', 0)
-                is_ledgf = prediction.get('is_ledgf_interface', False)
-                mechanism = prediction.get('primary_mechanism', 'unknown')
+                reveal_score = prediction.get("reveal_score", 0)
+                is_ledgf = prediction.get("is_ledgf_interface", False)
+                mechanism = prediction.get("primary_mechanism", "unknown")
             except Exception as e:
                 print(f"  Predictor error: {e}, using fallback")
-                reveal_score = compute_fallback_reveal_score(data['wt_aa'], data['mut_aa'])
-                is_ledgf = data['is_ledgf_interface']
-                mechanism = data['mechanism']
+                reveal_score = compute_fallback_reveal_score(
+                    data["wt_aa"], data["mut_aa"]
+                )
+                is_ledgf = data["is_ledgf_interface"]
+                mechanism = data["mechanism"]
         else:
-            reveal_score = compute_fallback_reveal_score(data['wt_aa'], data['mut_aa'])
-            is_ledgf = data['is_ledgf_interface']
-            mechanism = data['mechanism']
+            reveal_score = compute_fallback_reveal_score(data["wt_aa"], data["mut_aa"])
+            is_ledgf = data["is_ledgf_interface"]
+            mechanism = data["mechanism"]
 
         result = {
             "mutation": mut_name,
@@ -345,7 +364,7 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
             "interpretation": {
                 "resistance": "positive" if corr_resistance > 0 else "negative",
                 "fitness": "positive" if corr_fitness > 0 else "negative",
-            }
+            },
         }
 
         print(f"\nReveal Score vs Resistance Level: r = {corr_resistance:.3f}")
@@ -363,13 +382,15 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
     sorted_insti = sorted(insti_results, key=lambda x: x["reveal_score"], reverse=True)
     print("\nINSTI Mutations by Reveal Score:")
     for r in sorted_insti:
-        print(f"  {r['mutation']}: {r['reveal_score']:.2f} (Resistance: {r['resistance_level']})")
+        print(
+            f"  {r['mutation']}: {r['reveal_score']:.2f} (Resistance: {r['resistance_level']})"
+        )
 
     # Sort reveal candidates by score
     sorted_reveal = sorted(
         results["reveal_candidates_analysis"],
         key=lambda x: x["computed_reveal_score"],
-        reverse=True
+        reverse=True,
     )
     print("\nReveal Candidates by Score:")
     for r in sorted_reveal:
@@ -382,24 +403,34 @@ def run_validation_experiment(use_hybrid: bool = True) -> Dict:
 
     # Compare INSTI resistance (we DON'T want) vs reveal candidates (we DO want)
     avg_insti_score = np.mean([r["reveal_score"] for r in insti_results])
-    avg_reveal_score = np.mean([r["computed_reveal_score"] for r in results["reveal_candidates_analysis"]])
+    avg_reveal_score = np.mean(
+        [r["computed_reveal_score"] for r in results["reveal_candidates_analysis"]]
+    )
 
     print(f"\nAverage INSTI Resistance Score: {avg_insti_score:.2f}")
     print(f"Average Reveal Candidate Score: {avg_reveal_score:.2f}")
 
     if avg_reveal_score > avg_insti_score:
-        print("\n✓ Reveal candidates show HIGHER geometric disruption than resistance mutations")
+        print(
+            "\n✓ Reveal candidates show HIGHER geometric disruption than resistance mutations"
+        )
         print("  This supports the 'reveal' hypothesis: LEDGF interface mutations")
-        print("  may expose integrase to immune recognition more than drug resistance sites.")
+        print(
+            "  may expose integrase to immune recognition more than drug resistance sites."
+        )
     else:
         print("\n! Reveal candidates show LOWER scores - may need refinement")
 
     results["summary"] = {
         "avg_insti_resistance_score": float(avg_insti_score),
         "avg_reveal_candidate_score": float(avg_reveal_score),
-        "reveal_vs_resistance_ratio": float(avg_reveal_score / avg_insti_score) if avg_insti_score > 0 else 0,
+        "reveal_vs_resistance_ratio": (
+            float(avg_reveal_score / avg_insti_score) if avg_insti_score > 0 else 0
+        ),
         "top_reveal_candidate": sorted_reveal[0]["mutation"] if sorted_reveal else None,
-        "highest_resistance_mutation": sorted_insti[0]["mutation"] if sorted_insti else None,
+        "highest_resistance_mutation": (
+            sorted_insti[0]["mutation"] if sorted_insti else None
+        ),
     }
 
     return results
@@ -432,7 +463,7 @@ def main():
                 return obj.tolist()
             return super().default(obj)
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(results, f, indent=2, cls=NumpyEncoder)
 
     print(f"\n\nResults saved to: {output_path}")

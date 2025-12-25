@@ -17,12 +17,13 @@ This module validates the training environment before starting:
 Single responsibility: Environment validation only.
 """
 
-from dataclasses import dataclass, field
-from pathlib import Path
-from typing import List, Optional, TYPE_CHECKING
-import torch
 import shutil
 import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+from typing import TYPE_CHECKING, List, Optional
+
+import torch
 
 if TYPE_CHECKING:
     from .monitor import TrainingMonitor
@@ -69,10 +70,12 @@ class EnvironmentStatus:
             lines.append(f"    Device: {self.cuda_device_name}")
             lines.append(f"    Memory: {self.cuda_memory_gb:.1f} GB")
 
-        lines.extend([
-            f"  Disk space: {self.disk_space_gb:.1f} GB",
-            f"  TensorBoard: {'Available' if self.tensorboard_available else 'Not installed'}",
-        ])
+        lines.extend(
+            [
+                f"  Disk space: {self.disk_space_gb:.1f} GB",
+                f"  TensorBoard: {'Available' if self.tensorboard_available else 'Not installed'}",
+            ]
+        )
 
         if self.warnings:
             lines.append(f"  Warnings: {len(self.warnings)}")
@@ -83,9 +86,7 @@ class EnvironmentStatus:
 
 
 def validate_environment(
-    config: dict,
-    monitor: Optional['TrainingMonitor'] = None,
-    strict: bool = False
+    config: dict, monitor: Optional["TrainingMonitor"] = None, strict: bool = False
 ) -> EnvironmentStatus:
     """Validate training environment before starting.
 
@@ -113,28 +114,36 @@ def validate_environment(
             print(msg)
 
     # Version info
-    status.python_version = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    status.python_version = (
+        f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    )
     status.pytorch_version = torch.__version__
 
     # CUDA check
     status.cuda_available = torch.cuda.is_available()
     if status.cuda_available:
         status.cuda_device_name = torch.cuda.get_device_name(0)
-        status.cuda_memory_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
-        log(f"CUDA available: {status.cuda_device_name} ({status.cuda_memory_gb:.1f} GB)")
+        status.cuda_memory_gb = torch.cuda.get_device_properties(0).total_memory / (
+            1024**3
+        )
+        log(
+            f"CUDA available: {status.cuda_device_name} ({status.cuda_memory_gb:.1f} GB)"
+        )
     else:
         log("CUDA not available, using CPU")
         status.warnings.append("CUDA not available - training will be slow")
 
     # Extract paths from config (handle both dict and dataclass)
-    if hasattr(config, 'checkpoint_dir'):
+    if hasattr(config, "checkpoint_dir"):
         checkpoint_dir = config.checkpoint_dir
         log_dir = config.log_dir
-        tensorboard_dir = getattr(config, 'tensorboard_dir', 'runs')
+        tensorboard_dir = getattr(config, "tensorboard_dir", "runs")
     else:
-        checkpoint_dir = config.get('checkpoint_dir', 'sandbox-training/checkpoints/v5_10')
-        log_dir = config.get('log_dir', 'logs')
-        tensorboard_dir = config.get('tensorboard_dir', 'runs')
+        checkpoint_dir = config.get(
+            "checkpoint_dir", "sandbox-training/checkpoints/v5_10"
+        )
+        log_dir = config.get("log_dir", "logs")
+        tensorboard_dir = config.get("tensorboard_dir", "runs")
 
     # Disk space check (on checkpoint directory)
     checkpoint_path = Path(checkpoint_dir)
@@ -144,30 +153,34 @@ def validate_environment(
         status.disk_space_gb = disk_usage.free / (1024**3)
 
         if status.disk_space_gb < 0.1:
-            status.errors.append(f"Critically low disk space: {status.disk_space_gb:.2f} GB")
+            status.errors.append(
+                f"Critically low disk space: {status.disk_space_gb:.2f} GB"
+            )
         elif status.disk_space_gb < 1.0:
             status.warnings.append(f"Low disk space: {status.disk_space_gb:.1f} GB")
 
         log(f"Disk space available: {status.disk_space_gb:.1f} GB")
     except Exception as e:
-        status.errors.append(f"Cannot access checkpoint directory '{checkpoint_dir}': {e}")
+        status.errors.append(
+            f"Cannot access checkpoint directory '{checkpoint_dir}': {e}"
+        )
 
     # Directory write permissions
     for dir_name, dir_path in [
-        ('log_dir', log_dir),
-        ('checkpoint_dir', checkpoint_dir),
-        ('tensorboard_dir', tensorboard_dir)
+        ("log_dir", log_dir),
+        ("checkpoint_dir", checkpoint_dir),
+        ("tensorboard_dir", tensorboard_dir),
     ]:
         path = Path(dir_path)
         try:
             path.mkdir(parents=True, exist_ok=True)
-            test_file = path / '.write_test'
+            test_file = path / ".write_test"
             test_file.touch()
             test_file.unlink()
 
-            if dir_name == 'log_dir':
+            if dir_name == "log_dir":
                 status.log_dir_writable = True
-            elif dir_name == 'checkpoint_dir':
+            elif dir_name == "checkpoint_dir":
                 status.checkpoint_dir_writable = True
 
         except PermissionError:
@@ -178,15 +191,20 @@ def validate_environment(
     # TensorBoard check
     try:
         from torch.utils.tensorboard import SummaryWriter
+
         status.tensorboard_available = True
     except ImportError:
         status.tensorboard_available = False
-        status.warnings.append("TensorBoard not installed - metrics won't be visualized")
+        status.warnings.append(
+            "TensorBoard not installed - metrics won't be visualized"
+        )
 
     # PyTorch version check (2.0+ recommended for torch.compile)
-    major_version = int(torch.__version__.split('.')[0])
+    major_version = int(torch.__version__.split(".")[0])
     if major_version < 2:
-        status.warnings.append(f"PyTorch {torch.__version__} detected - 2.0+ recommended for torch.compile")
+        status.warnings.append(
+            f"PyTorch {torch.__version__} detected - 2.0+ recommended for torch.compile"
+        )
 
     # Strict mode: treat warnings as errors
     if strict and status.warnings:
@@ -209,8 +227,7 @@ def validate_environment(
 
 
 def require_valid_environment(
-    config: dict,
-    monitor: Optional['TrainingMonitor'] = None
+    config: dict, monitor: Optional["TrainingMonitor"] = None
 ) -> EnvironmentStatus:
     """Validate environment and raise if invalid.
 
@@ -236,8 +253,4 @@ def require_valid_environment(
     return status
 
 
-__all__ = [
-    'EnvironmentStatus',
-    'validate_environment',
-    'require_valid_environment'
-]
+__all__ = ["EnvironmentStatus", "validate_environment", "require_valid_environment"]

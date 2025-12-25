@@ -5,8 +5,8 @@
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
 
-import os
 import ast
+import os
 
 BASE_DIR = "DOCUMENTATION/06_DIAGRAMS"
 DIRS = [

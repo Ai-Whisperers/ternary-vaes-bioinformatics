@@ -13,14 +13,16 @@ requiring AlphaFold3's C++ extensions.
 
 import gzip
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple, NamedTuple
+from typing import Dict, List, NamedTuple, Optional, Tuple
+
 import numpy as np
 
 try:
     from Bio.PDB import MMCIFParser, PDBParser
-    from Bio.PDB.Structure import Structure
-    from Bio.PDB.Residue import Residue
     from Bio.PDB.NeighborSearch import NeighborSearch
+    from Bio.PDB.Residue import Residue
+    from Bio.PDB.Structure import Structure
+
     HAS_BIOPYTHON = True
 except ImportError:
     HAS_BIOPYTHON = False
@@ -31,6 +33,7 @@ except ImportError:
 
 class ResidueContact(NamedTuple):
     """Contact between two residues."""
+
     chain_id: str
     res_id: int
     res_name: str
@@ -40,6 +43,7 @@ class ResidueContact(NamedTuple):
 
 class StructuralContext(NamedTuple):
     """Structural context for a residue position."""
+
     position: int
     residue_name: str
     chain_id: str
@@ -61,8 +65,21 @@ class PDBAnalyzer:
 
     # LEDGF interface residues (from 2B4J structure)
     LEDGF_INTERFACE = {
-        128, 129, 130, 131, 132,  # Loop region
-        166, 167, 168, 169, 170, 171, 172, 173, 174, 175  # Helix region
+        128,
+        129,
+        130,
+        131,
+        132,  # Loop region
+        166,
+        167,
+        168,
+        169,
+        170,
+        171,
+        172,
+        173,
+        174,
+        175,  # Helix region
     }
 
     def __init__(self, pdb_dir: Optional[Path] = None):
@@ -97,7 +114,7 @@ class PDBAnalyzer:
         # Try mmCIF format first (preferred)
         cif_path = self.pdb_dir / f"{pdb_id}.cif.gz"
         if cif_path.exists():
-            with gzip.open(cif_path, 'rt') as f:
+            with gzip.open(cif_path, "rt") as f:
                 structure = self.mmcif_parser.get_structure(pdb_id, f)
                 self._structure_cache[pdb_id] = structure
                 return structure
@@ -122,11 +139,7 @@ class PDBAnalyzer:
         )
 
     def get_residue_contacts(
-        self,
-        structure: "Structure",
-        chain_id: str,
-        res_id: int,
-        radius: float = 8.0
+        self, structure: "Structure", chain_id: str, res_id: int, radius: float = 8.0
     ) -> List[ResidueContact]:
         """Find residues in contact with a given position.
 
@@ -142,20 +155,20 @@ class PDBAnalyzer:
         # Get the target residue
         model = structure[0]  # First model
         chain = model[chain_id]
-        target_res = chain[(' ', res_id, ' ')]
+        target_res = chain[(" ", res_id, " ")]
 
         # Get CA atom for distance calculation
-        if 'CA' not in target_res:
+        if "CA" not in target_res:
             return []
 
-        target_atom = target_res['CA']
+        target_atom = target_res["CA"]
 
         # Build neighbor search
         all_atoms = list(model.get_atoms())
         ns = NeighborSearch(all_atoms)
 
         # Find nearby atoms
-        nearby = ns.search(target_atom.get_coord(), radius, level='R')
+        nearby = ns.search(target_atom.get_coord(), radius, level="R")
 
         contacts = []
         for res in nearby:
@@ -163,8 +176,8 @@ class PDBAnalyzer:
                 continue
 
             # Calculate distance
-            if 'CA' in res:
-                dist = target_atom - res['CA']
+            if "CA" in res:
+                dist = target_atom - res["CA"]
             else:
                 # Use first atom if no CA
                 dist = target_atom - list(res.get_atoms())[0]
@@ -172,27 +185,26 @@ class PDBAnalyzer:
             # Determine contact type
             res_chain = res.get_parent().get_id()
             if res_chain != chain_id:
-                contact_type = 'interface'
+                contact_type = "interface"
             elif dist < 4.5:
-                contact_type = 'backbone'
+                contact_type = "backbone"
             else:
-                contact_type = 'sidechain'
+                contact_type = "sidechain"
 
-            contacts.append(ResidueContact(
-                chain_id=res_chain,
-                res_id=res.get_id()[1],
-                res_name=res.get_resname(),
-                distance=dist,
-                contact_type=contact_type
-            ))
+            contacts.append(
+                ResidueContact(
+                    chain_id=res_chain,
+                    res_id=res.get_id()[1],
+                    res_name=res.get_resname(),
+                    distance=dist,
+                    contact_type=contact_type,
+                )
+            )
 
         return sorted(contacts, key=lambda c: c.distance)
 
     def get_structural_context(
-        self,
-        pdb_id: str,
-        position: int,
-        chain_id: str = 'A'
+        self, pdb_id: str, position: int, chain_id: str = "A"
     ) -> StructuralContext:
         """Get structural context for a residue position.
 
@@ -209,30 +221,29 @@ class PDBAnalyzer:
 
         try:
             chain = model[chain_id]
-            residue = chain[(' ', position, ' ')]
+            residue = chain[(" ", position, " ")]
             res_name = residue.get_resname()
         except KeyError:
             # Position not found in structure
             return StructuralContext(
                 position=position,
-                residue_name='UNK',
+                residue_name="UNK",
                 chain_id=chain_id,
-                secondary_structure='coil',
+                secondary_structure="coil",
                 solvent_accessibility=0.5,
                 contacts=[],
                 interface_residue=False,
-                catalytic_site=False
+                catalytic_site=False,
             )
 
         contacts = self.get_residue_contacts(structure, chain_id, position)
 
         # Check if at interface (contacts with different chain)
-        interface_residue = any(c.contact_type == 'interface' for c in contacts)
+        interface_residue = any(c.contact_type == "interface" for c in contacts)
 
         # Check if near catalytic site
         catalytic_site = position in self.CATALYTIC_RESIDUES or any(
-            c.res_id in self.CATALYTIC_RESIDUES and c.distance < 8.0
-            for c in contacts
+            c.res_id in self.CATALYTIC_RESIDUES and c.distance < 8.0 for c in contacts
         )
 
         # Estimate solvent accessibility from contact count
@@ -243,13 +254,13 @@ class PDBAnalyzer:
 
         # Simple secondary structure estimation from backbone contacts
         # (A proper DSSP analysis would be more accurate)
-        backbone_contacts = [c for c in contacts if c.contact_type == 'backbone']
+        backbone_contacts = [c for c in contacts if c.contact_type == "backbone"]
         if len(backbone_contacts) >= 4:
-            secondary_structure = 'helix'
+            secondary_structure = "helix"
         elif len(backbone_contacts) >= 2:
-            secondary_structure = 'sheet'
+            secondary_structure = "sheet"
         else:
-            secondary_structure = 'coil'
+            secondary_structure = "coil"
 
         return StructuralContext(
             position=position,
@@ -259,7 +270,7 @@ class PDBAnalyzer:
             solvent_accessibility=solvent_accessibility,
             contacts=contacts[:10],  # Top 10 contacts
             interface_residue=interface_residue,
-            catalytic_site=catalytic_site
+            catalytic_site=catalytic_site,
         )
 
     def is_ledgf_interface(self, position: int) -> bool:
@@ -267,12 +278,7 @@ class PDBAnalyzer:
         return position in self.LEDGF_INTERFACE
 
     def analyze_mutation_site(
-        self,
-        pdb_id: str,
-        position: int,
-        wt_aa: str,
-        mut_aa: str,
-        chain_id: str = 'A'
+        self, pdb_id: str, position: int, wt_aa: str, mut_aa: str, chain_id: str = "A"
     ) -> Dict:
         """Analyze the structural impact of a mutation.
 
@@ -289,9 +295,9 @@ class PDBAnalyzer:
         context = self.get_structural_context(pdb_id, position, chain_id)
 
         # Amino acid properties for impact estimation
-        CHARGE = {'D': -1, 'E': -1, 'K': 1, 'R': 1, 'H': 0.5}
-        HYDROPHOBIC = {'A', 'V', 'L', 'I', 'M', 'F', 'W', 'Y', 'P'}
-        AROMATIC = {'F', 'W', 'Y', 'H'}
+        CHARGE = {"D": -1, "E": -1, "K": 1, "R": 1, "H": 0.5}
+        HYDROPHOBIC = {"A", "V", "L", "I", "M", "F", "W", "Y", "P"}
+        AROMATIC = {"F", "W", "Y", "H"}
 
         wt_charge = CHARGE.get(wt_aa, 0)
         mut_charge = CHARGE.get(mut_aa, 0)
@@ -325,14 +331,14 @@ class PDBAnalyzer:
             mechanisms.append("ledgf_interface")
 
         return {
-            'position': position,
-            'mutation': f"{wt_aa}{position}{mut_aa}",
-            'structural_context': context._asdict(),
-            'charge_change': charge_change,
-            'hydrophobicity_change': hydrophobicity_change,
-            'mechanisms': mechanisms,
-            'is_ledgf_interface': self.is_ledgf_interface(position),
-            'is_catalytic_adjacent': context.catalytic_site,
-            'solvent_accessibility': context.solvent_accessibility,
-            'n_contacts': len(context.contacts),
+            "position": position,
+            "mutation": f"{wt_aa}{position}{mut_aa}",
+            "structural_context": context._asdict(),
+            "charge_change": charge_change,
+            "hydrophobicity_change": hydrophobicity_change,
+            "mechanisms": mechanisms,
+            "is_ledgf_interface": self.is_ledgf_interface(position),
+            "is_catalytic_adjacent": context.catalytic_site,
+            "solvent_accessibility": context.solvent_accessibility,
+            "n_contacts": len(context.contacts),
         }

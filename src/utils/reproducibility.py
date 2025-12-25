@@ -12,9 +12,10 @@ This module provides functions for ensuring reproducible training runs.
 Single responsibility: Random seed management only.
 """
 
-import torch
-import numpy as np
 import random
+
+import numpy as np
+import torch
 
 
 def set_seed(seed: int, deterministic: bool = False) -> None:
@@ -54,4 +55,4 @@ def get_generator(seed: int) -> torch.Generator:
     return torch.Generator().manual_seed(seed)
 
 
-__all__ = ['set_seed', 'get_generator']
+__all__ = ["set_seed", "get_generator"]

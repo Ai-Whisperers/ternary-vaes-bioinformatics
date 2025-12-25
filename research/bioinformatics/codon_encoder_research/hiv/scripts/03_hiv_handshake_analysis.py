@@ -23,13 +23,14 @@ Author: AI Whisperers
 Date: 2025-12-24
 """
 
-import sys
 import json
-import torch
-import numpy as np
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
 
 # Add parent paths for imports
 script_dir = Path(__file__).parent
@@ -39,13 +40,10 @@ sys.path.insert(0, str(script_dir))
 
 # Import codon encoder utilities from local hyperbolic_utils
 try:
-    from hyperbolic_utils import (
-        load_hyperbolic_encoder,
-        encode_codon_hyperbolic,
-        poincare_distance,
-        AA_TO_CODON,
-        codon_to_onehot
-    )
+    from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot,
+                                  encode_codon_hyperbolic,
+                                  load_hyperbolic_encoder, poincare_distance)
+
     ENCODER_AVAILABLE = True
 except ImportError as e:
     ENCODER_AVAILABLE = False
@@ -55,6 +53,7 @@ except ImportError as e:
 @dataclass
 class HandshakeContact:
     """A contact point in the gp120-CD4 handshake interface."""
+
     viral_pos: int
     viral_aa: str
     viral_context: str
@@ -68,6 +67,7 @@ class HandshakeContact:
 @dataclass
 class AsymmetricTarget:
     """A modification that disrupts viral geometry without affecting host."""
+
     contact: HandshakeContact
     modification: str
     viral_shift: float
@@ -91,74 +91,74 @@ class HIV_CD4_Handshake:
     # gp120 residues that contact CD4 (HXB2 numbering)
     GP120_CD4_CONTACTS = {
         # Core binding site
-        256: ('S', 'Outer domain loop'),
-        257: ('T', 'Outer domain loop'),
-        280: ('D', 'CD4 binding loop'),
-        281: ('N', 'CD4 binding loop'),
-        282: ('E', 'CD4 binding loop'),
-        283: ('K', 'CD4 binding loop'),
-        365: ('S', 'CD4 binding loop'),
-        366: ('G', 'CD4 binding loop'),
-        367: ('G', 'CD4 binding loop'),
-        368: ('D', 'Phe43 cavity'),
-        370: ('E', 'Phe43 cavity'),
-        371: ('I', 'Phe43 cavity'),
-        425: ('N', 'Bridging sheet'),
-        426: ('M', 'Bridging sheet'),
-        427: ('W', 'Bridging sheet'),
-        428: ('Q', 'Bridging sheet'),
-        429: ('K', 'Bridging sheet'),
-        430: ('V', 'Bridging sheet'),
-        455: ('T', 'CD4 binding loop'),
-        456: ('R', 'CD4 binding loop'),
-        457: ('D', 'CD4 binding loop'),
-        458: ('G', 'CD4 binding loop'),
-        459: ('G', 'CD4 binding loop'),
-        469: ('R', 'V5 loop'),
-        471: ('G', 'V5 loop'),
-        472: ('G', 'V5 loop'),
-        473: ('N', 'V5 loop'),
-        474: ('E', 'V5 loop'),
+        256: ("S", "Outer domain loop"),
+        257: ("T", "Outer domain loop"),
+        280: ("D", "CD4 binding loop"),
+        281: ("N", "CD4 binding loop"),
+        282: ("E", "CD4 binding loop"),
+        283: ("K", "CD4 binding loop"),
+        365: ("S", "CD4 binding loop"),
+        366: ("G", "CD4 binding loop"),
+        367: ("G", "CD4 binding loop"),
+        368: ("D", "Phe43 cavity"),
+        370: ("E", "Phe43 cavity"),
+        371: ("I", "Phe43 cavity"),
+        425: ("N", "Bridging sheet"),
+        426: ("M", "Bridging sheet"),
+        427: ("W", "Bridging sheet"),
+        428: ("Q", "Bridging sheet"),
+        429: ("K", "Bridging sheet"),
+        430: ("V", "Bridging sheet"),
+        455: ("T", "CD4 binding loop"),
+        456: ("R", "CD4 binding loop"),
+        457: ("D", "CD4 binding loop"),
+        458: ("G", "CD4 binding loop"),
+        459: ("G", "CD4 binding loop"),
+        469: ("R", "V5 loop"),
+        471: ("G", "V5 loop"),
+        472: ("G", "V5 loop"),
+        473: ("N", "V5 loop"),
+        474: ("E", "V5 loop"),
     }
 
     # Human CD4 residues that contact gp120 (D1 domain)
     CD4_GP120_CONTACTS = {
-        25: ('K', 'CDR1-like'),
-        26: ('V', 'CDR1-like'),
-        27: ('S', 'CDR1-like'),
-        28: ('S', 'CDR1-like'),
-        29: ('K', 'CDR1-like'),
-        33: ('Q', 'CDR2-like'),
-        34: ('F', 'CDR2-like'),  # Key Phe43 homolog contact
-        35: ('N', 'CDR2-like'),
-        40: ('Q', 'CDR2-like'),
-        41: ('I', 'CDR2-like'),
-        42: ('K', 'CDR2-like'),
-        43: ('F', 'CDR2-like'),  # THE Phe43 - critical contact
-        44: ('L', 'CDR2-like'),
-        45: ('K', 'CDR2-like'),
-        46: ('I', 'CDR2-like'),
-        47: ('E', 'CDR2-like'),
-        48: ('D', 'CDR2-like'),
-        59: ('D', 'CC\' loop'),
-        60: ('Q', 'CC\' loop'),
-        61: ('K', 'CC\' loop'),
-        62: ('E', 'CC\' loop'),
-        63: ('E', 'CC\' loop'),
+        25: ("K", "CDR1-like"),
+        26: ("V", "CDR1-like"),
+        27: ("S", "CDR1-like"),
+        28: ("S", "CDR1-like"),
+        29: ("K", "CDR1-like"),
+        33: ("Q", "CDR2-like"),
+        34: ("F", "CDR2-like"),  # Key Phe43 homolog contact
+        35: ("N", "CDR2-like"),
+        40: ("Q", "CDR2-like"),
+        41: ("I", "CDR2-like"),
+        42: ("K", "CDR2-like"),
+        43: ("F", "CDR2-like"),  # THE Phe43 - critical contact
+        44: ("L", "CDR2-like"),
+        45: ("K", "CDR2-like"),
+        46: ("I", "CDR2-like"),
+        47: ("E", "CDR2-like"),
+        48: ("D", "CDR2-like"),
+        59: ("D", "CC' loop"),
+        60: ("Q", "CC' loop"),
+        61: ("K", "CC' loop"),
+        62: ("E", "CC' loop"),
+        63: ("E", "CC' loop"),
     }
 
     # gp120 sequence context around contact sites (BG505 strain)
     # Format: position -> 15-mer context centered on that position
     GP120_CONTEXTS = {
-        280: 'YSGIIFNCSINQLII',  # D at center, CD4 binding loop
-        365: 'KLTIFSKKEKTFSSG',  # S at center
-        368: 'FSSGKDPEVGFYNTT',  # D at center, Phe43 cavity
-        370: 'SGKDPEVGFYNTTRG',  # E at center
-        425: 'RDNWRSELYKYKVVK',  # N at center, bridging sheet
-        427: 'NWRSELYKYKVVKIE',  # W at center
-        429: 'RSELYKYKVVKIEPL',  # K at center
-        456: 'QTRNSTRDGGSNNTE',  # R at center
-        469: 'SRDNMKNNCRFNISV',  # R at center
+        280: "YSGIIFNCSINQLII",  # D at center, CD4 binding loop
+        365: "KLTIFSKKEKTFSSG",  # S at center
+        368: "FSSGKDPEVGFYNTT",  # D at center, Phe43 cavity
+        370: "SGKDPEVGFYNTTRG",  # E at center
+        425: "RDNWRSELYKYKVVK",  # N at center, bridging sheet
+        427: "NWRSELYKYKVVKIE",  # W at center
+        429: "RSELYKYKVVKIEPL",  # K at center
+        456: "QTRNSTRDGGSNNTE",  # R at center
+        469: "SRDNMKNNCRFNISV",  # R at center
     }
 
     # CD4 sequence (human, D1 domain residues 26-66)
@@ -167,31 +167,33 @@ class HIV_CD4_Handshake:
     # Modification library for asymmetric targeting
     MODIFICATIONS = {
         # Phosphorylation mimics
-        'S_to_D': ('S', 'D', 'phosphoserine_mimic'),
-        'T_to_D': ('T', 'D', 'phosphothreonine_mimic'),
-        'Y_to_D': ('Y', 'D', 'phosphotyrosine_mimic'),
+        "S_to_D": ("S", "D", "phosphoserine_mimic"),
+        "T_to_D": ("T", "D", "phosphothreonine_mimic"),
+        "Y_to_D": ("Y", "D", "phosphotyrosine_mimic"),
         # Citrullination
-        'R_to_Q': ('R', 'Q', 'citrullination'),
+        "R_to_Q": ("R", "Q", "citrullination"),
         # Deglycosylation
-        'N_to_Q': ('N', 'Q', 'deglycosylation'),
+        "N_to_Q": ("N", "Q", "deglycosylation"),
         # Acetylation
-        'K_to_Q': ('K', 'Q', 'acetylation_mimic'),
+        "K_to_Q": ("K", "Q", "acetylation_mimic"),
         # Charge alterations
-        'D_to_N': ('D', 'N', 'charge_removal'),
-        'E_to_Q': ('E', 'Q', 'charge_removal'),
+        "D_to_N": ("D", "N", "charge_removal"),
+        "E_to_Q": ("E", "Q", "charge_removal"),
         # Size changes
-        'V_to_I': ('V', 'I', 'size_increase'),
-        'I_to_V': ('I', 'V', 'size_decrease'),
-        'L_to_M': ('L', 'M', 'sulfur_addition'),
+        "V_to_I": ("V", "I", "size_increase"),
+        "I_to_V": ("I", "V", "size_decrease"),
+        "L_to_M": ("L", "M", "sulfur_addition"),
         # Aromatic modifications
-        'F_to_Y': ('F', 'Y', 'hydroxylation'),
-        'W_to_F': ('W', 'F', 'ring_reduction'),
+        "F_to_Y": ("F", "Y", "hydroxylation"),
+        "W_to_F": ("W", "F", "ring_reduction"),
         # Glycine/Proline
-        'G_to_A': ('G', 'A', 'flexibility_reduction'),
-        'P_to_A': ('P', 'A', 'proline_removal'),
+        "G_to_A": ("G", "A", "flexibility_reduction"),
+        "P_to_A": ("P", "A", "proline_removal"),
     }
 
-    def __init__(self, encoder_path: Optional[Path] = None, convergence_threshold: float = 0.25):
+    def __init__(
+        self, encoder_path: Optional[Path] = None, convergence_threshold: float = 0.25
+    ):
         """
         Initialize the handshake analyzer.
 
@@ -210,8 +212,7 @@ class HIV_CD4_Handshake:
         if ENCODER_AVAILABLE:
             try:
                 self.hyp_encoder, mapping = load_hyperbolic_encoder(
-                    device='cpu',
-                    version='3adic'
+                    device="cpu", version="3adic"
                 )
                 print("Loaded 3-adic hyperbolic encoder (V5.11.3)")
                 self.encoder_loaded = True
@@ -225,10 +226,10 @@ class HIV_CD4_Handshake:
     def _load_encoder(self, path: Path):
         """Load the 3-adic codon encoder."""
         try:
-            if path.suffix == '.pt':
-                self.encoder_data = torch.load(path, map_location='cpu')
+            if path.suffix == ".pt":
+                self.encoder_data = torch.load(path, map_location="cpu")
                 print(f"Loaded encoder from {path}")
-            elif path.suffix == '.json':
+            elif path.suffix == ".json":
                 with open(path) as f:
                     self.encoder_data = json.load(f)
                 print(f"Loaded codon mapping from {path}")
@@ -239,10 +240,7 @@ class HIV_CD4_Handshake:
     def _init_random_encoder(self):
         """Initialize random embeddings for demonstration."""
         np.random.seed(42)
-        self.encoder_data = {
-            'type': 'random_demo',
-            'dim': 16
-        }
+        self.encoder_data = {"type": "random_demo", "dim": 16}
 
     def encode_context(self, context: str) -> np.ndarray:
         """
@@ -279,7 +277,11 @@ class HIV_CD4_Handshake:
                 return emb
 
         # Fallback: Demo mode with consistent hash-based pseudo-embeddings
-        if hasattr(self, 'encoder_data') and isinstance(self.encoder_data, dict) and self.encoder_data.get('type') == 'random_demo':
+        if (
+            hasattr(self, "encoder_data")
+            and isinstance(self.encoder_data, dict)
+            and self.encoder_data.get("type") == "random_demo"
+        ):
             np.random.seed(hash(context) % (2**32))
             emb = np.random.randn(16) * 0.1
             norm = np.linalg.norm(emb)
@@ -290,7 +292,7 @@ class HIV_CD4_Handshake:
         # Final fallback: physicochemical encoding
         emb = np.zeros(16)
         for i, aa in enumerate(context):
-            weight = 1.0 / (1.0 + abs(i - len(context)//2))
+            weight = 1.0 / (1.0 + abs(i - len(context) // 2))
             aa_emb = self._get_aa_embedding(aa)
             emb += weight * aa_emb
 
@@ -305,26 +307,26 @@ class HIV_CD4_Handshake:
         # Use physicochemical properties as basis
         properties = {
             # Hydrophobicity, charge, size, polarity
-            'A': [0.62, 0.0, 0.2, 0.0],
-            'C': [0.29, 0.0, 0.3, 0.1],
-            'D': [-0.9, -1.0, 0.4, 1.0],
-            'E': [-0.74, -1.0, 0.5, 1.0],
-            'F': [1.19, 0.0, 0.7, 0.0],
-            'G': [0.48, 0.0, 0.0, 0.0],
-            'H': [-0.4, 0.5, 0.5, 0.5],
-            'I': [1.38, 0.0, 0.5, 0.0],
-            'K': [-1.5, 1.0, 0.5, 1.0],
-            'L': [1.06, 0.0, 0.5, 0.0],
-            'M': [0.64, 0.0, 0.5, 0.0],
-            'N': [-0.78, 0.0, 0.4, 1.0],
-            'P': [0.12, 0.0, 0.3, 0.0],
-            'Q': [-0.85, 0.0, 0.5, 1.0],
-            'R': [-2.53, 1.0, 0.6, 1.0],
-            'S': [-0.18, 0.0, 0.2, 0.5],
-            'T': [-0.05, 0.0, 0.3, 0.5],
-            'V': [1.08, 0.0, 0.4, 0.0],
-            'W': [0.81, 0.0, 0.8, 0.2],
-            'Y': [0.26, 0.0, 0.7, 0.3],
+            "A": [0.62, 0.0, 0.2, 0.0],
+            "C": [0.29, 0.0, 0.3, 0.1],
+            "D": [-0.9, -1.0, 0.4, 1.0],
+            "E": [-0.74, -1.0, 0.5, 1.0],
+            "F": [1.19, 0.0, 0.7, 0.0],
+            "G": [0.48, 0.0, 0.0, 0.0],
+            "H": [-0.4, 0.5, 0.5, 0.5],
+            "I": [1.38, 0.0, 0.5, 0.0],
+            "K": [-1.5, 1.0, 0.5, 1.0],
+            "L": [1.06, 0.0, 0.5, 0.0],
+            "M": [0.64, 0.0, 0.5, 0.0],
+            "N": [-0.78, 0.0, 0.4, 1.0],
+            "P": [0.12, 0.0, 0.3, 0.0],
+            "Q": [-0.85, 0.0, 0.5, 1.0],
+            "R": [-2.53, 1.0, 0.6, 1.0],
+            "S": [-0.18, 0.0, 0.2, 0.5],
+            "T": [-0.05, 0.0, 0.3, 0.5],
+            "V": [1.08, 0.0, 0.4, 0.0],
+            "W": [0.81, 0.0, 0.8, 0.2],
+            "Y": [0.26, 0.0, 0.7, 0.3],
         }
 
         if aa not in properties:
@@ -335,7 +337,7 @@ class HIV_CD4_Handshake:
         emb = np.zeros(16)
         for i in range(4):
             for j in range(4):
-                emb[i*4 + j] = props[i] * np.sin((j+1) * np.pi / 5)
+                emb[i * 4 + j] = props[i] * np.sin((j + 1) * np.pi / 5)
 
         return emb * 0.1  # Scale down
 
@@ -352,7 +354,7 @@ class HIV_CD4_Handshake:
         # Fallback implementation
         x_norm_sq = np.sum(x**2)
         y_norm_sq = np.sum(y**2)
-        diff_norm_sq = np.sum((x - y)**2)
+        diff_norm_sq = np.sum((x - y) ** 2)
 
         # Numerical stability
         x_norm_sq = min(x_norm_sq, 0.99)
@@ -384,11 +386,11 @@ class HIV_CD4_Handshake:
 
         # Map all pairwise contacts
         for gp120_pos, context in self.GP120_CONTEXTS.items():
-            gp120_aa = self.GP120_CD4_CONTACTS.get(gp120_pos, ('?', 'Unknown'))[0]
+            gp120_aa = self.GP120_CD4_CONTACTS.get(gp120_pos, ("?", "Unknown"))[0]
             gp120_emb = self.encode_context(context)
 
             for cd4_pos, cd4_context in cd4_contexts.items():
-                cd4_aa = self.CD4_GP120_CONTACTS.get(cd4_pos, ('?', 'Unknown'))[0]
+                cd4_aa = self.CD4_GP120_CONTACTS.get(cd4_pos, ("?", "Unknown"))[0]
                 cd4_emb = self.encode_context(cd4_context)
 
                 dist = self.compute_poincare_distance(gp120_emb, cd4_emb)
@@ -401,7 +403,7 @@ class HIV_CD4_Handshake:
                     host_aa=cd4_aa,
                     host_context=cd4_context,
                     distance=dist,
-                    is_convergent=(dist < self.convergence_threshold)
+                    is_convergent=(dist < self.convergence_threshold),
                 )
                 contacts.append(contact)
 
@@ -429,7 +431,9 @@ class HIV_CD4_Handshake:
                     modified_viral = contact.viral_context.replace(from_aa, to_aa, 1)
                     viral_orig_emb = self.encode_context(contact.viral_context)
                     viral_mod_emb = self.encode_context(modified_viral)
-                    viral_shift = self.compute_poincare_distance(viral_orig_emb, viral_mod_emb)
+                    viral_shift = self.compute_poincare_distance(
+                        viral_orig_emb, viral_mod_emb
+                    )
 
                     # Compute host shift (if applicable)
                     host_shift = 0.0
@@ -437,7 +441,9 @@ class HIV_CD4_Handshake:
                         modified_host = contact.host_context.replace(from_aa, to_aa, 1)
                         host_orig_emb = self.encode_context(contact.host_context)
                         host_mod_emb = self.encode_context(modified_host)
-                        host_shift = self.compute_poincare_distance(host_orig_emb, host_mod_emb)
+                        host_shift = self.compute_poincare_distance(
+                            host_orig_emb, host_mod_emb
+                        )
 
                     asymmetry = viral_shift - host_shift
 
@@ -463,7 +469,7 @@ class HIV_CD4_Handshake:
                             host_shift=host_shift,
                             asymmetry=asymmetry,
                             therapeutic_potential=potential,
-                            mechanism=mech
+                            mechanism=mech,
                         )
                         targets.append(target)
 
@@ -500,47 +506,47 @@ class HIV_CD4_Handshake:
             best = targets[0]  # Highest asymmetry for this mod type
 
             candidate = {
-                'modification_type': mod,
-                'mechanism': self.MODIFICATIONS[mod][2],
-                'target_site': best.contact.viral_pos,
-                'target_context': best.contact.viral_context,
-                'viral_shift': float(best.viral_shift),
-                'host_shift': float(best.host_shift),
-                'asymmetry': float(best.asymmetry),
-                'therapeutic_potential': best.therapeutic_potential,
-                'proposed_approach': self._get_approach(mod),
-                'clinical_relevance': self._get_clinical_relevance(mod)
+                "modification_type": mod,
+                "mechanism": self.MODIFICATIONS[mod][2],
+                "target_site": best.contact.viral_pos,
+                "target_context": best.contact.viral_context,
+                "viral_shift": float(best.viral_shift),
+                "host_shift": float(best.host_shift),
+                "asymmetry": float(best.asymmetry),
+                "therapeutic_potential": best.therapeutic_potential,
+                "proposed_approach": self._get_approach(mod),
+                "clinical_relevance": self._get_clinical_relevance(mod),
             }
             candidates.append(candidate)
 
-        return sorted(candidates, key=lambda x: x['asymmetry'], reverse=True)
+        return sorted(candidates, key=lambda x: x["asymmetry"], reverse=True)
 
     def _get_approach(self, mod: str) -> str:
         """Get therapeutic approach for modification type."""
         approaches = {
-            'S_to_D': 'Phosphoserine mimic peptide or small molecule',
-            'T_to_D': 'Phosphothreonine mimic compound',
-            'Y_to_D': 'Phosphotyrosine mimic (e.g., phosphonate)',
-            'R_to_Q': 'PAD enzyme activator or citrulline-conjugate',
-            'N_to_Q': 'Glycosidase-conjugate or glycan-blocking antibody',
-            'K_to_Q': 'HDAC-like compound targeting viral lysines',
-            'D_to_N': 'Charge-masking small molecule',
-            'E_to_Q': 'Carboxyl-blocking compound',
-            'V_to_I': 'Steric bulk introduction',
-            'W_to_F': 'Tryptophan-targeting oxidant',
-            'G_to_A': 'Flexibility-restricting cross-linker',
+            "S_to_D": "Phosphoserine mimic peptide or small molecule",
+            "T_to_D": "Phosphothreonine mimic compound",
+            "Y_to_D": "Phosphotyrosine mimic (e.g., phosphonate)",
+            "R_to_Q": "PAD enzyme activator or citrulline-conjugate",
+            "N_to_Q": "Glycosidase-conjugate or glycan-blocking antibody",
+            "K_to_Q": "HDAC-like compound targeting viral lysines",
+            "D_to_N": "Charge-masking small molecule",
+            "E_to_Q": "Carboxyl-blocking compound",
+            "V_to_I": "Steric bulk introduction",
+            "W_to_F": "Tryptophan-targeting oxidant",
+            "G_to_A": "Flexibility-restricting cross-linker",
         }
-        return approaches.get(mod, 'Small molecule or peptide mimic')
+        return approaches.get(mod, "Small molecule or peptide mimic")
 
     def _get_clinical_relevance(self, mod: str) -> str:
         """Get clinical relevance context."""
         relevance = {
-            'N_to_Q': 'Glycan removal already validated in vaccine design (sentinel glycans)',
-            'R_to_Q': 'Links to autoimmunity - citrullination well-studied',
-            'S_to_D': 'Phosphorylation mimics used in kinase inhibitor design',
-            'K_to_Q': 'Acetylation modulation - HDAC inhibitors in clinical use',
+            "N_to_Q": "Glycan removal already validated in vaccine design (sentinel glycans)",
+            "R_to_Q": "Links to autoimmunity - citrullination well-studied",
+            "S_to_D": "Phosphorylation mimics used in kinase inhibitor design",
+            "K_to_Q": "Acetylation modulation - HDAC inhibitors in clinical use",
         }
-        return relevance.get(mod, 'Novel mechanism requiring validation')
+        return relevance.get(mod, "Novel mechanism requiring validation")
 
     def run_analysis(self) -> Dict:
         """Run complete handshake analysis."""
@@ -554,12 +560,16 @@ class HIV_CD4_Handshake:
         contacts = self.map_interface()
         convergent = [c for c in contacts if c.is_convergent]
         print(f"  Total contact pairs: {len(contacts)}")
-        print(f"  Convergent pairs (d < {self.convergence_threshold}): {len(convergent)}")
+        print(
+            f"  Convergent pairs (d < {self.convergence_threshold}): {len(convergent)}"
+        )
 
         if convergent:
             print(f"\n  Top 5 handshake points:")
             for i, c in enumerate(convergent[:5]):
-                print(f"    {i+1}. gp120-{c.viral_pos} ({c.viral_aa}) <-> CD4-{c.host_pos} ({c.host_aa})")
+                print(
+                    f"    {i+1}. gp120-{c.viral_pos} ({c.viral_aa}) <-> CD4-{c.host_pos} ({c.host_aa})"
+                )
                 print(f"       Distance: {c.distance:.4f}")
 
         # 2. Find asymmetric targets
@@ -574,8 +584,12 @@ class HIV_CD4_Handshake:
             print(f"\n  Top 5 asymmetric targets (REVEAL candidates):")
             for i, t in enumerate(targets[:5]):
                 print(f"    {i+1}. {t.modification} at gp120-{t.contact.viral_pos}")
-                print(f"       Viral shift: {t.viral_shift:.3f}, Host shift: {t.host_shift:.3f}")
-                print(f"       Asymmetry: {t.asymmetry:.3f} ({t.therapeutic_potential})")
+                print(
+                    f"       Viral shift: {t.viral_shift:.3f}, Host shift: {t.host_shift:.3f}"
+                )
+                print(
+                    f"       Asymmetry: {t.asymmetry:.3f} ({t.therapeutic_potential})"
+                )
 
         # 3. Generate pro-drug candidates
         print("\n[3/3] Generating pro-drug candidates...")
@@ -592,49 +606,51 @@ class HIV_CD4_Handshake:
 
         # Compile results
         results = {
-            'metadata': {
-                'encoder': '3-adic (V5.11.3)',
-                'convergence_threshold': self.convergence_threshold,
-                'analysis_type': 'HIV gp120-CD4 Handshake',
-                'paradigm': 'Immune Revelation via Geometric Disruption'
+            "metadata": {
+                "encoder": "3-adic (V5.11.3)",
+                "convergence_threshold": self.convergence_threshold,
+                "analysis_type": "HIV gp120-CD4 Handshake",
+                "paradigm": "Immune Revelation via Geometric Disruption",
             },
-            'interface_summary': {
-                'total_contacts': len(contacts),
-                'convergent_contacts': len(convergent),
-                'mean_distance': float(np.mean([c.distance for c in contacts])),
-                'min_distance': float(min(c.distance for c in contacts)) if contacts else None
+            "interface_summary": {
+                "total_contacts": len(contacts),
+                "convergent_contacts": len(convergent),
+                "mean_distance": float(np.mean([c.distance for c in contacts])),
+                "min_distance": (
+                    float(min(c.distance for c in contacts)) if contacts else None
+                ),
             },
-            'top_handshakes': [
+            "top_handshakes": [
                 {
-                    'viral_pos': c.viral_pos,
-                    'viral_aa': c.viral_aa,
-                    'viral_context': c.viral_context,
-                    'host_pos': c.host_pos,
-                    'host_aa': c.host_aa,
-                    'host_context': c.host_context,
-                    'distance': float(c.distance)
+                    "viral_pos": c.viral_pos,
+                    "viral_aa": c.viral_aa,
+                    "viral_context": c.viral_context,
+                    "host_pos": c.host_pos,
+                    "host_aa": c.host_aa,
+                    "host_context": c.host_context,
+                    "distance": float(c.distance),
                 }
                 for c in convergent[:10]
             ],
-            'asymmetric_targets': [
+            "asymmetric_targets": [
                 {
-                    'modification': t.modification,
-                    'viral_pos': t.contact.viral_pos,
-                    'viral_shift': float(t.viral_shift),
-                    'host_shift': float(t.host_shift),
-                    'asymmetry': float(t.asymmetry),
-                    'potential': t.therapeutic_potential,
-                    'mechanism': t.mechanism
+                    "modification": t.modification,
+                    "viral_pos": t.contact.viral_pos,
+                    "viral_shift": float(t.viral_shift),
+                    "host_shift": float(t.host_shift),
+                    "asymmetry": float(t.asymmetry),
+                    "potential": t.therapeutic_potential,
+                    "mechanism": t.mechanism,
                 }
                 for t in targets[:20]
             ],
-            'pro_drug_candidates': candidates[:10],
-            'key_insights': {
-                'paradigm_shift': 'Pro-drugs that REVEAL rather than ATTACK',
-                'mechanism': 'Disrupt viral handshake geometry -> immune recognition',
-                'advantage': 'No direct toxicity, leverages natural immunity',
-                'validation_path': 'AlphaFold3 structural + in vitro binding assays'
-            }
+            "pro_drug_candidates": candidates[:10],
+            "key_insights": {
+                "paradigm_shift": "Pro-drugs that REVEAL rather than ATTACK",
+                "mechanism": "Disrupt viral handshake geometry -> immune recognition",
+                "advantage": "No direct toxicity, leverages natural immunity",
+                "validation_path": "AlphaFold3 structural + in vitro binding assays",
+            },
         }
 
         return results
@@ -650,7 +666,7 @@ def main():
     output_dir.mkdir(exist_ok=True)
 
     output_file = output_dir / "hiv_handshake_results.json"
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(results, f, indent=2)
 
     print(f"\n{'='*60}")
@@ -658,10 +674,11 @@ def main():
     print(f"{'='*60}")
 
     # Summary
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("PARADIGM SUMMARY: HIV PRO-DRUG REVELATION STRATEGY")
-    print("="*60)
-    print("""
+    print("=" * 60)
+    print(
+        """
 The handshake analysis reveals that HIV gp120 must geometrically
 converge with human CD4 to achieve infection. By identifying
 ASYMMETRIC modification targets, we can design pro-drugs that:
@@ -687,7 +704,8 @@ Next steps:
 2. Synthesize top peptide candidates (<$200 each)
 3. Test in binding assays (gp120-CD4 competition)
 4. Evaluate immune recognition enhancement in vitro
-""")
+"""
+    )
 
     return results
 

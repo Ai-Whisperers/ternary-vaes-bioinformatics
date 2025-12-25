@@ -18,22 +18,22 @@ Usage:
     python 08_learn_codon_mapping.py
 """
 
-import sys
-from pathlib import Path
 import json
-from datetime import datetime
+import sys
 from collections import defaultdict
+from datetime import datetime
 from itertools import combinations
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
 
 # =============================================================================
 # GENETIC CODE DATA

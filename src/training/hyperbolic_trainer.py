@@ -22,16 +22,19 @@ Key principle: No Euclidean contamination - all geometry is hyperbolic.
 Single responsibility: Hyperbolic training orchestration and observability.
 """
 
-import torch
-from typing import Dict, Any, Optional, List
+from typing import Any, Dict, List, Optional
 
-from ..losses.padic_losses import PAdicRankingLossHyperbolic
+import torch
+
+from ..losses.consequence_predictor import (ConsequencePredictor,
+                                            evaluate_addition_accuracy)
 from ..losses.hyperbolic_prior import HomeostaticHyperbolicPrior
-from ..losses.hyperbolic_recon import HomeostaticReconLoss, HyperbolicCentroidLoss
+from ..losses.hyperbolic_recon import (HomeostaticReconLoss,
+                                       HyperbolicCentroidLoss)
+from ..losses.padic_losses import PAdicRankingLossHyperbolic
 from ..losses.radial_stratification import RadialStratificationLoss
-from ..losses.consequence_predictor import ConsequencePredictor, evaluate_addition_accuracy
-from ..models.curriculum import ContinuousCurriculumModule
 from ..metrics.hyperbolic import compute_ranking_correlation_hyperbolic
+from ..models.curriculum import ContinuousCurriculumModule
 from .monitor import TrainingMonitor
 
 
@@ -56,20 +59,20 @@ class HyperbolicVAETrainer:
         model: torch.nn.Module,
         device: str,
         config: Dict[str, Any],
-        monitor: Optional[TrainingMonitor] = None
+        monitor: Optional[TrainingMonitor] = None,
     ):
         self.base_trainer = base_trainer
         self.model = model
         self.device = device
         self.config = config
         self.monitor = monitor or base_trainer.monitor
-        self.total_epochs = config.get('total_epochs', 100)
+        self.total_epochs = config.get("total_epochs", 100)
 
         # Observability config
-        self.histogram_interval = config.get('histogram_interval', 10)
-        self.embedding_interval = config.get('embedding_interval', 50)
-        self.embedding_n_samples = config.get('embedding_n_samples', 5000)
-        self.log_interval = config.get('log_interval', 10)
+        self.histogram_interval = config.get("histogram_interval", 10)
+        self.embedding_interval = config.get("embedding_interval", 50)
+        self.embedding_n_samples = config.get("embedding_n_samples", 5000)
+        self.log_interval = config.get("log_interval", 10)
 
         # Initialize continuous feedback
         self._init_continuous_feedback(config)
@@ -104,17 +107,19 @@ class HyperbolicVAETrainer:
 
     def _init_continuous_feedback(self, config: Dict[str, Any]) -> None:
         """Initialize continuous feedback parameters."""
-        feedback_config = config.get('continuous_feedback', {})
-        self.feedback_enabled = feedback_config.get('enabled', True)
+        feedback_config = config.get("continuous_feedback", {})
+        self.feedback_enabled = feedback_config.get("enabled", True)
 
         if self.feedback_enabled:
-            self.base_ranking_weight = feedback_config.get('base_ranking_weight', 0.5)
-            self.coverage_threshold = feedback_config.get('coverage_threshold', 90.0)
-            self.coverage_sensitivity = feedback_config.get('coverage_sensitivity', 0.1)
-            self.coverage_trend_sensitivity = feedback_config.get('coverage_trend_sensitivity', 2.0)
-            self.min_ranking_weight = feedback_config.get('min_ranking_weight', 0.0)
-            self.max_ranking_weight = feedback_config.get('max_ranking_weight', 1.0)
-            self.coverage_ema_alpha = feedback_config.get('coverage_ema_alpha', 0.9)
+            self.base_ranking_weight = feedback_config.get("base_ranking_weight", 0.5)
+            self.coverage_threshold = feedback_config.get("coverage_threshold", 90.0)
+            self.coverage_sensitivity = feedback_config.get("coverage_sensitivity", 0.1)
+            self.coverage_trend_sensitivity = feedback_config.get(
+                "coverage_trend_sensitivity", 2.0
+            )
+            self.min_ranking_weight = feedback_config.get("min_ranking_weight", 0.0)
+            self.max_ranking_weight = feedback_config.get("max_ranking_weight", 1.0)
+            self.coverage_ema_alpha = feedback_config.get("coverage_ema_alpha", 0.9)
         else:
             self.base_ranking_weight = 0.5
 
@@ -127,14 +132,18 @@ class HyperbolicVAETrainer:
 
     def _init_correlation_feedback(self, config: Dict[str, Any]) -> None:
         """P1 FIX: Initialize correlation feedback parameters for early stopping."""
-        corr_config = config.get('correlation_feedback', {})
-        self.correlation_feedback_enabled = corr_config.get('enabled', False)
+        corr_config = config.get("correlation_feedback", {})
+        self.correlation_feedback_enabled = corr_config.get("enabled", False)
 
         if self.correlation_feedback_enabled:
-            self.correlation_loss_weight = corr_config.get('correlation_loss_weight', 0.1)
-            self.target_correlation = corr_config.get('target_correlation', 0.95)
-            self.correlation_drop_threshold = corr_config.get('correlation_drop_threshold', 0.05)
-            self.correlation_patience = corr_config.get('correlation_patience', 10)
+            self.correlation_loss_weight = corr_config.get(
+                "correlation_loss_weight", 0.1
+            )
+            self.target_correlation = corr_config.get("target_correlation", 0.95)
+            self.correlation_drop_threshold = corr_config.get(
+                "correlation_drop_threshold", 0.05
+            )
+            self.correlation_patience = corr_config.get("correlation_patience", 10)
         else:
             self.correlation_loss_weight = 0.0
             self.target_correlation = 0.95
@@ -174,16 +183,22 @@ class HyperbolicVAETrainer:
 
     def _init_exploration_boost(self, config: Dict[str, Any]) -> None:
         """P2 FIX: Initialize coverage-triggered exploration boost."""
-        boost_config = config.get('exploration_boost', {})
-        self.exploration_boost_enabled = boost_config.get('enabled', False)
+        boost_config = config.get("exploration_boost", {})
+        self.exploration_boost_enabled = boost_config.get("enabled", False)
 
         if self.exploration_boost_enabled:
-            self.coverage_stall_threshold = boost_config.get('coverage_stall_threshold', 0.5)
-            self.coverage_stall_patience = boost_config.get('coverage_stall_patience', 5)
-            self.temp_boost_factor = boost_config.get('temp_boost_factor', 1.15)
-            self.temp_boost_max = boost_config.get('temp_boost_max', 2.0)
-            self.ranking_reduction_factor = boost_config.get('ranking_reduction_factor', 0.9)
-            self.ranking_reduction_min = boost_config.get('ranking_reduction_min', 0.05)
+            self.coverage_stall_threshold = boost_config.get(
+                "coverage_stall_threshold", 0.5
+            )
+            self.coverage_stall_patience = boost_config.get(
+                "coverage_stall_patience", 5
+            )
+            self.temp_boost_factor = boost_config.get("temp_boost_factor", 1.15)
+            self.temp_boost_max = boost_config.get("temp_boost_max", 2.0)
+            self.ranking_reduction_factor = boost_config.get(
+                "ranking_reduction_factor", 0.9
+            )
+            self.ranking_reduction_min = boost_config.get("ranking_reduction_min", 0.05)
         else:
             self.coverage_stall_threshold = 0.5
             self.coverage_stall_patience = 5
@@ -200,13 +215,13 @@ class HyperbolicVAETrainer:
 
     def _init_correlation_loss(self, config: Dict[str, Any]) -> None:
         """P2 FIX: Initialize correlation loss term."""
-        corr_loss_config = config.get('correlation_loss', {})
-        self.correlation_loss_enabled = corr_loss_config.get('enabled', False)
+        corr_loss_config = config.get("correlation_loss", {})
+        self.correlation_loss_enabled = corr_loss_config.get("enabled", False)
 
         if self.correlation_loss_enabled:
-            self.correlation_loss_weight = corr_loss_config.get('weight', 0.5)
-            self.correlation_loss_warmup = corr_loss_config.get('warmup_epochs', 5)
-            self.correlation_loss_use_cached = corr_loss_config.get('use_cached', True)
+            self.correlation_loss_weight = corr_loss_config.get("weight", 0.5)
+            self.correlation_loss_warmup = corr_loss_config.get("warmup_epochs", 5)
+            self.correlation_loss_use_cached = corr_loss_config.get("use_cached", True)
         else:
             self.correlation_loss_weight = 0.0
             self.correlation_loss_warmup = 5
@@ -234,17 +249,19 @@ class HyperbolicVAETrainer:
             self.coverage_stall_counter = 0
             # Reset multipliers when coverage improves
             self.current_temp_multiplier = max(1.0, self.current_temp_multiplier * 0.95)
-            self.current_ranking_multiplier = min(1.0, self.current_ranking_multiplier * 1.05)
+            self.current_ranking_multiplier = min(
+                1.0, self.current_ranking_multiplier * 1.05
+            )
 
         # Apply boost if stalled long enough
         if self.coverage_stall_counter >= self.coverage_stall_patience:
             self.current_temp_multiplier = min(
                 self.current_temp_multiplier * self.temp_boost_factor,
-                self.temp_boost_max
+                self.temp_boost_max,
             )
             self.current_ranking_multiplier = max(
                 self.current_ranking_multiplier * self.ranking_reduction_factor,
-                self.ranking_reduction_min
+                self.ranking_reduction_min,
             )
             return True
 
@@ -260,63 +277,63 @@ class HyperbolicVAETrainer:
 
     def _init_hyperbolic_losses(self, config: Dict[str, Any], device: str) -> None:
         """Initialize hyperbolic loss modules based on config."""
-        padic_config = config.get('padic_losses', {})
+        padic_config = config.get("padic_losses", {})
 
         # PAdicRankingLossHyperbolic (v5.9 foundation)
-        if padic_config.get('enable_ranking_loss_hyperbolic', False):
-            hyp_config = padic_config.get('ranking_hyperbolic', {})
+        if padic_config.get("enable_ranking_loss_hyperbolic", False):
+            hyp_config = padic_config.get("ranking_hyperbolic", {})
             self.ranking_loss_hyp = PAdicRankingLossHyperbolic(
-                base_margin=hyp_config.get('base_margin', 0.05),
-                margin_scale=hyp_config.get('margin_scale', 0.15),
-                n_triplets=hyp_config.get('n_triplets', 500),
-                hard_negative_ratio=hyp_config.get('hard_negative_ratio', 0.5),
-                curvature=hyp_config.get('curvature', 2.0),
-                radial_weight=hyp_config.get('radial_weight', 0.4),
-                max_norm=hyp_config.get('max_norm', 0.95)
+                base_margin=hyp_config.get("base_margin", 0.05),
+                margin_scale=hyp_config.get("margin_scale", 0.15),
+                n_triplets=hyp_config.get("n_triplets", 500),
+                hard_negative_ratio=hyp_config.get("hard_negative_ratio", 0.5),
+                curvature=hyp_config.get("curvature", 2.0),
+                radial_weight=hyp_config.get("radial_weight", 0.4),
+                max_norm=hyp_config.get("max_norm", 0.95),
             )
-            self.max_norm = hyp_config.get('max_norm', 0.95)
-            self.curvature = hyp_config.get('curvature', 2.0)
+            self.max_norm = hyp_config.get("max_norm", 0.95)
+            self.curvature = hyp_config.get("curvature", 2.0)
         else:
             self.ranking_loss_hyp = None
             self.max_norm = 0.95
             self.curvature = 2.0
 
         # v5.10 Hyperbolic modules
-        hyp_v10 = padic_config.get('hyperbolic_v10', {})
+        hyp_v10 = padic_config.get("hyperbolic_v10", {})
 
         # Hyperbolic Prior (replaces Gaussian KL)
-        if hyp_v10.get('use_hyperbolic_prior', False):
-            prior_config = hyp_v10.get('prior', {})
+        if hyp_v10.get("use_hyperbolic_prior", False):
+            prior_config = hyp_v10.get("prior", {})
             # P0 FIX: Wire ALL homeostatic params from config (was only 4/12)
             self.hyperbolic_prior_A = HomeostaticHyperbolicPrior(
-                latent_dim=prior_config.get('latent_dim', 16),
-                curvature=prior_config.get('curvature', 2.2),
-                prior_sigma=prior_config.get('prior_sigma', 1.0),
-                max_norm=prior_config.get('max_norm', 0.95),
+                latent_dim=prior_config.get("latent_dim", 16),
+                curvature=prior_config.get("curvature", 2.2),
+                prior_sigma=prior_config.get("prior_sigma", 1.0),
+                max_norm=prior_config.get("max_norm", 0.95),
                 # P0 FIX: New params wired from config
-                sigma_min=prior_config.get('sigma_min', 0.8),
-                sigma_max=prior_config.get('sigma_max', 1.2),
-                curvature_min=prior_config.get('curvature_min', 2.0),
-                curvature_max=prior_config.get('curvature_max', 2.5),
-                adaptation_rate=prior_config.get('adaptation_rate', 0.005),
-                ema_alpha=prior_config.get('ema_alpha', 0.05),
-                kl_target=prior_config.get('kl_target', 50.0),
-                target_radius=prior_config.get('target_radius', 0.5)
+                sigma_min=prior_config.get("sigma_min", 0.8),
+                sigma_max=prior_config.get("sigma_max", 1.2),
+                curvature_min=prior_config.get("curvature_min", 2.0),
+                curvature_max=prior_config.get("curvature_max", 2.5),
+                adaptation_rate=prior_config.get("adaptation_rate", 0.005),
+                ema_alpha=prior_config.get("ema_alpha", 0.05),
+                kl_target=prior_config.get("kl_target", 50.0),
+                target_radius=prior_config.get("target_radius", 0.5),
             ).to(device)
             self.hyperbolic_prior_B = HomeostaticHyperbolicPrior(
-                latent_dim=prior_config.get('latent_dim', 16),
-                curvature=prior_config.get('curvature', 2.2),
-                prior_sigma=prior_config.get('prior_sigma', 1.0),
-                max_norm=prior_config.get('max_norm', 0.95),
+                latent_dim=prior_config.get("latent_dim", 16),
+                curvature=prior_config.get("curvature", 2.2),
+                prior_sigma=prior_config.get("prior_sigma", 1.0),
+                max_norm=prior_config.get("max_norm", 0.95),
                 # P0 FIX: New params wired from config
-                sigma_min=prior_config.get('sigma_min', 0.8),
-                sigma_max=prior_config.get('sigma_max', 1.2),
-                curvature_min=prior_config.get('curvature_min', 2.0),
-                curvature_max=prior_config.get('curvature_max', 2.5),
-                adaptation_rate=prior_config.get('adaptation_rate', 0.005),
-                ema_alpha=prior_config.get('ema_alpha', 0.05),
-                kl_target=prior_config.get('kl_target', 50.0),
-                target_radius=prior_config.get('target_radius', 0.5)
+                sigma_min=prior_config.get("sigma_min", 0.8),
+                sigma_max=prior_config.get("sigma_max", 1.2),
+                curvature_min=prior_config.get("curvature_min", 2.0),
+                curvature_max=prior_config.get("curvature_max", 2.5),
+                adaptation_rate=prior_config.get("adaptation_rate", 0.005),
+                ema_alpha=prior_config.get("ema_alpha", 0.05),
+                kl_target=prior_config.get("kl_target", 50.0),
+                target_radius=prior_config.get("target_radius", 0.5),
             ).to(device)
             self.use_hyperbolic_prior = True
         else:
@@ -325,23 +342,23 @@ class HyperbolicVAETrainer:
             self.use_hyperbolic_prior = False
 
         # Hyperbolic Reconstruction
-        if hyp_v10.get('use_hyperbolic_recon', False):
-            recon_config = hyp_v10.get('recon', {})
+        if hyp_v10.get("use_hyperbolic_recon", False):
+            recon_config = hyp_v10.get("recon", {})
             self.hyperbolic_recon_A = HomeostaticReconLoss(
-                mode=recon_config.get('mode', 'weighted_ce'),
-                curvature=recon_config.get('curvature', 2.0),
-                max_norm=recon_config.get('max_norm', 0.95),
-                radius_weighting=recon_config.get('radius_weighting', True),
-                radius_power=recon_config.get('radius_power', 2.0)
+                mode=recon_config.get("mode", "weighted_ce"),
+                curvature=recon_config.get("curvature", 2.0),
+                max_norm=recon_config.get("max_norm", 0.95),
+                radius_weighting=recon_config.get("radius_weighting", True),
+                radius_power=recon_config.get("radius_power", 2.0),
             ).to(device)
             self.hyperbolic_recon_B = HomeostaticReconLoss(
-                mode=recon_config.get('mode', 'weighted_ce'),
-                curvature=recon_config.get('curvature', 2.0),
-                max_norm=recon_config.get('max_norm', 0.95),
-                radius_weighting=recon_config.get('radius_weighting', True),
-                radius_power=recon_config.get('radius_power', 2.0)
+                mode=recon_config.get("mode", "weighted_ce"),
+                curvature=recon_config.get("curvature", 2.0),
+                max_norm=recon_config.get("max_norm", 0.95),
+                radius_weighting=recon_config.get("radius_weighting", True),
+                radius_power=recon_config.get("radius_power", 2.0),
             ).to(device)
-            self.hyperbolic_recon_weight = recon_config.get('weight', 0.5)
+            self.hyperbolic_recon_weight = recon_config.get("weight", 0.5)
             self.use_hyperbolic_recon = True
         else:
             self.hyperbolic_recon_A = None
@@ -349,14 +366,14 @@ class HyperbolicVAETrainer:
             self.use_hyperbolic_recon = False
 
         # Hyperbolic Centroid Loss
-        if hyp_v10.get('use_centroid_loss', False):
-            centroid_config = hyp_v10.get('centroid', {})
+        if hyp_v10.get("use_centroid_loss", False):
+            centroid_config = hyp_v10.get("centroid", {})
             self.centroid_loss = HyperbolicCentroidLoss(
-                max_level=centroid_config.get('max_level', 4),
-                curvature=centroid_config.get('curvature', 2.0),
-                max_norm=centroid_config.get('max_norm', 0.95)
+                max_level=centroid_config.get("max_level", 4),
+                curvature=centroid_config.get("curvature", 2.0),
+                max_norm=centroid_config.get("max_norm", 0.95),
             ).to(device)
-            self.centroid_loss_weight = centroid_config.get('weight', 0.2)
+            self.centroid_loss_weight = centroid_config.get("weight", 0.2)
             self.use_centroid_loss = True
         else:
             self.centroid_loss = None
@@ -364,8 +381,8 @@ class HyperbolicVAETrainer:
 
     def _init_evaluation_config(self, config: Dict[str, Any]) -> None:
         """Initialize evaluation intervals and cached values."""
-        self.coverage_check_interval = config.get('coverage_check_interval', 5)
-        self.eval_interval = config.get('eval_interval', 20)
+        self.coverage_check_interval = config.get("coverage_check_interval", 5)
+        self.eval_interval = config.get("eval_interval", 20)
 
         # Cached values for non-evaluation epochs
         self.cached_cov_A = 0.0
@@ -381,24 +398,24 @@ class HyperbolicVAETrainer:
 
     def _init_radial_stratification(self, config: Dict[str, Any], device: str) -> None:
         """Initialize RadialStratificationLoss for 3-adic hierarchy enforcement."""
-        radial_config = config.get('radial_stratification', {})
+        radial_config = config.get("radial_stratification", {})
 
-        if radial_config.get('enabled', False):
+        if radial_config.get("enabled", False):
             self.radial_stratification_A = RadialStratificationLoss(
-                inner_radius=radial_config.get('inner_radius', 0.1),
-                outer_radius=radial_config.get('outer_radius', 0.85),
-                max_valuation=radial_config.get('max_valuation', 9),
-                valuation_weighting=radial_config.get('valuation_weighting', True),
-                loss_type=radial_config.get('loss_type', 'smooth_l1')
+                inner_radius=radial_config.get("inner_radius", 0.1),
+                outer_radius=radial_config.get("outer_radius", 0.85),
+                max_valuation=radial_config.get("max_valuation", 9),
+                valuation_weighting=radial_config.get("valuation_weighting", True),
+                loss_type=radial_config.get("loss_type", "smooth_l1"),
             ).to(device)
             self.radial_stratification_B = RadialStratificationLoss(
-                inner_radius=radial_config.get('inner_radius', 0.1),
-                outer_radius=radial_config.get('outer_radius', 0.85),
-                max_valuation=radial_config.get('max_valuation', 9),
-                valuation_weighting=radial_config.get('valuation_weighting', True),
-                loss_type=radial_config.get('loss_type', 'smooth_l1')
+                inner_radius=radial_config.get("inner_radius", 0.1),
+                outer_radius=radial_config.get("outer_radius", 0.85),
+                max_valuation=radial_config.get("max_valuation", 9),
+                valuation_weighting=radial_config.get("valuation_weighting", True),
+                loss_type=radial_config.get("loss_type", "smooth_l1"),
             ).to(device)
-            self.radial_stratification_weight = radial_config.get('base_weight', 0.3)
+            self.radial_stratification_weight = radial_config.get("base_weight", 0.3)
             self.use_radial_stratification = True
         else:
             self.radial_stratification_A = None
@@ -407,15 +424,15 @@ class HyperbolicVAETrainer:
 
     def _init_curriculum(self, config: Dict[str, Any], device: str) -> None:
         """Initialize ContinuousCurriculumModule for StateNet-driven training."""
-        curriculum_config = config.get('curriculum', {})
+        curriculum_config = config.get("curriculum", {})
 
-        if curriculum_config.get('enabled', False):
+        if curriculum_config.get("enabled", False):
             self.curriculum = ContinuousCurriculumModule(
-                initial_tau=curriculum_config.get('initial_tau', 0.0),
-                tau_min=curriculum_config.get('tau_min', 0.0),
-                tau_max=curriculum_config.get('tau_max', 1.0),
-                tau_scale=curriculum_config.get('tau_scale', 0.1),
-                momentum=curriculum_config.get('tau_momentum', 0.95)
+                initial_tau=curriculum_config.get("initial_tau", 0.0),
+                tau_min=curriculum_config.get("tau_min", 0.0),
+                tau_max=curriculum_config.get("tau_max", 1.0),
+                tau_scale=curriculum_config.get("tau_scale", 0.1),
+                momentum=curriculum_config.get("tau_momentum", 0.95),
             ).to(device)
             self.use_curriculum = True
         else:
@@ -424,15 +441,14 @@ class HyperbolicVAETrainer:
 
     def _init_consequence_predictor(self, config: Dict[str, Any], device: str) -> None:
         """Initialize ConsequencePredictor for purpose-aware training."""
-        mc = config.get('model', {})
-        latent_dim = mc.get('latent_dim', 16)
+        mc = config.get("model", {})
+        latent_dim = mc.get("latent_dim", 16)
 
         # Consequence predictor is always available but training is optional
         self.consequence_predictor = ConsequencePredictor(
-            latent_dim=latent_dim,
-            hidden_dim=32
+            latent_dim=latent_dim, hidden_dim=32
         ).to(device)
-        self.consequence_eval_interval = config.get('consequence_eval_interval', 50)
+        self.consequence_eval_interval = config.get("consequence_eval_interval", 50)
         self.cached_addition_accuracy = 0.5
 
     def compute_ranking_weight(self, current_coverage: float) -> float:
@@ -455,8 +471,10 @@ class HyperbolicVAETrainer:
         if self.coverage_ema is None:
             self.coverage_ema = current_coverage
         else:
-            self.coverage_ema = (self.coverage_ema_alpha * self.coverage_ema +
-                                (1 - self.coverage_ema_alpha) * current_coverage)
+            self.coverage_ema = (
+                self.coverage_ema_alpha * self.coverage_ema
+                + (1 - self.coverage_ema_alpha) * current_coverage
+            )
 
         # Compute coverage trend
         if self.prev_coverage is None:
@@ -468,8 +486,10 @@ class HyperbolicVAETrainer:
 
         # Sigmoid modulation
         coverage_gap = current_coverage - self.coverage_threshold
-        signal = (self.coverage_sensitivity * coverage_gap +
-                  self.coverage_trend_sensitivity * coverage_trend)
+        signal = (
+            self.coverage_sensitivity * coverage_gap
+            + self.coverage_trend_sensitivity * coverage_trend
+        )
 
         modulation = torch.sigmoid(torch.tensor(signal)).item()
 
@@ -492,14 +512,16 @@ class HyperbolicVAETrainer:
             Dict containing all losses and metrics for the epoch
         """
         # Coverage evaluation (only at intervals)
-        should_check_coverage = (epoch == 0) or (epoch % self.coverage_check_interval == 0)
+        should_check_coverage = (epoch == 0) or (
+            epoch % self.coverage_check_interval == 0
+        )
 
         if should_check_coverage:
             unique_A, cov_A = self.base_trainer.monitor.evaluate_coverage(
-                self.model, self.config['eval_num_samples'], self.device, 'A'
+                self.model, self.config["eval_num_samples"], self.device, "A"
             )
             unique_B, cov_B = self.base_trainer.monitor.evaluate_coverage(
-                self.model, self.config['eval_num_samples'], self.device, 'B'
+                self.model, self.config["eval_num_samples"], self.device, "B"
             )
             self.cached_cov_A = cov_A
             self.cached_cov_B = cov_B
@@ -531,35 +553,43 @@ class HyperbolicVAETrainer:
         self.base_trainer.exploration_temp_multiplier = temp_mult
 
         # Base training (uses DualVAELoss internally, logs batch metrics)
-        train_losses = self.base_trainer.train_epoch(train_loader, log_interval=self.log_interval)
+        train_losses = self.base_trainer.train_epoch(
+            train_loader, log_interval=self.log_interval
+        )
 
         # P2 FIX: Compute correlation loss contribution (for logging and next epoch adjustment)
         correlation_loss_value = 0.0
         if self.correlation_loss_enabled and epoch >= self.correlation_loss_warmup:
             # Use cached correlation from previous eval
-            cached_corr = (self.cached_corr_A_hyp + self.cached_corr_B_hyp) / 2 if hasattr(self, 'cached_corr_A_hyp') else 0.0
+            cached_corr = (
+                (self.cached_corr_A_hyp + self.cached_corr_B_hyp) / 2
+                if hasattr(self, "cached_corr_A_hyp")
+                else 0.0
+            )
             # Correlation loss: negative correlation (reward high correlation)
             # This value is for logging; actual loss integration requires base trainer modification
             correlation_loss_value = -self.correlation_loss_weight * cached_corr
-            train_losses['correlation_loss'] = correlation_loss_value
-            train_losses['correlation_bonus'] = cached_corr * self.correlation_loss_weight
+            train_losses["correlation_loss"] = correlation_loss_value
+            train_losses["correlation_bonus"] = (
+                cached_corr * self.correlation_loss_weight
+            )
 
         # P1 FIX: Apply StateNet delta_sigma/delta_curvature to HyperbolicPrior modules
         # This enables StateNet to control the hyperbolic prior's adaptive parameters
-        if self.use_hyperbolic_prior and 'delta_sigma' in train_losses:
-            delta_sigma = train_losses.get('delta_sigma', 0.0)
-            delta_curvature = train_losses.get('delta_curvature', 0.0)
+        if self.use_hyperbolic_prior and "delta_sigma" in train_losses:
+            delta_sigma = train_losses.get("delta_sigma", 0.0)
+            delta_curvature = train_losses.get("delta_curvature", 0.0)
 
             # Apply to both VAE's hyperbolic priors
-            if hasattr(self.hyperbolic_prior_A, 'set_from_statenet'):
+            if hasattr(self.hyperbolic_prior_A, "set_from_statenet"):
                 self.hyperbolic_prior_A.set_from_statenet(delta_sigma, delta_curvature)
-            if hasattr(self.hyperbolic_prior_B, 'set_from_statenet'):
+            if hasattr(self.hyperbolic_prior_B, "set_from_statenet"):
                 self.hyperbolic_prior_B.set_from_statenet(delta_sigma, delta_curvature)
 
         # v5.10.1: Apply StateNet delta_curriculum to CurriculumModule
         # StateNet v5 controls the radial->ranking curriculum progression
-        if self.use_curriculum and 'delta_curriculum' in train_losses:
-            delta_curriculum = train_losses.get('delta_curriculum', 0.0)
+        if self.use_curriculum and "delta_curriculum" in train_losses:
+            delta_curriculum = train_losses.get("delta_curriculum", 0.0)
             self.curriculum.update_tau(delta_curriculum)
 
         # v5.10.1: Evaluate consequence predictor at intervals
@@ -586,11 +616,19 @@ class HyperbolicVAETrainer:
 
         if should_check_correlation:
             corr_results = compute_ranking_correlation_hyperbolic(
-                self.model, self.device,
+                self.model,
+                self.device,
                 max_norm=self.max_norm,
-                curvature=self.curvature
+                curvature=self.curvature,
             )
-            corr_A_hyp, corr_B_hyp, corr_A_euc, corr_B_euc, mean_radius_A, mean_radius_B = corr_results
+            (
+                corr_A_hyp,
+                corr_B_hyp,
+                corr_A_euc,
+                corr_B_euc,
+                mean_radius_A,
+                mean_radius_B,
+            ) = corr_results
 
             self.cached_corr_A_hyp = corr_A_hyp
             self.cached_corr_B_hyp = corr_B_hyp
@@ -628,50 +666,56 @@ class HyperbolicVAETrainer:
         # Build return dict
         return {
             **train_losses,
-            'ranking_weight': ranking_weight,
-            'ranking_loss_hyp': hyperbolic_metrics['ranking_loss'],
-            'radial_loss': hyperbolic_metrics['radial_loss'],
-            'radial_stratification_loss': hyperbolic_metrics['radial_stratification_loss'],
-            'curriculum_tau': hyperbolic_metrics['curriculum_tau'],
-            'hyp_kl_A': hyperbolic_metrics['hyp_kl_A'],
-            'hyp_kl_B': hyperbolic_metrics['hyp_kl_B'],
-            'hyp_recon_A': hyperbolic_metrics['hyp_recon_A'],
-            'hyp_recon_B': hyperbolic_metrics['hyp_recon_B'],
-            'centroid_loss': hyperbolic_metrics['centroid_loss'],
-            'corr_A_hyp': corr_A_hyp,
-            'corr_B_hyp': corr_B_hyp,
-            'corr_mean_hyp': corr_mean_hyp,
-            'corr_A_euc': corr_A_euc,
-            'corr_B_euc': corr_B_euc,
-            'corr_mean_euc': corr_mean_euc,
-            'cov_A': cov_A,
-            'cov_B': cov_B,
-            'cov_mean': current_coverage,
-            'unique_A': unique_A,
-            'unique_B': unique_B,
-            'coverage_ema': self.coverage_ema or current_coverage,
-            'mean_radius_A': mean_radius_A,
-            'mean_radius_B': mean_radius_B,
-            'coverage_evaluated': should_check_coverage,
-            'correlation_evaluated': should_check_correlation,
+            "ranking_weight": ranking_weight,
+            "ranking_loss_hyp": hyperbolic_metrics["ranking_loss"],
+            "radial_loss": hyperbolic_metrics["radial_loss"],
+            "radial_stratification_loss": hyperbolic_metrics[
+                "radial_stratification_loss"
+            ],
+            "curriculum_tau": hyperbolic_metrics["curriculum_tau"],
+            "hyp_kl_A": hyperbolic_metrics["hyp_kl_A"],
+            "hyp_kl_B": hyperbolic_metrics["hyp_kl_B"],
+            "hyp_recon_A": hyperbolic_metrics["hyp_recon_A"],
+            "hyp_recon_B": hyperbolic_metrics["hyp_recon_B"],
+            "centroid_loss": hyperbolic_metrics["centroid_loss"],
+            "corr_A_hyp": corr_A_hyp,
+            "corr_B_hyp": corr_B_hyp,
+            "corr_mean_hyp": corr_mean_hyp,
+            "corr_A_euc": corr_A_euc,
+            "corr_B_euc": corr_B_euc,
+            "corr_mean_euc": corr_mean_euc,
+            "cov_A": cov_A,
+            "cov_B": cov_B,
+            "cov_mean": current_coverage,
+            "unique_A": unique_A,
+            "unique_B": unique_B,
+            "coverage_ema": self.coverage_ema or current_coverage,
+            "mean_radius_A": mean_radius_A,
+            "mean_radius_B": mean_radius_B,
+            "coverage_evaluated": should_check_coverage,
+            "correlation_evaluated": should_check_correlation,
             # P1 FIX: Correlation early stopping signal
-            'should_stop_correlation': should_stop_correlation,
-            'correlation_drop_counter': self.correlation_drop_counter,
-            'best_correlation_for_stopping': self.best_correlation_for_stopping,
+            "should_stop_correlation": should_stop_correlation,
+            "correlation_drop_counter": self.correlation_drop_counter,
+            "best_correlation_for_stopping": self.best_correlation_for_stopping,
             # P2 FIX: Exploration boost metrics
-            'exploration_boosted': self.coverage_stall_counter >= self.coverage_stall_patience,
-            'coverage_stall_counter': self.coverage_stall_counter,
-            'temp_multiplier': self.current_temp_multiplier,
-            'ranking_multiplier': self.current_ranking_multiplier,
-            **{f'ranking_{k}': v for k, v in hyperbolic_metrics['ranking_metrics'].items()},
-            **{f'homeo_{k}': v for k, v in hyperbolic_metrics['homeostatic_metrics'].items()}
+            "exploration_boosted": self.coverage_stall_counter
+            >= self.coverage_stall_patience,
+            "coverage_stall_counter": self.coverage_stall_counter,
+            "temp_multiplier": self.current_temp_multiplier,
+            "ranking_multiplier": self.current_ranking_multiplier,
+            **{
+                f"ranking_{k}": v
+                for k, v in hyperbolic_metrics["ranking_metrics"].items()
+            },
+            **{
+                f"homeo_{k}": v
+                for k, v in hyperbolic_metrics["homeostatic_metrics"].items()
+            },
         }
 
     def _compute_hyperbolic_losses(
-        self,
-        train_loader,
-        ranking_weight: float,
-        current_coverage: float
+        self, train_loader, ranking_weight: float, current_coverage: float
     ) -> Dict[str, Any]:
         """Compute all hyperbolic geometry losses.
 
@@ -686,28 +730,30 @@ class HyperbolicVAETrainer:
         # P0 FIX: Short-circuit when ALL hyperbolic modules are disabled
         # Avoids 2000-sample forward pass when nothing will use the outputs
         all_disabled = (
-            self.ranking_loss_hyp is None and
-            not self.use_hyperbolic_prior and
-            not self.use_hyperbolic_recon and
-            not self.use_centroid_loss and
-            not self.use_radial_stratification  # v5.10.1
+            self.ranking_loss_hyp is None
+            and not self.use_hyperbolic_prior
+            and not self.use_hyperbolic_recon
+            and not self.use_centroid_loss
+            and not self.use_radial_stratification  # v5.10.1
         )
 
         if all_disabled or ranking_weight <= 0:
             self.radial_loss_history.append(0.0)
             self.homeostatic_history.append({})
             return {
-                'ranking_loss': 0.0,
-                'radial_loss': 0.0,
-                'radial_stratification_loss': 0.0,
-                'hyp_kl_A': 0.0,
-                'hyp_kl_B': 0.0,
-                'hyp_recon_A': 0.0,
-                'hyp_recon_B': 0.0,
-                'centroid_loss': 0.0,
-                'curriculum_tau': self.curriculum.get_tau().item() if self.use_curriculum else 0.0,
-                'ranking_metrics': {},
-                'homeostatic_metrics': {}
+                "ranking_loss": 0.0,
+                "radial_loss": 0.0,
+                "radial_stratification_loss": 0.0,
+                "hyp_kl_A": 0.0,
+                "hyp_kl_B": 0.0,
+                "hyp_recon_A": 0.0,
+                "hyp_recon_B": 0.0,
+                "centroid_loss": 0.0,
+                "curriculum_tau": (
+                    self.curriculum.get_tau().item() if self.use_curriculum else 0.0
+                ),
+                "ranking_metrics": {},
+                "homeostatic_metrics": {},
             }
 
         ranking_loss = 0.0
@@ -731,14 +777,14 @@ class HyperbolicVAETrainer:
                 ternary_data[:, i] = ((indices // (3**i)) % 3) - 1
 
             outputs = self.model(ternary_data.float(), 1.0, 1.0, 0.5, 0.5)
-            z_A = outputs['z_A']
-            z_B = outputs['z_B']
-            mu_A = outputs['mu_A']
-            mu_B = outputs['mu_B']
-            logvar_A = outputs['logvar_A']
-            logvar_B = outputs['logvar_B']
-            logits_A = outputs['logits_A']
-            logits_B = outputs['logits_B']
+            z_A = outputs["z_A"]
+            z_B = outputs["z_B"]
+            mu_A = outputs["mu_A"]
+            mu_B = outputs["mu_B"]
+            logvar_A = outputs["logvar_A"]
+            logvar_B = outputs["logvar_B"]
+            logits_A = outputs["logits_A"]
+            logits_B = outputs["logits_B"]
 
         self.model.train()
 
@@ -748,12 +794,18 @@ class HyperbolicVAETrainer:
             loss_B, metrics_B = self.ranking_loss_hyp(z_B, indices)
 
             ranking_loss = ranking_weight * (loss_A.item() + loss_B.item()) / 2
-            radial_loss = (metrics_A.get('radial_loss', 0) + metrics_B.get('radial_loss', 0)) / 2
+            radial_loss = (
+                metrics_A.get("radial_loss", 0) + metrics_B.get("radial_loss", 0)
+            ) / 2
 
             ranking_metrics = {
-                'hard_ratio': (metrics_A.get('hard_ratio', 0) + metrics_B.get('hard_ratio', 0)) / 2,
-                'violations': metrics_A.get('violations', 0) + metrics_B.get('violations', 0),
-                'radial_loss': radial_loss
+                "hard_ratio": (
+                    metrics_A.get("hard_ratio", 0) + metrics_B.get("hard_ratio", 0)
+                )
+                / 2,
+                "violations": metrics_A.get("violations", 0)
+                + metrics_B.get("violations", 0),
+                "radial_loss": radial_loss,
             }
 
         # Hyperbolic Prior KL
@@ -764,27 +816,39 @@ class HyperbolicVAETrainer:
             hyp_kl_B = kl_B.item()
 
             # Update homeostatic state
-            self.hyperbolic_prior_A.update_homeostatic_state(z_hyp_A, kl_A, current_coverage)
-            self.hyperbolic_prior_B.update_homeostatic_state(z_hyp_B, kl_B, current_coverage)
+            self.hyperbolic_prior_A.update_homeostatic_state(
+                z_hyp_A, kl_A, current_coverage
+            )
+            self.hyperbolic_prior_B.update_homeostatic_state(
+                z_hyp_B, kl_B, current_coverage
+            )
 
-            homeostatic_metrics.update({
-                'prior_sigma_A': self.hyperbolic_prior_A.adaptive_sigma.item(),
-                'prior_sigma_B': self.hyperbolic_prior_B.adaptive_sigma.item(),
-                'prior_curvature_A': self.hyperbolic_prior_A.adaptive_curvature.item(),
-                'prior_curvature_B': self.hyperbolic_prior_B.adaptive_curvature.item()
-            })
+            homeostatic_metrics.update(
+                {
+                    "prior_sigma_A": self.hyperbolic_prior_A.adaptive_sigma.item(),
+                    "prior_sigma_B": self.hyperbolic_prior_B.adaptive_sigma.item(),
+                    "prior_curvature_A": self.hyperbolic_prior_A.adaptive_curvature.item(),
+                    "prior_curvature_B": self.hyperbolic_prior_B.adaptive_curvature.item(),
+                }
+            )
 
         # Hyperbolic Reconstruction
         if self.use_hyperbolic_recon:
-            recon_A, recon_metrics_A = self.hyperbolic_recon_A(logits_A, ternary_data, z_A)
-            recon_B, recon_metrics_B = self.hyperbolic_recon_B(logits_B, ternary_data, z_B)
+            recon_A, recon_metrics_A = self.hyperbolic_recon_A(
+                logits_A, ternary_data, z_A
+            )
+            recon_B, recon_metrics_B = self.hyperbolic_recon_B(
+                logits_B, ternary_data, z_B
+            )
             hyp_recon_A = recon_A.item()
             hyp_recon_B = recon_B.item()
 
-            homeostatic_metrics.update({
-                'recon_radius_A': recon_metrics_A.get('mean_radius', 0),
-                'recon_radius_B': recon_metrics_B.get('mean_radius', 0)
-            })
+            homeostatic_metrics.update(
+                {
+                    "recon_radius_A": recon_metrics_A.get("mean_radius", 0),
+                    "recon_radius_B": recon_metrics_B.get("mean_radius", 0),
+                }
+            )
 
         # Centroid Loss
         if self.use_centroid_loss:
@@ -792,24 +856,37 @@ class HyperbolicVAETrainer:
             cent_B, _ = self.centroid_loss(z_B, indices)
             centroid_loss_val = (cent_A.item() + cent_B.item()) / 2
 
-            homeostatic_metrics.update({
-                'centroid_loss': centroid_loss_val
-            })
+            homeostatic_metrics.update({"centroid_loss": centroid_loss_val})
 
         # v5.10.1: RadialStratificationLoss - enforces 3-adic tree structure via radial position
         radial_stratification_loss = 0.0
         radial_strat_metrics = {}
         if self.use_radial_stratification:
-            loss_A, metrics_A = self.radial_stratification_A(z_A, indices, return_metrics=True)
-            loss_B, metrics_B = self.radial_stratification_B(z_B, indices, return_metrics=True)
+            loss_A, metrics_A = self.radial_stratification_A(
+                z_A, indices, return_metrics=True
+            )
+            loss_B, metrics_B = self.radial_stratification_B(
+                z_B, indices, return_metrics=True
+            )
             radial_stratification_loss = (loss_A.item() + loss_B.item()) / 2
 
             radial_strat_metrics = {
-                'radial_correlation_A': metrics_A.get('radial_correlation', 0),
-                'radial_correlation_B': metrics_B.get('radial_correlation', 0),
-                'mean_radius_error': (metrics_A.get('mean_radius_error', 0) + metrics_B.get('mean_radius_error', 0)) / 2,
-                'high_v_radius': (metrics_A.get('high_v_radius', 0) + metrics_B.get('high_v_radius', 0)) / 2,
-                'low_v_radius': (metrics_A.get('low_v_radius', 0) + metrics_B.get('low_v_radius', 0)) / 2,
+                "radial_correlation_A": metrics_A.get("radial_correlation", 0),
+                "radial_correlation_B": metrics_B.get("radial_correlation", 0),
+                "mean_radius_error": (
+                    metrics_A.get("mean_radius_error", 0)
+                    + metrics_B.get("mean_radius_error", 0)
+                )
+                / 2,
+                "high_v_radius": (
+                    metrics_A.get("high_v_radius", 0)
+                    + metrics_B.get("high_v_radius", 0)
+                )
+                / 2,
+                "low_v_radius": (
+                    metrics_A.get("low_v_radius", 0) + metrics_B.get("low_v_radius", 0)
+                )
+                / 2,
             }
             homeostatic_metrics.update(radial_strat_metrics)
 
@@ -819,27 +896,29 @@ class HyperbolicVAETrainer:
             curriculum_tau = self.curriculum.get_tau().item()
             # The modulated loss would be: (1-tau)*radial + tau*ranking
             # But actual gradient flow happens in base_trainer, so we track metrics
-            homeostatic_metrics.update({
-                'curriculum_tau': curriculum_tau,
-                'curriculum_radial_weight': 1 - curriculum_tau,
-                'curriculum_ranking_weight': curriculum_tau
-            })
+            homeostatic_metrics.update(
+                {
+                    "curriculum_tau": curriculum_tau,
+                    "curriculum_radial_weight": 1 - curriculum_tau,
+                    "curriculum_ranking_weight": curriculum_tau,
+                }
+            )
 
         self.radial_loss_history.append(radial_loss + radial_stratification_loss)
         self.homeostatic_history.append(homeostatic_metrics)
 
         return {
-            'ranking_loss': ranking_loss,
-            'radial_loss': radial_loss,
-            'radial_stratification_loss': radial_stratification_loss,
-            'hyp_kl_A': hyp_kl_A,
-            'hyp_kl_B': hyp_kl_B,
-            'hyp_recon_A': hyp_recon_A,
-            'hyp_recon_B': hyp_recon_B,
-            'centroid_loss': centroid_loss_val,
-            'curriculum_tau': curriculum_tau,
-            'ranking_metrics': ranking_metrics,
-            'homeostatic_metrics': homeostatic_metrics
+            "ranking_loss": ranking_loss,
+            "radial_loss": radial_loss,
+            "radial_stratification_loss": radial_stratification_loss,
+            "hyp_kl_A": hyp_kl_A,
+            "hyp_kl_B": hyp_kl_B,
+            "hyp_recon_A": hyp_recon_A,
+            "hyp_recon_B": hyp_recon_B,
+            "centroid_loss": centroid_loss_val,
+            "curriculum_tau": curriculum_tau,
+            "ranking_metrics": ranking_metrics,
+            "homeostatic_metrics": homeostatic_metrics,
         }
 
     def log_epoch(self, epoch: int, losses: Dict[str, Any]) -> None:
@@ -859,48 +938,52 @@ class HyperbolicVAETrainer:
             return
 
         # Extract homeostatic metrics
-        homeo = {k.replace('homeo_', ''): v for k, v in losses.items() if k.startswith('homeo_')}
+        homeo = {
+            k.replace("homeo_", ""): v
+            for k, v in losses.items()
+            if k.startswith("homeo_")
+        }
         homeo_dict = homeo if homeo else None
 
         # 1. Console/file epoch summary
         self.monitor.log_epoch_summary(
             epoch=epoch,
             total_epochs=self.total_epochs,
-            loss=losses['loss'],
-            cov_A=losses['cov_A'],
-            cov_B=losses['cov_B'],
-            corr_A_hyp=losses['corr_A_hyp'],
-            corr_B_hyp=losses['corr_B_hyp'],
-            corr_A_euc=losses['corr_A_euc'],
-            corr_B_euc=losses['corr_B_euc'],
-            mean_radius_A=losses['mean_radius_A'],
-            mean_radius_B=losses['mean_radius_B'],
-            ranking_weight=losses['ranking_weight'],
-            coverage_evaluated=losses.get('coverage_evaluated', True),
-            correlation_evaluated=losses.get('correlation_evaluated', True),
-            hyp_kl_A=losses.get('hyp_kl_A', 0),
-            hyp_kl_B=losses.get('hyp_kl_B', 0),
-            centroid_loss=losses.get('centroid_loss', 0),
-            radial_loss=losses.get('radial_loss', 0),
-            homeostatic_metrics=homeo_dict
+            loss=losses["loss"],
+            cov_A=losses["cov_A"],
+            cov_B=losses["cov_B"],
+            corr_A_hyp=losses["corr_A_hyp"],
+            corr_B_hyp=losses["corr_B_hyp"],
+            corr_A_euc=losses["corr_A_euc"],
+            corr_B_euc=losses["corr_B_euc"],
+            mean_radius_A=losses["mean_radius_A"],
+            mean_radius_B=losses["mean_radius_B"],
+            ranking_weight=losses["ranking_weight"],
+            coverage_evaluated=losses.get("coverage_evaluated", True),
+            correlation_evaluated=losses.get("correlation_evaluated", True),
+            hyp_kl_A=losses.get("hyp_kl_A", 0),
+            hyp_kl_B=losses.get("hyp_kl_B", 0),
+            centroid_loss=losses.get("centroid_loss", 0),
+            radial_loss=losses.get("radial_loss", 0),
+            homeostatic_metrics=homeo_dict,
         )
 
         # 2. TensorBoard hyperbolic metrics (epoch-level)
         self.monitor.log_hyperbolic_epoch(
             epoch=epoch,
-            corr_A_hyp=losses['corr_A_hyp'],
-            corr_B_hyp=losses['corr_B_hyp'],
-            corr_A_euc=losses['corr_A_euc'],
-            corr_B_euc=losses['corr_B_euc'],
-            mean_radius_A=losses['mean_radius_A'],
-            mean_radius_B=losses['mean_radius_B'],
-            ranking_weight=losses['ranking_weight'],
-            ranking_loss=losses.get('ranking_loss_hyp', 0),
-            radial_loss=losses.get('radial_loss', 0),
-            hyp_kl_A=losses.get('hyp_kl_A', 0),
-            hyp_kl_B=losses.get('hyp_kl_B', 0),
-            centroid_loss=losses.get('centroid_loss', 0),
-            homeostatic_metrics=homeo_dict
+            corr_A_hyp=losses["corr_A_hyp"],
+            corr_B_hyp=losses["corr_B_hyp"],
+            corr_A_euc=losses["corr_A_euc"],
+            corr_B_euc=losses["corr_B_euc"],
+            mean_radius_A=losses["mean_radius_A"],
+            mean_radius_B=losses["mean_radius_B"],
+            ranking_weight=losses["ranking_weight"],
+            ranking_loss=losses.get("ranking_loss_hyp", 0),
+            radial_loss=losses.get("radial_loss", 0),
+            hyp_kl_A=losses.get("hyp_kl_A", 0),
+            hyp_kl_B=losses.get("hyp_kl_B", 0),
+            centroid_loss=losses.get("centroid_loss", 0),
+            homeostatic_metrics=homeo_dict,
         )
 
         # 3. TensorBoard standard VAE metrics (epoch-level)
@@ -913,8 +996,7 @@ class HyperbolicVAETrainer:
         # 5. Embedding projections at intervals (for 3D visualization)
         if self.embedding_interval > 0 and epoch % self.embedding_interval == 0:
             self.monitor.log_manifold_embedding(
-                self.model, epoch, self.device,
-                n_samples=self.embedding_n_samples
+                self.model, epoch, self.device, n_samples=self.embedding_n_samples
             )
 
     def _log_standard_tensorboard(self, epoch: int, losses: Dict[str, Any]) -> None:
@@ -930,62 +1012,70 @@ class HyperbolicVAETrainer:
         writer = self.monitor.writer
 
         # Total loss
-        writer.add_scalar('Loss/Total', losses['loss'], epoch)
+        writer.add_scalar("Loss/Total", losses["loss"], epoch)
 
         # VAE-A metrics
-        writer.add_scalar('VAE_A/CrossEntropy', losses.get('ce_A', 0), epoch)
-        writer.add_scalar('VAE_A/KL_Divergence', losses.get('kl_A', 0), epoch)
-        writer.add_scalar('VAE_A/Entropy', losses.get('H_A', 0), epoch)
-        writer.add_scalar('VAE_A/Coverage_Pct', losses['cov_A'], epoch)
+        writer.add_scalar("VAE_A/CrossEntropy", losses.get("ce_A", 0), epoch)
+        writer.add_scalar("VAE_A/KL_Divergence", losses.get("kl_A", 0), epoch)
+        writer.add_scalar("VAE_A/Entropy", losses.get("H_A", 0), epoch)
+        writer.add_scalar("VAE_A/Coverage_Pct", losses["cov_A"], epoch)
 
         # VAE-B metrics
-        writer.add_scalar('VAE_B/CrossEntropy', losses.get('ce_B', 0), epoch)
-        writer.add_scalar('VAE_B/KL_Divergence', losses.get('kl_B', 0), epoch)
-        writer.add_scalar('VAE_B/Entropy', losses.get('H_B', 0), epoch)
-        writer.add_scalar('VAE_B/Coverage_Pct', losses['cov_B'], epoch)
+        writer.add_scalar("VAE_B/CrossEntropy", losses.get("ce_B", 0), epoch)
+        writer.add_scalar("VAE_B/KL_Divergence", losses.get("kl_B", 0), epoch)
+        writer.add_scalar("VAE_B/Entropy", losses.get("H_B", 0), epoch)
+        writer.add_scalar("VAE_B/Coverage_Pct", losses["cov_B"], epoch)
 
         # Comparative metrics
-        writer.add_scalars('Compare/Coverage', {
-            'VAE_A': losses['cov_A'],
-            'VAE_B': losses['cov_B']
-        }, epoch)
+        writer.add_scalars(
+            "Compare/Coverage",
+            {"VAE_A": losses["cov_A"], "VAE_B": losses["cov_B"]},
+            epoch,
+        )
 
-        writer.add_scalars('Compare/Entropy', {
-            'VAE_A': losses.get('H_A', 0),
-            'VAE_B': losses.get('H_B', 0)
-        }, epoch)
+        writer.add_scalars(
+            "Compare/Entropy",
+            {"VAE_A": losses.get("H_A", 0), "VAE_B": losses.get("H_B", 0)},
+            epoch,
+        )
 
         # Training dynamics
-        writer.add_scalar('Dynamics/Phase', losses.get('phase', 0), epoch)
-        writer.add_scalar('Dynamics/Rho', losses.get('rho', 0), epoch)
-        writer.add_scalar('Dynamics/GradRatio', losses.get('grad_ratio', 0), epoch)
+        writer.add_scalar("Dynamics/Phase", losses.get("phase", 0), epoch)
+        writer.add_scalar("Dynamics/Rho", losses.get("rho", 0), epoch)
+        writer.add_scalar("Dynamics/GradRatio", losses.get("grad_ratio", 0), epoch)
 
         # Lambda weights
-        writer.add_scalars('Lambdas', {
-            'lambda1': losses.get('lambda1', 0),
-            'lambda2': losses.get('lambda2', 0),
-            'lambda3': losses.get('lambda3', 0)
-        }, epoch)
+        writer.add_scalars(
+            "Lambdas",
+            {
+                "lambda1": losses.get("lambda1", 0),
+                "lambda2": losses.get("lambda2", 0),
+                "lambda3": losses.get("lambda3", 0),
+            },
+            epoch,
+        )
 
         # Temperature and beta
-        writer.add_scalars('Temperature', {
-            'VAE_A': losses.get('temp_A', 1.0),
-            'VAE_B': losses.get('temp_B', 1.0)
-        }, epoch)
+        writer.add_scalars(
+            "Temperature",
+            {"VAE_A": losses.get("temp_A", 1.0), "VAE_B": losses.get("temp_B", 1.0)},
+            epoch,
+        )
 
-        writer.add_scalars('Beta', {
-            'VAE_A': losses.get('beta_A', 1.0),
-            'VAE_B': losses.get('beta_B', 1.0)
-        }, epoch)
+        writer.add_scalars(
+            "Beta",
+            {"VAE_A": losses.get("beta_A", 1.0), "VAE_B": losses.get("beta_B", 1.0)},
+            epoch,
+        )
 
         # Learning rate
-        writer.add_scalar('LR/Scheduled', losses.get('lr_scheduled', 0), epoch)
-        if 'lr_corrected' in losses:
-            writer.add_scalar('LR/Corrected', losses['lr_corrected'], epoch)
+        writer.add_scalar("LR/Scheduled", losses.get("lr_scheduled", 0), epoch)
+        if "lr_corrected" in losses:
+            writer.add_scalar("LR/Corrected", losses["lr_corrected"], epoch)
 
         # Coverage EMA for continuous feedback
-        if 'coverage_ema' in losses:
-            writer.add_scalar('Feedback/CoverageEMA', losses['coverage_ema'], epoch)
+        if "coverage_ema" in losses:
+            writer.add_scalar("Feedback/CoverageEMA", losses["coverage_ema"], epoch)
 
         writer.flush()
 
@@ -1001,11 +1091,11 @@ class HyperbolicVAETrainer:
             return
 
         self.monitor.log_hyperbolic_batch(
-            ranking_loss=hyperbolic_metrics.get('ranking_loss', 0),
-            radial_loss=hyperbolic_metrics.get('radial_loss', 0),
-            hyp_kl_A=hyperbolic_metrics.get('hyp_kl_A', 0),
-            hyp_kl_B=hyperbolic_metrics.get('hyp_kl_B', 0),
-            centroid_loss=hyperbolic_metrics.get('centroid_loss', 0)
+            ranking_loss=hyperbolic_metrics.get("ranking_loss", 0),
+            radial_loss=hyperbolic_metrics.get("radial_loss", 0),
+            hyp_kl_A=hyperbolic_metrics.get("hyp_kl_A", 0),
+            hyp_kl_B=hyperbolic_metrics.get("hyp_kl_B", 0),
+            centroid_loss=hyperbolic_metrics.get("centroid_loss", 0),
         )
 
     def update_monitor_state(self, losses: Dict[str, Any]) -> None:
@@ -1017,12 +1107,12 @@ class HyperbolicVAETrainer:
         if self.monitor is None:
             return
 
-        self.monitor.check_best(losses['loss'])
+        self.monitor.check_best(losses["loss"])
         self.monitor.update_histories(
-            H_A=losses.get('H_A', 0),
-            H_B=losses.get('H_B', 0),
-            coverage_A=losses['unique_A'],
-            coverage_B=losses['unique_B']
+            H_A=losses.get("H_A", 0),
+            H_B=losses.get("H_B", 0),
+            coverage_A=losses["unique_A"],
+            coverage_B=losses["unique_B"],
         )
 
     def print_summary(self) -> None:
@@ -1036,4 +1126,4 @@ class HyperbolicVAETrainer:
             self.monitor.close()
 
 
-__all__ = ['HyperbolicVAETrainer']
+__all__ = ["HyperbolicVAETrainer"]

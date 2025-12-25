@@ -7,15 +7,15 @@
 
 """Metrics for evaluating Ternary VAE performance."""
 
-import torch
-import numpy as np
-from typing import Dict, Optional, Tuple, Union
 from collections import defaultdict
+from typing import Dict, Optional, Tuple, Union
+
+import numpy as np
+import torch
 
 
 def evaluate_coverage(
-    samples: torch.Tensor,
-    total_operations: int = 19683
+    samples: torch.Tensor, total_operations: int = 19683
 ) -> Tuple[int, float]:
     """Evaluate operation coverage from generated samples.
 
@@ -38,10 +38,7 @@ def evaluate_coverage(
 
 
 def compute_latent_entropy(
-    z: torch.Tensor,
-    num_bins: int = 50,
-    range_min: float = -3.0,
-    range_max: float = 3.0
+    z: torch.Tensor, num_bins: int = 50, range_min: float = -3.0, range_max: float = 3.0
 ) -> torch.Tensor:
     """Estimate latent entropy using histogram method.
 
@@ -76,10 +73,7 @@ def compute_latent_entropy(
     return torch.stack(entropies).mean()
 
 
-def compute_diversity_score(
-    samples_A: torch.Tensor,
-    samples_B: torch.Tensor
-) -> float:
+def compute_diversity_score(samples_A: torch.Tensor, samples_B: torch.Tensor) -> float:
     """Compute diversity score between two sets of samples.
 
     Diversity score measures how different the two sample sets are.
@@ -121,9 +115,7 @@ def compute_diversity_score(
 
 
 def compute_reconstruction_accuracy(
-    inputs: torch.Tensor,
-    outputs: torch.Tensor,
-    threshold: float = 0.5
+    inputs: torch.Tensor, outputs: torch.Tensor, threshold: float = 0.5
 ) -> float:
     """Compute reconstruction accuracy.
 
@@ -157,8 +149,7 @@ def compute_reconstruction_accuracy(
 
 
 def analyze_coverage_distribution(
-    samples: torch.Tensor,
-    dimension: int = 9
+    samples: torch.Tensor, dimension: int = 9
 ) -> Dict[str, Union[float, Dict[int, float]]]:
     """Analyze the distribution of covered operations.
 
@@ -177,7 +168,7 @@ def analyze_coverage_distribution(
         value_counts[v] = float((samples_rounded == v).sum().item())
 
     total = samples_rounded.numel()
-    value_dist = {k: v/total for k, v in value_counts.items()}
+    value_dist = {k: v / total for k, v in value_counts.items()}
 
     # Sparsity (fraction of zeros)
     sparsity = value_dist[0]
@@ -193,12 +184,12 @@ def analyze_coverage_distribution(
         dim_stats.append(dim_unique)
 
     return {
-        'value_distribution': value_dist,
-        'sparsity': sparsity,
-        'balance_std': balance_std,
-        'avg_unique_per_dim': float(np.mean(dim_stats)),
-        'min_unique_per_dim': min(dim_stats),
-        'max_unique_per_dim': max(dim_stats)
+        "value_distribution": value_dist,
+        "sparsity": sparsity,
+        "balance_std": balance_std,
+        "avg_unique_per_dim": float(np.mean(dim_stats)),
+        "min_unique_per_dim": min(dim_stats),
+        "max_unique_per_dim": max(dim_stats),
     }
 
 
@@ -215,7 +206,7 @@ class CoverageTracker:
         epoch: int,
         coverage_A: int,
         coverage_B: int,
-        intersection: Optional[int] = None
+        intersection: Optional[int] = None,
     ):
         """Update coverage history.
 
@@ -226,9 +217,9 @@ class CoverageTracker:
             intersection: Number of operations covered by BOTH VAE-A and VAE-B.
                          If provided, computes true union. Otherwise uses max as estimate.
         """
-        self.history['epoch'].append(epoch)
-        self.history['coverage_A'].append(coverage_A)
-        self.history['coverage_B'].append(coverage_B)
+        self.history["epoch"].append(epoch)
+        self.history["coverage_A"].append(coverage_A)
+        self.history["coverage_B"].append(coverage_B)
 
         # A8.1 FIX: Compute true union when intersection is available
         # Union formula: |A ∪ B| = |A| + |B| - |A ∩ B|
@@ -238,7 +229,7 @@ class CoverageTracker:
             # Fallback: max is a lower bound (actual union >= max)
             coverage_union = max(coverage_A, coverage_B)
 
-        self.history['coverage_union'].append(coverage_union)
+        self.history["coverage_union"].append(coverage_union)
 
         if coverage_union > self.best_coverage:
             self.best_coverage = coverage_union
@@ -250,31 +241,31 @@ class CoverageTracker:
         Returns:
             dict: Statistics including best, current, improvement rate
         """
-        if not self.history['epoch']:
+        if not self.history["epoch"]:
             return {}
 
-        current_A = self.history['coverage_A'][-1]
-        current_B = self.history['coverage_B'][-1]
-        current_union = self.history['coverage_union'][-1]
+        current_A = self.history["coverage_A"][-1]
+        current_B = self.history["coverage_B"][-1]
+        current_union = self.history["coverage_union"][-1]
 
         # Improvement rate (ops per epoch)
-        if len(self.history['epoch']) > 1:
-            delta_epochs = self.history['epoch'][-1] - self.history['epoch'][0]
-            delta_coverage = current_union - self.history['coverage_union'][0]
+        if len(self.history["epoch"]) > 1:
+            delta_epochs = self.history["epoch"][-1] - self.history["epoch"][0]
+            delta_coverage = current_union - self.history["coverage_union"][0]
             improvement_rate = delta_coverage / delta_epochs if delta_epochs > 0 else 0
         else:
             improvement_rate = 0
 
         return {
-            'current_coverage_A': current_A,
-            'current_coverage_B': current_B,
-            'current_coverage_union': current_union,
-            'current_coverage_pct': (current_union / 19683) * 100,
-            'best_coverage': self.best_coverage,
-            'best_coverage_pct': (self.best_coverage / 19683) * 100,
-            'best_epoch': self.best_epoch,
-            'improvement_rate': improvement_rate,
-            'epochs_tracked': len(self.history['epoch'])
+            "current_coverage_A": current_A,
+            "current_coverage_B": current_B,
+            "current_coverage_union": current_union,
+            "current_coverage_pct": (current_union / 19683) * 100,
+            "best_coverage": self.best_coverage,
+            "best_coverage_pct": (self.best_coverage / 19683) * 100,
+            "best_epoch": self.best_epoch,
+            "improvement_rate": improvement_rate,
+            "epochs_tracked": len(self.history["epoch"]),
         }
 
     def has_plateaued(self, patience: int = 50, min_delta: float = 0.001) -> bool:
@@ -287,10 +278,10 @@ class CoverageTracker:
         Returns:
             bool: True if plateaued, False otherwise
         """
-        if len(self.history['coverage_union']) < patience:
+        if len(self.history["coverage_union"]) < patience:
             return False
 
-        recent = self.history['coverage_union'][-patience:]
+        recent = self.history["coverage_union"][-patience:]
         improvement = (recent[-1] - recent[0]) / 19683
 
         return improvement < min_delta

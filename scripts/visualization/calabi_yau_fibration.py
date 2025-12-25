@@ -20,28 +20,30 @@ The key insight: Calabi-Yau manifolds have fiber bundle structure.
 For the quintic, the Hopf fibration gives S¹ fibers we can trace.
 """
 
-import torch
-import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+import numpy as np
+import torch
+
+matplotlib.use("Agg")
+import json
+import sys
+from pathlib import Path
+
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from scipy.interpolate import CubicSpline
 from scipy.spatial import KDTree
-from pathlib import Path
-import sys
-import json
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data.generation import generate_all_ternary_operations
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
-def load_embeddings(checkpoint_path, device='cuda'):
+def load_embeddings(checkpoint_path, device="cuda"):
     """Load VAE embeddings."""
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model = DualNeuralVAEV5(input_dim=9, latent_dim=16, use_statenet=False)
-    state_dict = {k: v for k, v in checkpoint['model'].items() if 'state_net' not in k}
+    state_dict = {k: v for k, v in checkpoint["model"].items() if "state_net" not in k}
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
@@ -54,9 +56,9 @@ def load_embeddings(checkpoint_path, device='cuda'):
         mu_B, _ = model.encoder_B(x)
 
     return {
-        'z_A': mu_A.cpu().numpy(),
-        'z_B': mu_B.cpu().numpy(),
-        'operations': operations
+        "z_A": mu_A.cpu().numpy(),
+        "z_B": mu_B.cpu().numpy(),
+        "operations": operations,
     }
 
 
@@ -134,7 +136,7 @@ def trace_fiber_paths(points, neighbors, n_fibers=100, fiber_length=50):
         for _ in range(fiber_length // 2):
             # Find unvisited neighbor with smallest position change (stay on same fiber)
             best_neighbor = None
-            best_score = float('inf')
+            best_score = float("inf")
 
             for neighbor, pos in neighbors[current]:
                 if neighbor not in used:
@@ -155,7 +157,7 @@ def trace_fiber_paths(points, neighbors, n_fibers=100, fiber_length=50):
         current = seed
         for _ in range(fiber_length // 2):
             best_neighbor = None
-            best_score = float('inf')
+            best_score = float("inf")
 
             for neighbor, pos in neighbors[current]:
                 if neighbor not in used:
@@ -216,11 +218,13 @@ def trace_helical_fibers(points, n_helices=50, points_per_helix=100):
         for step in range(points_per_helix):
             # Add helical rotation
             angle = step * 0.1
-            rotation = np.array([
-                [np.cos(angle), -np.sin(angle), 0],
-                [np.sin(angle), np.cos(angle), 0],
-                [0, 0, 1]
-            ])
+            rotation = np.array(
+                [
+                    [np.cos(angle), -np.sin(angle), 0],
+                    [np.sin(angle), np.cos(angle), 0],
+                    [0, 0, 1],
+                ]
+            )
             twisted_tangent = rotation @ tangent
 
             # Find nearest point in that direction
@@ -285,7 +289,7 @@ def create_tube_mesh(path, radius=0.02, n_sides=8):
         elif i == n_points - 1:
             tangent = path[-1] - path[-2]
         else:
-            tangent = path[i+1] - path[i-1]
+            tangent = path[i + 1] - path[i - 1]
 
         tangent = tangent / (np.linalg.norm(tangent) + 1e-8)
 
@@ -340,61 +344,73 @@ def render_fibration_matplotlib(points, fibers, helices, output_path):
     fig = plt.figure(figsize=(24, 18))
 
     # 1. Backbone trace (like protein backbone)
-    ax = fig.add_subplot(2, 3, 1, projection='3d')
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2],
-               c='gray', s=0.5, alpha=0.1)
+    ax = fig.add_subplot(2, 3, 1, projection="3d")
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2], c="gray", s=0.5, alpha=0.1)
 
     colors = plt.cm.hsv(np.linspace(0, 1, len(fibers)))
     for fiber, color in zip(fibers[:30], colors):
         smooth_path = smooth_fiber_spline(points, fiber)
-        ax.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                color=color, linewidth=1.5, alpha=0.8)
+        ax.plot(
+            smooth_path[:, 0],
+            smooth_path[:, 1],
+            smooth_path[:, 2],
+            color=color,
+            linewidth=1.5,
+            alpha=0.8,
+        )
 
-    ax.set_title('Fiber Backbone (3-adic paths)')
+    ax.set_title("Fiber Backbone (3-adic paths)")
     ax.view_init(elev=20, azim=45)
 
     # 2. Tube rendering (like ribbon diagram)
-    ax = fig.add_subplot(2, 3, 2, projection='3d')
+    ax = fig.add_subplot(2, 3, 2, projection="3d")
 
     for fiber, color in zip(fibers[:15], colors):
         smooth_path = smooth_fiber_spline(points, fiber, n_samples=30)
         verts, faces = create_tube_mesh(smooth_path, radius=0.015, n_sides=6)
         if verts is not None:
-            mesh = Poly3DCollection(verts[faces], alpha=0.7,
-                                   facecolor=color, edgecolor='none')
+            mesh = Poly3DCollection(
+                verts[faces], alpha=0.7, facecolor=color, edgecolor="none"
+            )
             ax.add_collection3d(mesh)
 
     ax.set_xlim(-1, 1)
     ax.set_ylim(-1, 1)
     ax.set_zlim(-1, 1)
-    ax.set_title('Tube Rendering (Ribbon Style)')
+    ax.set_title("Tube Rendering (Ribbon Style)")
     ax.view_init(elev=20, azim=45)
 
     # 3. Helical fibers (Hopf fibration)
-    ax = fig.add_subplot(2, 3, 3, projection='3d')
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2],
-               c='gray', s=0.5, alpha=0.05)
+    ax = fig.add_subplot(2, 3, 3, projection="3d")
+    ax.scatter(points[:, 0], points[:, 1], points[:, 2], c="gray", s=0.5, alpha=0.05)
 
     helix_colors = plt.cm.plasma(np.linspace(0, 1, len(helices)))
     for helix, color in zip(helices[:25], helix_colors):
         smooth_path = smooth_fiber_spline(points, helix)
-        ax.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                color=color, linewidth=2, alpha=0.9)
+        ax.plot(
+            smooth_path[:, 0],
+            smooth_path[:, 1],
+            smooth_path[:, 2],
+            color=color,
+            linewidth=2,
+            alpha=0.9,
+        )
 
-    ax.set_title('Helical Fibers (Hopf Structure)')
+    ax.set_title("Helical Fibers (Hopf Structure)")
     ax.view_init(elev=20, azim=45)
 
     # 4. Ambient occlusion shading
-    ax = fig.add_subplot(2, 3, 4, projection='3d')
+    ax = fig.add_subplot(2, 3, 4, projection="3d")
     ao = compute_ambient_occlusion(points, radius=0.15)
-    scatter = ax.scatter(points[:, 0], points[:, 1], points[:, 2],
-                        c=ao, cmap='bone', s=2, alpha=0.8)
-    ax.set_title('Ambient Occlusion (Depth)')
+    scatter = ax.scatter(
+        points[:, 0], points[:, 1], points[:, 2], c=ao, cmap="bone", s=2, alpha=0.8
+    )
+    ax.set_title("Ambient Occlusion (Depth)")
     ax.view_init(elev=20, azim=45)
-    plt.colorbar(scatter, ax=ax, shrink=0.5, label='Exposure')
+    plt.colorbar(scatter, ax=ax, shrink=0.5, label="Exposure")
 
     # 5. Multi-layer transparency (showing internal structure)
-    ax = fig.add_subplot(2, 3, 5, projection='3d')
+    ax = fig.add_subplot(2, 3, 5, projection="3d")
 
     # Sort by depth for proper alpha blending
     view_dir = np.array([1, 1, 1]) / np.sqrt(3)
@@ -411,41 +427,61 @@ def render_fibration_matplotlib(points, fibers, helices, output_path):
         layer_indices = depth_order[start:end]
 
         alpha = 0.3 + 0.5 * (layer / n_layers)  # Back layers more transparent
-        ax.scatter(points[layer_indices, 0],
-                  points[layer_indices, 1],
-                  points[layer_indices, 2],
-                  c=plt.cm.viridis(layer / n_layers),
-                  s=2, alpha=alpha)
+        ax.scatter(
+            points[layer_indices, 0],
+            points[layer_indices, 1],
+            points[layer_indices, 2],
+            c=plt.cm.viridis(layer / n_layers),
+            s=2,
+            alpha=alpha,
+        )
 
-    ax.set_title('Multi-Layer Transparency')
+    ax.set_title("Multi-Layer Transparency")
     ax.view_init(elev=20, azim=45)
 
     # 6. Combined fibration view
-    ax = fig.add_subplot(2, 3, 6, projection='3d')
+    ax = fig.add_subplot(2, 3, 6, projection="3d")
 
     # Background points with AO
-    ax.scatter(points[:, 0], points[:, 1], points[:, 2],
-               c=ao, cmap='gray_r', s=1, alpha=0.2)
+    ax.scatter(
+        points[:, 0], points[:, 1], points[:, 2], c=ao, cmap="gray_r", s=1, alpha=0.2
+    )
 
     # Overlay key fibers
     for fiber, color in zip(fibers[:10], colors):
         smooth_path = smooth_fiber_spline(points, fiber)
-        ax.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                color=color, linewidth=2.5, alpha=0.9)
+        ax.plot(
+            smooth_path[:, 0],
+            smooth_path[:, 1],
+            smooth_path[:, 2],
+            color=color,
+            linewidth=2.5,
+            alpha=0.9,
+        )
 
     # Overlay helices with different style
     for helix, color in zip(helices[:5], helix_colors):
         smooth_path = smooth_fiber_spline(points, helix)
-        ax.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                color='white', linewidth=1, alpha=0.5, linestyle='--')
+        ax.plot(
+            smooth_path[:, 0],
+            smooth_path[:, 1],
+            smooth_path[:, 2],
+            color="white",
+            linewidth=1,
+            alpha=0.5,
+            linestyle="--",
+        )
 
-    ax.set_title('Combined Fibration View')
+    ax.set_title("Combined Fibration View")
     ax.view_init(elev=25, azim=60)
 
-    plt.suptitle('Calabi-Yau Internal Fibration Structure\n(Protein-Style Rendering)',
-                 fontsize=14, y=1.02)
+    plt.suptitle(
+        "Calabi-Yau Internal Fibration Structure\n(Protein-Style Rendering)",
+        fontsize=14,
+        y=1.02,
+    )
     plt.tight_layout()
-    plt.savefig(output_path / 'fibration_structure.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_path / "fibration_structure.png", dpi=150, bbox_inches="tight")
     plt.close()
     print(f'Saved: {output_path / "fibration_structure.png"}')
 
@@ -470,23 +506,20 @@ def export_fibration_data(points, fibers, helices, ao, output_path):
         smooth_path = smooth_fiber_spline(points, fiber, n_samples=25)
         verts, faces = create_tube_mesh(smooth_path, radius=0.012, n_sides=6)
         if verts is not None:
-            tube_meshes.append({
-                'vertices': verts.tolist(),
-                'faces': faces.tolist()
-            })
+            tube_meshes.append({"vertices": verts.tolist(), "faces": faces.tolist()})
 
     data = {
-        'points': points.tolist(),
-        'ambient_occlusion': ao.tolist(),
-        'fibers': smooth_fibers,
-        'helices': smooth_helices,
-        'tube_meshes': tube_meshes,
-        'n_points': len(points),
-        'n_fibers': len(fibers),
-        'n_helices': len(helices)
+        "points": points.tolist(),
+        "ambient_occlusion": ao.tolist(),
+        "fibers": smooth_fibers,
+        "helices": smooth_helices,
+        "tube_meshes": tube_meshes,
+        "n_points": len(points),
+        "n_fibers": len(fibers),
+        "n_helices": len(helices),
     }
 
-    with open(output_path / 'fibration_data.json', 'w') as f:
+    with open(output_path / "fibration_data.json", "w") as f:
         json.dump(data, f)
     print(f'Saved: {output_path / "fibration_data.json"}')
 
@@ -494,50 +527,50 @@ def export_fibration_data(points, fibers, helices, ao, output_path):
 
 
 def main():
-    output_path = Path('outputs/viz/calabi_yau')
+    output_path = Path("outputs/viz/calabi_yau")
     output_path.mkdir(parents=True, exist_ok=True)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Device: {device}')
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device: {device}")
 
     # Load embeddings
-    print('\nLoading embeddings...')
-    data = load_embeddings('sandbox-training/checkpoints/v5_5/latest.pt', device)
-    z_A = data['z_A']
+    print("\nLoading embeddings...")
+    data = load_embeddings("sandbox-training/checkpoints/v5_5/latest.pt", device)
+    z_A = data["z_A"]
 
     # Project to 3D
-    print('Projecting to 3D...')
+    print("Projecting to 3D...")
     points = calabi_yau_projection(z_A)
-    print(f'Points shape: {points.shape}')
+    print(f"Points shape: {points.shape}")
 
     # Compute 3-adic neighbor structure
-    print('\nComputing 3-adic neighbor graph...')
+    print("\nComputing 3-adic neighbor graph...")
     neighbors = compute_3adic_neighbors()
 
     # Trace fibers
-    print('Tracing fiber paths...')
+    print("Tracing fiber paths...")
     fibers = trace_fiber_paths(points, neighbors, n_fibers=100, fiber_length=80)
-    print(f'Found {len(fibers)} fibers')
+    print(f"Found {len(fibers)} fibers")
 
     # Trace helical structures
-    print('Tracing helical fibers...')
+    print("Tracing helical fibers...")
     helices = trace_helical_fibers(points, n_helices=50, points_per_helix=80)
-    print(f'Found {len(helices)} helices')
+    print(f"Found {len(helices)} helices")
 
     # Compute ambient occlusion
-    print('Computing ambient occlusion...')
+    print("Computing ambient occlusion...")
     ao = compute_ambient_occlusion(points)
 
     # Render static visualization
-    print('\nRendering fibration structure...')
+    print("\nRendering fibration structure...")
     render_fibration_matplotlib(points, fibers, helices, output_path)
 
     # Export for Three.js
-    print('\nExporting fibration data...')
+    print("\nExporting fibration data...")
     export_fibration_data(points, fibers, helices, ao, output_path)
 
-    print('\nDone!')
+    print("\nDone!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

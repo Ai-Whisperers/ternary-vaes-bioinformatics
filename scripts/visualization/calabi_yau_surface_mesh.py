@@ -19,31 +19,33 @@ point clouds using multiple techniques:
 Extends to 16D, 32D latent representations for richer Calabi-Yau projections.
 """
 
-import torch
-import numpy as np
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-from scipy.spatial import Delaunay
-from scipy.ndimage import gaussian_filter
-from scipy.interpolate import RBFInterpolator
-from skimage import measure
-from pathlib import Path
-import sys
+import numpy as np
+import torch
+
+matplotlib.use("Agg")
 import json
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
 import pandas as pd
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+from scipy.interpolate import RBFInterpolator
+from scipy.ndimage import gaussian_filter
+from scipy.spatial import Delaunay
+from skimage import measure
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data.generation import generate_all_ternary_operations
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
-def load_embeddings(checkpoint_path, device='cuda'):
+def load_embeddings(checkpoint_path, device="cuda"):
     """Load and return VAE embeddings."""
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     model = DualNeuralVAEV5(input_dim=9, latent_dim=16, use_statenet=False)
-    state_dict = {k: v for k, v in checkpoint['model'].items() if 'state_net' not in k}
+    state_dict = {k: v for k, v in checkpoint["model"].items() if "state_net" not in k}
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
@@ -56,11 +58,11 @@ def load_embeddings(checkpoint_path, device='cuda'):
         mu_B, logvar_B = model.encoder_B(x)
 
     return {
-        'z_A': mu_A.cpu().numpy(),  # 16D
-        'z_B': mu_B.cpu().numpy(),  # 16D
-        'var_A': logvar_A.exp().cpu().numpy(),
-        'var_B': logvar_B.exp().cpu().numpy(),
-        'operations': operations
+        "z_A": mu_A.cpu().numpy(),  # 16D
+        "z_B": mu_B.cpu().numpy(),  # 16D
+        "var_A": logvar_A.exp().cpu().numpy(),
+        "var_B": logvar_B.exp().cpu().numpy(),
+        "operations": operations,
     }
 
 
@@ -94,7 +96,9 @@ def calabi_yau_quintic_32d(z, phase=0.0):
     y = np.sum(r[:, :8] * np.sin(5 * theta[:, :8]), axis=1)
     y += 0.3 * np.sum(r[:, 8:] * np.sin(3 * theta[:, 8:]), axis=1)
 
-    z_out = np.sum(r[:, :8] * np.cos(3 * theta[:, :8]) * np.sin(2 * theta[:, :8]), axis=1)
+    z_out = np.sum(
+        r[:, :8] * np.cos(3 * theta[:, :8]) * np.sin(2 * theta[:, :8]), axis=1
+    )
     z_out += 0.5 * np.sum(r[:, 8:] * np.sin(7 * theta[:, 8:]), axis=1)
 
     result = np.stack([x, y, z_out], axis=1)
@@ -125,7 +129,9 @@ def calabi_yau_k3_surface(z, phase=0.0):
     y = np.sum(r[:, :4] * np.sin(4 * theta[:, :4]), axis=1)
 
     # Add higher harmonics for texture
-    z_out = np.sum(r[:, 4:8] * np.cos(2 * theta[:, 4:8]) * np.sin(2 * theta[:, 4:8]), axis=1)
+    z_out = np.sum(
+        r[:, 4:8] * np.cos(2 * theta[:, 4:8]) * np.sin(2 * theta[:, 4:8]), axis=1
+    )
 
     if n_complex > 8:
         # Use remaining dimensions for refinement
@@ -157,7 +163,7 @@ def gaussian_kernel_density_3d(points, grid_size=50, bandwidth=0.1):
     x = np.linspace(0, 1, grid_size)
     y = np.linspace(0, 1, grid_size)
     z = np.linspace(0, 1, grid_size)
-    X, Y, Z = np.meshgrid(x, y, z, indexing='ij')
+    X, Y, Z = np.meshgrid(x, y, z, indexing="ij")
 
     # Compute density at each grid point
     density = np.zeros((grid_size, grid_size, grid_size))
@@ -168,10 +174,10 @@ def gaussian_kernel_density_3d(points, grid_size=50, bandwidth=0.1):
     # Batch processing for memory efficiency
     batch_size = 1000
     for i in range(0, len(points_norm), batch_size):
-        batch = points_norm[i:i+batch_size]
+        batch = points_norm[i : i + batch_size]
         # Compute distances from batch to all grid points
         for p in batch:
-            dist_sq = np.sum((grid_points - p)**2, axis=1)
+            dist_sq = np.sum((grid_points - p) ** 2, axis=1)
             kernel = np.exp(-dist_sq / (2 * bandwidth**2))
             density += kernel.reshape(grid_size, grid_size, grid_size)
 
@@ -260,9 +266,15 @@ def create_soft_surface_mesh(points, values, resolution=30):
         n_sample = min(2000, len(points))
         idx = np.random.choice(len(points), n_sample, replace=False)
 
-        rbf_x = RBFInterpolator(uv[idx], points[idx, 0], kernel='thin_plate_spline', smoothing=0.1)
-        rbf_y = RBFInterpolator(uv[idx], points[idx, 1], kernel='thin_plate_spline', smoothing=0.1)
-        rbf_z = RBFInterpolator(uv[idx], points[idx, 2], kernel='thin_plate_spline', smoothing=0.1)
+        rbf_x = RBFInterpolator(
+            uv[idx], points[idx, 0], kernel="thin_plate_spline", smoothing=0.1
+        )
+        rbf_y = RBFInterpolator(
+            uv[idx], points[idx, 1], kernel="thin_plate_spline", smoothing=0.1
+        )
+        rbf_z = RBFInterpolator(
+            uv[idx], points[idx, 2], kernel="thin_plate_spline", smoothing=0.1
+        )
 
         grid_points = np.stack([U.ravel(), V.ravel()], axis=1)
 
@@ -282,97 +294,155 @@ def plot_surface_comparison(points_16d, points_32d, output_path):
     fig = plt.figure(figsize=(24, 18))
 
     # Row 1: Point clouds
-    ax = fig.add_subplot(3, 4, 1, projection='3d')
-    ax.scatter(points_16d[:, 0], points_16d[:, 1], points_16d[:, 2],
-               c=np.arange(len(points_16d)), cmap='viridis', s=1, alpha=0.5)
-    ax.set_title('16D Quintic (Points)')
+    ax = fig.add_subplot(3, 4, 1, projection="3d")
+    ax.scatter(
+        points_16d[:, 0],
+        points_16d[:, 1],
+        points_16d[:, 2],
+        c=np.arange(len(points_16d)),
+        cmap="viridis",
+        s=1,
+        alpha=0.5,
+    )
+    ax.set_title("16D Quintic (Points)")
     ax.view_init(elev=20, azim=45)
 
-    ax = fig.add_subplot(3, 4, 2, projection='3d')
-    ax.scatter(points_32d[:, 0], points_32d[:, 1], points_32d[:, 2],
-               c=np.arange(len(points_32d)), cmap='plasma', s=1, alpha=0.5)
-    ax.set_title('32D Quintic (Points)')
+    ax = fig.add_subplot(3, 4, 2, projection="3d")
+    ax.scatter(
+        points_32d[:, 0],
+        points_32d[:, 1],
+        points_32d[:, 2],
+        c=np.arange(len(points_32d)),
+        cmap="plasma",
+        s=1,
+        alpha=0.5,
+    )
+    ax.set_title("32D Quintic (Points)")
     ax.view_init(elev=20, azim=45)
 
     # K3 surface projection
     k3_16d = calabi_yau_k3_surface(np.random.randn(len(points_16d), 16))
-    ax = fig.add_subplot(3, 4, 3, projection='3d')
-    ax.scatter(k3_16d[:, 0], k3_16d[:, 1], k3_16d[:, 2],
-               c=np.arange(len(k3_16d)), cmap='twilight', s=1, alpha=0.5)
-    ax.set_title('K3 Surface (16D)')
+    ax = fig.add_subplot(3, 4, 3, projection="3d")
+    ax.scatter(
+        k3_16d[:, 0],
+        k3_16d[:, 1],
+        k3_16d[:, 2],
+        c=np.arange(len(k3_16d)),
+        cmap="twilight",
+        s=1,
+        alpha=0.5,
+    )
+    ax.set_title("K3 Surface (16D)")
     ax.view_init(elev=20, azim=45)
 
     # Row 2: Density-based surfaces (isosurface)
     print("Computing density for 16D...")
-    density_16d, bounds_16d = gaussian_kernel_density_3d(points_16d, grid_size=40, bandwidth=0.15)
-    verts_16d, faces_16d, normals_16d = extract_isosurface(density_16d, bounds=bounds_16d)
+    density_16d, bounds_16d = gaussian_kernel_density_3d(
+        points_16d, grid_size=40, bandwidth=0.15
+    )
+    verts_16d, faces_16d, normals_16d = extract_isosurface(
+        density_16d, bounds=bounds_16d
+    )
 
-    ax = fig.add_subplot(3, 4, 5, projection='3d')
+    ax = fig.add_subplot(3, 4, 5, projection="3d")
     if verts_16d is not None:
-        mesh = Poly3DCollection(verts_16d[faces_16d], alpha=0.7,
-                                facecolor='cyan', edgecolor='darkblue', linewidth=0.1)
+        mesh = Poly3DCollection(
+            verts_16d[faces_16d],
+            alpha=0.7,
+            facecolor="cyan",
+            edgecolor="darkblue",
+            linewidth=0.1,
+        )
         ax.add_collection3d(mesh)
         ax.set_xlim(verts_16d[:, 0].min(), verts_16d[:, 0].max())
         ax.set_ylim(verts_16d[:, 1].min(), verts_16d[:, 1].max())
         ax.set_zlim(verts_16d[:, 2].min(), verts_16d[:, 2].max())
-    ax.set_title('16D Isosurface (Marching Cubes)')
+    ax.set_title("16D Isosurface (Marching Cubes)")
     ax.view_init(elev=20, azim=45)
 
     print("Computing density for 32D...")
-    density_32d, bounds_32d = gaussian_kernel_density_3d(points_32d, grid_size=40, bandwidth=0.15)
-    verts_32d, faces_32d, normals_32d = extract_isosurface(density_32d, bounds=bounds_32d)
+    density_32d, bounds_32d = gaussian_kernel_density_3d(
+        points_32d, grid_size=40, bandwidth=0.15
+    )
+    verts_32d, faces_32d, normals_32d = extract_isosurface(
+        density_32d, bounds=bounds_32d
+    )
 
-    ax = fig.add_subplot(3, 4, 6, projection='3d')
+    ax = fig.add_subplot(3, 4, 6, projection="3d")
     if verts_32d is not None:
-        mesh = Poly3DCollection(verts_32d[faces_32d], alpha=0.7,
-                                facecolor='magenta', edgecolor='darkmagenta', linewidth=0.1)
+        mesh = Poly3DCollection(
+            verts_32d[faces_32d],
+            alpha=0.7,
+            facecolor="magenta",
+            edgecolor="darkmagenta",
+            linewidth=0.1,
+        )
         ax.add_collection3d(mesh)
         ax.set_xlim(verts_32d[:, 0].min(), verts_32d[:, 0].max())
         ax.set_ylim(verts_32d[:, 1].min(), verts_32d[:, 1].max())
         ax.set_zlim(verts_32d[:, 2].min(), verts_32d[:, 2].max())
-    ax.set_title('32D Isosurface (Marching Cubes)')
+    ax.set_title("32D Isosurface (Marching Cubes)")
     ax.view_init(elev=20, azim=45)
 
     # Row 2 continued: RBF smooth surfaces
     print("Computing RBF surface for 16D...")
     X_16, Y_16, Z_16 = create_soft_surface_mesh(points_16d, None, resolution=40)
 
-    ax = fig.add_subplot(3, 4, 7, projection='3d')
+    ax = fig.add_subplot(3, 4, 7, projection="3d")
     if X_16 is not None:
-        ax.plot_surface(X_16, Y_16, Z_16, cmap='viridis', alpha=0.8,
-                       edgecolor='none', antialiased=True)
-    ax.set_title('16D RBF Surface')
+        ax.plot_surface(
+            X_16,
+            Y_16,
+            Z_16,
+            cmap="viridis",
+            alpha=0.8,
+            edgecolor="none",
+            antialiased=True,
+        )
+    ax.set_title("16D RBF Surface")
     ax.view_init(elev=20, azim=45)
 
     print("Computing RBF surface for 32D...")
     X_32, Y_32, Z_32 = create_soft_surface_mesh(points_32d, None, resolution=40)
 
-    ax = fig.add_subplot(3, 4, 8, projection='3d')
+    ax = fig.add_subplot(3, 4, 8, projection="3d")
     if X_32 is not None:
-        ax.plot_surface(X_32, Y_32, Z_32, cmap='plasma', alpha=0.8,
-                       edgecolor='none', antialiased=True)
-    ax.set_title('32D RBF Surface')
+        ax.plot_surface(
+            X_32,
+            Y_32,
+            Z_32,
+            cmap="plasma",
+            alpha=0.8,
+            edgecolor="none",
+            antialiased=True,
+        )
+    ax.set_title("32D RBF Surface")
     ax.view_init(elev=20, azim=45)
 
     # Row 3: Multiple isosurface levels (showing manifold structure)
     levels = [50, 60, 70, 80]
     for i, level_pct in enumerate(levels):
-        ax = fig.add_subplot(3, 4, 9 + i, projection='3d')
+        ax = fig.add_subplot(3, 4, 9 + i, projection="3d")
         level = np.percentile(density_16d, level_pct)
-        verts, faces, _ = extract_isosurface(density_16d, level=level, bounds=bounds_16d)
+        verts, faces, _ = extract_isosurface(
+            density_16d, level=level, bounds=bounds_16d
+        )
         if verts is not None and len(faces) > 0:
-            mesh = Poly3DCollection(verts[faces], alpha=0.6,
-                                    facecolor=plt.cm.viridis(i/4),
-                                    edgecolor='none')
+            mesh = Poly3DCollection(
+                verts[faces],
+                alpha=0.6,
+                facecolor=plt.cm.viridis(i / 4),
+                edgecolor="none",
+            )
             ax.add_collection3d(mesh)
             ax.set_xlim(bounds_16d[0][0], bounds_16d[1][0])
             ax.set_ylim(bounds_16d[0][1], bounds_16d[1][1])
             ax.set_zlim(bounds_16d[0][2], bounds_16d[1][2])
-        ax.set_title(f'Isosurface @ {level_pct}%')
-        ax.view_init(elev=25, azim=45 + i*30)
+        ax.set_title(f"Isosurface @ {level_pct}%")
+        ax.view_init(elev=25, azim=45 + i * 30)
 
     plt.tight_layout()
-    plt.savefig(output_path / 'calabi_yau_surfaces.png', dpi=150, bbox_inches='tight')
+    plt.savefig(output_path / "calabi_yau_surfaces.png", dpi=150, bbox_inches="tight")
     plt.close()
     print(f"Saved: {output_path / 'calabi_yau_surfaces.png'}")
 
@@ -383,96 +453,105 @@ def export_mesh_data(points_16d, points_32d, output_path):
     # Compute isosurfaces
     print("Generating mesh data for export...")
 
-    density_16d, bounds_16d = gaussian_kernel_density_3d(points_16d, grid_size=50, bandwidth=0.12)
-    verts_16d, faces_16d, normals_16d = extract_isosurface(density_16d, bounds=bounds_16d)
+    density_16d, bounds_16d = gaussian_kernel_density_3d(
+        points_16d, grid_size=50, bandwidth=0.12
+    )
+    verts_16d, faces_16d, normals_16d = extract_isosurface(
+        density_16d, bounds=bounds_16d
+    )
 
-    density_32d, bounds_32d = gaussian_kernel_density_3d(points_32d, grid_size=50, bandwidth=0.12)
-    verts_32d, faces_32d, normals_32d = extract_isosurface(density_32d, bounds=bounds_32d)
+    density_32d, bounds_32d = gaussian_kernel_density_3d(
+        points_32d, grid_size=50, bandwidth=0.12
+    )
+    verts_32d, faces_32d, normals_32d = extract_isosurface(
+        density_32d, bounds=bounds_32d
+    )
 
     # Export as JSON for Three.js
     mesh_data = {
-        '16d': {
-            'vertices': verts_16d.tolist() if verts_16d is not None else [],
-            'faces': faces_16d.tolist() if faces_16d is not None else [],
-            'normals': normals_16d.tolist() if normals_16d is not None else [],
-            'bounds': [bounds_16d[0].tolist(), bounds_16d[1].tolist()]
+        "16d": {
+            "vertices": verts_16d.tolist() if verts_16d is not None else [],
+            "faces": faces_16d.tolist() if faces_16d is not None else [],
+            "normals": normals_16d.tolist() if normals_16d is not None else [],
+            "bounds": [bounds_16d[0].tolist(), bounds_16d[1].tolist()],
         },
-        '32d': {
-            'vertices': verts_32d.tolist() if verts_32d is not None else [],
-            'faces': faces_32d.tolist() if faces_32d is not None else [],
-            'normals': normals_32d.tolist() if normals_32d is not None else [],
-            'bounds': [bounds_32d[0].tolist(), bounds_32d[1].tolist()]
-        }
+        "32d": {
+            "vertices": verts_32d.tolist() if verts_32d is not None else [],
+            "faces": faces_32d.tolist() if faces_32d is not None else [],
+            "normals": normals_32d.tolist() if normals_32d is not None else [],
+            "bounds": [bounds_32d[0].tolist(), bounds_32d[1].tolist()],
+        },
     }
 
-    with open(output_path / 'mesh_data.json', 'w') as f:
+    with open(output_path / "mesh_data.json", "w") as f:
         json.dump(mesh_data, f)
     print(f"Saved: {output_path / 'mesh_data.json'}")
 
     # Also export density grids for volumetric rendering
-    np.save(output_path / 'density_16d.npy', density_16d)
-    np.save(output_path / 'density_32d.npy', density_32d)
+    np.save(output_path / "density_16d.npy", density_16d)
+    np.save(output_path / "density_32d.npy", density_32d)
     print("Saved: density_16d.npy, density_32d.npy")
 
     # Export points with projection data
     df = pd.DataFrame()
-    df['idx'] = np.arange(len(points_16d))
+    df["idx"] = np.arange(len(points_16d))
 
     # 16D projections
-    for i, name in enumerate(['x', 'y', 'z']):
-        df[f'quintic_16d_{name}'] = points_16d[:, i]
+    for i, name in enumerate(["x", "y", "z"]):
+        df[f"quintic_16d_{name}"] = points_16d[:, i]
 
     # 32D projections
-    for i, name in enumerate(['x', 'y', 'z']):
-        df[f'quintic_32d_{name}'] = points_32d[:, i]
+    for i, name in enumerate(["x", "y", "z"]):
+        df[f"quintic_32d_{name}"] = points_32d[:, i]
 
     # K3 projections
     k3_points = calabi_yau_k3_surface(np.random.randn(len(points_16d), 16))
-    for i, name in enumerate(['x', 'y', 'z']):
-        df[f'k3_{name}'] = k3_points[:, i]
+    for i, name in enumerate(["x", "y", "z"]):
+        df[f"k3_{name}"] = k3_points[:, i]
 
-    df.to_csv(output_path / 'surface_projections.csv', index=False)
+    df.to_csv(output_path / "surface_projections.csv", index=False)
     print(f"Saved: {output_path / 'surface_projections.csv'}")
 
 
 def main():
-    output_path = Path('outputs/viz/calabi_yau')
+    output_path = Path("outputs/viz/calabi_yau")
     output_path.mkdir(parents=True, exist_ok=True)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Device: {device}')
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device: {device}")
 
     # Load embeddings
-    print('\nLoading embeddings...')
-    data = load_embeddings('sandbox-training/checkpoints/v5_5/latest.pt', device)
+    print("\nLoading embeddings...")
+    data = load_embeddings("sandbox-training/checkpoints/v5_5/latest.pt", device)
 
-    z_A = data['z_A']  # (19683, 16)
-    z_B = data['z_B']  # (19683, 16)
+    z_A = data["z_A"]  # (19683, 16)
+    z_B = data["z_B"]  # (19683, 16)
 
     # Create 32D embedding
     z_32d = create_32d_embedding(z_A, z_B)  # (19683, 32)
-    print(f'16D shape: {z_A.shape}, 32D shape: {z_32d.shape}')
+    print(f"16D shape: {z_A.shape}, 32D shape: {z_32d.shape}")
 
     # Generate Calabi-Yau projections
-    print('\nGenerating Calabi-Yau projections...')
-    from scripts.visualization.calabi_yau_projection import calabi_yau_quintic_projection
+    print("\nGenerating Calabi-Yau projections...")
+    from scripts.visualization.calabi_yau_projection import \
+        calabi_yau_quintic_projection
 
     points_16d = calabi_yau_quintic_projection(z_A)
     points_32d = calabi_yau_quintic_32d(z_32d)
 
-    print(f'16D projection range: [{points_16d.min():.3f}, {points_16d.max():.3f}]')
-    print(f'32D projection range: [{points_32d.min():.3f}, {points_32d.max():.3f}]')
+    print(f"16D projection range: [{points_16d.min():.3f}, {points_16d.max():.3f}]")
+    print(f"32D projection range: [{points_32d.min():.3f}, {points_32d.max():.3f}]")
 
     # Generate surface visualizations
-    print('\nGenerating surface meshes...')
+    print("\nGenerating surface meshes...")
     plot_surface_comparison(points_16d, points_32d, output_path)
 
     # Export mesh data
-    print('\nExporting mesh data...')
+    print("\nExporting mesh data...")
     export_mesh_data(points_16d, points_32d, output_path)
 
-    print('\nDone!')
+    print("\nDone!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

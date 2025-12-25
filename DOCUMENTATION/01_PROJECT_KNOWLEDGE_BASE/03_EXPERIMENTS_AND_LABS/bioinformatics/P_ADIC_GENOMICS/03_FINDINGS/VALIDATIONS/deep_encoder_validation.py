@@ -17,14 +17,15 @@ Date: 2025-12-19
 
 import json
 import sys
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from collections import defaultdict
-from scipy.stats import spearmanr, pearsonr
 from scipy.spatial.distance import cdist
+from scipy.stats import pearsonr, spearmanr
 
 # Add paths
 SCRIPT_DIR = Path(__file__).parent
@@ -40,25 +41,73 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # ============================================================================
 
 CODON_TABLE = {
-    'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
-    'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
-    'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*',
-    'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
-    'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
-    'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-    'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
-    'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-    'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M',
-    'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
-    'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
-    'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
-    'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
-    'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-    'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
-    'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G',
+    "TTT": "F",
+    "TTC": "F",
+    "TTA": "L",
+    "TTG": "L",
+    "TCT": "S",
+    "TCC": "S",
+    "TCA": "S",
+    "TCG": "S",
+    "TAT": "Y",
+    "TAC": "Y",
+    "TAA": "*",
+    "TAG": "*",
+    "TGT": "C",
+    "TGC": "C",
+    "TGA": "*",
+    "TGG": "W",
+    "CTT": "L",
+    "CTC": "L",
+    "CTA": "L",
+    "CTG": "L",
+    "CCT": "P",
+    "CCC": "P",
+    "CCA": "P",
+    "CCG": "P",
+    "CAT": "H",
+    "CAC": "H",
+    "CAA": "Q",
+    "CAG": "Q",
+    "CGT": "R",
+    "CGC": "R",
+    "CGA": "R",
+    "CGG": "R",
+    "ATT": "I",
+    "ATC": "I",
+    "ATA": "I",
+    "ATG": "M",
+    "ACT": "T",
+    "ACC": "T",
+    "ACA": "T",
+    "ACG": "T",
+    "AAT": "N",
+    "AAC": "N",
+    "AAA": "K",
+    "AAG": "K",
+    "AGT": "S",
+    "AGC": "S",
+    "AGA": "R",
+    "AGG": "R",
+    "GTT": "V",
+    "GTC": "V",
+    "GTA": "V",
+    "GTG": "V",
+    "GCT": "A",
+    "GCC": "A",
+    "GCA": "A",
+    "GCG": "A",
+    "GAT": "D",
+    "GAC": "D",
+    "GAA": "E",
+    "GAG": "E",
+    "GGT": "G",
+    "GGC": "G",
+    "GGA": "G",
+    "GGG": "G",
 }
 
-NUCLEOTIDES = ['A', 'C', 'G', 'T']
+NUCLEOTIDES = ["A", "C", "G", "T"]
 ALL_CODONS = list(CODON_TABLE.keys())
 
 
@@ -66,13 +115,14 @@ ALL_CODONS = list(CODON_TABLE.keys())
 # HYPERBOLIC GEOMETRY FUNCTIONS
 # ============================================================================
 
+
 def poincare_distance(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> float:
     """Compute Poincaré ball geodesic distance."""
     x = np.atleast_2d(x)
     y = np.atleast_2d(y)
 
-    norm_x_sq = np.sum(x ** 2, axis=-1)
-    norm_y_sq = np.sum(y ** 2, axis=-1)
+    norm_x_sq = np.sum(x**2, axis=-1)
+    norm_y_sq = np.sum(y**2, axis=-1)
     diff_sq = np.sum((x - y) ** 2, axis=-1)
 
     denom = (1 - c * norm_x_sq) * (1 - c * norm_y_sq)
@@ -91,8 +141,8 @@ def mobius_addition(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> np.ndarray:
     y = np.atleast_2d(y)
 
     xy = np.sum(x * y, axis=-1, keepdims=True)
-    x_sq = np.sum(x ** 2, axis=-1, keepdims=True)
-    y_sq = np.sum(y ** 2, axis=-1, keepdims=True)
+    x_sq = np.sum(x**2, axis=-1, keepdims=True)
+    y_sq = np.sum(y**2, axis=-1, keepdims=True)
 
     num = (1 + 2 * c * xy + c * y_sq) * x + (1 - c * x_sq) * y
     denom = 1 + 2 * c * xy + c**2 * x_sq * y_sq
@@ -110,7 +160,9 @@ def exp_map(x: np.ndarray, v: np.ndarray, c: float = 1.0) -> np.ndarray:
         return x
 
     lambda_x = float(conformal_factor(x, c))
-    second_term = np.tanh(np.sqrt(c) * lambda_x * v_norm / 2) * v / (np.sqrt(c) * v_norm)
+    second_term = (
+        np.tanh(np.sqrt(c) * lambda_x * v_norm / 2) * v / (np.sqrt(c) * v_norm)
+    )
 
     return np.squeeze(mobius_addition(x, second_term, c))
 
@@ -127,7 +179,13 @@ def log_map(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> np.ndarray:
         return np.zeros_like(x)
 
     lambda_x = float(conformal_factor(x, c))
-    return 2 / (np.sqrt(c) * lambda_x) * np.arctanh(np.minimum(np.sqrt(c) * xy_norm, 0.999)) * xy / xy_norm
+    return (
+        2
+        / (np.sqrt(c) * lambda_x)
+        * np.arctanh(np.minimum(np.sqrt(c) * xy_norm, 0.999))
+        * xy
+        / xy_norm
+    )
 
 
 def hyperbolic_midpoint(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> np.ndarray:
@@ -142,11 +200,13 @@ def hyperbolic_midpoint(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> np.ndar
 
 def conformal_factor(x: np.ndarray, c: float = 1.0) -> np.ndarray:
     """Compute conformal factor λ(x) = 2 / (1 - c||x||²)"""
-    norm_sq = np.sum(x ** 2, axis=-1)
+    norm_sq = np.sum(x**2, axis=-1)
     return 2.0 / (1 - c * norm_sq + 1e-10)
 
 
-def hyperbolic_frechet_mean(points: np.ndarray, c: float = 1.0, max_iter: int = 100, tol: float = 1e-6) -> np.ndarray:
+def hyperbolic_frechet_mean(
+    points: np.ndarray, c: float = 1.0, max_iter: int = 100, tol: float = 1e-6
+) -> np.ndarray:
     """
     Compute Fréchet mean (hyperbolic centroid) using Riemannian gradient descent.
 
@@ -195,7 +255,7 @@ def hyperbolic_frechet_mean(points: np.ndarray, c: float = 1.0, max_iter: int = 
 def padic_valuation_3(n: int) -> int:
     """Compute 3-adic valuation v₃(n) = max k such that 3^k divides n."""
     if n == 0:
-        return float('inf')
+        return float("inf")
     v = 0
     while n % 3 == 0:
         n //= 3
@@ -212,7 +272,7 @@ def padic_distance_3(i: int, j: int) -> float:
 
 def codon_to_ternary_position(codon: str) -> int:
     """Convert codon to ternary position (0-63 in base-3)."""
-    nuc_map = {'T': 0, 'C': 1, 'A': 2, 'G': 2}  # Simplified
+    nuc_map = {"T": 0, "C": 1, "A": 2, "G": 2}  # Simplified
     pos = 0
     for i, n in enumerate(codon):
         pos = pos * 3 + nuc_map.get(n, 0)
@@ -222,6 +282,7 @@ def codon_to_ternary_position(codon: str) -> int:
 # ============================================================================
 # ENCODER LOADING
 # ============================================================================
+
 
 class CodonEncoder3Adic(nn.Module):
     """Encode codons into V5.11.3 hyperbolic embedding space."""
@@ -255,11 +316,11 @@ def load_encoder():
     if not encoder_path.exists():
         raise FileNotFoundError(f"Encoder not found: {encoder_path}")
 
-    checkpoint = torch.load(encoder_path, map_location='cpu', weights_only=False)
+    checkpoint = torch.load(encoder_path, map_location="cpu", weights_only=False)
 
     # Rebuild model
     model = CodonEncoder3Adic()
-    model.load_state_dict(checkpoint['model_state'])
+    model.load_state_dict(checkpoint["model_state"])
     model.eval()
 
     return model, checkpoint
@@ -267,7 +328,7 @@ def load_encoder():
 
 def get_all_embeddings(model: CodonEncoder3Adic) -> Dict[str, np.ndarray]:
     """Get embeddings for all 64 codons."""
-    nuc_to_idx = {'A': 0, 'C': 1, 'G': 2, 'T': 3}
+    nuc_to_idx = {"A": 0, "C": 1, "G": 2, "T": 3}
 
     embeddings = {}
     features_list = []
@@ -296,7 +357,10 @@ def get_all_embeddings(model: CodonEncoder3Adic) -> Dict[str, np.ndarray]:
 # DEEP VALIDATION TESTS
 # ============================================================================
 
-def test_knn_neighborhood_accuracy(embeddings: Dict[str, np.ndarray], k: int = 5) -> Dict:
+
+def test_knn_neighborhood_accuracy(
+    embeddings: Dict[str, np.ndarray], k: int = 5
+) -> Dict:
     """
     Test 1: k-NN Neighborhood Accuracy
 
@@ -307,12 +371,7 @@ def test_knn_neighborhood_accuracy(embeddings: Dict[str, np.ndarray], k: int = 5
     print(f"TEST 1: k-NN Neighborhood Accuracy (k={k})")
     print("-" * 70)
 
-    results = {
-        "test": "knn_accuracy",
-        "k": k,
-        "per_codon": {},
-        "per_aa": {}
-    }
+    results = {"test": "knn_accuracy", "k": k, "per_codon": {}, "per_aa": {}}
 
     codon_list = list(embeddings.keys())
     emb_matrix = np.array([embeddings[c] for c in codon_list])
@@ -351,7 +410,7 @@ def test_knn_neighborhood_accuracy(embeddings: Dict[str, np.ndarray], k: int = 5
         results["per_codon"][codon] = {
             "neighbors": [codon_list[j] for j in k_neighbors],
             "correct": correct,
-            "max_possible": k_actual
+            "max_possible": k_actual,
         }
 
         total_correct += correct
@@ -361,7 +420,7 @@ def test_knn_neighborhood_accuracy(embeddings: Dict[str, np.ndarray], k: int = 5
     results["summary"] = {
         "total_correct": total_correct,
         "total_possible": total_neighbors,
-        "accuracy": float(accuracy)
+        "accuracy": float(accuracy),
     }
 
     print(f"  Overall k-NN accuracy: {accuracy*100:.1f}%")
@@ -381,11 +440,7 @@ def test_geodesic_interpolation(embeddings: Dict[str, np.ndarray]) -> Dict:
     print("TEST 2: Geodesic Interpolation")
     print("-" * 70)
 
-    results = {
-        "test": "geodesic_interpolation",
-        "aa_tests": {},
-        "summary": {}
-    }
+    results = {"test": "geodesic_interpolation", "aa_tests": {}, "summary": {}}
 
     aa_to_codons = defaultdict(list)
     for codon, aa in CODON_TABLE.items():
@@ -400,7 +455,9 @@ def test_geodesic_interpolation(embeddings: Dict[str, np.ndarray]) -> Dict:
 
         aa_embeddings = [embeddings[c] for c in codons]
         centroid = hyperbolic_frechet_mean(np.array(aa_embeddings))
-        max_dist_to_centroid = max(poincare_distance(e, centroid) for e in aa_embeddings)
+        max_dist_to_centroid = max(
+            poincare_distance(e, centroid) for e in aa_embeddings
+        )
 
         midpoint_tests = []
         for i in range(len(codons)):
@@ -414,13 +471,15 @@ def test_geodesic_interpolation(embeddings: Dict[str, np.ndarray]) -> Dict:
                 # Midpoint should be within cluster (within max dist)
                 is_valid = dist_to_centroid <= max_dist_to_centroid * 1.5
 
-                midpoint_tests.append({
-                    "codon_i": codons[i],
-                    "codon_j": codons[j],
-                    "midpoint_dist_to_centroid": float(dist_to_centroid),
-                    "max_cluster_dist": float(max_dist_to_centroid),
-                    "valid": is_valid
-                })
+                midpoint_tests.append(
+                    {
+                        "codon_i": codons[i],
+                        "codon_j": codons[j],
+                        "midpoint_dist_to_centroid": float(dist_to_centroid),
+                        "max_cluster_dist": float(max_dist_to_centroid),
+                        "valid": is_valid,
+                    }
+                )
 
                 if is_valid:
                     interpolations_valid += 1
@@ -429,14 +488,14 @@ def test_geodesic_interpolation(embeddings: Dict[str, np.ndarray]) -> Dict:
         results["aa_tests"][aa] = {
             "n_codons": len(codons),
             "midpoint_tests": midpoint_tests,
-            "centroid_radius": float(max_dist_to_centroid)
+            "centroid_radius": float(max_dist_to_centroid),
         }
 
     validity_rate = interpolations_valid / max(total_interpolations, 1)
     results["summary"] = {
         "valid_interpolations": interpolations_valid,
         "total_interpolations": total_interpolations,
-        "validity_rate": float(validity_rate)
+        "validity_rate": float(validity_rate),
     }
 
     print(f"  Valid interpolations: {interpolations_valid}/{total_interpolations}")
@@ -456,11 +515,7 @@ def test_padic_correlation(embeddings: Dict[str, np.ndarray]) -> Dict:
     print("TEST 3: P-adic Valuation Correlation")
     print("-" * 70)
 
-    results = {
-        "test": "padic_correlation",
-        "correlations": {},
-        "summary": {}
-    }
+    results = {"test": "padic_correlation", "correlations": {}, "summary": {}}
 
     codon_list = list(embeddings.keys())
     n = len(codon_list)
@@ -487,7 +542,7 @@ def test_padic_correlation(embeddings: Dict[str, np.ndarray]) -> Dict:
         "spearman_r": float(spearman_r),
         "spearman_p": float(spearman_p),
         "pearson_r": float(pearson_r),
-        "pearson_p": float(pearson_p)
+        "pearson_p": float(pearson_p),
     }
 
     # Also test within synonymous groups
@@ -502,7 +557,9 @@ def test_padic_correlation(embeddings: Dict[str, np.ndarray]) -> Dict:
         for i in range(len(indices)):
             for j in range(i + 1, len(indices)):
                 idx_i, idx_j = indices[i], indices[j]
-                pd = poincare_distance(embeddings[codon_list[idx_i]], embeddings[codon_list[idx_j]])
+                pd = poincare_distance(
+                    embeddings[codon_list[idx_i]], embeddings[codon_list[idx_j]]
+                )
                 pad = padic_distance_3(positions[idx_i], positions[idx_j])
                 within_syn_poincare.append(pd)
                 within_syn_padic.append(pad)
@@ -514,7 +571,9 @@ def test_padic_correlation(embeddings: Dict[str, np.ndarray]) -> Dict:
     print(f"  Overall Spearman correlation: {spearman_r:.4f} (p={spearman_p:.2e})")
     print(f"  Overall Pearson correlation: {pearson_r:.4f}")
     if "within_synonymous_correlation" in results:
-        print(f"  Within-synonymous correlation: {results['within_synonymous_correlation']:.4f}")
+        print(
+            f"  Within-synonymous correlation: {results['within_synonymous_correlation']:.4f}"
+        )
 
     return results
 
@@ -529,11 +588,7 @@ def test_cluster_purity(embeddings: Dict[str, np.ndarray]) -> Dict:
     print("TEST 4: Cluster Purity Metrics")
     print("-" * 70)
 
-    results = {
-        "test": "cluster_purity",
-        "per_aa": {},
-        "summary": {}
-    }
+    results = {"test": "cluster_purity", "per_aa": {}, "summary": {}}
 
     aa_to_codons = defaultdict(list)
     for codon, aa in CODON_TABLE.items():
@@ -556,7 +611,9 @@ def test_cluster_purity(embeddings: Dict[str, np.ndarray]) -> Dict:
     # Compute silhouette-like score for each codon
     for i, codon in enumerate(codon_list):
         aa = CODON_TABLE[codon]
-        same_aa_indices = [j for j, c in enumerate(codon_list) if CODON_TABLE[c] == aa and j != i]
+        same_aa_indices = [
+            j for j, c in enumerate(codon_list) if CODON_TABLE[c] == aa and j != i
+        ]
         diff_aa_indices = [j for j, c in enumerate(codon_list) if CODON_TABLE[c] != aa]
 
         if same_aa_indices and diff_aa_indices:
@@ -583,12 +640,12 @@ def test_cluster_purity(embeddings: Dict[str, np.ndarray]) -> Dict:
             "n_codons": len(codons),
             "mean_dist_to_centroid": float(np.mean(intra_dists)),
             "max_dist_to_centroid": float(np.max(intra_dists)),
-            "std_dist_to_centroid": float(np.std(intra_dists))
+            "std_dist_to_centroid": float(np.std(intra_dists)),
         }
 
     results["summary"] = {
         "mean_silhouette_score": float(mean_silhouette),
-        "silhouette_valid": mean_silhouette > 0.3
+        "silhouette_valid": mean_silhouette > 0.3,
     }
 
     print(f"  Mean silhouette score: {mean_silhouette:.4f}")
@@ -612,7 +669,7 @@ def test_radial_distribution(embeddings: Dict[str, np.ndarray]) -> Dict:
         "test": "radial_distribution",
         "per_aa": {},
         "degeneracy_analysis": {},
-        "summary": {}
+        "summary": {},
     }
 
     aa_to_codons = defaultdict(list)
@@ -633,7 +690,7 @@ def test_radial_distribution(embeddings: Dict[str, np.ndarray]) -> Dict:
             "degeneracy": degeneracy,
             "mean_radius": float(mean_radius),
             "min_radius": float(np.min(radii)),
-            "max_radius": float(np.max(radii))
+            "max_radius": float(np.max(radii)),
         }
 
         degeneracy_to_radii[degeneracy].append(mean_radius)
@@ -643,7 +700,7 @@ def test_radial_distribution(embeddings: Dict[str, np.ndarray]) -> Dict:
         results["degeneracy_analysis"][deg] = {
             "n_amino_acids": len(radii),
             "mean_radius": float(np.mean(radii)),
-            "std_radius": float(np.std(radii))
+            "std_radius": float(np.std(radii)),
         }
         print(f"  {deg}-fold degenerate: mean radius = {np.mean(radii):.4f}")
 
@@ -678,7 +735,7 @@ def test_angular_separation(embeddings: Dict[str, np.ndarray]) -> Dict:
         "test": "angular_separation",
         "cluster_centroids": {},
         "angular_distances": [],
-        "summary": {}
+        "summary": {},
     }
 
     aa_to_codons = defaultdict(list)
@@ -694,7 +751,7 @@ def test_angular_separation(embeddings: Dict[str, np.ndarray]) -> Dict:
 
         results["cluster_centroids"][aa] = {
             "centroid": centroid.tolist(),
-            "radius": float(np.linalg.norm(centroid))
+            "radius": float(np.linalg.norm(centroid)),
         }
 
     # Compute angular distances between centroids
@@ -702,7 +759,7 @@ def test_angular_separation(embeddings: Dict[str, np.ndarray]) -> Dict:
     angular_dists = []
 
     for i, aa1 in enumerate(aa_list):
-        for aa2 in aa_list[i+1:]:
+        for aa2 in aa_list[i + 1 :]:
             c1, c2 = centroids[aa1], centroids[aa2]
 
             # Angular distance (cosine of angle)
@@ -712,17 +769,19 @@ def test_angular_separation(embeddings: Dict[str, np.ndarray]) -> Dict:
                 angle = np.arccos(np.clip(cos_angle, -1, 1))
                 angular_dists.append(angle)
 
-                results["angular_distances"].append({
-                    "aa1": aa1,
-                    "aa2": aa2,
-                    "angle_radians": float(angle),
-                    "angle_degrees": float(np.degrees(angle))
-                })
+                results["angular_distances"].append(
+                    {
+                        "aa1": aa1,
+                        "aa2": aa2,
+                        "angle_radians": float(angle),
+                        "angle_degrees": float(np.degrees(angle)),
+                    }
+                )
 
     results["summary"] = {
         "mean_angular_distance_deg": float(np.degrees(np.mean(angular_dists))),
         "min_angular_distance_deg": float(np.degrees(np.min(angular_dists))),
-        "max_angular_distance_deg": float(np.degrees(np.max(angular_dists)))
+        "max_angular_distance_deg": float(np.degrees(np.max(angular_dists))),
     }
 
     print(f"  Mean angular separation: {np.degrees(np.mean(angular_dists)):.1f}°")
@@ -743,11 +802,7 @@ def test_conformal_factor_consistency(embeddings: Dict[str, np.ndarray]) -> Dict
     print("TEST 7: Conformal Factor Consistency")
     print("-" * 70)
 
-    results = {
-        "test": "conformal_factor",
-        "per_codon": {},
-        "summary": {}
-    }
+    results = {"test": "conformal_factor", "per_codon": {}, "summary": {}}
 
     conformal_factors = []
     radii = []
@@ -758,7 +813,7 @@ def test_conformal_factor_consistency(embeddings: Dict[str, np.ndarray]) -> Dict
 
         results["per_codon"][codon] = {
             "conformal_factor": float(cf),
-            "radius": float(r)
+            "radius": float(r),
         }
 
         conformal_factors.append(cf)
@@ -772,7 +827,7 @@ def test_conformal_factor_consistency(embeddings: Dict[str, np.ndarray]) -> Dict
         "max_conformal_factor": float(np.max(conformal_factors)),
         "radius_cf_correlation": float(corr),
         "correlation_p_value": float(p),
-        "geometry_consistent": corr > 0.9  # Strong positive correlation expected
+        "geometry_consistent": corr > 0.9,  # Strong positive correlation expected
     }
 
     print(f"  Mean conformal factor: {np.mean(conformal_factors):.4f}")
@@ -787,6 +842,7 @@ def test_conformal_factor_consistency(embeddings: Dict[str, np.ndarray]) -> Dict
 # MAIN
 # ============================================================================
 
+
 def run_deep_validation():
     """Run comprehensive deep validation of the encoder."""
 
@@ -799,8 +855,12 @@ def run_deep_validation():
     print("\nLoading encoder...")
     model, checkpoint = load_encoder()
 
-    print(f"  Encoder version: {checkpoint.get('metadata', {}).get('version', 'unknown')}")
-    print(f"  Source embeddings: {checkpoint.get('metadata', {}).get('source_embeddings', 'unknown')}")
+    print(
+        f"  Encoder version: {checkpoint.get('metadata', {}).get('version', 'unknown')}"
+    )
+    print(
+        f"  Source embeddings: {checkpoint.get('metadata', {}).get('source_embeddings', 'unknown')}"
+    )
 
     # Get all embeddings
     print("\nComputing embeddings for all 64 codons...")
@@ -808,18 +868,24 @@ def run_deep_validation():
 
     all_results = {
         "framework": "Deep 3-adic encoder validation",
-        "encoder_metadata": checkpoint.get('metadata', {}),
-        "tests": {}
+        "encoder_metadata": checkpoint.get("metadata", {}),
+        "tests": {},
     }
 
     # Run all tests
-    all_results["tests"]["knn_accuracy"] = test_knn_neighborhood_accuracy(embeddings, k=5)
-    all_results["tests"]["geodesic_interpolation"] = test_geodesic_interpolation(embeddings)
+    all_results["tests"]["knn_accuracy"] = test_knn_neighborhood_accuracy(
+        embeddings, k=5
+    )
+    all_results["tests"]["geodesic_interpolation"] = test_geodesic_interpolation(
+        embeddings
+    )
     all_results["tests"]["padic_correlation"] = test_padic_correlation(embeddings)
     all_results["tests"]["cluster_purity"] = test_cluster_purity(embeddings)
     all_results["tests"]["radial_distribution"] = test_radial_distribution(embeddings)
     all_results["tests"]["angular_separation"] = test_angular_separation(embeddings)
-    all_results["tests"]["conformal_factor"] = test_conformal_factor_consistency(embeddings)
+    all_results["tests"]["conformal_factor"] = test_conformal_factor_consistency(
+        embeddings
+    )
 
     # ========================================================================
     # Summary
@@ -829,10 +895,18 @@ def run_deep_validation():
     print("=" * 70)
 
     validations = {
-        "knn_accuracy": all_results["tests"]["knn_accuracy"]["summary"]["accuracy"] > 0.5,
-        "geodesic_interpolation": all_results["tests"]["geodesic_interpolation"]["summary"]["validity_rate"] > 0.8,
-        "cluster_purity": all_results["tests"]["cluster_purity"]["summary"]["silhouette_valid"],
-        "conformal_consistency": all_results["tests"]["conformal_factor"]["summary"]["geometry_consistent"],
+        "knn_accuracy": all_results["tests"]["knn_accuracy"]["summary"]["accuracy"]
+        > 0.5,
+        "geodesic_interpolation": all_results["tests"]["geodesic_interpolation"][
+            "summary"
+        ]["validity_rate"]
+        > 0.8,
+        "cluster_purity": all_results["tests"]["cluster_purity"]["summary"][
+            "silhouette_valid"
+        ],
+        "conformal_consistency": all_results["tests"]["conformal_factor"]["summary"][
+            "geometry_consistent"
+        ],
     }
 
     n_valid = sum(validations.values())
@@ -847,13 +921,18 @@ def run_deep_validation():
         "tests_passed": n_valid,
         "tests_total": n_total,
         "pass_rate": n_valid / n_total,
-        "validations": validations
+        "validations": validations,
     }
 
     # Save results
     output_file = OUTPUT_DIR / "deep_encoder_validation_results.json"
-    with open(output_file, 'w') as f:
-        json.dump(all_results, f, indent=2, default=lambda x: x.tolist() if hasattr(x, 'tolist') else str(x))
+    with open(output_file, "w") as f:
+        json.dump(
+            all_results,
+            f,
+            indent=2,
+            default=lambda x: x.tolist() if hasattr(x, "tolist") else str(x),
+        )
 
     print(f"\nResults saved to: {output_file}")
 

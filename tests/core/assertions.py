@@ -18,16 +18,19 @@ Usage:
     GeometryAssertions.assert_on_poincare_disk(points)
 """
 
-import torch
+from typing import Any, Dict, Optional, Tuple, Union
+
 import numpy as np
-from typing import Tuple, Optional, Dict, Any, Union
+import torch
 
 
 class TensorAssertions:
     """Assertions for tensor properties."""
 
     @staticmethod
-    def assert_shape(tensor: torch.Tensor, expected_shape: Tuple[int, ...], msg: str = ""):
+    def assert_shape(
+        tensor: torch.Tensor, expected_shape: Tuple[int, ...], msg: str = ""
+    ):
         """Assert tensor has expected shape."""
         if tensor.shape != expected_shape:
             raise AssertionError(
@@ -66,9 +69,7 @@ class TensorAssertions:
         """Assert tensor contains no NaN values."""
         if torch.isnan(tensor).any():
             nan_count = torch.isnan(tensor).sum().item()
-            raise AssertionError(
-                f"Tensor contains {nan_count} NaN values. {msg}"
-            )
+            raise AssertionError(f"Tensor contains {nan_count} NaN values. {msg}")
 
     @staticmethod
     def assert_positive(tensor: torch.Tensor, msg: str = ""):
@@ -94,7 +95,7 @@ class TensorAssertions:
         low: float,
         high: float,
         inclusive: bool = True,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert all tensor values are within range."""
         if inclusive:
@@ -118,7 +119,7 @@ class TensorAssertions:
         expected: torch.Tensor,
         atol: float = 1e-6,
         rtol: float = 1e-5,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert tensors are element-wise close within tolerance."""
         if not torch.allclose(actual, expected, atol=atol, rtol=rtol):
@@ -145,7 +146,7 @@ class GeometryAssertions:
         tensor: torch.Tensor,
         max_norm: float = 1.0,
         tolerance: float = 1e-5,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert all points have norm < max_norm (on Poincaré disk)."""
         norms = torch.norm(tensor, dim=-1)
@@ -159,23 +160,16 @@ class GeometryAssertions:
 
     @staticmethod
     def assert_distance_symmetry(
-        dist_ab: torch.Tensor,
-        dist_ba: torch.Tensor,
-        atol: float = 1e-5,
-        msg: str = ""
+        dist_ab: torch.Tensor, dist_ba: torch.Tensor, atol: float = 1e-5, msg: str = ""
     ):
         """Assert distance is symmetric: d(a,b) = d(b,a)."""
         if not torch.allclose(dist_ab, dist_ba, atol=atol):
             max_diff = (dist_ab - dist_ba).abs().max().item()
-            raise AssertionError(
-                f"Distance asymmetry! Max diff: {max_diff}. {msg}"
-            )
+            raise AssertionError(f"Distance asymmetry! Max diff: {max_diff}. {msg}")
 
     @staticmethod
     def assert_distance_identity(
-        dist_aa: torch.Tensor,
-        atol: float = 1e-6,
-        msg: str = ""
+        dist_aa: torch.Tensor, atol: float = 1e-6, msg: str = ""
     ):
         """Assert distance(x, x) is approximately 0."""
         if not torch.allclose(dist_aa, torch.zeros_like(dist_aa), atol=atol):
@@ -190,7 +184,7 @@ class GeometryAssertions:
         dist_bc: torch.Tensor,
         dist_ac: torch.Tensor,
         atol: float = 1e-5,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert triangle inequality: d(a,c) <= d(a,b) + d(b,c)."""
         violations = dist_ac > dist_ab + dist_bc + atol
@@ -207,7 +201,7 @@ class GeometryAssertions:
         radii: torch.Tensor,
         valuations: torch.Tensor,
         inverse: bool = True,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert radial ordering respects valuation hierarchy.
 
@@ -217,7 +211,9 @@ class GeometryAssertions:
         if radii.numel() < 2 or valuations.numel() < 2:
             return  # Can't check with single point
 
-        correlation = torch.corrcoef(torch.stack([radii.flatten(), valuations.float().flatten()]))[0, 1]
+        correlation = torch.corrcoef(
+            torch.stack([radii.flatten(), valuations.float().flatten()])
+        )[0, 1]
 
         if inverse:
             if correlation > 0:
@@ -237,11 +233,7 @@ class ModelAssertions:
     """Assertions for model properties."""
 
     @staticmethod
-    def assert_output_keys(
-        outputs: Dict[str, Any],
-        required_keys: list,
-        msg: str = ""
-    ):
+    def assert_output_keys(outputs: Dict[str, Any], required_keys: list, msg: str = ""):
         """Assert model outputs contain required keys."""
         missing = [k for k in required_keys if k not in outputs]
         if missing:
@@ -256,7 +248,7 @@ class ModelAssertions:
         batch_size: int,
         n_digits: int = 9,
         n_classes: int = 3,
-        msg: str = ""
+        msg: str = "",
     ):
         """Assert logits have correct shape for ternary classification."""
         expected = (batch_size, n_digits, n_classes)
@@ -267,10 +259,7 @@ class ModelAssertions:
 
     @staticmethod
     def assert_latent_shape(
-        z: torch.Tensor,
-        batch_size: int,
-        latent_dim: int,
-        msg: str = ""
+        z: torch.Tensor, batch_size: int, latent_dim: int, msg: str = ""
     ):
         """Assert latent code has correct shape."""
         expected = (batch_size, latent_dim)
@@ -281,9 +270,7 @@ class ModelAssertions:
 
     @staticmethod
     def assert_gradients_exist(
-        model: torch.nn.Module,
-        check_all: bool = False,
-        msg: str = ""
+        model: torch.nn.Module, check_all: bool = False, msg: str = ""
     ):
         """Assert gradients exist for trainable parameters."""
         no_grad_params = []
@@ -292,7 +279,9 @@ class ModelAssertions:
                 no_grad_params.append(name)
 
         if no_grad_params:
-            if check_all or len(no_grad_params) == sum(1 for p in model.parameters() if p.requires_grad):
+            if check_all or len(no_grad_params) == sum(
+                1 for p in model.parameters() if p.requires_grad
+            ):
                 raise AssertionError(
                     f"No gradients for parameters: {no_grad_params[:5]}... {msg}"
                 )
@@ -328,10 +317,7 @@ class LossAssertions:
 
     @staticmethod
     def assert_loss_decreases(
-        losses: list,
-        tolerance: float = 0.0,
-        strict: bool = False,
-        msg: str = ""
+        losses: list, tolerance: float = 0.0, strict: bool = False, msg: str = ""
     ):
         """Assert loss generally decreases over iterations.
 
@@ -345,7 +331,7 @@ class LossAssertions:
 
         if strict:
             for i in range(1, len(losses)):
-                if losses[i] > losses[i-1] + tolerance:
+                if losses[i] > losses[i - 1] + tolerance:
                     raise AssertionError(
                         f"Loss increased at step {i}: {losses[i-1]:.6f} -> {losses[i]:.6f}. {msg}"
                     )
@@ -358,9 +344,7 @@ class LossAssertions:
 
     @staticmethod
     def assert_loss_components_valid(
-        loss_dict: Dict[str, Any],
-        required_components: list,
-        msg: str = ""
+        loss_dict: Dict[str, Any], required_components: list, msg: str = ""
     ):
         """Assert loss dictionary has valid components."""
         missing = [k for k in required_components if k not in loss_dict]
@@ -389,7 +373,9 @@ class TernaryAssertions:
             )
 
     @staticmethod
-    def assert_ternary_shape(tensor: torch.Tensor, batch_size: int = None, msg: str = ""):
+    def assert_ternary_shape(
+        tensor: torch.Tensor, batch_size: int = None, msg: str = ""
+    ):
         """Assert tensor has valid ternary operation shape (B, 9)."""
         if len(tensor.shape) != 2:
             raise AssertionError(
@@ -417,18 +403,16 @@ class TernaryAssertions:
 
         if (indices > max_index).any():
             max_val = indices.max().item()
-            raise AssertionError(
-                f"Index exceeds max ({max_index}): {max_val}. {msg}"
-            )
+            raise AssertionError(f"Index exceeds max ({max_index}): {max_val}. {msg}")
 
 
 # Convenience function to import all assertions
 def get_all_assertions():
     """Returns all assertion classes for easy importing."""
     return {
-        'tensor': TensorAssertions,
-        'geometry': GeometryAssertions,
-        'model': ModelAssertions,
-        'loss': LossAssertions,
-        'ternary': TernaryAssertions,
+        "tensor": TensorAssertions,
+        "geometry": GeometryAssertions,
+        "model": ModelAssertions,
+        "loss": LossAssertions,
+        "ternary": TernaryAssertions,
     }

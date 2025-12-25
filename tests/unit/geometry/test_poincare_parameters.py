@@ -11,12 +11,10 @@ Tests ManifoldParameter creation and Riemannian optimizer factory.
 import pytest
 import torch
 from geoopt import ManifoldParameter, ManifoldTensor
-from src.geometry.poincare import (
-    create_manifold_parameter,
-    create_manifold_tensor,
-    get_riemannian_optimizer,
-)
 
+from src.geometry.poincare import (create_manifold_parameter,
+                                   create_manifold_tensor,
+                                   get_riemannian_optimizer)
 
 # =============================================================================
 # ManifoldParameter Tests

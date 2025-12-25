@@ -10,27 +10,23 @@ Coupled System Manifold Resolution Benchmark
 Measures resolution of the full dual-VAE system working together
 """
 
-import torch
-import numpy as np
-from typing import Dict
 import sys
 from pathlib import Path
+from typing import Dict
+
+import numpy as np
+import torch
+
 sys.path.append(str(Path(__file__).parent.parent.parent))
 
-from src.benchmark import (
-    BenchmarkBase,
-    load_config,
-    get_device,
-    create_v5_6_model,
-    load_checkpoint_safe,
-    save_results,
-)
+from src.benchmark import (BenchmarkBase, create_v5_6_model, get_device,
+                           load_checkpoint_safe, load_config, save_results)
 
 
 class CoupledSystemBenchmark(BenchmarkBase):
     """Measures resolution of the coupled dual-VAE system"""
 
-    def __init__(self, model: torch.nn.Module, device: str = 'cuda'):
+    def __init__(self, model: torch.nn.Module, device: str = "cuda"):
         super().__init__(model, device)
 
     @torch.no_grad()
@@ -46,7 +42,7 @@ class CoupledSystemBenchmark(BenchmarkBase):
         best_of_two_correct = 0
 
         for i in range(0, self.n_ops, batch_size):
-            batch = self.all_ops[i:i+batch_size]
+            batch = self.all_ops[i : i + batch_size]
 
             # Encode with both VAEs
             mu_a, _ = self.model.encoder_A(batch)
@@ -62,7 +58,9 @@ class CoupledSystemBenchmark(BenchmarkBase):
 
             # Strategy 1: Voting
             # For each bit, take majority vote (if tie, use VAE-B)
-            recon_vote = torch.where(recon_a == recon_b, recon_a, recon_b)  # Tie-breaker: VAE-B
+            recon_vote = torch.where(
+                recon_a == recon_b, recon_a, recon_b
+            )  # Tie-breaker: VAE-B
             voting_correct += (recon_vote == batch).all(dim=1).sum().item()
 
             # Strategy 2: Confidence-weighted
@@ -89,24 +87,26 @@ class CoupledSystemBenchmark(BenchmarkBase):
             best_of_two_correct += (recon_best == batch).all(dim=1).sum().item()
 
         return {
-            'voting': {
-                'exact_match_rate': voting_correct / self.n_ops,
-                'strategy': 'majority_vote_per_bit'
+            "voting": {
+                "exact_match_rate": voting_correct / self.n_ops,
+                "strategy": "majority_vote_per_bit",
             },
-            'confidence_weighted': {
-                'exact_match_rate': confidence_correct / self.n_ops,
-                'strategy': 'confidence_weighted_per_bit'
+            "confidence_weighted": {
+                "exact_match_rate": confidence_correct / self.n_ops,
+                "strategy": "confidence_weighted_per_bit",
             },
-            'best_of_two': {
-                'exact_match_rate': best_of_two_correct / self.n_ops,
-                'strategy': 'select_best_reconstruction'
+            "best_of_two": {
+                "exact_match_rate": best_of_two_correct / self.n_ops,
+                "strategy": "select_best_reconstruction",
             },
-            'baseline_vae_a': 0.1487,  # From isolated benchmark
-            'baseline_vae_b': 1.0000   # From isolated benchmark
+            "baseline_vae_a": 0.1487,  # From isolated benchmark
+            "baseline_vae_b": 1.0000,  # From isolated benchmark
         }
 
     @torch.no_grad()
-    def measure_cross_injected_sampling(self, n_samples=50000, batch_size=1000, rho=0.5) -> Dict:
+    def measure_cross_injected_sampling(
+        self, n_samples=50000, batch_size=1000, rho=0.5
+    ) -> Dict:
         """Measure sampling coverage with cross-injection active"""
         sampled_ops = set()
 
@@ -137,14 +137,14 @@ class CoupledSystemBenchmark(BenchmarkBase):
                 sampled_ops.add(op_tuple)
 
         return {
-            'unique_sampled': len(sampled_ops),
-            'coverage_rate': len(sampled_ops) / self.n_ops,
-            'n_samples': n_samples * 2,  # Both VAEs
-            'diversity': len(sampled_ops) / (n_samples * 2),
-            'rho': rho,
-            'baseline_vae_a_coverage': 0.7755,
-            'baseline_vae_b_coverage': 0.6582,
-            'improvement': len(sampled_ops) / self.n_ops - max(0.7755, 0.6582)
+            "unique_sampled": len(sampled_ops),
+            "coverage_rate": len(sampled_ops) / self.n_ops,
+            "n_samples": n_samples * 2,  # Both VAEs
+            "diversity": len(sampled_ops) / (n_samples * 2),
+            "rho": rho,
+            "baseline_vae_a_coverage": 0.7755,
+            "baseline_vae_b_coverage": 0.6582,
+            "improvement": len(sampled_ops) / self.n_ops - max(0.7755, 0.6582),
         }
 
     @torch.no_grad()
@@ -159,7 +159,7 @@ class CoupledSystemBenchmark(BenchmarkBase):
         vae_b_specialization = []
 
         for i in range(0, self.n_ops, batch_size):
-            batch = self.all_ops[i:i+batch_size]
+            batch = self.all_ops[i : i + batch_size]
 
             # Encode/decode with both
             mu_a, _ = self.model.encoder_A(batch)
@@ -184,10 +184,10 @@ class CoupledSystemBenchmark(BenchmarkBase):
                     both_perfect_count += 1
                 elif err_a == 0 and err_b > 0:
                     vae_a_best_count += 1
-                    vae_a_specialization.append((i+j, err_b))
+                    vae_a_specialization.append((i + j, err_b))
                 elif err_b == 0 and err_a > 0:
                     vae_b_best_count += 1
-                    vae_b_specialization.append((i+j, err_a))
+                    vae_b_specialization.append((i + j, err_a))
                 else:
                     both_imperfect_count += 1
                     if err_a < err_b:
@@ -196,14 +196,19 @@ class CoupledSystemBenchmark(BenchmarkBase):
                         vae_b_best_count += 1
 
         return {
-            'both_perfect': both_perfect_count,
-            'both_perfect_rate': both_perfect_count / self.n_ops,
-            'vae_a_best': vae_a_best_count,
-            'vae_b_best': vae_b_best_count,
-            'both_imperfect': both_imperfect_count,
-            'vae_a_specialization_rate': vae_a_best_count / self.n_ops,
-            'vae_b_specialization_rate': vae_b_best_count / self.n_ops,
-            'complementarity_score': min(vae_a_best_count, vae_b_best_count) / max(vae_a_best_count, vae_b_best_count) if vae_b_best_count > 0 else 0
+            "both_perfect": both_perfect_count,
+            "both_perfect_rate": both_perfect_count / self.n_ops,
+            "vae_a_best": vae_a_best_count,
+            "vae_b_best": vae_b_best_count,
+            "both_imperfect": both_imperfect_count,
+            "vae_a_specialization_rate": vae_a_best_count / self.n_ops,
+            "vae_b_specialization_rate": vae_b_best_count / self.n_ops,
+            "complementarity_score": (
+                min(vae_a_best_count, vae_b_best_count)
+                / max(vae_a_best_count, vae_b_best_count)
+                if vae_b_best_count > 0
+                else 0
+            ),
         }
 
     @torch.no_grad()
@@ -234,13 +239,14 @@ class CoupledSystemBenchmark(BenchmarkBase):
         distances = torch.norm(mu_a - mu_b, dim=1)
 
         return {
-            'mean_correlation': float(np.mean(correlations)),
-            'std_correlation': float(np.std(correlations)),
-            'mean_distance': distances.mean().item(),
-            'std_distance': distances.std().item(),
-            'min_distance': distances.min().item(),
-            'max_distance': distances.max().item(),
-            'alignment_score': 1.0 / (1.0 + distances.mean().item())  # Higher is better
+            "mean_correlation": float(np.mean(correlations)),
+            "std_correlation": float(np.std(correlations)),
+            "mean_distance": distances.mean().item(),
+            "std_distance": distances.std().item(),
+            "min_distance": distances.min().item(),
+            "max_distance": distances.max().item(),
+            "alignment_score": 1.0
+            / (1.0 + distances.mean().item()),  # Higher is better
         }
 
     @torch.no_grad()
@@ -253,78 +259,80 @@ class CoupledSystemBenchmark(BenchmarkBase):
         coupling = self.measure_latent_space_coupling(n_samples=1000)
 
         # Compute weighted score
-        ensemble_score = ensemble['best_of_two']['exact_match_rate']
-        coverage_score = coverage['coverage_rate']
-        complementarity_score = complementarity['complementarity_score']
-        coupling_score = coupling['alignment_score']
+        ensemble_score = ensemble["best_of_two"]["exact_match_rate"]
+        coverage_score = coverage["coverage_rate"]
+        complementarity_score = complementarity["complementarity_score"]
+        coupling_score = coupling["alignment_score"]
 
         overall_score = (
-            0.40 * ensemble_score +        # Reconstruction quality
-            0.30 * coverage_score +         # Space coverage
-            0.20 * complementarity_score +  # VAE specialization
-            0.10 * coupling_score           # Latent alignment
+            0.40 * ensemble_score  # Reconstruction quality
+            + 0.30 * coverage_score  # Space coverage
+            + 0.20 * complementarity_score  # VAE specialization
+            + 0.10 * coupling_score  # Latent alignment
         )
 
         return {
-            'ensemble': ensemble_score,
-            'coverage': coverage_score,
-            'complementarity': complementarity_score,
-            'coupling': coupling_score,
-            'overall': overall_score,
-            'isolated_vae_a': 0.6684,
-            'isolated_vae_b': 0.8887,
-            'isolated_combined': 0.7785,
-            'improvement': overall_score - 0.7785
+            "ensemble": ensemble_score,
+            "coverage": coverage_score,
+            "complementarity": complementarity_score,
+            "coupling": coupling_score,
+            "overall": overall_score,
+            "isolated_vae_a": 0.6684,
+            "isolated_vae_b": 0.8887,
+            "isolated_combined": 0.7785,
+            "improvement": overall_score - 0.7785,
         }
 
     def run_full_benchmark(self) -> Dict:
         """Run all coupled system benchmarks"""
         results = {
-            'model_info': {
-                'total_params': sum(p.numel() for p in self.model.parameters()),
-                'latent_dim': self.model.latent_dim,
-                'n_operations': self.n_ops,
-                'rho_current': float(self.model.rho),
-                'statenet_enabled': self.model.use_statenet
+            "model_info": {
+                "total_params": sum(p.numel() for p in self.model.parameters()),
+                "latent_dim": self.model.latent_dim,
+                "n_operations": self.n_ops,
+                "rho_current": float(self.model.rho),
+                "statenet_enabled": self.model.use_statenet,
             }
         }
 
         print("Benchmarking coupled system...")
         print("\n1. Ensemble Reconstruction (both VAEs together)...")
-        results['ensemble_reconstruction'] = self.measure_ensemble_reconstruction()
+        results["ensemble_reconstruction"] = self.measure_ensemble_reconstruction()
 
         print("2. Cross-Injected Sampling (rho=0.5)...")
-        results['cross_injected_sampling_rho_05'] = self.measure_cross_injected_sampling(
-            n_samples=50000, rho=0.5
+        results["cross_injected_sampling_rho_05"] = (
+            self.measure_cross_injected_sampling(n_samples=50000, rho=0.5)
         )
 
         print("3. Cross-Injected Sampling (rho=0.7)...")
-        results['cross_injected_sampling_rho_07'] = self.measure_cross_injected_sampling(
-            n_samples=50000, rho=0.7
+        results["cross_injected_sampling_rho_07"] = (
+            self.measure_cross_injected_sampling(n_samples=50000, rho=0.7)
         )
 
         print("4. Complementary Coverage Analysis...")
-        results['complementary_coverage'] = self.measure_complementary_coverage()
+        results["complementary_coverage"] = self.measure_complementary_coverage()
 
         print("5. Latent Space Coupling...")
-        results['latent_coupling'] = self.measure_latent_space_coupling()
+        results["latent_coupling"] = self.measure_latent_space_coupling()
 
         print("6. System Resolution Score...")
-        results['system_resolution'] = self.measure_system_resolution_score()
+        results["system_resolution"] = self.measure_system_resolution_score()
 
         return results
 
 
 def main():
     # Setup
-    config = load_config('configs/ternary_v5_6.yaml')
+    config = load_config("configs/ternary_v5_6.yaml")
     device = get_device()
     print(f"Using device: {device}")
 
     # Initialize model
     print("Initializing model...")
     model = create_v5_6_model(config)
-    checkpoint = load_checkpoint_safe(model, 'sandbox-training/checkpoints/v5_6', device)
+    checkpoint = load_checkpoint_safe(
+        model, "sandbox-training/checkpoints/v5_6", device
+    )
 
     # Run benchmark
     print("\nRunning coupled system benchmark...")
@@ -332,42 +340,44 @@ def main():
     results = benchmark.run_full_benchmark()
 
     # Save results
-    save_results(results, 'coupled_resolution', checkpoint.get('epoch', 'init'))
+    save_results(results, "coupled_resolution", checkpoint.get("epoch", "init"))
 
     # Print summary
-    print("\n" + "="*80)
+    print("\n" + "=" * 80)
     print("COUPLED SYSTEM RESOLUTION SUMMARY")
-    print("="*80)
+    print("=" * 80)
     print(f"Model: {results['model_info']['total_params']} parameters")
     print(f"Latent dim: {results['model_info']['latent_dim']}")
     print(f"Current rho: {results['model_info']['rho_current']:.4f}")
 
     print("\nEnsemble Reconstruction:")
-    for strategy, data in results['ensemble_reconstruction'].items():
-        if isinstance(data, dict) and 'exact_match_rate' in data:
+    for strategy, data in results["ensemble_reconstruction"].items():
+        if isinstance(data, dict) and "exact_match_rate" in data:
             print(f"  {strategy:20s}: {data['exact_match_rate']:.4f}")
 
     print("\nCross-Injected Sampling:")
-    for key in ['cross_injected_sampling_rho_05', 'cross_injected_sampling_rho_07']:
+    for key in ["cross_injected_sampling_rho_05", "cross_injected_sampling_rho_07"]:
         if key in results:
             data = results[key]
-            print(f"  rho={data['rho']:.1f}: {data['coverage_rate']:.4f} coverage, {data['unique_sampled']} unique ops")
+            print(
+                f"  rho={data['rho']:.1f}: {data['coverage_rate']:.4f} coverage, {data['unique_sampled']} unique ops"
+            )
 
     print("\nComplementary Coverage:")
-    comp = results['complementary_coverage']
+    comp = results["complementary_coverage"]
     print(f"  Both perfect:        {comp['both_perfect_rate']:.4f}")
     print(f"  VAE-A specializes:   {comp['vae_a_specialization_rate']:.4f}")
     print(f"  VAE-B specializes:   {comp['vae_b_specialization_rate']:.4f}")
     print(f"  Complementarity:     {comp['complementarity_score']:.4f}")
 
     print("\nLatent Coupling:")
-    coupling = results['latent_coupling']
+    coupling = results["latent_coupling"]
     print(f"  Mean correlation:    {coupling['mean_correlation']:.4f}")
     print(f"  Mean distance:       {coupling['mean_distance']:.4f}")
     print(f"  Alignment score:     {coupling['alignment_score']:.4f}")
 
     print("\nSystem Resolution Score:")
-    score = results['system_resolution']
+    score = results["system_resolution"]
     print(f"  Ensemble:            {score['ensemble']:.4f}")
     print(f"  Coverage:            {score['coverage']:.4f}")
     print(f"  Complementarity:     {score['complementarity']:.4f}")
@@ -375,8 +385,8 @@ def main():
     print(f"  Overall:             {score['overall']:.4f}")
     print(f"  Isolated baseline:   {score['isolated_combined']:.4f}")
     print(f"  Improvement:         {score['improvement']:+.4f}")
-    print("="*80)
+    print("=" * 80)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

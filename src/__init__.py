@@ -30,31 +30,25 @@ TernaryVAE = TernaryVAEV5_11
 TernaryVAE_OptionC = TernaryVAEV5_11_OptionC
 
 # Data
-from .data import generate_all_ternary_operations, TernaryOperationDataset
-
-# Training
-from .training import (
-    TernaryVAETrainer,
-    HyperbolicVAETrainer,
-    TrainingMonitor
-)
-
+from .data import TernaryOperationDataset, generate_all_ternary_operations
 # Metrics
 from .metrics import compute_ranking_correlation_hyperbolic
+# Training
+from .training import HyperbolicVAETrainer, TernaryVAETrainer, TrainingMonitor
 
 __all__ = [
     # Canonical (V5.11)
-    'TernaryVAE',
-    'TernaryVAE_OptionC',
-    'TernaryVAEV5_11',
-    'TernaryVAEV5_11_OptionC',
+    "TernaryVAE",
+    "TernaryVAE_OptionC",
+    "TernaryVAEV5_11",
+    "TernaryVAEV5_11_OptionC",
     # Data
-    'generate_all_ternary_operations',
-    'TernaryOperationDataset',
+    "generate_all_ternary_operations",
+    "TernaryOperationDataset",
     # Training
-    'TernaryVAETrainer',
-    'HyperbolicVAETrainer',
-    'TrainingMonitor',
+    "TernaryVAETrainer",
+    "HyperbolicVAETrainer",
+    "TrainingMonitor",
     # Metrics
-    'compute_ranking_correlation_hyperbolic',
+    "compute_ranking_correlation_hyperbolic",
 ]

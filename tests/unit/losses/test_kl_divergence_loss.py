@@ -10,6 +10,7 @@ Tests KL divergence with optional free bits for VAE training.
 
 import pytest
 import torch
+
 from src.losses.dual_vae_loss import KLDivergenceLoss
 
 
@@ -96,7 +97,9 @@ class TestKLDivergenceLossStandardNormal:
         batch_size, latent_dim = 32, 16
         mu = torch.zeros(batch_size, latent_dim, device=device)
         logvar_one = torch.zeros(batch_size, latent_dim, device=device)  # var = 1
-        logvar_large = torch.ones(batch_size, latent_dim, device=device) * 2  # var = e^2
+        logvar_large = (
+            torch.ones(batch_size, latent_dim, device=device) * 2
+        )  # var = e^2
 
         kl_one = loss_fn(mu, logvar_one)
         kl_large = loss_fn(mu, logvar_large)

@@ -19,6 +19,7 @@ This replaces AlphaFold3's 630GB setup with:
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
 # Add project root to path for imports
@@ -27,6 +28,7 @@ sys.path.insert(0, str(project_root))
 
 try:
     import torch
+
     HAS_TORCH = True
 except ImportError:
     HAS_TORCH = False
@@ -34,31 +36,79 @@ except ImportError:
 # Try to import the TernaryVAE model
 try:
     from src.models.ternary_vae import TernaryVAEV5_11
+
     HAS_MODEL_CLASS = True
 except ImportError:
     HAS_MODEL_CLASS = False
 
-from .pdb_analyzer import PDBAnalyzer, HAS_BIOPYTHON
-
+from .pdb_analyzer import HAS_BIOPYTHON, PDBAnalyzer
 
 # Standard genetic code for codon analysis
 CODON_TABLE = {
-    'TTT': 'F', 'TTC': 'F', 'TTA': 'L', 'TTG': 'L',
-    'TCT': 'S', 'TCC': 'S', 'TCA': 'S', 'TCG': 'S',
-    'TAT': 'Y', 'TAC': 'Y', 'TAA': '*', 'TAG': '*',
-    'TGT': 'C', 'TGC': 'C', 'TGA': '*', 'TGG': 'W',
-    'CTT': 'L', 'CTC': 'L', 'CTA': 'L', 'CTG': 'L',
-    'CCT': 'P', 'CCC': 'P', 'CCA': 'P', 'CCG': 'P',
-    'CAT': 'H', 'CAC': 'H', 'CAA': 'Q', 'CAG': 'Q',
-    'CGT': 'R', 'CGC': 'R', 'CGA': 'R', 'CGG': 'R',
-    'ATT': 'I', 'ATC': 'I', 'ATA': 'I', 'ATG': 'M',
-    'ACT': 'T', 'ACC': 'T', 'ACA': 'T', 'ACG': 'T',
-    'AAT': 'N', 'AAC': 'N', 'AAA': 'K', 'AAG': 'K',
-    'AGT': 'S', 'AGC': 'S', 'AGA': 'R', 'AGG': 'R',
-    'GTT': 'V', 'GTC': 'V', 'GTA': 'V', 'GTG': 'V',
-    'GCT': 'A', 'GCC': 'A', 'GCA': 'A', 'GCG': 'A',
-    'GAT': 'D', 'GAC': 'D', 'GAA': 'E', 'GAG': 'E',
-    'GGT': 'G', 'GGC': 'G', 'GGA': 'G', 'GGG': 'G',
+    "TTT": "F",
+    "TTC": "F",
+    "TTA": "L",
+    "TTG": "L",
+    "TCT": "S",
+    "TCC": "S",
+    "TCA": "S",
+    "TCG": "S",
+    "TAT": "Y",
+    "TAC": "Y",
+    "TAA": "*",
+    "TAG": "*",
+    "TGT": "C",
+    "TGC": "C",
+    "TGA": "*",
+    "TGG": "W",
+    "CTT": "L",
+    "CTC": "L",
+    "CTA": "L",
+    "CTG": "L",
+    "CCT": "P",
+    "CCC": "P",
+    "CCA": "P",
+    "CCG": "P",
+    "CAT": "H",
+    "CAC": "H",
+    "CAA": "Q",
+    "CAG": "Q",
+    "CGT": "R",
+    "CGC": "R",
+    "CGA": "R",
+    "CGG": "R",
+    "ATT": "I",
+    "ATC": "I",
+    "ATA": "I",
+    "ATG": "M",
+    "ACT": "T",
+    "ACC": "T",
+    "ACA": "T",
+    "ACG": "T",
+    "AAT": "N",
+    "AAC": "N",
+    "AAA": "K",
+    "AAG": "K",
+    "AGT": "S",
+    "AGC": "S",
+    "AGA": "R",
+    "AGG": "R",
+    "GTT": "V",
+    "GTC": "V",
+    "GTA": "V",
+    "GTG": "V",
+    "GCT": "A",
+    "GCC": "A",
+    "GCA": "A",
+    "GCG": "A",
+    "GAT": "D",
+    "GAC": "D",
+    "GAA": "E",
+    "GAG": "E",
+    "GGT": "G",
+    "GGC": "G",
+    "GGA": "G",
+    "GGG": "G",
 }
 
 
@@ -89,7 +139,7 @@ class HybridStructurePredictor:
         self,
         model_path: Optional[Path] = None,
         pdb_dir: Optional[Path] = None,
-        device: str = "cpu"
+        device: str = "cpu",
     ):
         """Initialize the hybrid predictor.
 
@@ -109,7 +159,13 @@ class HybridStructurePredictor:
 
         # Model path defaults
         if model_path is None:
-            model_path = project_root / "sandbox-training" / "checkpoints" / "v5_11_11_production" / "best.pt"
+            model_path = (
+                project_root
+                / "sandbox-training"
+                / "checkpoints"
+                / "v5_11_11_production"
+                / "best.pt"
+            )
 
         self.model_path = model_path
         self.model = None
@@ -134,29 +190,31 @@ class HybridStructurePredictor:
             return
 
         try:
-            checkpoint = torch.load(self.model_path, map_location=self.device, weights_only=False)
+            checkpoint = torch.load(
+                self.model_path, map_location=self.device, weights_only=False
+            )
 
             # Extract config from checkpoint
-            config = checkpoint.get('config', {})
+            config = checkpoint.get("config", {})
 
             # Instantiate model with config parameters
             self.model = TernaryVAEV5_11(
                 latent_dim=16,
-                hidden_dim=config.get('projection_hidden_dim', 64),
-                max_radius=config.get('max_radius', 0.95),
-                curvature=config.get('curvature', 1.0),
-                use_controller=config.get('use_controller', False),
-                use_dual_projection=config.get('dual_projection', False),
-                n_projection_layers=config.get('projection_layers', 1),
-                projection_dropout=config.get('projection_dropout', 0.1),
-                learnable_curvature=config.get('learnable_curvature', False),
+                hidden_dim=config.get("projection_hidden_dim", 64),
+                max_radius=config.get("max_radius", 0.95),
+                curvature=config.get("curvature", 1.0),
+                use_controller=config.get("use_controller", False),
+                use_dual_projection=config.get("dual_projection", False),
+                n_projection_layers=config.get("projection_layers", 1),
+                projection_dropout=config.get("projection_dropout", 0.1),
+                learnable_curvature=config.get("learnable_curvature", False),
             )
 
             # Load the state dict
-            if 'model_state' in checkpoint:
-                self.model.load_state_dict(checkpoint['model_state'])
-            elif 'state_dict' in checkpoint:
-                self.model.load_state_dict(checkpoint['state_dict'])
+            if "model_state" in checkpoint:
+                self.model.load_state_dict(checkpoint["model_state"])
+            elif "state_dict" in checkpoint:
+                self.model.load_state_dict(checkpoint["state_dict"])
 
             self.model.to(self.device)
             self.model.eval()  # Set to evaluation mode
@@ -178,7 +236,7 @@ class HybridStructurePredictor:
         Returns:
             9-dimensional ternary vector (3 positions x 3 digits each)
         """
-        nuc_to_val = {'T': 0, 'U': 0, 'C': 1, 'A': 2, 'G': 0}  # G maps to 0 (mod 3)
+        nuc_to_val = {"T": 0, "U": 0, "C": 1, "A": 2, "G": 0}  # G maps to 0 (mod 3)
         result = np.zeros(9, dtype=np.float32)
 
         for i, nuc in enumerate(codon.upper()):
@@ -235,11 +293,7 @@ class HybridStructurePredictor:
         arg = 1 + 2 * (norm_diff**2) / denominator
         return np.arccosh(max(1.0, arg))
 
-    def compute_reveal_score(
-        self,
-        wt_codon: str,
-        mut_codon: str
-    ) -> float:
+    def compute_reveal_score(self, wt_codon: str, mut_codon: str) -> float:
         """Compute reveal score for a codon mutation.
 
         The reveal score measures how much a mutation "exposes"
@@ -264,13 +318,12 @@ class HybridStructurePredictor:
                 # Get hyperbolic latent representations via forward pass
                 wt_output = self.model(wt_input, compute_control=False)
                 mut_output = self.model(mut_input, compute_control=False)
-                wt_z = wt_output['z_A_hyp']  # Hyperbolic embeddings
-                mut_z = mut_output['z_A_hyp']
+                wt_z = wt_output["z_A_hyp"]  # Hyperbolic embeddings
+                mut_z = mut_output["z_A_hyp"]
 
             # Compute hyperbolic distance
             return self._poincare_distance(
-                wt_z.numpy().flatten(),
-                mut_z.numpy().flatten()
+                wt_z.numpy().flatten(), mut_z.numpy().flatten()
             )
         else:
             # Fallback calculation
@@ -295,7 +348,7 @@ class HybridStructurePredictor:
         wt_sequence: str,
         mutation: str,
         pdb_id: Optional[str] = None,
-        chain_id: str = 'A'
+        chain_id: str = "A",
     ) -> Dict:
         """Predict the structural impact of a reveal mutation.
 
@@ -318,11 +371,15 @@ class HybridStructurePredictor:
 
         # Validate mutation against sequence
         if position <= 0 or position > len(wt_sequence):
-            raise ValueError(f"Position {position} out of range for sequence length {len(wt_sequence)}")
+            raise ValueError(
+                f"Position {position} out of range for sequence length {len(wt_sequence)}"
+            )
 
         seq_aa = wt_sequence[position - 1]
         if seq_aa != wt_aa:
-            print(f"Warning: Sequence has {seq_aa} at position {position}, mutation specifies {wt_aa}")
+            print(
+                f"Warning: Sequence has {seq_aa} at position {position}, mutation specifies {wt_aa}"
+            )
 
         # Get structural context from PDB (if BioPython available)
         if self.pdb_analyzer is not None:
@@ -331,53 +388,69 @@ class HybridStructurePredictor:
                 position=position,
                 wt_aa=wt_aa,
                 mut_aa=mut_aa,
-                chain_id=chain_id
+                chain_id=chain_id,
             )
         else:
             # Fallback when BioPython not available
             structural_analysis = {
-                'position': position,
-                'mutation': f"{wt_aa}{position}{mut_aa}",
-                'structural_context': {},
-                'charge_change': 0,
-                'hydrophobicity_change': 0,
-                'mechanisms': [],
-                'is_ledgf_interface': position in range(166, 176),  # Approximate
-                'is_catalytic_adjacent': position in {64, 116, 152},
-                'solvent_accessibility': 0.5,
-                'n_contacts': 0,
+                "position": position,
+                "mutation": f"{wt_aa}{position}{mut_aa}",
+                "structural_context": {},
+                "charge_change": 0,
+                "hydrophobicity_change": 0,
+                "mechanisms": [],
+                "is_ledgf_interface": position in range(166, 176),  # Approximate
+                "is_catalytic_adjacent": position in {64, 116, 152},
+                "solvent_accessibility": 0.5,
+                "n_contacts": 0,
             }
 
         # Compute geometric reveal score
         # For simplicity, use a representative codon for each amino acid
         # In practice, you'd want the actual codon from the nucleotide sequence
         representative_codons = {
-            'A': 'GCT', 'R': 'CGT', 'N': 'AAT', 'D': 'GAT', 'C': 'TGT',
-            'Q': 'CAA', 'E': 'GAA', 'G': 'GGT', 'H': 'CAT', 'I': 'ATT',
-            'L': 'CTT', 'K': 'AAA', 'M': 'ATG', 'F': 'TTT', 'P': 'CCT',
-            'S': 'TCT', 'T': 'ACT', 'W': 'TGG', 'Y': 'TAT', 'V': 'GTT',
+            "A": "GCT",
+            "R": "CGT",
+            "N": "AAT",
+            "D": "GAT",
+            "C": "TGT",
+            "Q": "CAA",
+            "E": "GAA",
+            "G": "GGT",
+            "H": "CAT",
+            "I": "ATT",
+            "L": "CTT",
+            "K": "AAA",
+            "M": "ATG",
+            "F": "TTT",
+            "P": "CCT",
+            "S": "TCT",
+            "T": "ACT",
+            "W": "TGG",
+            "Y": "TAT",
+            "V": "GTT",
         }
 
-        wt_codon = representative_codons.get(wt_aa, 'NNN')
-        mut_codon = representative_codons.get(mut_aa, 'NNN')
+        wt_codon = representative_codons.get(wt_aa, "NNN")
+        mut_codon = representative_codons.get(mut_aa, "NNN")
 
         reveal_score = self.compute_reveal_score(wt_codon, mut_codon)
 
         # Determine overall mechanism
-        mechanisms = structural_analysis['mechanisms']
+        mechanisms = structural_analysis["mechanisms"]
         is_ledgf = (
             self.pdb_analyzer.is_ledgf_interface(position)
             if self.pdb_analyzer is not None
-            else structural_analysis['is_ledgf_interface']
+            else structural_analysis["is_ledgf_interface"]
         )
 
         if is_ledgf:
             primary_mechanism = "LEDGF interface disruption"
-        elif structural_analysis['is_catalytic_adjacent']:
+        elif structural_analysis["is_catalytic_adjacent"]:
             primary_mechanism = "Catalytic site perturbation"
-        elif structural_analysis['charge_change'] != 0:
+        elif structural_analysis["charge_change"] != 0:
             primary_mechanism = "Electrostatic disruption"
-        elif 'aromatic_loss' in mechanisms or 'aromatic_gain' in mechanisms:
+        elif "aromatic_loss" in mechanisms or "aromatic_gain" in mechanisms:
             primary_mechanism = "Aromatic interaction change"
         else:
             primary_mechanism = "Local structural perturbation"
@@ -386,35 +459,32 @@ class HybridStructurePredictor:
         confidence = 0.5  # Base confidence
         if pdb_id == self.DEFAULT_PDB:
             confidence += 0.2  # Reference structure
-        if structural_analysis['n_contacts'] > 5:
+        if structural_analysis["n_contacts"] > 5:
             confidence += 0.1  # Good structural context
         if is_ledgf:
             confidence += 0.1  # Well-characterized interface
         confidence = min(confidence, 1.0)
 
         return {
-            'mutation': mutation,
-            'position': position,
-            'wt_aa': wt_aa,
-            'mut_aa': mut_aa,
-            'reveal_score': reveal_score,
-            'primary_mechanism': primary_mechanism,
-            'all_mechanisms': mechanisms,
-            'structural_context': structural_analysis['structural_context'],
-            'is_ledgf_interface': structural_analysis['is_ledgf_interface'],
-            'is_catalytic_adjacent': structural_analysis['is_catalytic_adjacent'],
-            'charge_change': structural_analysis['charge_change'],
-            'solvent_accessibility': structural_analysis['solvent_accessibility'],
-            'n_contacts': structural_analysis['n_contacts'],
-            'confidence': confidence,
-            'pdb_reference': pdb_id,
+            "mutation": mutation,
+            "position": position,
+            "wt_aa": wt_aa,
+            "mut_aa": mut_aa,
+            "reveal_score": reveal_score,
+            "primary_mechanism": primary_mechanism,
+            "all_mechanisms": mechanisms,
+            "structural_context": structural_analysis["structural_context"],
+            "is_ledgf_interface": structural_analysis["is_ledgf_interface"],
+            "is_catalytic_adjacent": structural_analysis["is_catalytic_adjacent"],
+            "charge_change": structural_analysis["charge_change"],
+            "solvent_accessibility": structural_analysis["solvent_accessibility"],
+            "n_contacts": structural_analysis["n_contacts"],
+            "confidence": confidence,
+            "pdb_reference": pdb_id,
         }
 
     def batch_predict(
-        self,
-        wt_sequence: str,
-        mutations: List[str],
-        pdb_id: Optional[str] = None
+        self, wt_sequence: str, mutations: List[str], pdb_id: Optional[str] = None
     ) -> List[Dict]:
         """Predict effects for multiple mutations.
 
@@ -435,7 +505,7 @@ class HybridStructurePredictor:
                 print(f"Error processing {mutation}: {e}")
 
         # Sort by reveal score (highest first)
-        return sorted(results, key=lambda x: x['reveal_score'], reverse=True)
+        return sorted(results, key=lambda x: x["reveal_score"], reverse=True)
 
 
 def main():
@@ -468,8 +538,7 @@ def main():
             print(f"\n--- {mutation} ---")
             try:
                 result = predictor.predict_reveal_effect(
-                    wt_sequence=integrase_sequence,
-                    mutation=mutation
+                    wt_sequence=integrase_sequence, mutation=mutation
                 )
                 print(f"Reveal Score: {result['reveal_score']:.2f}")
                 print(f"Mechanism: {result['primary_mechanism']}")

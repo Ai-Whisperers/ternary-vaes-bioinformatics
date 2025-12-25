@@ -5,9 +5,9 @@
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
 
+import hashlib
 import os
 from collections import defaultdict
-import hashlib
 
 
 def get_file_stats(root_dirs, extensions={".py", ".md", ".ts", ".tsx", ".js", ".json"}):

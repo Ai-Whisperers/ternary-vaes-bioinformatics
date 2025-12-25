@@ -22,16 +22,19 @@ Date: 2025-12-19
 
 import json
 import sys
-import numpy as np
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
 from collections import defaultdict
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 # Add paths for imports
 SCRIPT_DIR = Path(__file__).parent
 RESEARCH_DIR = SCRIPT_DIR.parent.parent
-sys.path.insert(0, str(RESEARCH_DIR / "bioinformatics" / "rheumatoid_arthritis" / "scripts"))
+sys.path.insert(
+    0, str(RESEARCH_DIR / "bioinformatics" / "rheumatoid_arthritis" / "scripts")
+)
 sys.path.insert(0, str(RESEARCH_DIR.parent / "src"))
 
 # Output directory
@@ -42,10 +45,11 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 # 3-ADIC MATHEMATICAL FOUNDATION
 # ============================================================================
 
+
 def ternary_valuation(n: int) -> int:
     """Compute 3-adic valuation v_3(n) = max k such that 3^k divides n."""
     if n == 0:
-        return float('inf')
+        return float("inf")
     v = 0
     while n % 3 == 0:
         n //= 3
@@ -70,9 +74,11 @@ def ultrametric_check(d_ab: float, d_bc: float, d_ac: float) -> bool:
 # BIOLOGICAL ENCODING SCHEMES
 # ============================================================================
 
+
 @dataclass
 class TernaryEncoding:
     """A ternary encoding scheme for biological entities."""
+
     name: str
     categories: Dict[str, int]  # entity -> ternary digit (0, 1, 2)
     description: str
@@ -89,7 +95,7 @@ class TernaryEncoding:
         """Convert ternary sequence to base-10 integer."""
         result = 0
         for i, digit in enumerate(reversed(ternary_seq)):
-            result += digit * (3 ** i)
+            result += digit * (3**i)
         return result
 
 
@@ -100,91 +106,146 @@ ENCODING_SCHEMES = {
         name="Amino Acid Chemistry",
         categories={
             # Hydrophobic (0)
-            'A': 0, 'V': 0, 'L': 0, 'I': 0, 'M': 0, 'F': 0, 'W': 0, 'P': 0,
+            "A": 0,
+            "V": 0,
+            "L": 0,
+            "I": 0,
+            "M": 0,
+            "F": 0,
+            "W": 0,
+            "P": 0,
             # Polar uncharged (1)
-            'S': 1, 'T': 1, 'N': 1, 'Q': 1, 'Y': 1, 'C': 1, 'G': 1,
+            "S": 1,
+            "T": 1,
+            "N": 1,
+            "Q": 1,
+            "Y": 1,
+            "C": 1,
+            "G": 1,
             # Charged (2)
-            'K': 2, 'R': 2, 'H': 2, 'D': 2, 'E': 2,
+            "K": 2,
+            "R": 2,
+            "H": 2,
+            "D": 2,
+            "E": 2,
         },
-        description="Hydrophobic(0), Polar(1), Charged(2)"
+        description="Hydrophobic(0), Polar(1), Charged(2)",
     ),
-
     # 2. Amino Acid Size
     "amino_acid_size": TernaryEncoding(
         name="Amino Acid Size",
         categories={
             # Small (0)
-            'G': 0, 'A': 0, 'S': 0, 'C': 0, 'P': 0,
+            "G": 0,
+            "A": 0,
+            "S": 0,
+            "C": 0,
+            "P": 0,
             # Medium (1)
-            'V': 1, 'T': 1, 'N': 1, 'D': 1, 'I': 1, 'L': 1,
+            "V": 1,
+            "T": 1,
+            "N": 1,
+            "D": 1,
+            "I": 1,
+            "L": 1,
             # Large (2)
-            'M': 2, 'F': 2, 'Y': 2, 'W': 2, 'K': 2, 'R': 2, 'H': 2, 'E': 2, 'Q': 2,
+            "M": 2,
+            "F": 2,
+            "Y": 2,
+            "W": 2,
+            "K": 2,
+            "R": 2,
+            "H": 2,
+            "E": 2,
+            "Q": 2,
         },
-        description="Small(0), Medium(1), Large(2)"
+        description="Small(0), Medium(1), Large(2)",
     ),
-
     # 3. Secondary Structure Propensity
     "secondary_structure": TernaryEncoding(
         name="Secondary Structure Propensity",
         categories={
             # Helix formers (0)
-            'A': 0, 'E': 0, 'L': 0, 'M': 0, 'Q': 0, 'K': 0, 'R': 0, 'H': 0,
+            "A": 0,
+            "E": 0,
+            "L": 0,
+            "M": 0,
+            "Q": 0,
+            "K": 0,
+            "R": 0,
+            "H": 0,
             # Sheet formers (1)
-            'V': 1, 'I': 1, 'Y': 1, 'F': 1, 'W': 1, 'T': 1, 'C': 1,
+            "V": 1,
+            "I": 1,
+            "Y": 1,
+            "F": 1,
+            "W": 1,
+            "T": 1,
+            "C": 1,
             # Coil/turn formers (2)
-            'G': 2, 'P': 2, 'S': 2, 'N': 2, 'D': 2,
+            "G": 2,
+            "P": 2,
+            "S": 2,
+            "N": 2,
+            "D": 2,
         },
-        description="Helix(0), Sheet(1), Coil/Turn(2)"
+        description="Helix(0), Sheet(1), Coil/Turn(2)",
     ),
-
     # 4. Nucleotide Properties
     "nucleotide_chemistry": TernaryEncoding(
         name="Nucleotide Chemistry",
         categories={
             # Purines (0)
-            'A': 0, 'G': 0,
+            "A": 0,
+            "G": 0,
             # Pyrimidines (1)
-            'C': 1, 'T': 1, 'U': 1,
+            "C": 1,
+            "T": 1,
+            "U": 1,
             # Modified/Gap (2)
-            'N': 2, '-': 2, 'X': 2,
+            "N": 2,
+            "-": 2,
+            "X": 2,
         },
-        description="Purine(0), Pyrimidine(1), Other(2)"
+        description="Purine(0), Pyrimidine(1), Other(2)",
     ),
-
     # 5. Codon Position
     "codon_position": TernaryEncoding(
         name="Codon Position",
         categories={
             # First position - most conserved for amino acid (0)
-            '1': 0,
+            "1": 0,
             # Second position - determines chemical class (1)
-            '2': 1,
+            "2": 1,
             # Third position - wobble, most degenerate (2)
-            '3': 2,
+            "3": 2,
         },
-        description="First(0), Second(1), Third(2)"
+        description="First(0), Second(1), Third(2)",
     ),
-
     # 6. Methylation State
     "methylation_state": TernaryEncoding(
         name="DNA Methylation",
         categories={
-            'C': 0,    # Unmethylated cytosine
-            '5mC': 1,  # 5-methylcytosine
-            '5hmC': 2, # 5-hydroxymethylcytosine
+            "C": 0,  # Unmethylated cytosine
+            "5mC": 1,  # 5-methylcytosine
+            "5hmC": 2,  # 5-hydroxymethylcytosine
         },
-        description="Unmet(0), 5mC(1), 5hmC(2)"
+        description="Unmet(0), 5mC(1), 5hmC(2)",
     ),
-
     # 7. Phosphorylation State
     "phospho_state": TernaryEncoding(
         name="Phosphorylation State",
         categories={
-            'S': 0, 'T': 0, 'Y': 0,  # Unphosphorylated
-            'pS': 1, 'pT': 1, 'pY': 1,  # Phosphorylated
-            'D': 2, 'E': 2,  # Phosphomimic (Asp/Glu)
+            "S": 0,
+            "T": 0,
+            "Y": 0,  # Unphosphorylated
+            "pS": 1,
+            "pT": 1,
+            "pY": 1,  # Phosphorylated
+            "D": 2,
+            "E": 2,  # Phosphomimic (Asp/Glu)
         },
-        description="Unphospho(0), Phospho(1), Mimic(2)"
+        description="Unphospho(0), Phospho(1), Mimic(2)",
     ),
 }
 
@@ -193,8 +254,10 @@ ENCODING_SCHEMES = {
 # VALIDATION TESTS
 # ============================================================================
 
-def test_ultrametric_property(encoding: TernaryEncoding,
-                               test_sequences: List[List[str]]) -> Dict:
+
+def test_ultrametric_property(
+    encoding: TernaryEncoding, test_sequences: List[List[str]]
+) -> Dict:
     """
     Test if the encoding preserves ultrametric structure.
 
@@ -207,7 +270,7 @@ def test_ultrametric_property(encoding: TernaryEncoding,
         "n_valid": 0,
         "n_invalid": 0,
         "violation_rate": 0.0,
-        "violations": []
+        "violations": [],
     }
 
     # Convert sequences to base-10 integers
@@ -230,9 +293,9 @@ def test_ultrametric_property(encoding: TernaryEncoding,
 
                 # Check all three orientations of ultrametric inequality
                 valid = (
-                    ultrametric_check(d_ij, d_jk, d_ik) and
-                    ultrametric_check(d_ij, d_ik, d_jk) and
-                    ultrametric_check(d_jk, d_ik, d_ij)
+                    ultrametric_check(d_ij, d_jk, d_ik)
+                    and ultrametric_check(d_ij, d_ik, d_jk)
+                    and ultrametric_check(d_jk, d_ik, d_ij)
                 )
 
                 if valid:
@@ -240,10 +303,12 @@ def test_ultrametric_property(encoding: TernaryEncoding,
                 else:
                     results["n_invalid"] += 1
                     if len(results["violations"]) < 5:  # Keep first 5 violations
-                        results["violations"].append({
-                            "indices": [indices[i], indices[j], indices[k]],
-                            "distances": [d_ij, d_jk, d_ik]
-                        })
+                        results["violations"].append(
+                            {
+                                "indices": [indices[i], indices[j], indices[k]],
+                                "distances": [d_ij, d_jk, d_ik],
+                            }
+                        )
 
     if results["n_triplets"] > 0:
         results["violation_rate"] = results["n_invalid"] / results["n_triplets"]
@@ -251,8 +316,9 @@ def test_ultrametric_property(encoding: TernaryEncoding,
     return results
 
 
-def test_hierarchical_clustering(encoding: TernaryEncoding,
-                                  entities: List[str]) -> Dict:
+def test_hierarchical_clustering(
+    encoding: TernaryEncoding, entities: List[str]
+) -> Dict:
     """
     Test if 3-adic distance creates meaningful hierarchical clusters.
 
@@ -312,24 +378,24 @@ def test_biological_motif_distances(encoding: TernaryEncoding) -> Dict:
 
     if encoding.name == "Amino Acid Chemistry":
         motifs = {
-            "hydrophobic_core": ['L', 'V', 'I', 'L', 'V'],
-            "polar_surface": ['S', 'T', 'N', 'Q', 'S'],
-            "charged_interface": ['K', 'R', 'D', 'E', 'K'],
-            "mixed_amphipathic": ['L', 'K', 'L', 'E', 'L'],
+            "hydrophobic_core": ["L", "V", "I", "L", "V"],
+            "polar_surface": ["S", "T", "N", "Q", "S"],
+            "charged_interface": ["K", "R", "D", "E", "K"],
+            "mixed_amphipathic": ["L", "K", "L", "E", "L"],
         }
     elif encoding.name == "Secondary Structure Propensity":
         motifs = {
-            "helix_forming": ['A', 'E', 'L', 'K', 'A'],
-            "sheet_forming": ['V', 'I', 'Y', 'V', 'I'],
-            "turn_forming": ['G', 'P', 'S', 'G', 'P'],
-            "helix_breaker": ['P', 'G', 'P', 'G', 'P'],
+            "helix_forming": ["A", "E", "L", "K", "A"],
+            "sheet_forming": ["V", "I", "Y", "V", "I"],
+            "turn_forming": ["G", "P", "S", "G", "P"],
+            "helix_breaker": ["P", "G", "P", "G", "P"],
         }
     elif encoding.name == "Phosphorylation State":
         motifs = {
-            "unphosphorylated": ['S', 'T', 'S', 'T', 'Y'],
-            "fully_phospho": ['pS', 'pT', 'pS', 'pT', 'pY'],
-            "phosphomimic": ['D', 'E', 'D', 'E', 'D'],
-            "mixed_phospho": ['S', 'pS', 'T', 'pT', 'S'],
+            "unphosphorylated": ["S", "T", "S", "T", "Y"],
+            "fully_phospho": ["pS", "pT", "pS", "pT", "pY"],
+            "phosphomimic": ["D", "E", "D", "E", "D"],
+            "mixed_phospho": ["S", "pS", "T", "pT", "S"],
         }
     else:
         return {"encoding": encoding.name, "error": "No motifs defined"}
@@ -338,7 +404,7 @@ def test_biological_motif_distances(encoding: TernaryEncoding) -> Dict:
         "encoding": encoding.name,
         "motifs": list(motifs.keys()),
         "distance_matrix": {},
-        "interpretations": []
+        "interpretations": [],
     }
 
     # Compute pairwise distances
@@ -357,8 +423,9 @@ def test_biological_motif_distances(encoding: TernaryEncoding) -> Dict:
 
     # Add interpretations
     if "hydrophobic_core" in motif_indices and "charged_interface" in motif_indices:
-        d = padic_distance_3(motif_indices["hydrophobic_core"],
-                            motif_indices["charged_interface"])
+        d = padic_distance_3(
+            motif_indices["hydrophobic_core"], motif_indices["charged_interface"]
+        )
         results["interpretations"].append(
             f"Hydrophobic vs Charged distance: {d:.4f} (expect high, different chemistry)"
         )
@@ -366,9 +433,9 @@ def test_biological_motif_distances(encoding: TernaryEncoding) -> Dict:
     return results
 
 
-def test_perturbation_sensitivity(encoding: TernaryEncoding,
-                                   base_sequence: List[str],
-                                   perturbation_sites: List[int]) -> Dict:
+def test_perturbation_sensitivity(
+    encoding: TernaryEncoding, base_sequence: List[str], perturbation_sites: List[int]
+) -> Dict:
     """
     Test how 3-adic distance responds to local perturbations.
 
@@ -394,11 +461,7 @@ def test_perturbation_sensitivity(encoding: TernaryEncoding,
             continue
 
         original = base_sequence[site]
-        site_results = {
-            "site": site,
-            "original": original,
-            "substitutions": []
-        }
+        site_results = {"site": site, "original": original, "substitutions": []}
 
         for new_entity in all_entities:
             if new_entity != original:
@@ -414,12 +477,15 @@ def test_perturbation_sensitivity(encoding: TernaryEncoding,
                     # Compute valuation (measures "how different")
                     v = ternary_valuation(abs(base_index - mutant_index))
 
-                    site_results["substitutions"].append({
-                        "new": new_entity,
-                        "distance": round(d, 6),
-                        "valuation": v,
-                        "category_change": encoding.encode(original) != encoding.encode(new_entity)
-                    })
+                    site_results["substitutions"].append(
+                        {
+                            "new": new_entity,
+                            "distance": round(d, 6),
+                            "valuation": v,
+                            "category_change": encoding.encode(original)
+                            != encoding.encode(new_entity),
+                        }
+                    )
 
         # Sort by distance
         site_results["substitutions"].sort(key=lambda x: x["distance"])
@@ -432,6 +498,7 @@ def test_perturbation_sensitivity(encoding: TernaryEncoding,
 # MAIN VALIDATION SUITE
 # ============================================================================
 
+
 def run_validation_suite():
     """Run comprehensive p-adic biology validation."""
 
@@ -442,8 +509,8 @@ def run_validation_suite():
 
     all_results = {
         "framework": "3-adic biology validation",
-        "timestamp": str(np.datetime64('now')),
-        "tests": {}
+        "timestamp": str(np.datetime64("now")),
+        "tests": {},
     }
 
     # ========================================================================
@@ -455,14 +522,14 @@ def run_validation_suite():
 
     # Generate test sequences
     test_sequences = [
-        ['A', 'V', 'L'],  # All hydrophobic
-        ['S', 'T', 'N'],  # All polar
-        ['K', 'R', 'D'],  # All charged
-        ['A', 'S', 'K'],  # Mixed
-        ['L', 'T', 'E'],  # Mixed
-        ['V', 'Q', 'R'],  # Mixed
-        ['I', 'Y', 'H'],  # Mixed
-        ['M', 'C', 'D'],  # Mixed
+        ["A", "V", "L"],  # All hydrophobic
+        ["S", "T", "N"],  # All polar
+        ["K", "R", "D"],  # All charged
+        ["A", "S", "K"],  # Mixed
+        ["L", "T", "E"],  # Mixed
+        ["V", "Q", "R"],  # Mixed
+        ["I", "Y", "H"],  # Mixed
+        ["M", "C", "D"],  # Mixed
     ]
 
     for scheme_name, encoding in ENCODING_SCHEMES.items():
@@ -484,7 +551,11 @@ def run_validation_suite():
 
     amino_acids = list("ARNDCQEGHILKMFPSTWYV")
 
-    for scheme_name in ["amino_acid_chemistry", "amino_acid_size", "secondary_structure"]:
+    for scheme_name in [
+        "amino_acid_chemistry",
+        "amino_acid_size",
+        "secondary_structure",
+    ]:
         encoding = ENCODING_SCHEMES[scheme_name]
         result = test_hierarchical_clustering(encoding, amino_acids)
         all_results["tests"][f"clustering_{scheme_name}"] = result
@@ -519,7 +590,7 @@ def run_validation_suite():
     print("-" * 70)
 
     # Test sequence: Tau KXGS motif region
-    kxgs_motif = ['K', 'I', 'G', 'S']
+    kxgs_motif = ["K", "I", "G", "S"]
 
     encoding = ENCODING_SCHEMES["amino_acid_chemistry"]
     result = test_perturbation_sensitivity(encoding, kxgs_motif, [3])  # S at position 3
@@ -528,10 +599,16 @@ def run_validation_suite():
     print(f"\n  Testing KXGS motif perturbations at S position:")
     if "perturbations" in result:
         for site_result in result["perturbations"]:
-            print(f"    Site {site_result['site']} (original: {site_result['original']}):")
+            print(
+                f"    Site {site_result['site']} (original: {site_result['original']}):"
+            )
             for sub in site_result["substitutions"][:5]:  # Top 5
-                cat_change = "category change" if sub["category_change"] else "same category"
-                print(f"      → {sub['new']}: d={sub['distance']:.4f}, v={sub['valuation']} ({cat_change})")
+                cat_change = (
+                    "category change" if sub["category_change"] else "same category"
+                )
+                print(
+                    f"      → {sub['new']}: d={sub['distance']:.4f}, v={sub['valuation']} ({cat_change})"
+                )
 
     # ========================================================================
     # Test 5: Cross-Encoding Consistency
@@ -542,29 +619,29 @@ def run_validation_suite():
 
     # Check if different encodings give consistent hierarchies
     test_pairs = [
-        ('A', 'V'),  # Both hydrophobic, similar size
-        ('K', 'R'),  # Both charged positive
-        ('S', 'D'),  # S→D phosphomimic transition
-        ('G', 'P'),  # Both turn formers
+        ("A", "V"),  # Both hydrophobic, similar size
+        ("K", "R"),  # Both charged positive
+        ("S", "D"),  # S→D phosphomimic transition
+        ("G", "P"),  # Both turn formers
     ]
 
-    consistency_results = {
-        "pairs": {},
-        "interpretation": []
-    }
+    consistency_results = {"pairs": {}, "interpretation": []}
 
     for aa1, aa2 in test_pairs:
         pair_key = f"{aa1}-{aa2}"
         consistency_results["pairs"][pair_key] = {}
 
         for scheme_name, encoding in ENCODING_SCHEMES.items():
-            if scheme_name.startswith("amino_acid") or scheme_name == "secondary_structure":
+            if (
+                scheme_name.startswith("amino_acid")
+                or scheme_name == "secondary_structure"
+            ):
                 cat1 = encoding.encode(aa1)
                 cat2 = encoding.encode(aa2)
                 same_cat = cat1 == cat2
                 consistency_results["pairs"][pair_key][scheme_name] = {
                     "categories": [cat1, cat2],
-                    "same_category": same_cat
+                    "same_category": same_cat,
                 }
 
     all_results["tests"]["cross_encoding"] = consistency_results
@@ -585,7 +662,7 @@ def run_validation_suite():
     summary = {
         "ultrametric_validity": [],
         "clustering_coherence": [],
-        "total_tests": len(all_results["tests"])
+        "total_tests": len(all_results["tests"]),
     }
 
     for test_name, result in all_results["tests"].items():
@@ -608,7 +685,8 @@ def run_validation_suite():
     print("\n" + "-" * 70)
     print("KEY FINDINGS")
     print("-" * 70)
-    print("""
+    print(
+        """
   1. Ultrametric property holds for biological ternary encodings
      → 3-adic distance is mathematically valid for these structures
 
@@ -623,11 +701,12 @@ def run_validation_suite():
 
   CONCLUSION: The 3-adic framework generalizes beyond codons to
   multiple levels of biological organization.
-""")
+"""
+    )
 
     # Save results
     output_file = OUTPUT_DIR / "padic_biology_validation_results.json"
-    with open(output_file, 'w') as f:
+    with open(output_file, "w") as f:
         json.dump(all_results, f, indent=2, default=str)
 
     print(f"\nResults saved to: {output_file}")

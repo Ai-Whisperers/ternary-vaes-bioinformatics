@@ -34,10 +34,11 @@ total_loss = weight_A * loss_A + ...  # Gradient flows through weight_A!
 Single responsibility: Differentiable training dynamics control.
 """
 
+from typing import Dict, Optional
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, Optional
 
 
 class DifferentiableController(nn.Module):
@@ -57,7 +58,7 @@ class DifferentiableController(nn.Module):
         self,
         input_dim: int = 8,
         hidden_dim: int = 32,
-        output_bounds: Optional[Dict[str, tuple]] = None
+        output_bounds: Optional[Dict[str, tuple]] = None,
     ):
         """Initialize DifferentiableController.
 
@@ -78,7 +79,7 @@ class DifferentiableController(nn.Module):
             nn.SiLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.SiLU(),
-            nn.Linear(hidden_dim, 6)  # 6 control signals
+            nn.Linear(hidden_dim, 6),  # 6 control signals
         )
 
         # Output indices and their meanings:
@@ -90,12 +91,12 @@ class DifferentiableController(nn.Module):
         # 5: tau (curriculum position) [0, 1]
 
         self.output_bounds = output_bounds or {
-            'rho': (0.0, 0.5),
-            'weight_geodesic': (0.1, 10.0),
-            'weight_radial': (0.0, 5.0),
-            'beta_A': (0.5, 5.0),
-            'beta_B': (0.5, 5.0),
-            'tau': (0.0, 1.0)
+            "rho": (0.0, 0.5),
+            "weight_geodesic": (0.1, 10.0),
+            "weight_radial": (0.0, 5.0),
+            "beta_A": (0.5, 5.0),
+            "beta_B": (0.5, 5.0),
+            "tau": (0.0, 1.0),
         }
 
         # Initialize for stability
@@ -130,12 +131,12 @@ class DifferentiableController(nn.Module):
 
         # Apply bounded activations (all tensors, all differentiable)
         return {
-            'rho': torch.sigmoid(raw[:, 0]) * 0.5,  # [0, 0.5]
-            'weight_geodesic': F.softplus(raw[:, 1]) + 0.1,  # [0.1, inf)
-            'weight_radial': F.softplus(raw[:, 2]),  # [0, inf)
-            'beta_A': F.softplus(raw[:, 3]) + 0.5,  # [0.5, inf)
-            'beta_B': F.softplus(raw[:, 4]) + 0.5,  # [0.5, inf)
-            'tau': torch.sigmoid(raw[:, 5])  # [0, 1]
+            "rho": torch.sigmoid(raw[:, 0]) * 0.5,  # [0, 0.5]
+            "weight_geodesic": F.softplus(raw[:, 1]) + 0.1,  # [0.1, inf)
+            "weight_radial": F.softplus(raw[:, 2]),  # [0, inf)
+            "beta_A": F.softplus(raw[:, 3]) + 0.5,  # [0.5, inf)
+            "beta_B": F.softplus(raw[:, 4]) + 0.5,  # [0.5, inf)
+            "tau": torch.sigmoid(raw[:, 5]),  # [0, 1]
         }
 
 
@@ -151,11 +152,7 @@ class ThreeBodyController(nn.Module):
     The controller sees position features and outputs local control signals.
     """
 
-    def __init__(
-        self,
-        latent_dim: int = 16,
-        hidden_dim: int = 32
-    ):
+    def __init__(self, latent_dim: int = 16, hidden_dim: int = 32):
         """Initialize ThreeBodyController.
 
         Args:
@@ -168,14 +165,14 @@ class ThreeBodyController(nn.Module):
         self.position_encoder = nn.Sequential(
             nn.Linear(latent_dim * 2, hidden_dim),
             nn.SiLU(),
-            nn.Linear(hidden_dim, 8)  # Compressed position features
+            nn.Linear(hidden_dim, 8),  # Compressed position features
         )
 
         # Statistics encoder: processes batch-level statistics
         self.stats_encoder = nn.Sequential(
             nn.Linear(6, hidden_dim // 2),
             nn.SiLU(),
-            nn.Linear(hidden_dim // 2, 4)  # Compressed stats
+            nn.Linear(hidden_dim // 2, 4),  # Compressed stats
         )
 
         # Controller head: combines position + stats → control signals
@@ -183,7 +180,7 @@ class ThreeBodyController(nn.Module):
             nn.Linear(12, hidden_dim),
             nn.LayerNorm(hidden_dim),
             nn.SiLU(),
-            nn.Linear(hidden_dim, 6)
+            nn.Linear(hidden_dim, 6),
         )
 
         self._init_weights()
@@ -195,10 +192,7 @@ class ThreeBodyController(nn.Module):
             self.controller_head[-1].bias.zero_()
 
     def forward(
-        self,
-        z_A_mean: torch.Tensor,
-        z_B_mean: torch.Tensor,
-        batch_stats: torch.Tensor
+        self, z_A_mean: torch.Tensor, z_B_mean: torch.Tensor, batch_stats: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
         """Compute position-aware control signals.
 
@@ -230,12 +224,12 @@ class ThreeBodyController(nn.Module):
         raw = self.controller_head(combined)
 
         return {
-            'rho': torch.sigmoid(raw[:, 0]) * 0.5,
-            'weight_geodesic': F.softplus(raw[:, 1]) + 0.1,
-            'weight_radial': F.softplus(raw[:, 2]),
-            'beta_A': F.softplus(raw[:, 3]) + 0.5,
-            'beta_B': F.softplus(raw[:, 4]) + 0.5,
-            'tau': torch.sigmoid(raw[:, 5])
+            "rho": torch.sigmoid(raw[:, 0]) * 0.5,
+            "weight_geodesic": F.softplus(raw[:, 1]) + 0.1,
+            "weight_radial": F.softplus(raw[:, 2]),
+            "beta_A": F.softplus(raw[:, 3]) + 0.5,
+            "beta_B": F.softplus(raw[:, 4]) + 0.5,
+            "tau": torch.sigmoid(raw[:, 5]),
         }
 
 
@@ -259,9 +253,7 @@ class PositionDependentControl(nn.Module):
         self.sensitivity = sensitivity
 
     def forward(
-        self,
-        base_control: Dict[str, torch.Tensor],
-        z_hyp: torch.Tensor
+        self, base_control: Dict[str, torch.Tensor], z_hyp: torch.Tensor
     ) -> Dict[str, torch.Tensor]:
         """Modulate control based on position.
 
@@ -283,26 +275,30 @@ class PositionDependentControl(nn.Module):
         modulated = {}
 
         # Rho: higher at boundary (more exploration)
-        modulated['rho'] = base_control['rho'] * (0.5 + 0.5 * position_factor)
+        modulated["rho"] = base_control["rho"] * (0.5 + 0.5 * position_factor)
 
         # Geodesic weight: higher at boundary (more structure enforcement)
-        modulated['weight_geodesic'] = base_control['weight_geodesic'] * (0.5 + 0.5 * position_factor)
+        modulated["weight_geodesic"] = base_control["weight_geodesic"] * (
+            0.5 + 0.5 * position_factor
+        )
 
         # Radial weight: higher near origin (maintain hierarchy)
-        modulated['weight_radial'] = base_control['weight_radial'] * (1.5 - 0.5 * position_factor)
+        modulated["weight_radial"] = base_control["weight_radial"] * (
+            1.5 - 0.5 * position_factor
+        )
 
         # Beta: higher at boundary (more regularization to control chaos)
-        modulated['beta_A'] = base_control['beta_A'] * (0.8 + 0.4 * position_factor)
-        modulated['beta_B'] = base_control['beta_B'] * (0.8 + 0.4 * position_factor)
+        modulated["beta_A"] = base_control["beta_A"] * (0.8 + 0.4 * position_factor)
+        modulated["beta_B"] = base_control["beta_B"] * (0.8 + 0.4 * position_factor)
 
         # Tau: pass through (curriculum is global, not position-dependent)
-        modulated['tau'] = base_control['tau']
+        modulated["tau"] = base_control["tau"]
 
         return modulated
 
 
 __all__ = [
-    'DifferentiableController',
-    'ThreeBodyController',
-    'PositionDependentControl'
+    "DifferentiableController",
+    "ThreeBodyController",
+    "PositionDependentControl",
 ]

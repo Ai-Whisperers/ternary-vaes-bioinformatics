@@ -31,9 +31,11 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from src.data.generation import generate_all_ternary_operations
 
 
-def load_v5_5_checkpoint(device: str = 'cpu'):
+def load_v5_5_checkpoint(device: str = "cpu"):
     """Load v5.5 checkpoint."""
-    checkpoint_path = PROJECT_ROOT / 'sandbox-training' / 'checkpoints' / 'v5_5' / 'latest.pt'
+    checkpoint_path = (
+        PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5" / "latest.pt"
+    )
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     return checkpoint
 
@@ -51,7 +53,7 @@ def build_encoder_decoder(checkpoint, device):
                 nn.Linear(256, 128),
                 nn.ReLU(),
                 nn.Linear(128, 64),
-                nn.ReLU()
+                nn.ReLU(),
             )
             self.fc_mu = nn.Linear(64, 16)
             self.fc_logvar = nn.Linear(64, 16)
@@ -68,7 +70,7 @@ def build_encoder_decoder(checkpoint, device):
                 nn.ReLU(),
                 nn.Linear(32, 64),
                 nn.ReLU(),
-                nn.Linear(64, 27)
+                nn.Linear(64, 27),
             )
 
         def forward(self, z):
@@ -81,18 +83,30 @@ def build_encoder_decoder(checkpoint, device):
     decoder_A = SimpleDecoder().to(device)
 
     # Load state
-    model_state = checkpoint['model']
+    model_state = checkpoint["model"]
 
     # Filter and load encoder_A
-    enc_A_state = {k.replace('encoder_A.', ''): v for k, v in model_state.items() if k.startswith('encoder_A.')}
+    enc_A_state = {
+        k.replace("encoder_A.", ""): v
+        for k, v in model_state.items()
+        if k.startswith("encoder_A.")
+    }
     encoder_A.load_state_dict(enc_A_state)
 
     # Filter and load encoder_B
-    enc_B_state = {k.replace('encoder_B.', ''): v for k, v in model_state.items() if k.startswith('encoder_B.')}
+    enc_B_state = {
+        k.replace("encoder_B.", ""): v
+        for k, v in model_state.items()
+        if k.startswith("encoder_B.")
+    }
     encoder_B.load_state_dict(enc_B_state)
 
     # Filter and load decoder_A
-    dec_A_state = {k.replace('decoder_A.', ''): v for k, v in model_state.items() if k.startswith('decoder_A.')}
+    dec_A_state = {
+        k.replace("decoder_A.", ""): v
+        for k, v in model_state.items()
+        if k.startswith("decoder_A.")
+    }
     decoder_A.load_state_dict(dec_A_state)
 
     return encoder_A, encoder_B, decoder_A
@@ -109,7 +123,7 @@ def compute_3adic_valuation(n: int) -> int:
     return v
 
 
-def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
+def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device="cpu"):
     """Comprehensive quality analysis of the v5.5 manifold."""
 
     print("=" * 70)
@@ -162,8 +176,12 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
     overall_acc = correct.mean().item()
 
     print(f"\nOverall element accuracy: {overall_acc*100:.2f}%")
-    print(f"Perfect reconstructions: {perfect_recon}/{n_ops} ({perfect_recon/n_ops*100:.2f}%)")
-    print(f"Coverage (>0 correct): {(sample_acc > 0).sum().item()}/{n_ops} ({(sample_acc > 0).sum().item()/n_ops*100:.2f}%)")
+    print(
+        f"Perfect reconstructions: {perfect_recon}/{n_ops} ({perfect_recon/n_ops*100:.2f}%)"
+    )
+    print(
+        f"Coverage (>0 correct): {(sample_acc > 0).sum().item()}/{n_ops} ({(sample_acc > 0).sum().item()/n_ops*100:.2f}%)"
+    )
 
     # 2. RADIAL DISTRIBUTION
     print("\n" + "-" * 70)
@@ -173,8 +191,12 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
     radii_A = torch.norm(z_A, dim=1).cpu().numpy()
     radii_B = torch.norm(z_B, dim=1).cpu().numpy()
 
-    print(f"\nVAE-A radii: mean={radii_A.mean():.4f}, std={radii_A.std():.4f}, min={radii_A.min():.4f}, max={radii_A.max():.4f}")
-    print(f"VAE-B radii: mean={radii_B.mean():.4f}, std={radii_B.std():.4f}, min={radii_B.min():.4f}, max={radii_B.max():.4f}")
+    print(
+        f"\nVAE-A radii: mean={radii_A.mean():.4f}, std={radii_A.std():.4f}, min={radii_A.min():.4f}, max={radii_A.max():.4f}"
+    )
+    print(
+        f"VAE-B radii: mean={radii_B.mean():.4f}, std={radii_B.std():.4f}, min={radii_B.min():.4f}, max={radii_B.max():.4f}"
+    )
 
     # Analyze radius vs 3-adic valuation
     valuations = np.array([compute_3adic_valuation(i) for i in range(n_ops)])
@@ -182,7 +204,9 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
     corr_A_rad, p_A_rad = spearmanr(valuations, radii_A)
     corr_B_rad, p_B_rad = spearmanr(valuations, radii_B)
 
-    print("\nRadius vs 3-adic valuation correlation (expect NEGATIVE for proper hierarchy):")
+    print(
+        "\nRadius vs 3-adic valuation correlation (expect NEGATIVE for proper hierarchy):"
+    )
     print(f"  VAE-A: r={corr_A_rad:.4f} (p={p_A_rad:.2e})")
     print(f"  VAE-B: r={corr_B_rad:.4f} (p={p_B_rad:.2e})")
 
@@ -259,7 +283,9 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
         if count > 0:
             region_correct = correct[mask].mean().item()
             region_perfect = (sample_acc[mask] == 1.0).sum().item()
-            print(f"  v={v:6d} | {count:5d} | {region_correct*100:7.2f}% | {region_perfect:5d}")
+            print(
+                f"  v={v:6d} | {count:5d} | {region_correct*100:7.2f}% | {region_perfect:5d}"
+            )
 
     # 5. SPECIAL OPERATIONS ANALYSIS
     print("\n" + "-" * 70)
@@ -273,11 +299,11 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
     zero_op = np.zeros(9)
     for idx, op in enumerate(operations):
         if np.array_equal(op, zero_op):
-            special_ops['zero'] = idx
+            special_ops["zero"] = idx
 
     # Constant operations
     const_ops = [np.full(9, -1), np.full(9, 0), np.full(9, 1)]
-    const_names = ['const_-1', 'const_0', 'const_1']
+    const_names = ["const_-1", "const_0", "const_1"]
     for name, const_op in zip(const_names, const_ops):
         for idx, op in enumerate(operations):
             if np.array_equal(op, const_op):
@@ -288,9 +314,9 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
     proj2 = np.array([-1, 0, 1, -1, 0, 1, -1, 0, 1])  # op(a,b) = b
     for idx, op in enumerate(operations):
         if np.array_equal(op, proj1):
-            special_ops['proj_a'] = idx
+            special_ops["proj_a"] = idx
         if np.array_equal(op, proj2):
-            special_ops['proj_b'] = idx
+            special_ops["proj_b"] = idx
 
     print("\nSpecial operations:")
     for name, idx in special_ops.items():
@@ -298,14 +324,17 @@ def analyze_manifold_quality(encoder_A, encoder_B, decoder_A, device='cpu'):
         radius_A = radii_A[idx]
         radius_B = radii_B[idx]
         v = compute_3adic_valuation(idx)
-        print(f"  {name:10s}: idx={idx:5d}, v_3={v}, acc={acc*100:.0f}%, r_A={radius_A:.3f}, r_B={radius_B:.3f}")
+        print(
+            f"  {name:10s}: idx={idx:5d}, v_3={v}, acc={acc*100:.0f}%, r_A={radius_A:.3f}, r_B={radius_B:.3f}"
+        )
 
     # 6. SUMMARY METRICS
     print("\n" + "=" * 70)
     print("QUALITY SUMMARY")
     print("=" * 70)
 
-    print(f"""
+    print(
+        f"""
 COVERAGE:
   - Perfect reconstructions: {perfect_recon/n_ops*100:.1f}%
   - Overall element accuracy: {overall_acc*100:.1f}%
@@ -317,25 +346,26 @@ COVERAGE:
 RADIAL DISTRIBUTION:
   - VAE-A: {radii_A.mean():.2f} +/- {radii_A.std():.2f} (range: {radii_A.min():.2f} - {radii_A.max():.2f})
   - VAE-B: {radii_B.mean():.2f} +/- {radii_B.std():.2f} (range: {radii_B.min():.2f} - {radii_B.max():.2f})
-""")
+"""
+    )
 
     return {
-        'coverage': perfect_recon / n_ops,
-        'accuracy': overall_acc,
-        'ranking_corr_A': corr_A,
-        'ranking_corr_B': corr_B,
-        'radial_corr_A': corr_A_rad,
-        'radial_corr_B': corr_B_rad,
-        'radii_A': radii_A,
-        'radii_B': radii_B,
-        'z_A': z_A_np,
-        'z_B': z_B_np,
-        'valuations': valuations
+        "coverage": perfect_recon / n_ops,
+        "accuracy": overall_acc,
+        "ranking_corr_A": corr_A,
+        "ranking_corr_B": corr_B,
+        "radial_corr_A": corr_A_rad,
+        "radial_corr_B": corr_B_rad,
+        "radii_A": radii_A,
+        "radii_B": radii_B,
+        "z_A": z_A_np,
+        "z_B": z_B_np,
+        "valuations": valuations,
     }
 
 
 def main():
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
     # Load checkpoint
@@ -353,5 +383,5 @@ def main():
     return results
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

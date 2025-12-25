@@ -14,19 +14,20 @@ then projects to 3D Calabi-Yau manifold with fibration and intertwining structur
 Uses protein-style rendering for internal fibration visualization.
 """
 
-import torch
-import torch.nn as nn
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.interpolate import splprep, splev
 import json
 import os
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+from scipy.interpolate import splev, splprep
 
 # Output directory
 OUTPUT_DIR = "outputs/viz/calabi_yau_v58"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device: {device}")
 
 
@@ -65,7 +66,7 @@ class MultiLayerExtractor(nn.Module):
 
 def load_v58_checkpoint():
     """Load v5.8 checkpoint and extract model weights."""
-    ckpt_path = 'sandbox-training/checkpoints/v5_8/latest.pt'
+    ckpt_path = "sandbox-training/checkpoints/v5_8/latest.pt"
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
 
     print(f"Loaded v5.8 checkpoint - Epoch {ckpt['epoch']}")
@@ -75,22 +76,22 @@ def load_v58_checkpoint():
     return ckpt
 
 
-def build_multi_layer_extractor(ckpt, vae='A'):
+def build_multi_layer_extractor(ckpt, vae="A"):
     """Build extractor with weights from checkpoint."""
-    prefix = f'encoder_{vae}'
-    state_dict = ckpt['model']
+    prefix = f"encoder_{vae}"
+    state_dict = ckpt["model"]
 
     extractor = MultiLayerExtractor(state_dict)
 
     # Load weights
-    extractor.layers[0].weight.data = state_dict[f'{prefix}.encoder.0.weight']
-    extractor.layers[0].bias.data = state_dict[f'{prefix}.encoder.0.bias']
-    extractor.layers[1].weight.data = state_dict[f'{prefix}.encoder.2.weight']
-    extractor.layers[1].bias.data = state_dict[f'{prefix}.encoder.2.bias']
-    extractor.layers[2].weight.data = state_dict[f'{prefix}.encoder.4.weight']
-    extractor.layers[2].bias.data = state_dict[f'{prefix}.encoder.4.bias']
-    extractor.fc_mu.weight.data = state_dict[f'{prefix}.fc_mu.weight']
-    extractor.fc_mu.bias.data = state_dict[f'{prefix}.fc_mu.bias']
+    extractor.layers[0].weight.data = state_dict[f"{prefix}.encoder.0.weight"]
+    extractor.layers[0].bias.data = state_dict[f"{prefix}.encoder.0.bias"]
+    extractor.layers[1].weight.data = state_dict[f"{prefix}.encoder.2.weight"]
+    extractor.layers[1].bias.data = state_dict[f"{prefix}.encoder.2.bias"]
+    extractor.layers[2].weight.data = state_dict[f"{prefix}.encoder.4.weight"]
+    extractor.layers[2].bias.data = state_dict[f"{prefix}.encoder.4.bias"]
+    extractor.fc_mu.weight.data = state_dict[f"{prefix}.fc_mu.weight"]
+    extractor.fc_mu.bias.data = state_dict[f"{prefix}.fc_mu.bias"]
 
     return extractor.to(device).eval()
 
@@ -125,8 +126,8 @@ def extract_multilayer_embeddings(extractor_A, extractor_B, ops):
     # Create 64D embedding by combining key representations
     layer2_A = acts_A[2]  # 64D
     layer2_B = acts_B[2]  # 64D
-    mu_A = acts_A[3]      # 16D
-    mu_B = acts_B[3]      # 16D
+    mu_A = acts_A[3]  # 16D
+    mu_B = acts_B[3]  # 16D
 
     # 64D = 16 + 16 + 16 + 16
     embedding_64d = torch.cat([mu_A, mu_B, layer2_A[:, :16], layer2_B[:, :16]], dim=1)
@@ -140,18 +141,19 @@ def extract_multilayer_embeddings(extractor_A, extractor_B, ops):
     embedding_full = torch.cat([full_A, full_B], dim=1)  # 928D
 
     return {
-        '32d': torch.cat([mu_A, mu_B], dim=1),
-        '64d': embedding_64d,
-        '128d': embedding_128d,
-        '928d': embedding_full,
-        'mu_A': mu_A,
-        'mu_B': mu_B,
-        'layer2_A': layer2_A,
-        'layer2_B': layer2_B
+        "32d": torch.cat([mu_A, mu_B], dim=1),
+        "64d": embedding_64d,
+        "128d": embedding_128d,
+        "928d": embedding_full,
+        "mu_A": mu_A,
+        "mu_B": mu_B,
+        "layer2_A": layer2_A,
+        "layer2_B": layer2_B,
     }
 
 
 # === Calabi-Yau Projection Methods ===
+
 
 def calabi_yau_quintic_fibration(z, n_complex=5):
     """
@@ -170,8 +172,8 @@ def calabi_yau_quintic_fibration(z, n_complex=5):
     n_complex_pairs = dim // 2
     complex_coords = []
     for i in range(min(n_complex, n_complex_pairs)):
-        re = z_norm[:, 2*i]
-        im = z_norm[:, 2*i + 1] if 2*i + 1 < dim else np.zeros_like(re)
+        re = z_norm[:, 2 * i]
+        im = z_norm[:, 2 * i + 1] if 2 * i + 1 < dim else np.zeros_like(re)
         complex_coords.append(re + 1j * im)
 
     # Pad if needed
@@ -216,8 +218,8 @@ def hopf_fibration_intertwined(z):
     n_pairs = dim // 2
     w = []
     for i in range(n_pairs):
-        re = z_norm[:, 2*i]
-        im = z_norm[:, 2*i + 1] if 2*i + 1 < dim else np.zeros_like(re)
+        re = z_norm[:, 2 * i]
+        im = z_norm[:, 2 * i + 1] if 2 * i + 1 < dim else np.zeros_like(re)
         w.append(re + 1j * im)
 
     # Hopf map: (w0, w1) -> (2*Re(w0*conj(w1)), 2*Im(w0*conj(w1)), |w0|^2 - |w1|^2)
@@ -225,7 +227,7 @@ def hopf_fibration_intertwined(z):
         product = w[0] * np.conj(w[1])
         x = 2 * np.real(product)
         y = 2 * np.imag(product)
-        z_coord = np.abs(w[0])**2 - np.abs(w[1])**2
+        z_coord = np.abs(w[0]) ** 2 - np.abs(w[1]) ** 2
     else:
         x = np.real(w[0])
         y = np.imag(w[0])
@@ -277,7 +279,7 @@ def k3_surface_projection(z):
     z_coord = groups[0] * groups[3] - groups[1] * groups[2]
 
     # Add surface curvature from quartic
-    curvature = np.sign(quartic_sum) * np.abs(quartic_sum)**0.25
+    curvature = np.sign(quartic_sum) * np.abs(quartic_sum) ** 0.25
     z_coord += 0.2 * curvature
 
     return np.column_stack([x, y, z_coord])
@@ -299,16 +301,18 @@ def mirror_symmetric_fibration(z):
     z_mirror = z[:, half:]
 
     # Normalize each half
-    z_orig_norm = z_original / (np.linalg.norm(z_original, axis=1, keepdims=True) + 1e-8)
+    z_orig_norm = z_original / (
+        np.linalg.norm(z_original, axis=1, keepdims=True) + 1e-8
+    )
     z_mirr_norm = z_mirror / (np.linalg.norm(z_mirror, axis=1, keepdims=True) + 1e-8)
 
     # Original fibration (complex structure)
     orig_x = np.sum(z_orig_norm[:, ::2] * z_orig_norm[:, 1::2], axis=1)
-    orig_y = np.sum(z_orig_norm[:, ::2]**2 - z_orig_norm[:, 1::2]**2, axis=1)
+    orig_y = np.sum(z_orig_norm[:, ::2] ** 2 - z_orig_norm[:, 1::2] ** 2, axis=1)
 
     # Mirror fibration (symplectic structure)
     mirr_x = np.sum(z_mirr_norm[:, ::2] * z_mirr_norm[:, 1::2], axis=1)
-    mirr_z = np.sum(z_mirr_norm[:, ::2]**2 - z_mirr_norm[:, 1::2]**2, axis=1)
+    mirr_z = np.sum(z_mirr_norm[:, ::2] ** 2 - z_mirr_norm[:, 1::2] ** 2, axis=1)
 
     # Intertwine: x from original, y interpolated, z from mirror
     x = orig_x
@@ -326,11 +330,12 @@ def mirror_symmetric_fibration(z):
 
 # === Fibration Structure Analysis ===
 
+
 def compute_3adic_distance(i, j):
     """Compute 3-adic distance between two operation indices."""
     diff = abs(i - j)
     if diff == 0:
-        return float('inf')
+        return float("inf")
 
     # Count factors of 3
     v3 = 0
@@ -338,7 +343,7 @@ def compute_3adic_distance(i, j):
         v3 += 1
         diff //= 3
 
-    return 3**(-v3)
+    return 3 ** (-v3)
 
 
 def build_3adic_neighbor_graph(n_ops=19683, k_neighbors=6):
@@ -368,7 +373,7 @@ def trace_fibration_paths(points, neighbors, n_fibers=100, fiber_length=50):
     fibers = []
 
     # Start fibers at evenly distributed points
-    start_indices = np.linspace(0, n_points-1, n_fibers, dtype=int)
+    start_indices = np.linspace(0, n_points - 1, n_fibers, dtype=int)
 
     for start_idx in start_indices:
         fiber = [start_idx]
@@ -388,7 +393,7 @@ def trace_fibration_paths(points, neighbors, n_fibers=100, fiber_length=50):
                 if len(fiber) >= 2:
                     prev_dir = points[fiber[-1]] - points[fiber[-2]]
                     best_idx = None
-                    best_alignment = -float('inf')
+                    best_alignment = -float("inf")
                     for c in candidates:
                         new_dir = points[c] - points[current]
                         alignment = np.dot(prev_dir, new_dir)
@@ -420,8 +425,8 @@ def compute_intertwining_number(fiber1, fiber2, points):
     for i in range(len(p1) - 1):
         for j in range(len(p2) - 1):
             # Check if segments cross in xy plane
-            a1, a2 = p1[i, :2], p1[i+1, :2]
-            b1, b2 = p2[j, :2], p2[j+1, :2]
+            a1, a2 = p1[i, :2], p1[i + 1, :2]
+            b1, b2 = p2[j, :2], p2[j + 1, :2]
 
             # Simplified crossing check
             d1 = np.cross(b2 - b1, a1 - b1)
@@ -432,8 +437,8 @@ def compute_intertwining_number(fiber1, fiber2, points):
             if d1 * d2 < 0 and d3 * d4 < 0:
                 # Determine over/under from z coordinate
                 t = np.cross(b1 - a1, b2 - b1) / (np.cross(a2 - a1, b2 - b1) + 1e-10)
-                z_a = p1[i, 2] + t * (p1[i+1, 2] - p1[i, 2])
-                z_b = p2[j, 2] + t * (p2[j+1, 2] - p2[j, 2])
+                z_a = p1[i, 2] + t * (p1[i + 1, 2] - p1[i, 2])
+                z_b = p2[j, 2] + t * (p2[j + 1, 2] - p2[j, 2])
 
                 crossings += 1 if z_a > z_b else -1
 
@@ -448,8 +453,11 @@ def smooth_fiber_spline(points, fiber_indices, n_samples=100):
         return fiber_points
 
     try:
-        tck, u = splprep([fiber_points[:, 0], fiber_points[:, 1], fiber_points[:, 2]],
-                         s=0.1, k=min(3, len(fiber_points)-1))
+        tck, u = splprep(
+            [fiber_points[:, 0], fiber_points[:, 1], fiber_points[:, 2]],
+            s=0.1,
+            k=min(3, len(fiber_points) - 1),
+        )
         u_new = np.linspace(0, 1, n_samples)
         smooth = np.array(splev(u_new, tck)).T
         return smooth
@@ -471,7 +479,7 @@ def create_tube_mesh(path, radius=0.015, n_sides=8):
         elif i == n_points - 1:
             tangent = path[-1] - path[-2]
         else:
-            tangent = path[i+1] - path[i-1]
+            tangent = path[i + 1] - path[i - 1]
 
         tangent = tangent / (np.linalg.norm(tangent) + 1e-8)
 
@@ -492,9 +500,9 @@ def create_tube_mesh(path, radius=0.015, n_sides=8):
         # Create faces connecting to previous ring
         if i > 0:
             for j in range(n_sides):
-                v1 = (i-1) * n_sides + j
-                v2 = (i-1) * n_sides + (j+1) % n_sides
-                v3 = i * n_sides + (j+1) % n_sides
+                v1 = (i - 1) * n_sides + j
+                v2 = (i - 1) * n_sides + (j + 1) % n_sides
+                v3 = i * n_sides + (j + 1) % n_sides
                 v4 = i * n_sides + j
                 faces.append([v1, v2, v3])
                 faces.append([v1, v3, v4])
@@ -504,41 +512,61 @@ def create_tube_mesh(path, radius=0.015, n_sides=8):
 
 # === Visualization ===
 
+
 def render_fibration_structure(points, fibers, projection_name, output_path):
     """Render fibration structure with protein-style visualization."""
     fig = plt.figure(figsize=(16, 12))
 
     # Main 3D plot
-    ax1 = fig.add_subplot(2, 2, 1, projection='3d')
+    ax1 = fig.add_subplot(2, 2, 1, projection="3d")
 
     # Plot points with color by position
     colors = np.arctan2(points[:, 1], points[:, 0])
-    ax1.scatter(points[:, 0], points[:, 1], points[:, 2],
-                         c=colors, cmap='twilight', s=1, alpha=0.3)
+    ax1.scatter(
+        points[:, 0],
+        points[:, 1],
+        points[:, 2],
+        c=colors,
+        cmap="twilight",
+        s=1,
+        alpha=0.3,
+    )
 
     # Plot fiber backbones
     cmap = plt.cm.viridis
     for i, fiber in enumerate(fibers[:30]):  # Show first 30 fibers
         smooth_path = smooth_fiber_spline(points, fiber)
         color = cmap(i / 30)
-        ax1.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                color=color, linewidth=1.5, alpha=0.8)
+        ax1.plot(
+            smooth_path[:, 0],
+            smooth_path[:, 1],
+            smooth_path[:, 2],
+            color=color,
+            linewidth=1.5,
+            alpha=0.8,
+        )
 
-    ax1.set_title(f'{projection_name}\nFibration Backbone Structure', fontsize=12)
-    ax1.set_xlabel('X')
-    ax1.set_ylabel('Y')
-    ax1.set_zlabel('Z')
+    ax1.set_title(f"{projection_name}\nFibration Backbone Structure", fontsize=12)
+    ax1.set_xlabel("X")
+    ax1.set_ylabel("Y")
+    ax1.set_zlabel("Z")
 
     # Intertwining detail view
-    ax2 = fig.add_subplot(2, 2, 2, projection='3d')
+    ax2 = fig.add_subplot(2, 2, 2, projection="3d")
 
     # Zoom into region with intertwining
     center = np.mean(points, axis=0)
     mask = np.linalg.norm(points - center, axis=1) < 0.5
     central_points = points[mask]
 
-    ax2.scatter(central_points[:, 0], central_points[:, 1], central_points[:, 2],
-               c='blue', s=3, alpha=0.4)
+    ax2.scatter(
+        central_points[:, 0],
+        central_points[:, 1],
+        central_points[:, 2],
+        c="blue",
+        s=3,
+        alpha=0.4,
+    )
 
     # Show fiber tubes in central region
     for i, fiber in enumerate(fibers[:10]):
@@ -548,38 +576,49 @@ def render_fibration_structure(points, fibers, projection_name, output_path):
         if np.any(central_mask):
             central_path = smooth_path[central_mask]
             if len(central_path) > 3:
-                ax2.plot(central_path[:, 0], central_path[:, 1], central_path[:, 2],
-                        linewidth=3, alpha=0.9, color=plt.cm.Set1(i/10))
+                ax2.plot(
+                    central_path[:, 0],
+                    central_path[:, 1],
+                    central_path[:, 2],
+                    linewidth=3,
+                    alpha=0.9,
+                    color=plt.cm.Set1(i / 10),
+                )
 
-    ax2.set_title('Intertwining Detail (Central Region)', fontsize=12)
+    ax2.set_title("Intertwining Detail (Central Region)", fontsize=12)
 
     # 2D projections showing linking
     ax3 = fig.add_subplot(2, 2, 3)
-    ax3.scatter(points[:, 0], points[:, 1], c=points[:, 2], cmap='viridis', s=1, alpha=0.3)
+    ax3.scatter(
+        points[:, 0], points[:, 1], c=points[:, 2], cmap="viridis", s=1, alpha=0.3
+    )
     for i, fiber in enumerate(fibers[:20]):
         smooth_path = smooth_fiber_spline(points, fiber)
         ax3.plot(smooth_path[:, 0], smooth_path[:, 1], linewidth=1, alpha=0.7)
-    ax3.set_title('XY Projection (Z as color)', fontsize=12)
-    ax3.set_xlabel('X')
-    ax3.set_ylabel('Y')
-    ax3.set_aspect('equal')
+    ax3.set_title("XY Projection (Z as color)", fontsize=12)
+    ax3.set_xlabel("X")
+    ax3.set_ylabel("Y")
+    ax3.set_aspect("equal")
 
     # Fiber density plot
     ax4 = fig.add_subplot(2, 2, 4)
 
     # Compute fiber density
     from scipy.stats import gaussian_kde
+
     if len(points) > 100:
         xy = points[:, :2].T
         kde = gaussian_kde(xy)
-        xi, yi = np.mgrid[points[:, 0].min():points[:, 0].max():100j,
-                         points[:, 1].min():points[:, 1].max():100j]
+        xi, yi = np.mgrid[
+            points[:, 0].min() : points[:, 0].max() : 100j,
+            points[:, 1].min() : points[:, 1].max() : 100j,
+        ]
         zi = kde(np.vstack([xi.flatten(), yi.flatten()]))
-        ax4.contourf(xi, yi, zi.reshape(xi.shape), levels=20, cmap='hot')
-        ax4.set_title('Fiber Density Distribution', fontsize=12)
+        ax4.contourf(xi, yi, zi.reshape(xi.shape), levels=20, cmap="hot")
+        ax4.set_title("Fiber Density Distribution", fontsize=12)
 
     plt.tight_layout()
-    plt.savefig(output_path, dpi=150, bbox_inches='tight')
+    plt.savefig(output_path, dpi=150, bbox_inches="tight")
     plt.close()
     print(f"Saved: {output_path}")
 
@@ -597,10 +636,7 @@ def export_fibration_data(points, fibers, projection_name, output_path):
 
         # Create tube mesh
         vertices, faces = create_tube_mesh(smooth_path, radius=0.012)
-        tube_meshes.append({
-            'vertices': vertices.tolist(),
-            'faces': faces.tolist()
-        })
+        tube_meshes.append({"vertices": vertices.tolist(), "faces": faces.tolist()})
 
     # Compute intertwining matrix for first N fibers
     n_compute = min(20, len(fibers))
@@ -618,21 +654,21 @@ def export_fibration_data(points, fibers, projection_name, output_path):
         intertwining_matrix.append(row)
 
     data = {
-        'projection': projection_name,
-        'n_points': len(points),
-        'n_fibers': len(fibers),
-        'points': points.tolist(),
-        'fiber_indices': [list(f) for f in fibers],
-        'smooth_fibers': smooth_fibers,
-        'tube_meshes': tube_meshes,
-        'intertwining_matrix': intertwining_matrix,
-        'bounds': {
-            'min': points.min(axis=0).tolist(),
-            'max': points.max(axis=0).tolist()
-        }
+        "projection": projection_name,
+        "n_points": len(points),
+        "n_fibers": len(fibers),
+        "points": points.tolist(),
+        "fiber_indices": [list(f) for f in fibers],
+        "smooth_fibers": smooth_fibers,
+        "tube_meshes": tube_meshes,
+        "intertwining_matrix": intertwining_matrix,
+        "bounds": {
+            "min": points.min(axis=0).tolist(),
+            "max": points.max(axis=0).tolist(),
+        },
     }
 
-    with open(output_path, 'w') as f:
+    with open(output_path, "w") as f:
         json.dump(data, f)
 
     print(f"Saved: {output_path}")
@@ -645,8 +681,8 @@ def main():
 
     # Build multi-layer extractors
     print("\nBuilding multi-layer extractors...")
-    extractor_A = build_multi_layer_extractor(ckpt, 'A')
-    extractor_B = build_multi_layer_extractor(ckpt, 'B')
+    extractor_A = build_multi_layer_extractor(ckpt, "A")
+    extractor_B = build_multi_layer_extractor(ckpt, "B")
 
     # Generate all operations
     print("\nGenerating all 19683 ternary operations...")
@@ -657,7 +693,7 @@ def main():
     embeddings = extract_multilayer_embeddings(extractor_A, extractor_B, ops)
 
     for name, emb in embeddings.items():
-        if 'layer' not in name and 'mu' not in name:
+        if "layer" not in name and "mu" not in name:
             print(f"  {name}: {emb.shape}")
 
     # Build 3-adic neighbor graph (do once, reuse)
@@ -665,21 +701,21 @@ def main():
 
     # Process each embedding dimension
     projections = {
-        '64d': {
-            'embedding': embeddings['64d'],
-            'methods': [
-                ('Quintic Fibration', calabi_yau_quintic_fibration),
-                ('Hopf Intertwined', hopf_fibration_intertwined),
-                ('Mirror Symmetric', mirror_symmetric_fibration),
-            ]
+        "64d": {
+            "embedding": embeddings["64d"],
+            "methods": [
+                ("Quintic Fibration", calabi_yau_quintic_fibration),
+                ("Hopf Intertwined", hopf_fibration_intertwined),
+                ("Mirror Symmetric", mirror_symmetric_fibration),
+            ],
         },
-        '128d': {
-            'embedding': embeddings['128d'],
-            'methods': [
-                ('Quintic Fibration 128D', calabi_yau_quintic_fibration),
-                ('K3 Surface', k3_surface_projection),
-            ]
-        }
+        "128d": {
+            "embedding": embeddings["128d"],
+            "methods": [
+                ("Quintic Fibration 128D", calabi_yau_quintic_fibration),
+                ("K3 Surface", k3_surface_projection),
+            ],
+        },
     }
 
     all_results = {}
@@ -687,11 +723,11 @@ def main():
     for dim_name, config in projections.items():
         print(f"\n{'='*60}")
         print(f"Processing {dim_name} embeddings")
-        print('='*60)
+        print("=" * 60)
 
-        emb = config['embedding']
+        emb = config["embedding"]
 
-        for proj_name, proj_func in config['methods']:
+        for proj_name, proj_func in config["methods"]:
             print(f"\n--- {proj_name} ---")
 
             # Project to 3D
@@ -705,64 +741,87 @@ def main():
             print(f"Points range: [{points_3d.min():.3f}, {points_3d.max():.3f}]")
 
             # Trace fibration paths
-            fibers = trace_fibration_paths(points_3d, neighbors, n_fibers=100, fiber_length=40)
+            fibers = trace_fibration_paths(
+                points_3d, neighbors, n_fibers=100, fiber_length=40
+            )
             print(f"Traced {len(fibers)} fibers")
 
             # Render visualization
-            safe_name = proj_name.replace(' ', '_').lower()
-            output_png = os.path.join(OUTPUT_DIR, f'{dim_name}_{safe_name}.png')
-            render_fibration_structure(points_3d, fibers, f'{proj_name} ({dim_name})', output_png)
+            safe_name = proj_name.replace(" ", "_").lower()
+            output_png = os.path.join(OUTPUT_DIR, f"{dim_name}_{safe_name}.png")
+            render_fibration_structure(
+                points_3d, fibers, f"{proj_name} ({dim_name})", output_png
+            )
 
             # Export data for Three.js
-            output_json = os.path.join(OUTPUT_DIR, f'{dim_name}_{safe_name}.json')
-            export_fibration_data(points_3d, fibers, f'{proj_name} ({dim_name})', output_json)
+            output_json = os.path.join(OUTPUT_DIR, f"{dim_name}_{safe_name}.json")
+            export_fibration_data(
+                points_3d, fibers, f"{proj_name} ({dim_name})", output_json
+            )
 
-            all_results[f'{dim_name}_{safe_name}'] = {
-                'points': points_3d,
-                'fibers': fibers
+            all_results[f"{dim_name}_{safe_name}"] = {
+                "points": points_3d,
+                "fibers": fibers,
             }
 
     # Create summary comparison plot
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Creating summary comparison...")
 
     fig = plt.figure(figsize=(20, 12))
 
     plot_idx = 1
     for key, result in all_results.items():
-        ax = fig.add_subplot(2, 3, plot_idx, projection='3d')
+        ax = fig.add_subplot(2, 3, plot_idx, projection="3d")
 
-        points = result['points']
-        fibers = result['fibers']
+        points = result["points"]
+        fibers = result["fibers"]
 
         # Color by z-coordinate
         colors = points[:, 2]
-        ax.scatter(points[:, 0], points[:, 1], points[:, 2],
-                  c=colors, cmap='twilight', s=1, alpha=0.3)
+        ax.scatter(
+            points[:, 0],
+            points[:, 1],
+            points[:, 2],
+            c=colors,
+            cmap="twilight",
+            s=1,
+            alpha=0.3,
+        )
 
         # Plot first 20 fibers
         for i, fiber in enumerate(fibers[:20]):
             smooth_path = smooth_fiber_spline(points, fiber)
-            ax.plot(smooth_path[:, 0], smooth_path[:, 1], smooth_path[:, 2],
-                   linewidth=1.5, alpha=0.8, color=plt.cm.viridis(i/20))
+            ax.plot(
+                smooth_path[:, 0],
+                smooth_path[:, 1],
+                smooth_path[:, 2],
+                linewidth=1.5,
+                alpha=0.8,
+                color=plt.cm.viridis(i / 20),
+            )
 
-        ax.set_title(key.replace('_', ' ').title(), fontsize=10)
+        ax.set_title(key.replace("_", " ").title(), fontsize=10)
         plot_idx += 1
 
         if plot_idx > 6:
             break
 
-    plt.suptitle('Calabi-Yau Fibration Projections from v5.8 Multi-Layer Embeddings', fontsize=14)
+    plt.suptitle(
+        "Calabi-Yau Fibration Projections from v5.8 Multi-Layer Embeddings", fontsize=14
+    )
     plt.tight_layout()
-    plt.savefig(os.path.join(OUTPUT_DIR, 'summary_comparison.png'), dpi=150, bbox_inches='tight')
+    plt.savefig(
+        os.path.join(OUTPUT_DIR, "summary_comparison.png"), dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f"Saved: {os.path.join(OUTPUT_DIR, 'summary_comparison.png')}")
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("Done! Generated files:")
     for f in os.listdir(OUTPUT_DIR):
         print(f"  {f}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

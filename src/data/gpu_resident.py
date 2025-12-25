@@ -24,8 +24,10 @@ Usage:
             ...
 """
 
-import torch
 from typing import Iterator, Tuple
+
+import torch
+
 from ..core import TERNARY
 
 
@@ -49,10 +51,10 @@ class GPUResidentTernaryDataset:
 
     def __init__(
         self,
-        device: str = 'cuda',
+        device: str = "cuda",
         train_split: float = 0.8,
         val_split: float = 0.1,
-        seed: int = 42
+        seed: int = 42,
     ):
         """Initialize GPU-resident dataset.
 
@@ -70,14 +72,14 @@ class GPUResidentTernaryDataset:
 
         # Create reproducible split
         generator = torch.Generator().manual_seed(seed)
-        perm = torch.randperm(TERNARY.N_OPERATIONS, generator=generator, device='cpu')
+        perm = torch.randperm(TERNARY.N_OPERATIONS, generator=generator, device="cpu")
 
         n_train = int(train_split * TERNARY.N_OPERATIONS)
         n_val = int(val_split * TERNARY.N_OPERATIONS)
 
         train_perm = perm[:n_train].to(self.device)
-        val_perm = perm[n_train:n_train + n_val].to(self.device)
-        test_perm = perm[n_train + n_val:].to(self.device)
+        val_perm = perm[n_train : n_train + n_val].to(self.device)
+        test_perm = perm[n_train + n_val :].to(self.device)
 
         # Store split indices
         self.train_indices = train_perm
@@ -96,10 +98,10 @@ class GPUResidentTernaryDataset:
 
     def get_batches(
         self,
-        split: str = 'train',
+        split: str = "train",
         batch_size: int = 256,
         shuffle: bool = True,
-        drop_last: bool = False
+        drop_last: bool = False,
     ) -> Iterator[Tuple[torch.Tensor, torch.Tensor]]:
         """Iterate over batches.
 
@@ -112,10 +114,10 @@ class GPUResidentTernaryDataset:
         Yields:
             Tuple of (batch_data, batch_indices) - both already on GPU
         """
-        if split == 'train':
+        if split == "train":
             data = self.train_data
             indices = self.train_original_indices
-        elif split == 'val':
+        elif split == "val":
             data = self.val_data
             indices = self.val_original_indices
         else:
@@ -135,16 +137,16 @@ class GPUResidentTernaryDataset:
                 break
             yield data[start:end], indices[start:end]
 
-    def get_split_size(self, split: str = 'train') -> int:
+    def get_split_size(self, split: str = "train") -> int:
         """Get size of a split."""
-        if split == 'train':
+        if split == "train":
             return len(self.train_indices)
-        elif split == 'val':
+        elif split == "val":
             return len(self.val_indices)
         else:
             return len(self.test_indices)
 
-    def num_batches(self, split: str = 'train', batch_size: int = 256) -> int:
+    def num_batches(self, split: str = "train", batch_size: int = 256) -> int:
         """Get number of batches for a split."""
         return (self.get_split_size(split) + batch_size - 1) // batch_size
 
@@ -167,10 +169,10 @@ class GPUBatchIterator:
     def __init__(
         self,
         dataset: GPUResidentTernaryDataset,
-        split: str = 'train',
+        split: str = "train",
         batch_size: int = 256,
         shuffle: bool = True,
-        drop_last: bool = False
+        drop_last: bool = False,
     ):
         self.dataset = dataset
         self.split = split
@@ -180,10 +182,7 @@ class GPUBatchIterator:
 
     def __iter__(self):
         return self.dataset.get_batches(
-            self.split,
-            self.batch_size,
-            self.shuffle,
-            self.drop_last
+            self.split, self.batch_size, self.shuffle, self.drop_last
         )
 
     def __len__(self):
@@ -191,12 +190,12 @@ class GPUBatchIterator:
 
 
 def create_gpu_resident_loaders(
-    device: str = 'cuda',
+    device: str = "cuda",
     batch_size: int = 256,
     train_split: float = 0.8,
     val_split: float = 0.1,
-    seed: int = 42
-) -> Tuple['GPUBatchIterator', 'GPUBatchIterator', 'GPUBatchIterator']:
+    seed: int = 42,
+) -> Tuple["GPUBatchIterator", "GPUBatchIterator", "GPUBatchIterator"]:
     """Create GPU-resident train/val/test loaders.
 
     Drop-in replacement for create_ternary_data_loaders().
@@ -212,21 +211,18 @@ def create_gpu_resident_loaders(
         Tuple of (train_loader, val_loader, test_loader)
     """
     dataset = GPUResidentTernaryDataset(
-        device=device,
-        train_split=train_split,
-        val_split=val_split,
-        seed=seed
+        device=device, train_split=train_split, val_split=val_split, seed=seed
     )
 
-    train_loader = GPUBatchIterator(dataset, 'train', batch_size, shuffle=True)
-    val_loader = GPUBatchIterator(dataset, 'val', batch_size, shuffle=False)
-    test_loader = GPUBatchIterator(dataset, 'test', batch_size, shuffle=False)
+    train_loader = GPUBatchIterator(dataset, "train", batch_size, shuffle=True)
+    val_loader = GPUBatchIterator(dataset, "val", batch_size, shuffle=False)
+    test_loader = GPUBatchIterator(dataset, "test", batch_size, shuffle=False)
 
     return train_loader, val_loader, test_loader
 
 
 __all__ = [
-    'GPUResidentTernaryDataset',
-    'GPUBatchIterator',
-    'create_gpu_resident_loaders'
+    "GPUResidentTernaryDataset",
+    "GPUBatchIterator",
+    "create_gpu_resident_loaders",
 ]

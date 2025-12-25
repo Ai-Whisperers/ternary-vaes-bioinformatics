@@ -8,19 +8,19 @@ Usage:
     python 07c_fast_reverse_search.py
 """
 
-import sys
-from pathlib import Path
 import json
-from datetime import datetime
+import sys
 from collections import Counter
+from datetime import datetime
+from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-import torch
-import numpy as np
-from sklearn.cluster import KMeans
 import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from sklearn.cluster import KMeans
 
 # Genetic code degeneracy: 21 groups with sizes [1,1,2,2,2,2,2,2,2,2,2,3,3,4,4,4,4,4,6,6,6]
 DEGENERACY_PATTERN = [1, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 3, 3, 4, 4, 4, 4, 4, 6, 6, 6]

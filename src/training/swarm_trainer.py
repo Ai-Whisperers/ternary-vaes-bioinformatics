@@ -3,10 +3,11 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
+import copy
+from typing import Dict, List, Optional
+
 import torch
 import torch.nn as nn
-from typing import List, Dict, Optional
-import copy
 
 
 class SwarmTrainer:

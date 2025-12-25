@@ -18,27 +18,29 @@ Projection methods:
 4. Holomorphic sectioning - real slices through complex structure
 """
 
-import torch
-import numpy as np
 import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-from pathlib import Path
-import pandas as pd
-import sys
+import numpy as np
+import torch
+
+matplotlib.use("Agg")
 import json
+import sys
+from pathlib import Path
+
+import matplotlib.pyplot as plt
+import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.data.generation import generate_all_ternary_operations
+from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
-def load_embeddings(checkpoint_path, device='cuda'):
+def load_embeddings(checkpoint_path, device="cuda"):
     """Load model and extract all 19683 latent embeddings."""
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
     model = DualNeuralVAEV5(input_dim=9, latent_dim=16, use_statenet=False)
-    state_dict = {k: v for k, v in checkpoint['model'].items() if 'state_net' not in k}
+    state_dict = {k: v for k, v in checkpoint["model"].items() if "state_net" not in k}
     model.load_state_dict(state_dict)
     model.to(device)
     model.eval()
@@ -59,14 +61,14 @@ def load_embeddings(checkpoint_path, device='cuda'):
         acc_B = (preds_B == x).float().mean(dim=1)
 
     return {
-        'z_A': mu_A.cpu().numpy(),
-        'z_B': mu_B.cpu().numpy(),
-        'var_A': logvar_A.exp().cpu().numpy(),
-        'var_B': logvar_B.exp().cpu().numpy(),
-        'acc_A': acc_A.cpu().numpy(),
-        'acc_B': acc_B.cpu().numpy(),
-        'operations': operations,
-        'epoch': checkpoint.get('epoch', 0)
+        "z_A": mu_A.cpu().numpy(),
+        "z_B": mu_B.cpu().numpy(),
+        "var_A": logvar_A.exp().cpu().numpy(),
+        "var_B": logvar_B.exp().cpu().numpy(),
+        "acc_A": acc_A.cpu().numpy(),
+        "acc_B": acc_B.cpu().numpy(),
+        "operations": operations,
+        "epoch": checkpoint.get("epoch", 0),
     }
 
 
@@ -139,15 +141,15 @@ def calabi_yau_fermat_projection(z, k=5):
     # The real parts of z^(1/k) for different roots
     np.exp(2j * np.pi * np.arange(k) / k)
 
-    x = np.real(np.abs(u_c)**(2/k) * np.exp(1j * np.angle(u_c) / k))
-    y = np.real(np.abs(v_c)**(2/k) * np.exp(1j * np.angle(v_c) / k))
-    z_out = np.real(np.abs(w_c)**(2/k) * np.exp(1j * np.angle(w_c) / k))
+    x = np.real(np.abs(u_c) ** (2 / k) * np.exp(1j * np.angle(u_c) / k))
+    y = np.real(np.abs(v_c) ** (2 / k) * np.exp(1j * np.angle(v_c) / k))
+    z_out = np.real(np.abs(w_c) ** (2 / k) * np.exp(1j * np.angle(w_c) / k))
 
     # Add contribution from higher dimensions for richness
     for i in range(3, 8):
-        x += 0.1 * z[:, 2*i] * np.cos(i * np.pi / 8)
-        y += 0.1 * z[:, 2*i] * np.sin(i * np.pi / 8)
-        z_out += 0.1 * z[:, 2*i+1] * np.cos(i * np.pi / 4)
+        x += 0.1 * z[:, 2 * i] * np.cos(i * np.pi / 8)
+        y += 0.1 * z[:, 2 * i] * np.sin(i * np.pi / 8)
+        z_out += 0.1 * z[:, 2 * i + 1] * np.cos(i * np.pi / 4)
 
     result = np.stack([x, y, z_out], axis=1)
     # Normalize
@@ -219,8 +221,8 @@ def complex_algebraic_projection(z, degree=3):
     e3 = np.sum(z_c[:, :-2] * z_c[:, 1:-1] * z_c[:, 2:], axis=1)  # Triples
 
     # Power sums for additional structure
-    p2 = np.sum(z_c ** 2, axis=1)
-    np.sum(z_c ** 3, axis=1)
+    p2 = np.sum(z_c**2, axis=1)
+    np.sum(z_c**3, axis=1)
 
     # Combine into 3D coordinates
     x = np.real(e1) + 0.3 * np.real(p2)
@@ -252,7 +254,7 @@ def mirror_symmetry_projection(z):
 
     # Kähler-like (symplectic)
     k_x = np.sum(z1[:, ::2] * z1[:, 1::2], axis=1)  # Symplectic pairing
-    k_y = np.sum(z1[:, ::2]**2 - z1[:, 1::2]**2, axis=1)  # Quadratic form
+    k_y = np.sum(z1[:, ::2] ** 2 - z1[:, 1::2] ** 2, axis=1)  # Quadratic form
 
     # Complex-like
     c_z = np.sum(z2[:, ::2] * np.cos(z2[:, 1::2]), axis=1)  # Holomorphic-ish
@@ -272,17 +274,17 @@ def mirror_symmetry_projection(z):
 
 def create_static_visualizations(data, output_path):
     """Create static matplotlib visualizations of all projections."""
-    z_A = data['z_A']
-    z_B = data['z_B']
-    acc_A = data['acc_A']
-    acc_B = data['acc_B']
+    z_A = data["z_A"]
+    z_B = data["z_B"]
+    acc_A = data["acc_A"]
+    acc_B = data["acc_B"]
 
     projections = [
-        ('quintic', calabi_yau_quintic_projection, 'Quintic Calabi-Yau'),
-        ('fermat', calabi_yau_fermat_projection, 'Fermat Surface'),
-        ('hopf', hopf_fibration_projection, 'Hopf Fibration'),
-        ('algebraic', complex_algebraic_projection, 'Complex Algebraic'),
-        ('mirror', mirror_symmetry_projection, 'Mirror Symmetry'),
+        ("quintic", calabi_yau_quintic_projection, "Quintic Calabi-Yau"),
+        ("fermat", calabi_yau_fermat_projection, "Fermat Surface"),
+        ("hopf", hopf_fibration_projection, "Hopf Fibration"),
+        ("algebraic", complex_algebraic_projection, "Complex Algebraic"),
+        ("mirror", mirror_symmetry_projection, "Mirror Symmetry"),
     ]
 
     # Create comprehensive figure
@@ -291,24 +293,38 @@ def create_static_visualizations(data, output_path):
     for idx, (name, proj_func, title) in enumerate(projections):
         # VAE-A projection
         proj_A = proj_func(z_A)
-        ax = fig.add_subplot(4, 5, idx + 1, projection='3d')
-        ax.scatter(proj_A[:, 0], proj_A[:, 1], proj_A[:, 2],
-                            c=acc_A, cmap='viridis', s=1, alpha=0.6)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.set_title(f'VAE-A: {title}')
+        ax = fig.add_subplot(4, 5, idx + 1, projection="3d")
+        ax.scatter(
+            proj_A[:, 0],
+            proj_A[:, 1],
+            proj_A[:, 2],
+            c=acc_A,
+            cmap="viridis",
+            s=1,
+            alpha=0.6,
+        )
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+        ax.set_title(f"VAE-A: {title}")
         ax.view_init(elev=20, azim=45)
 
         # VAE-B projection
         proj_B = proj_func(z_B)
-        ax = fig.add_subplot(4, 5, idx + 6, projection='3d')
-        ax.scatter(proj_B[:, 0], proj_B[:, 1], proj_B[:, 2],
-                            c=acc_B, cmap='plasma', s=1, alpha=0.6)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.set_title(f'VAE-B: {title}')
+        ax = fig.add_subplot(4, 5, idx + 6, projection="3d")
+        ax.scatter(
+            proj_B[:, 0],
+            proj_B[:, 1],
+            proj_B[:, 2],
+            c=acc_B,
+            cmap="plasma",
+            s=1,
+            alpha=0.6,
+        )
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+        ax.set_title(f"VAE-B: {title}")
         ax.view_init(elev=20, azim=45)
 
     # Add operation-colored versions for Quintic
@@ -318,171 +334,228 @@ def create_static_visualizations(data, output_path):
     # Color by operation index (3-adic structure)
     op_indices = np.arange(len(z_A))
 
-    ax = fig.add_subplot(4, 5, 11, projection='3d')
-    ax.scatter(proj_A_q[:, 0], proj_A_q[:, 1], proj_A_q[:, 2],
-                        c=op_indices, cmap='twilight', s=1, alpha=0.6)
-    ax.set_title('VAE-A Quintic (3-adic index)')
+    ax = fig.add_subplot(4, 5, 11, projection="3d")
+    ax.scatter(
+        proj_A_q[:, 0],
+        proj_A_q[:, 1],
+        proj_A_q[:, 2],
+        c=op_indices,
+        cmap="twilight",
+        s=1,
+        alpha=0.6,
+    )
+    ax.set_title("VAE-A Quintic (3-adic index)")
     ax.view_init(elev=30, azim=60)
 
-    ax = fig.add_subplot(4, 5, 12, projection='3d')
-    ax.scatter(proj_B_q[:, 0], proj_B_q[:, 1], proj_B_q[:, 2],
-                        c=op_indices, cmap='twilight', s=1, alpha=0.6)
-    ax.set_title('VAE-B Quintic (3-adic index)')
+    ax = fig.add_subplot(4, 5, 12, projection="3d")
+    ax.scatter(
+        proj_B_q[:, 0],
+        proj_B_q[:, 1],
+        proj_B_q[:, 2],
+        c=op_indices,
+        cmap="twilight",
+        s=1,
+        alpha=0.6,
+    )
+    ax.set_title("VAE-B Quintic (3-adic index)")
     ax.view_init(elev=30, azim=60)
 
     # Color by first digit (coarse structure)
     first_digit = op_indices % 3
-    ax = fig.add_subplot(4, 5, 13, projection='3d')
-    ax.scatter(proj_A_q[:, 0], proj_A_q[:, 1], proj_A_q[:, 2],
-                        c=first_digit, cmap='Set1', s=2, alpha=0.7)
-    ax.set_title('VAE-A (digit 0)')
+    ax = fig.add_subplot(4, 5, 13, projection="3d")
+    ax.scatter(
+        proj_A_q[:, 0],
+        proj_A_q[:, 1],
+        proj_A_q[:, 2],
+        c=first_digit,
+        cmap="Set1",
+        s=2,
+        alpha=0.7,
+    )
+    ax.set_title("VAE-A (digit 0)")
     ax.view_init(elev=30, azim=60)
 
     # Color by mod 27 (first 3 digits)
     mod27 = op_indices % 27
-    ax = fig.add_subplot(4, 5, 14, projection='3d')
-    ax.scatter(proj_A_q[:, 0], proj_A_q[:, 1], proj_A_q[:, 2],
-                        c=mod27, cmap='tab20', s=2, alpha=0.7)
-    ax.set_title('VAE-A (mod 27 classes)')
+    ax = fig.add_subplot(4, 5, 14, projection="3d")
+    ax.scatter(
+        proj_A_q[:, 0],
+        proj_A_q[:, 1],
+        proj_A_q[:, 2],
+        c=mod27,
+        cmap="tab20",
+        s=2,
+        alpha=0.7,
+    )
+    ax.set_title("VAE-A (mod 27 classes)")
     ax.view_init(elev=30, azim=60)
 
     # Different view angles for Quintic
-    ax = fig.add_subplot(4, 5, 15, projection='3d')
-    ax.scatter(proj_A_q[:, 0], proj_A_q[:, 1], proj_A_q[:, 2],
-                        c=acc_A, cmap='RdYlGn', s=1, alpha=0.6)
-    ax.set_title('VAE-A Quintic (top view)')
+    ax = fig.add_subplot(4, 5, 15, projection="3d")
+    ax.scatter(
+        proj_A_q[:, 0],
+        proj_A_q[:, 1],
+        proj_A_q[:, 2],
+        c=acc_A,
+        cmap="RdYlGn",
+        s=1,
+        alpha=0.6,
+    )
+    ax.set_title("VAE-A Quintic (top view)")
     ax.view_init(elev=90, azim=0)
 
     # Phase variations
-    for phase_idx, phase in enumerate([0, np.pi/5, 2*np.pi/5, 3*np.pi/5]):
+    for phase_idx, phase in enumerate([0, np.pi / 5, 2 * np.pi / 5, 3 * np.pi / 5]):
         proj_phase = calabi_yau_quintic_projection(z_A, phase=phase)
-        ax = fig.add_subplot(4, 5, 16 + phase_idx, projection='3d')
-        ax.scatter(proj_phase[:, 0], proj_phase[:, 1], proj_phase[:, 2],
-                            c=acc_A, cmap='viridis', s=1, alpha=0.6)
-        ax.set_title(f'Phase = {phase:.2f}')
+        ax = fig.add_subplot(4, 5, 16 + phase_idx, projection="3d")
+        ax.scatter(
+            proj_phase[:, 0],
+            proj_phase[:, 1],
+            proj_phase[:, 2],
+            c=acc_A,
+            cmap="viridis",
+            s=1,
+            alpha=0.6,
+        )
+        ax.set_title(f"Phase = {phase:.2f}")
         ax.view_init(elev=25, azim=45 + phase_idx * 30)
 
     plt.tight_layout()
-    plt.savefig(output_path / 'calabi_yau_projections.png', dpi=150, bbox_inches='tight')
+    plt.savefig(
+        output_path / "calabi_yau_projections.png", dpi=150, bbox_inches="tight"
+    )
     plt.close()
     print(f'Saved: {output_path / "calabi_yau_projections.png"}')
 
 
 def create_high_res_visualization(data, output_path):
     """Create high-resolution single-projection visualizations."""
-    z_A = data['z_A']
-    data['z_B']
-    acc_A = data['acc_A']
+    z_A = data["z_A"]
+    data["z_B"]
+    acc_A = data["acc_A"]
 
     # Quintic projection - multiple angles
     proj = calabi_yau_quintic_projection(z_A)
 
     fig = plt.figure(figsize=(20, 15))
 
-    angles = [(20, 45), (20, 135), (20, 225), (20, 315),
-              (60, 45), (60, 135), (-20, 45), (90, 0)]
+    angles = [
+        (20, 45),
+        (20, 135),
+        (20, 225),
+        (20, 315),
+        (60, 45),
+        (60, 135),
+        (-20, 45),
+        (90, 0),
+    ]
 
     for idx, (elev, azim) in enumerate(angles):
-        ax = fig.add_subplot(2, 4, idx + 1, projection='3d')
-        ax.scatter(proj[:, 0], proj[:, 1], proj[:, 2],
-                            c=acc_A, cmap='viridis', s=2, alpha=0.7)
-        ax.set_xlabel('X')
-        ax.set_ylabel('Y')
-        ax.set_zlabel('Z')
-        ax.set_title(f'Elev={elev}°, Azim={azim}°')
+        ax = fig.add_subplot(2, 4, idx + 1, projection="3d")
+        ax.scatter(
+            proj[:, 0], proj[:, 1], proj[:, 2], c=acc_A, cmap="viridis", s=2, alpha=0.7
+        )
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        ax.set_zlabel("Z")
+        ax.set_title(f"Elev={elev}°, Azim={azim}°")
         ax.view_init(elev=elev, azim=azim)
 
-    plt.suptitle('Calabi-Yau Quintic Projection - VAE-A Latent Space\n(19,683 ternary operations)',
-                 fontsize=14)
+    plt.suptitle(
+        "Calabi-Yau Quintic Projection - VAE-A Latent Space\n(19,683 ternary operations)",
+        fontsize=14,
+    )
     plt.tight_layout()
-    plt.savefig(output_path / 'calabi_yau_quintic_highres.png', dpi=200, bbox_inches='tight')
+    plt.savefig(
+        output_path / "calabi_yau_quintic_highres.png", dpi=200, bbox_inches="tight"
+    )
     plt.close()
     print(f'Saved: {output_path / "calabi_yau_quintic_highres.png"}')
 
 
 def export_to_csv(data, output_path):
     """Export all projection data to CSV for Three.js."""
-    z_A = data['z_A']
-    z_B = data['z_B']
-    acc_A = data['acc_A']
-    acc_B = data['acc_B']
-    data['operations']
+    z_A = data["z_A"]
+    z_B = data["z_B"]
+    acc_A = data["acc_A"]
+    acc_B = data["acc_B"]
+    data["operations"]
 
     projections = {
-        'quintic': calabi_yau_quintic_projection,
-        'fermat': calabi_yau_fermat_projection,
-        'hopf': hopf_fibration_projection,
-        'algebraic': complex_algebraic_projection,
-        'mirror': mirror_symmetry_projection,
+        "quintic": calabi_yau_quintic_projection,
+        "fermat": calabi_yau_fermat_projection,
+        "hopf": hopf_fibration_projection,
+        "algebraic": complex_algebraic_projection,
+        "mirror": mirror_symmetry_projection,
     }
 
     # Create comprehensive dataframe for VAE-A
     df_A = pd.DataFrame()
-    df_A['idx'] = np.arange(len(z_A))
-    df_A['accuracy'] = acc_A
+    df_A["idx"] = np.arange(len(z_A))
+    df_A["accuracy"] = acc_A
 
     # Add original 16D coordinates
     for i in range(16):
-        df_A[f'z{i}'] = z_A[:, i]
+        df_A[f"z{i}"] = z_A[:, i]
 
     # Add all projections
     for name, proj_func in projections.items():
         proj = proj_func(z_A)
-        df_A[f'{name}_x'] = proj[:, 0]
-        df_A[f'{name}_y'] = proj[:, 1]
-        df_A[f'{name}_z'] = proj[:, 2]
+        df_A[f"{name}_x"] = proj[:, 0]
+        df_A[f"{name}_y"] = proj[:, 1]
+        df_A[f"{name}_z"] = proj[:, 2]
 
     # Add operation encoding for coloring
-    df_A['digit_0'] = df_A['idx'] % 3
-    df_A['digit_1'] = (df_A['idx'] // 3) % 3
-    df_A['digit_2'] = (df_A['idx'] // 9) % 3
-    df_A['mod_27'] = df_A['idx'] % 27
-    df_A['mod_81'] = df_A['idx'] % 81
+    df_A["digit_0"] = df_A["idx"] % 3
+    df_A["digit_1"] = (df_A["idx"] // 3) % 3
+    df_A["digit_2"] = (df_A["idx"] // 9) % 3
+    df_A["mod_27"] = df_A["idx"] % 27
+    df_A["mod_81"] = df_A["idx"] % 81
 
     # Save
-    csv_path = output_path / 'calabi_yau_vae_a.csv'
+    csv_path = output_path / "calabi_yau_vae_a.csv"
     df_A.to_csv(csv_path, index=False)
-    print(f'Saved: {csv_path} ({len(df_A)} points, {len(df_A.columns)} columns)')
+    print(f"Saved: {csv_path} ({len(df_A)} points, {len(df_A.columns)} columns)")
 
     # Same for VAE-B
     df_B = pd.DataFrame()
-    df_B['idx'] = np.arange(len(z_B))
-    df_B['accuracy'] = acc_B
+    df_B["idx"] = np.arange(len(z_B))
+    df_B["accuracy"] = acc_B
 
     for i in range(16):
-        df_B[f'z{i}'] = z_B[:, i]
+        df_B[f"z{i}"] = z_B[:, i]
 
     for name, proj_func in projections.items():
         proj = proj_func(z_B)
-        df_B[f'{name}_x'] = proj[:, 0]
-        df_B[f'{name}_y'] = proj[:, 1]
-        df_B[f'{name}_z'] = proj[:, 2]
+        df_B[f"{name}_x"] = proj[:, 0]
+        df_B[f"{name}_y"] = proj[:, 1]
+        df_B[f"{name}_z"] = proj[:, 2]
 
-    df_B['digit_0'] = df_B['idx'] % 3
-    df_B['digit_1'] = (df_B['idx'] // 3) % 3
-    df_B['digit_2'] = (df_B['idx'] // 9) % 3
-    df_B['mod_27'] = df_B['idx'] % 27
-    df_B['mod_81'] = df_B['idx'] % 81
+    df_B["digit_0"] = df_B["idx"] % 3
+    df_B["digit_1"] = (df_B["idx"] // 3) % 3
+    df_B["digit_2"] = (df_B["idx"] // 9) % 3
+    df_B["mod_27"] = df_B["idx"] % 27
+    df_B["mod_81"] = df_B["idx"] % 81
 
-    csv_path = output_path / 'calabi_yau_vae_b.csv'
+    csv_path = output_path / "calabi_yau_vae_b.csv"
     df_B.to_csv(csv_path, index=False)
-    print(f'Saved: {csv_path} ({len(df_B)} points, {len(df_B.columns)} columns)')
+    print(f"Saved: {csv_path} ({len(df_B)} points, {len(df_B.columns)} columns)")
 
     # Create a smaller sample for initial loading (faster)
     sample_idx = np.random.choice(len(z_A), size=5000, replace=False)
     df_A_sample = df_A.iloc[sample_idx].reset_index(drop=True)
-    df_A_sample.to_csv(output_path / 'calabi_yau_vae_a_sample.csv', index=False)
+    df_A_sample.to_csv(output_path / "calabi_yau_vae_a_sample.csv", index=False)
     print(f'Saved: {output_path / "calabi_yau_vae_a_sample.csv"} (5000 points)')
 
     # Export metadata
     metadata = {
-        'total_points': len(z_A),
-        'latent_dim': 16,
-        'projections': list(projections.keys()),
-        'columns': list(df_A.columns),
-        'epoch': data['epoch']
+        "total_points": len(z_A),
+        "latent_dim": 16,
+        "projections": list(projections.keys()),
+        "columns": list(df_A.columns),
+        "epoch": data["epoch"],
     }
-    with open(output_path / 'calabi_yau_metadata.json', 'w') as f:
+    with open(output_path / "calabi_yau_metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
     print(f'Saved: {output_path / "calabi_yau_metadata.json"}')
 
@@ -490,30 +563,30 @@ def export_to_csv(data, output_path):
 
 
 def main():
-    output_path = Path('outputs/viz/calabi_yau')
+    output_path = Path("outputs/viz/calabi_yau")
     output_path.mkdir(parents=True, exist_ok=True)
 
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(f'Device: {device}')
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Device: {device}")
 
     # Load best checkpoint (v5.5 has 99.75% coverage)
-    print('\nLoading v5.5 embeddings...')
-    data = load_embeddings('sandbox-training/checkpoints/v5_5/latest.pt', device)
+    print("\nLoading v5.5 embeddings...")
+    data = load_embeddings("sandbox-training/checkpoints/v5_5/latest.pt", device)
     print(f'Loaded {len(data["z_A"])} embeddings, epoch {data["epoch"]}')
     print(f'VAE-A mean accuracy: {data["acc_A"].mean()*100:.2f}%')
     print(f'VAE-B mean accuracy: {data["acc_B"].mean()*100:.2f}%')
 
     # Generate static visualizations
-    print('\nGenerating static Calabi-Yau visualizations...')
+    print("\nGenerating static Calabi-Yau visualizations...")
     create_static_visualizations(data, output_path)
     create_high_res_visualization(data, output_path)
 
     # Export to CSV
-    print('\nExporting to CSV...')
+    print("\nExporting to CSV...")
     export_to_csv(data, output_path)
 
-    print('\nDone!')
+    print("\nDone!")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

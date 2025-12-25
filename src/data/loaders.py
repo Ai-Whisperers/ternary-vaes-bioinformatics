@@ -13,12 +13,13 @@ with proper splitting and configuration.
 Single responsibility: DataLoader creation only.
 """
 
+from typing import Optional, Tuple
+
 import torch
 from torch.utils.data import DataLoader, random_split
-from typing import Tuple, Optional
 
-from .generation import generate_all_ternary_operations
 from .dataset import TernaryOperationDataset
+from .generation import generate_all_ternary_operations
 
 
 def create_ternary_data_loaders(
@@ -28,7 +29,7 @@ def create_ternary_data_loaders(
     test_split: float = 0.1,
     num_workers: int = 0,
     seed: int = 42,
-    pin_memory: bool = True
+    pin_memory: bool = True,
 ) -> Tuple[DataLoader, DataLoader, Optional[DataLoader]]:
     """Create train, validation, and test data loaders for ternary operations.
 
@@ -69,8 +70,7 @@ def create_ternary_data_loaders(
     # Split dataset
     generator = torch.Generator().manual_seed(seed)
     train_dataset, val_dataset, test_dataset = random_split(
-        dataset, [train_size, val_size, test_size],
-        generator=generator
+        dataset, [train_size, val_size, test_size], generator=generator
     )
 
     # Create loaders
@@ -79,7 +79,7 @@ def create_ternary_data_loaders(
         batch_size=batch_size,
         shuffle=True,
         num_workers=num_workers,
-        pin_memory=pin_memory and torch.cuda.is_available()
+        pin_memory=pin_memory and torch.cuda.is_available(),
     )
 
     val_loader = None
@@ -89,7 +89,7 @@ def create_ternary_data_loaders(
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
-            pin_memory=pin_memory and torch.cuda.is_available()
+            pin_memory=pin_memory and torch.cuda.is_available(),
         )
 
     test_loader = None
@@ -99,7 +99,7 @@ def create_ternary_data_loaders(
             batch_size=batch_size,
             shuffle=False,
             num_workers=num_workers,
-            pin_memory=pin_memory and torch.cuda.is_available()
+            pin_memory=pin_memory and torch.cuda.is_available(),
         )
 
     return train_loader, val_loader, test_loader
@@ -118,12 +118,12 @@ def get_data_loader_info(loader: DataLoader) -> dict:
     size = len(dataset)
 
     return {
-        'size': size,
-        'batch_size': loader.batch_size,
-        'num_batches': len(loader),
-        'num_workers': loader.num_workers,
-        'shuffle': isinstance(loader.sampler, torch.utils.data.sampler.RandomSampler)
+        "size": size,
+        "batch_size": loader.batch_size,
+        "num_batches": len(loader),
+        "num_workers": loader.num_workers,
+        "shuffle": isinstance(loader.sampler, torch.utils.data.sampler.RandomSampler),
     }
 
 
-__all__ = ['create_ternary_data_loaders', 'get_data_loader_info']
+__all__ = ["create_ternary_data_loaders", "get_data_loader_info"]

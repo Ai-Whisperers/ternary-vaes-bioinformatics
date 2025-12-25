@@ -1,10 +1,10 @@
-import torch
 import numpy as np
+import torch
+
+from src.data.generation import (count_ternary_operations,
+                                 generate_ternary_operation_by_index)
+
 from .base import BaseFactory
-from src.data.generation import (
-    generate_ternary_operation_by_index,
-    count_ternary_operations,
-)
 
 
 class TernaryOperationFactory(BaseFactory):

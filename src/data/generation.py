@@ -12,8 +12,9 @@ This module generates all possible ternary operations for the 3^9 space.
 Single responsibility: Data generation only.
 """
 
-import numpy as np
 from typing import List
+
+import numpy as np
 
 
 def generate_all_ternary_operations() -> np.ndarray:

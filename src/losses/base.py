@@ -18,11 +18,12 @@ Design Principles:
     - Stateless: No side effects, pure computation
 """
 
-import torch
-import torch.nn as nn
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Dict, Any, Optional
+from typing import Any, Dict, Optional
+
+import torch
+import torch.nn as nn
 
 
 @dataclass
@@ -36,6 +37,7 @@ class LossResult:
 
     This decouples loss computation from metric aggregation.
     """
+
     loss: torch.Tensor
     metrics: Dict[str, float] = field(default_factory=dict)
     weight: float = 1.0
@@ -45,7 +47,7 @@ class LossResult:
         """Return loss multiplied by weight."""
         return self.weight * self.loss
 
-    def to_dict(self, prefix: str = '') -> Dict[str, Any]:
+    def to_dict(self, prefix: str = "") -> Dict[str, Any]:
         """Convert to flat dictionary for logging.
 
         Args:
@@ -57,12 +59,12 @@ class LossResult:
         result = {}
 
         # Add the loss value
-        loss_key = f'{prefix}_loss' if prefix else 'loss'
+        loss_key = f"{prefix}_loss" if prefix else "loss"
         result[loss_key] = self.loss.item() if torch.is_tensor(self.loss) else self.loss
 
         # Add all metrics with optional prefix
         for key, value in self.metrics.items():
-            metric_key = f'{prefix}_{key}' if prefix else key
+            metric_key = f"{prefix}_{key}" if prefix else key
             result[metric_key] = value
 
         return result
@@ -111,10 +113,7 @@ class LossComponent(ABC, nn.Module):
 
     @abstractmethod
     def forward(
-        self,
-        outputs: Dict[str, torch.Tensor],
-        targets: torch.Tensor,
-        **kwargs
+        self, outputs: Dict[str, torch.Tensor], targets: torch.Tensor, **kwargs
     ) -> LossResult:
         """Compute the loss.
 
@@ -145,10 +144,7 @@ class DualVAELossComponent(LossComponent):
     """
 
     def __init__(
-        self,
-        weight: float = 1.0,
-        name: Optional[str] = None,
-        combine: str = 'sum'
+        self, weight: float = 1.0, name: Optional[str] = None, combine: str = "sum"
     ):
         """Initialize dual VAE loss component.
 
@@ -167,7 +163,7 @@ class DualVAELossComponent(LossComponent):
         outputs: Dict[str, torch.Tensor],
         targets: torch.Tensor,
         vae: str,
-        **kwargs
+        **kwargs,
     ) -> LossResult:
         """Compute loss for a single VAE.
 
@@ -184,10 +180,7 @@ class DualVAELossComponent(LossComponent):
         pass
 
     def forward(
-        self,
-        outputs: Dict[str, torch.Tensor],
-        targets: torch.Tensor,
-        **kwargs
+        self, outputs: Dict[str, torch.Tensor], targets: torch.Tensor, **kwargs
     ) -> LossResult:
         """Compute loss for both VAEs and combine.
 
@@ -201,16 +194,16 @@ class DualVAELossComponent(LossComponent):
         """
         # Compute for VAE-A
         result_A = self.compute_single(
-            outputs['z_A'], outputs, targets, vae='A', **kwargs
+            outputs["z_A"], outputs, targets, vae="A", **kwargs
         )
 
         # Compute for VAE-B
         result_B = self.compute_single(
-            outputs['z_B'], outputs, targets, vae='B', **kwargs
+            outputs["z_B"], outputs, targets, vae="B", **kwargs
         )
 
         # Combine losses
-        if self.combine == 'sum':
+        if self.combine == "sum":
             combined_loss = result_A.loss + result_B.loss
         else:  # mean
             combined_loss = (result_A.loss + result_B.loss) / 2
@@ -218,15 +211,11 @@ class DualVAELossComponent(LossComponent):
         # Merge metrics with A/B suffix
         metrics = {}
         for key, value in result_A.metrics.items():
-            metrics[f'{key}_A'] = value
+            metrics[f"{key}_A"] = value
         for key, value in result_B.metrics.items():
-            metrics[f'{key}_B'] = value
+            metrics[f"{key}_B"] = value
 
-        return LossResult(
-            loss=combined_loss,
-            metrics=metrics,
-            weight=self.weight
-        )
+        return LossResult(loss=combined_loss, metrics=metrics, weight=self.weight)
 
 
-__all__ = ['LossResult', 'LossComponent', 'DualVAELossComponent']
+__all__ = ["LossResult", "LossComponent", "DualVAELossComponent"]

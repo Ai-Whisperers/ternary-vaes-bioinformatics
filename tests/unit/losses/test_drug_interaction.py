@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 from src.losses.drug_interaction import DrugInteractionPenalty
 
 

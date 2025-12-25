@@ -1,5 +1,6 @@
 import pytest
 import torch
+
 from src.models.spectral_encoder import SpectralGraphEncoder
 
 

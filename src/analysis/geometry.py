@@ -5,8 +5,9 @@
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
 
-import torch
 from typing import Optional
+
+import torch
 
 
 def compute_pairwise_distances(embeddings: torch.Tensor) -> torch.Tensor:
@@ -55,7 +56,6 @@ def compute_delta_hyperbolicity(
         X = embeddings
 
     dists = compute_pairwise_distances(X)
-
 
     # We iterate through quadruplets
     # Note: Full O(N^4) is expensive. We can vectorize or optimize.

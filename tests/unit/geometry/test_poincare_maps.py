@@ -10,6 +10,7 @@ Tests exp_map_zero and log_map_zero operations.
 
 import pytest
 import torch
+
 from src.geometry.poincare import exp_map_zero, log_map_zero
 
 
@@ -71,6 +72,7 @@ class TestLogMapZeroBasic:
     def test_result_shape(self, device):
         """Output shape should match input shape."""
         from src.geometry.poincare import project_to_poincare
+
         z = project_to_poincare(torch.randn(8, 6, device=device) * 0.5)
         v = log_map_zero(z)
         assert v.shape == z.shape
@@ -100,6 +102,7 @@ class TestExpLogInverse:
     def test_exp_of_log(self, device):
         """exp_0(log_0(z)) should approximately recover z."""
         from src.geometry.poincare import project_to_poincare
+
         z = project_to_poincare(torch.randn(5, 4, device=device) * 0.5)
 
         v = log_map_zero(z)
@@ -129,6 +132,7 @@ class TestLogMapGradient:
     def test_gradient_flows(self, device):
         """Gradient should flow through log_map_zero."""
         from src.geometry.poincare import project_to_poincare
+
         z = project_to_poincare(torch.randn(10, 4, device=device) * 0.5)
         z.requires_grad_(True)
 

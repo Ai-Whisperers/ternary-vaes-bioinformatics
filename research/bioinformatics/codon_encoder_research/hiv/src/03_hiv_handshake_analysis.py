@@ -16,13 +16,14 @@ Author: AI Whisperers
 Date: 2025-12-24
 """
 
-import sys
 import json
-import torch
-import numpy as np
+import sys
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass, asdict
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
+import torch
 
 # Add parent paths for imports
 script_dir = Path(__file__).parent
@@ -32,13 +33,9 @@ sys.path.insert(0, str(script_dir))
 
 # Import codon encoder utilities from local hyperbolic_utils
 try:
-    from hyperbolic_utils import (
-        load_hyperbolic_encoder,
-        encode_codon_hyperbolic,
-        poincare_distance,
-        AA_TO_CODON,
-        codon_to_onehot,
-    )
+    from hyperbolic_utils import (AA_TO_CODON, codon_to_onehot,
+                                  encode_codon_hyperbolic,
+                                  load_hyperbolic_encoder, poincare_distance)
 
     ENCODER_AVAILABLE = True
 except ImportError as e:

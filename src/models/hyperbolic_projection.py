@@ -26,13 +26,14 @@ Architecture:
 Single responsibility: Euclidean to hyperbolic projection.
 """
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from typing import Tuple, Union
 
 # Import geoopt for manifold-aware operations
 import geoopt
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
 from src.geometry import ManifoldParameter
 
 
@@ -59,7 +60,7 @@ class HyperbolicProjection(nn.Module):
         init_identity: bool = True,
         n_layers: int = 1,
         dropout: float = 0.0,
-        learnable_curvature: bool = False
+        learnable_curvature: bool = False,
     ):
         """Initialize HyperbolicProjection.
 
@@ -95,7 +96,7 @@ class HyperbolicProjection(nn.Module):
             layers = [
                 nn.Linear(latent_dim, hidden_dim),
                 nn.LayerNorm(hidden_dim),
-                nn.SiLU()
+                nn.SiLU(),
             ]
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
@@ -106,16 +107,18 @@ class HyperbolicProjection(nn.Module):
             layers = [
                 nn.Linear(latent_dim, hidden_dim),
                 nn.LayerNorm(hidden_dim),
-                nn.SiLU()
+                nn.SiLU(),
             ]
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
             for _ in range(n_layers - 1):
-                layers.extend([
-                    nn.Linear(hidden_dim, hidden_dim),
-                    nn.LayerNorm(hidden_dim),
-                    nn.SiLU()
-                ])
+                layers.extend(
+                    [
+                        nn.Linear(hidden_dim, hidden_dim),
+                        nn.LayerNorm(hidden_dim),
+                        nn.SiLU(),
+                    ]
+                )
                 if dropout > 0:
                     layers.append(nn.Dropout(dropout))
             layers.append(nn.Linear(hidden_dim, latent_dim))
@@ -126,36 +129,21 @@ class HyperbolicProjection(nn.Module):
         radius_hidden = max(32, hidden_dim // 2)
         if n_layers == 1:
             # Original shallow network
-            layers = [
-                nn.Linear(latent_dim, radius_hidden),
-                nn.SiLU()
-            ]
+            layers = [nn.Linear(latent_dim, radius_hidden), nn.SiLU()]
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
-            layers.extend([
-                nn.Linear(radius_hidden, 1),
-                nn.Sigmoid()
-            ])
+            layers.extend([nn.Linear(radius_hidden, 1), nn.Sigmoid()])
             self.radius_net = nn.Sequential(*layers)
         else:
             # Deeper radius network
-            layers = [
-                nn.Linear(latent_dim, radius_hidden),
-                nn.SiLU()
-            ]
+            layers = [nn.Linear(latent_dim, radius_hidden), nn.SiLU()]
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
             for _ in range(n_layers - 1):
-                layers.extend([
-                    nn.Linear(radius_hidden, radius_hidden),
-                    nn.SiLU()
-                ])
+                layers.extend([nn.Linear(radius_hidden, radius_hidden), nn.SiLU()])
                 if dropout > 0:
                     layers.append(nn.Dropout(dropout))
-            layers.extend([
-                nn.Linear(radius_hidden, 1),
-                nn.Sigmoid()
-            ])
+            layers.extend([nn.Linear(radius_hidden, 1), nn.Sigmoid()])
             self.radius_net = nn.Sequential(*layers)
 
         # Initialize for stability
@@ -178,10 +166,8 @@ class HyperbolicProjection(nn.Module):
             self.radius_net[-2].bias.zero_()
 
     def forward(
-        self,
-        z_euclidean: torch.Tensor,
-        as_manifold: bool = False
-    ) -> Union[torch.Tensor, 'ManifoldParameter']:
+        self, z_euclidean: torch.Tensor, as_manifold: bool = False
+    ) -> Union[torch.Tensor, "ManifoldParameter"]:
         """Project Euclidean latent to Poincaré ball.
 
         Args:
@@ -214,11 +200,10 @@ class HyperbolicProjection(nn.Module):
     def get_curvature(self) -> float:
         """Get current curvature value (may be learnable)."""
         c = self.manifold.c
-        return c.item() if hasattr(c, 'item') else float(c)
+        return c.item() if hasattr(c, "item") else float(c)
 
     def forward_with_components(
-        self,
-        z_euclidean: torch.Tensor
+        self, z_euclidean: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Project with explicit direction/radius outputs.
 
@@ -254,7 +239,7 @@ class DualHyperbolicProjection(nn.Module):
         share_direction: bool = False,
         n_layers: int = 1,
         dropout: float = 0.0,
-        learnable_curvature: bool = False
+        learnable_curvature: bool = False,
     ):
         """Initialize DualHyperbolicProjection.
 
@@ -276,40 +261,42 @@ class DualHyperbolicProjection(nn.Module):
 
         # VAE-A projection (chaotic, explores boundary)
         self.proj_A = HyperbolicProjection(
-            latent_dim, hidden_dim, max_radius, curvature,
-            n_layers=n_layers, dropout=dropout,
-            learnable_curvature=learnable_curvature
+            latent_dim,
+            hidden_dim,
+            max_radius,
+            curvature,
+            n_layers=n_layers,
+            dropout=dropout,
+            learnable_curvature=learnable_curvature,
         )
 
         if share_direction:
             # VAE-B shares direction but has own radius
             radius_hidden = max(32, hidden_dim // 2)
-            layers = [
-                nn.Linear(latent_dim, radius_hidden),
-                nn.SiLU()
-            ]
+            layers = [nn.Linear(latent_dim, radius_hidden), nn.SiLU()]
             if dropout > 0:
                 layers.append(nn.Dropout(dropout))
-            layers.extend([
-                nn.Linear(radius_hidden, 1),
-                nn.Sigmoid()
-            ])
+            layers.extend([nn.Linear(radius_hidden, 1), nn.Sigmoid()])
             self.proj_B_radius = nn.Sequential(*layers)
             self.max_radius = max_radius
         else:
             # VAE-B has completely separate projection
             self.proj_B = HyperbolicProjection(
-                latent_dim, hidden_dim, max_radius, curvature,
-                n_layers=n_layers, dropout=dropout,
-                learnable_curvature=learnable_curvature
+                latent_dim,
+                hidden_dim,
+                max_radius,
+                curvature,
+                n_layers=n_layers,
+                dropout=dropout,
+                learnable_curvature=learnable_curvature,
             )
 
     def forward(
-        self,
-        z_A: torch.Tensor,
-        z_B: torch.Tensor,
-        as_manifold: bool = False
-    ) -> Tuple[Union[torch.Tensor, 'ManifoldParameter'], Union[torch.Tensor, 'ManifoldParameter']]:
+        self, z_A: torch.Tensor, z_B: torch.Tensor, as_manifold: bool = False
+    ) -> Tuple[
+        Union[torch.Tensor, "ManifoldParameter"],
+        Union[torch.Tensor, "ManifoldParameter"],
+    ]:
         """Project both VAE latents to Poincaré ball.
 
         Args:
@@ -343,7 +330,4 @@ class DualHyperbolicProjection(nn.Module):
         return self.proj_A.get_curvature()
 
 
-__all__ = [
-    'HyperbolicProjection',
-    'DualHyperbolicProjection'
-]
+__all__ = ["HyperbolicProjection", "DualHyperbolicProjection"]

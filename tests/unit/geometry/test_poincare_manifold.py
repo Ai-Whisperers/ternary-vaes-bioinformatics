@@ -9,6 +9,7 @@ Tests the Poincare ball manifold factory and caching mechanism.
 """
 
 import pytest
+
 from src.geometry.poincare import get_manifold
 
 

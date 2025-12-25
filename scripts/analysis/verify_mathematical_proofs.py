@@ -16,28 +16,26 @@ Validates:
 3. Zero-Structure / P-Adic Valuation (via analyze_zero_structure logic)
 """
 
-import sys
-import torch
-import numpy as np
 import argparse
+import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
+
+import numpy as np
+import torch
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.models import TernaryVAEV5_11
+from src.analysis.geometry import (compute_delta_hyperbolicity,
+                                   compute_ultrametricity_score)
 from src.data.generation import generate_all_ternary_operations
-from src.analysis.geometry import (
-    compute_delta_hyperbolicity,
-    compute_ultrametricity_score,
-)
+from src.models import TernaryVAEV5_11
 
 # Import the existing specific zero analysis logic
 try:
-    from scripts.analysis.analyze_zero_structure import (
-        analyze_checkpoint as analyze_zeros_internal,
-    )
+    from scripts.analysis.analyze_zero_structure import \
+        analyze_checkpoint as analyze_zeros_internal
 except ImportError:
     # If import fails (path issues), we'll reimplement the light version here
     analyze_zeros_internal = None

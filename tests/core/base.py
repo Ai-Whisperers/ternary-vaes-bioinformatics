@@ -20,20 +20,16 @@ Usage:
             ...
 """
 
+from abc import ABC, abstractmethod
+from typing import Any, Dict, List, Optional, Type
+from unittest.mock import MagicMock
+
 import pytest
 import torch
 import torch.nn as nn
-from abc import ABC, abstractmethod
-from typing import Dict, Any, Type, Optional, List
-from unittest.mock import MagicMock
 
-from .assertions import (
-    TensorAssertions,
-    GeometryAssertions,
-    ModelAssertions,
-    LossAssertions,
-    TernaryAssertions,
-)
+from .assertions import (GeometryAssertions, LossAssertions, ModelAssertions,
+                         TensorAssertions, TernaryAssertions)
 
 
 class BaseTestCase(ABC):
@@ -51,7 +47,9 @@ class BaseTestCase(ABC):
         """Move tensor to test device."""
         return tensor.to(self.device)
 
-    def _create_random_tensor(self, *shape, requires_grad: bool = False) -> torch.Tensor:
+    def _create_random_tensor(
+        self, *shape, requires_grad: bool = False
+    ) -> torch.Tensor:
         """Create random tensor on test device."""
         return torch.randn(*shape, device=self.device, requires_grad=requires_grad)
 
@@ -154,7 +152,8 @@ class LossTestCase(BaseTestCase):
         # Check at least one input has gradients
         has_grad = any(
             inp.grad is not None and inp.grad.abs().sum() > 0
-            for inp in inputs if isinstance(inp, torch.Tensor) and inp.requires_grad
+            for inp in inputs
+            if isinstance(inp, torch.Tensor) and inp.requires_grad
         )
         assert has_grad, "No gradients found in any input"
 
@@ -169,7 +168,9 @@ class LossTestCase(BaseTestCase):
             else:
                 loss = result
 
-            TensorAssertions.assert_finite(loss, f"Loss should be finite for batch_size={batch_size}")
+            TensorAssertions.assert_finite(
+                loss, f"Loss should be finite for batch_size={batch_size}"
+            )
 
     @abstractmethod
     def _get_test_inputs(self, batch_size: int = 32, requires_grad: bool = False):
@@ -253,7 +254,9 @@ class ModelTestCase(BaseTestCase):
                 else:
                     pytest.skip("No tensor output found")
         else:
-            loss = output.mean() if isinstance(output, torch.Tensor) else output[0].mean()
+            loss = (
+                output.mean() if isinstance(output, torch.Tensor) else output[0].mean()
+            )
 
         loss.backward()
 
@@ -321,7 +324,9 @@ class GeometryTestCase(BaseTestCase):
         points = torch.randn(n_points, dim, device=self.device)
         norms = torch.norm(points, dim=-1, keepdim=True)
         # Scale to be inside disk with max radius 0.9
-        points = points / (norms + 1e-8) * 0.9 * torch.rand(n_points, 1, device=self.device)
+        points = (
+            points / (norms + 1e-8) * 0.9 * torch.rand(n_points, 1, device=self.device)
+        )
         return points
 
     def test_distance_symmetry(self, manifold):
@@ -389,28 +394,28 @@ class ComponentTestCase(BaseTestCase):
         latent_dim = 16
 
         return {
-            'logits_A': torch.randn(batch_size, 9, 3, device=device),
-            'logits_B': torch.randn(batch_size, 9, 3, device=device),
-            'mu_A': torch.randn(batch_size, latent_dim, device=device),
-            'mu_B': torch.randn(batch_size, latent_dim, device=device),
-            'logvar_A': torch.randn(batch_size, latent_dim, device=device),
-            'logvar_B': torch.randn(batch_size, latent_dim, device=device),
-            'z_A': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-            'z_B': torch.randn(batch_size, latent_dim, device=device) * 0.5,
-            'H_A': torch.tensor(2.0, device=device),
-            'H_B': torch.tensor(2.1, device=device),
-            'beta_A': 0.1,
-            'beta_B': 0.1,
+            "logits_A": torch.randn(batch_size, 9, 3, device=device),
+            "logits_B": torch.randn(batch_size, 9, 3, device=device),
+            "mu_A": torch.randn(batch_size, latent_dim, device=device),
+            "mu_B": torch.randn(batch_size, latent_dim, device=device),
+            "logvar_A": torch.randn(batch_size, latent_dim, device=device),
+            "logvar_B": torch.randn(batch_size, latent_dim, device=device),
+            "z_A": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+            "z_B": torch.randn(batch_size, latent_dim, device=device) * 0.5,
+            "H_A": torch.tensor(2.0, device=device),
+            "H_B": torch.tensor(2.1, device=device),
+            "beta_A": 0.1,
+            "beta_B": 0.1,
         }
 
     def test_initialization(self, component):
         """Test component initializes correctly."""
-        assert hasattr(component, 'weight')
-        assert hasattr(component, 'name')
+        assert hasattr(component, "weight")
+        assert hasattr(component, "name")
 
     def test_has_forward(self, component):
         """Test component has forward method."""
-        assert hasattr(component, 'forward')
+        assert hasattr(component, "forward")
         assert callable(component.forward)
 
     def test_forward_returns_loss_result(self, component, mock_outputs, device):
@@ -421,9 +426,9 @@ class ComponentTestCase(BaseTestCase):
         result = component.forward(mock_outputs, targets)
 
         assert isinstance(result, LossResult)
-        assert hasattr(result, 'loss')
-        assert hasattr(result, 'metrics')
-        assert hasattr(result, 'weight')
+        assert hasattr(result, "loss")
+        assert hasattr(result, "metrics")
+        assert hasattr(result, "weight")
 
 
 class SchedulerTestCase(BaseTestCase):
