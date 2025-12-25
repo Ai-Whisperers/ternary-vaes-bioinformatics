@@ -99,14 +99,17 @@ class TestOptimizationResult:
             optimized_sequence="ATGAGA",
             original_codons=["AUG", "CGU"],
             optimized_codons=["AUG", "AGA"],
-            arginine_positions=[1],
-            padic_improvement=0.2,
-            safety_score=0.8,
+            changes_made=[(1, "CGU", "AGA")],
+            original_padic_distance=0.3,
+            optimized_padic_distance=0.5,
+            improvement_score=0.2,
+            immunogenicity_reduction=0.15,
         )
 
         assert result.original_sequence == "ATGCGT"
         assert result.optimized_sequence == "ATGAGA"
-        assert result.padic_improvement == 0.2
+        assert result.improvement_score == 0.2
+        assert result.immunogenicity_reduction == 0.15
 
 
 class TestPAdicBoundaryAnalyzer:

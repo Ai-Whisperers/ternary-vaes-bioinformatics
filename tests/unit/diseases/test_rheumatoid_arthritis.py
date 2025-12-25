@@ -163,14 +163,16 @@ class TestRheumatoidArthritisAnalyzer:
         """Test finding arginine positions in sequence."""
         analyzer = RheumatoidArthritisAnalyzer()
 
-        # Sequence with arginines at positions 3, 5, 7
+        # Sequence with arginines at positions 3, 5, 8 (0-indexed)
+        # A A A R A R A A R
+        # 0 1 2 3 4 5 6 7 8
         sequence = "AAARARAAR"
 
         positions = analyzer.find_arginine_positions(sequence)
 
         assert 3 in positions
         assert 5 in positions
-        assert 7 in positions
+        assert 8 in positions
 
     def test_find_arginine_positions_no_arginines(self):
         """Test finding arginines when none present."""
