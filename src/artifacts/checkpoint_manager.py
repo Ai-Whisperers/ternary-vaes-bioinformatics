@@ -216,8 +216,9 @@ class CheckpointManager:
         if not checkpoint_path.exists():
             raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
-        # Load checkpoint
-        checkpoint = torch.load(checkpoint_path, map_location=device)
+        # Load checkpoint (weights_only=False needed for optimizer state, metrics)
+        # Security note: Only load checkpoints from trusted sources
+        checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
 
         # Restore model state
         model.load_state_dict(checkpoint['model'])
@@ -259,5 +260,6 @@ class CheckpointManager:
         if not latest_path.exists():
             return None
 
-        checkpoint = torch.load(latest_path, map_location='cpu')
+        # Security note: Only load checkpoints from trusted sources
+        checkpoint = torch.load(latest_path, map_location='cpu', weights_only=False)
         return checkpoint.get('epoch')

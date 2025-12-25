@@ -21,6 +21,8 @@ matching p-adic geometry where d(a, 0) = 3^{-v(a)}.
 V5.11.9: Zero-structure exploitation.
 """
 
+from typing import Any, Dict, Tuple, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -124,7 +126,7 @@ class ZeroValuationLoss(nn.Module):
         z: torch.Tensor,
         operations: torch.Tensor,
         return_metrics: bool = False
-    ) -> torch.Tensor:
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute zero-valuation radial loss.
 
         Args:
@@ -204,7 +206,7 @@ class ZeroSparsityLoss(nn.Module):
         z: torch.Tensor,
         operations: torch.Tensor,
         return_metrics: bool = False
-    ) -> torch.Tensor:
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute zero-sparsity loss.
 
         Args:
@@ -294,7 +296,7 @@ class CombinedZeroStructureLoss(nn.Module):
         z: torch.Tensor,
         operations: torch.Tensor,
         return_metrics: bool = False
-    ) -> torch.Tensor:
+    ) -> Union[torch.Tensor, Tuple[torch.Tensor, Dict[str, Any]]]:
         """Compute combined zero-structure loss.
 
         Args:

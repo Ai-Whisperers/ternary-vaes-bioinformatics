@@ -48,7 +48,7 @@ class ParetoFrontOptimizer:
         # dominated if there exists an individual that is better_or_equal AND strictly_better
         is_dominated = (better_or_equal & strictly_better).any()
 
-        return is_dominated.item()
+        return bool(is_dominated.item())
 
     def identify_pareto_front(
         self, candidates: torch.Tensor, scores: torch.Tensor

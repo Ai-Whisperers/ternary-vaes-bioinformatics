@@ -115,11 +115,7 @@ def get_data_loader_info(loader: DataLoader) -> dict:
         Dict with loader statistics
     """
     dataset = loader.dataset
-    if hasattr(dataset, 'dataset'):
-        # It's a Subset from random_split
-        size = len(dataset)
-    else:
-        size = len(dataset)
+    size = len(dataset)
 
     return {
         'size': size,
