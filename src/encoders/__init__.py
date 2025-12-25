@@ -1,6 +1,13 @@
 from .circadian_encoder import (CircadianCycleEncoder, KaiCClockEncoder,
                                 ToroidalEmbedding)
 from .codon_encoder import CodonEncoder
+from .holographic_encoder import (
+    GraphLaplacianEncoder,
+    HierarchicalProteinEmbedding,
+    HolographicEncoder,
+    MultiScaleGraphFeatures,
+    PPINetworkEncoder,
+)
 from .motor_encoder import (ATPSynthaseEncoder, RotaryPositionEncoder,
                             TernaryMotorEncoder)
 from .ptm_encoder import (GoldilocksZone, PTMDataset, PTMGoldilocksEncoder,
@@ -22,4 +29,10 @@ __all__ = [
     "CircadianCycleEncoder",
     "KaiCClockEncoder",
     "ToroidalEmbedding",
+    # Holographic/spectral encoding
+    "HolographicEncoder",
+    "GraphLaplacianEncoder",
+    "MultiScaleGraphFeatures",
+    "PPINetworkEncoder",
+    "HierarchicalProteinEmbedding",
 ]
