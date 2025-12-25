@@ -5,6 +5,7 @@ The Ternary VAE uses hyperbolic geometry (Poincare ball model) and p-adic number
 ## Geometric Overview
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart LR
     subgraph Tangent["Tangent Space T₀M"]
         V["Euclidean Vectors<br/>(μ, σ samples)"]
@@ -26,10 +27,10 @@ flowchart LR
     V --> EXP --> Ball
     Ball --> LOG --> V
 
-    style Tangent fill:#e3f2fd
-    style Ball fill:#fce4ec
-    style EXP fill:#c8e6c9
-    style LOG fill:#fff3e0
+    style Tangent fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Ball fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style EXP fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style LOG fill:#ef6c00,color:#fff,stroke:#e65100
 ```
 
 ## Hyperbolic Geometry Basics

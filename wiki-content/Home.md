@@ -12,6 +12,7 @@ Welcome to the **Ternary VAE** documentation! A cutting-edge variational autoenc
 ## What is Ternary VAE?
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#1565c0', 'primaryTextColor': '#ffffff'}}}%%
 flowchart TB
     subgraph Input["🧬 Input Layer"]
         A[/"Biological Sequences<br/>(Codons, Proteins, DNA)"/]
@@ -34,15 +35,16 @@ flowchart TB
     D --> E
     F --> G
 
-    style Input fill:#e1f5fe
-    style Encoder fill:#fff3e0
-    style Latent fill:#f3e5f5
-    style Decoder fill:#e8f5e9
+    style Input fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Encoder fill:#ef6c00,color:#fff,stroke:#e65100
+    style Latent fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Decoder fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 ### Why Poincaré Ball for Biology?
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart LR
     subgraph Problem["❌ Euclidean Problem"]
         E1["Trees need O(n²) dimensions"]
@@ -55,6 +57,9 @@ flowchart LR
     end
 
     Problem --> |"Hyperbolic<br/>Geometry"| Solution
+
+    style Problem fill:#c62828,color:#fff,stroke:#b71c1c
+    style Solution fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 **Key insight**: Biological data is hierarchical (phylogenies, protein families, codon usage). Hyperbolic space embeds hierarchies with exponentially less distortion than Euclidean space.

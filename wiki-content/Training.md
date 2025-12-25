@@ -5,6 +5,7 @@ This guide covers training workflows for Ternary VAE models.
 ## Training Pipeline Overview
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart TB
     subgraph Setup["⚙️ Setup Phase"]
         Config["Load Config"] --> Model["Create TernaryVAE"]
@@ -39,9 +40,10 @@ flowchart TB
     ES -->|"stop"| Done["✅ Training Complete"]
     ES -->|"continue"| Epoch
 
-    style Setup fill:#e3f2fd
-    style Loop fill:#fff3e0
-    style Callbacks fill:#f3e5f5
+    style Setup fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Loop fill:#ef6c00,color:#fff,stroke:#e65100
+    style Callbacks fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Done fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 ## Basic Training Loop

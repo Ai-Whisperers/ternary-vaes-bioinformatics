@@ -5,6 +5,7 @@ The Ternary VAE uses a modular loss system based on the **LossRegistry** pattern
 ## Loss Registry Pattern
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart LR
     subgraph Registry["LossRegistry"]
         R["register()"]
@@ -31,9 +32,10 @@ flowchart LR
     O --> C
     C --> Result
 
-    style Registry fill:#e1bee7
-    style Components fill:#fff3e0
-    style Result fill:#c8e6c9
+    style Registry fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Components fill:#ef6c00,color:#fff,stroke:#e65100
+    style Outputs fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Result fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 Instead of subclassing, losses are composed via a registry:

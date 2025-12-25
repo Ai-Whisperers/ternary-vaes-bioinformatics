@@ -534,15 +534,35 @@ flowchart TB
 ```
 ````
 
-### Color Palette Used
+### Color Palette (WCAG AA Compliant)
 
-| Color | Hex | Usage |
-|-------|-----|-------|
-| Blue | `#bbdefb`, `#e3f2fd` | Input/Data |
-| Purple | `#e1bee7`, `#f3e5f5` | Latent Space |
-| Green | `#c8e6c9`, `#e8f5e9` | Output/Results |
-| Orange | `#fff3e0`, `#ffe0b2` | Processing |
-| Yellow | `#fff9c4`, `#ffeb3b` | Highlights |
+All diagrams now use a high-contrast, accessible color palette:
+
+| Role | Fill | Stroke | Text | Usage |
+|------|------|--------|------|-------|
+| **Input/Data** | `#1565c0` | `#0d47a1` | `#fff` | Input layers, data sources, geometry |
+| **Processing** | `#ef6c00` | `#e65100` | `#fff` | Encoders, transformations, loops |
+| **Latent Space** | `#6a1b9a` | `#4a148c` | `#fff` | Hyperbolic space, registry |
+| **Output/Success** | `#2e7d32` | `#1b5e20` | `#fff` | Decoders, results, success states |
+| **Warning/Error** | `#c62828` | `#b71c1c` | `#fff` | Errors, blocked, problems |
+| **Neutral** | `#455a64` | `#37474f` | `#fff` | Backgrounds, surfaces |
+| **Accent** | `#00838f` | `#006064` | `#fff` | Training, special elements |
+
+### Mermaid Theme Configuration
+
+Add this at the start of each diagram for consistent theming:
+
+```
+%%{init: {'theme': 'base'}}%%
+```
+
+### Style Template
+
+Copy-paste this pattern for consistent styling:
+
+```
+style NodeName fill:#1565c0,color:#fff,stroke:#0d47a1
+```
 
 ### Best Practices
 

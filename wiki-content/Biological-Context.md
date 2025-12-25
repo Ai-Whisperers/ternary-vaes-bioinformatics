@@ -9,6 +9,7 @@ Understanding why hyperbolic geometry and p-adic numbers matter for bioinformati
 Biology is fundamentally **hierarchical**:
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart TB
     Life["🌍 Life"]
 
@@ -30,12 +31,14 @@ flowchart TB
 
     Primates --> Humans["👤 Humans"]
 
-    style Life fill:#ffeb3b
-    style Eukarya fill:#e1bee7
-    style Animals fill:#bbdefb
-    style Mammals fill:#b2dfdb
-    style Primates fill:#c8e6c9
-    style Humans fill:#81c784
+    style Life fill:#ef6c00,color:#fff,stroke:#e65100
+    style Bacteria fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style Archaea fill:#00838f,color:#fff,stroke:#006064
+    style Eukarya fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Animals fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Mammals fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Primates fill:#0277bd,color:#fff,stroke:#01579b
+    style Humans fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 **The challenge**: Representing this tree structure in a way that:
@@ -93,6 +96,7 @@ This means hyperbolic space has "room" for exponentially growing trees!
 ### Visualization
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart LR
     subgraph Euclidean["❌ Euclidean Space"]
         direction TB
@@ -116,8 +120,8 @@ flowchart LR
         HC --- HF & HG
     end
 
-    style Euclidean fill:#ffcdd2
-    style Hyperbolic fill:#c8e6c9
+    style Euclidean fill:#c62828,color:#fff,stroke:#b71c1c
+    style Hyperbolic fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 | Property | Euclidean | Hyperbolic |
@@ -286,6 +290,7 @@ Ternary VAE learns these biases from data.
 Viruses (especially HIV) use **glycan shields** - sugar molecules that block antibodies:
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart TB
     subgraph Shield["Glycan Shield Mechanism"]
         AB["🔴 Antibody"] -->|"❌ Blocked"| G2
@@ -301,10 +306,10 @@ flowchart TB
         Glycans --> Surface
     end
 
-    style AB fill:#ef5350,color:#fff
-    style EP fill:#4caf50,color:#fff
-    style Glycans fill:#fff9c4
-    style Surface fill:#90a4ae
+    style AB fill:#c62828,color:#fff,stroke:#b71c1c
+    style EP fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style Glycans fill:#ef6c00,color:#fff,stroke:#e65100
+    style Surface fill:#455a64,color:#fff,stroke:#37474f
 ```
 
 **How Ternary VAE helps**:

@@ -46,6 +46,7 @@ outputs = model(x)
 Multi-agent swarm-based architecture for collaborative learning.
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart TB
     subgraph Swarm["SwarmVAE Architecture"]
         direction TB
@@ -66,12 +67,14 @@ flowchart TB
     Input["Input (B, 19683)"] --> Swarm
     Swarm --> Output["Consensus z_hyperbolic"]
 
-    style A1 fill:#bbdefb
-    style A2 fill:#c8e6c9
-    style A3 fill:#ffe0b2
-    style A4 fill:#bbdefb
-    style A5 fill:#c8e6c9
-    style PH fill:#f3e5f5
+    style A1 fill:#1565c0,color:#fff,stroke:#0d47a1
+    style A2 fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style A3 fill:#ef6c00,color:#fff,stroke:#e65100
+    style A4 fill:#1565c0,color:#fff,stroke:#0d47a1
+    style A5 fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style PH fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Input fill:#455a64,color:#fff,stroke:#37474f
+    style Output fill:#00838f,color:#fff,stroke:#006064
 ```
 
 ### Architecture

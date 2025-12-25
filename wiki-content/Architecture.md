@@ -5,6 +5,7 @@ The Ternary VAE system is built on a modular architecture combining hyperbolic g
 ## System Overview
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart LR
     subgraph TernaryVAE["TernaryVAE V5.11"]
         direction LR
@@ -27,9 +28,11 @@ flowchart LR
     Input[/"One-Hot<br/>(B, 19683)"/] --> TernaryVAE
     TernaryVAE --> Output[/"Reconstruction<br/>(B, 19683)"/]
 
-    style Enc fill:#fff3e0
-    style Lat fill:#f3e5f5
-    style Dec fill:#e8f5e9
+    style Enc fill:#ef6c00,color:#fff,stroke:#e65100
+    style Lat fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style Dec fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style Input fill:#1565c0,color:#fff,stroke:#0d47a1
+    style Output fill:#2e7d32,color:#fff,stroke:#1b5e20
 ```
 
 ## Core Components
@@ -108,6 +111,7 @@ loss_result = registry.compose(outputs, targets)
 ## Module Dependencies
 
 ```mermaid
+%%{init: {'theme': 'base'}}%%
 flowchart BT
     config["📁 config<br/>(No dependencies)"]
     geometry["📁 geometry"]
@@ -132,11 +136,14 @@ flowchart BT
     models --> diseases
     losses --> diseases
 
-    style config fill:#c8e6c9
-    style geometry fill:#bbdefb
-    style losses fill:#ffe0b2
-    style models fill:#e1bee7
-    style training fill:#fff9c4
+    style config fill:#2e7d32,color:#fff,stroke:#1b5e20
+    style geometry fill:#1565c0,color:#fff,stroke:#0d47a1
+    style losses fill:#ef6c00,color:#fff,stroke:#e65100
+    style models fill:#6a1b9a,color:#fff,stroke:#4a148c
+    style training fill:#00838f,color:#fff,stroke:#006064
+    style encoders fill:#1565c0,color:#fff,stroke:#0d47a1
+    style diseases fill:#c62828,color:#fff,stroke:#b71c1c
+    style observability fill:#455a64,color:#fff,stroke:#37474f
 ```
 
 ## Design Principles
