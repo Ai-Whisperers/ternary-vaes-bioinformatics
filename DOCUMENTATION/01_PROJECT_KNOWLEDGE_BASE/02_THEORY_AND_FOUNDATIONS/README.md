@@ -51,10 +51,10 @@ This section contains the theoretical basis for the Ternary VAE project:
 ├── 02_MATHEMATICAL_FOUNDATIONS/ # Core mathematical theory
 ├── 03_BIOLOGY_CONTEXT/          # Biological applications
 ├── 04_EMBEDDINGS_ANALYSIS/      # Latent space analysis
-├── 06_REPORTS_AND_DISCOVERIES/  # Research findings
-├── 07_VALIDATION/               # Test strategies and suites
-├── 08_METRICS_DOCS/             # Metric definitions
-└── 09_BIBLIOGRAPHY_AND_RESOURCES/ # References and proposals
+├── 05_REPORTS_AND_DISCOVERIES/  # Research findings
+├── 06_VALIDATION/               # Test strategies and suites
+├── 07_METRICS_DOCS/             # Metric definitions
+└── 08_BIBLIOGRAPHY_AND_RESOURCES/ # References and proposals
 ```
 
 ---
@@ -80,16 +80,16 @@ This section contains the theoretical basis for the Ternary VAE project:
 
 | Document | Description |
 |----------|-------------|
-| [STEALTH_NEOEPITOPE_MODEL.md](06_REPORTS_AND_DISCOVERIES/DISCOVERIES/STEALTH_NEOEPITOPE_MODEL.md) | Novel findings on HIV immune evasion |
-| [V5_11_CODEBASE_ANALYSIS.md](06_REPORTS_AND_DISCOVERIES/REPORTS/V5_11_CODEBASE_ANALYSIS.md) | Technical analysis of current implementation |
+| [STEALTH_NEOEPITOPE_MODEL.md](05_REPORTS_AND_DISCOVERIES/DISCOVERIES/STEALTH_NEOEPITOPE_MODEL.md) | Novel findings on HIV immune evasion |
+| [V5_11_CODEBASE_ANALYSIS.md](05_REPORTS_AND_DISCOVERIES/REPORTS/V5_11_CODEBASE_ANALYSIS.md) | Technical analysis of current implementation |
 
 ### Validation
 
 | Document | Description |
 |----------|-------------|
-| [VALIDATION_STRATEGY_INVENTORY.md](07_VALIDATION/VALIDATION_STRATEGY_INVENTORY.md) | Complete validation approach |
-| [01_BIOLOGICAL_BENCHMARKS.md](07_VALIDATION/07_VALIDATION_SUITE/01_BIOLOGICAL_BENCHMARKS.md) | Biological validation benchmarks |
-| [02_MATHEMATICAL_STRESS_TESTS.md](07_VALIDATION/07_VALIDATION_SUITE/02_MATHEMATICAL_STRESS_TESTS.md) | Mathematical validation tests |
+| [VALIDATION_STRATEGY_INVENTORY.md](06_VALIDATION/VALIDATION_STRATEGY_INVENTORY.md) | Complete validation approach |
+| [01_BIOLOGICAL_BENCHMARKS.md](06_VALIDATION/07_VALIDATION_SUITE/01_BIOLOGICAL_BENCHMARKS.md) | Biological validation benchmarks |
+| [02_MATHEMATICAL_STRESS_TESTS.md](06_VALIDATION/07_VALIDATION_SUITE/02_MATHEMATICAL_STRESS_TESTS.md) | Mathematical validation tests |
 
 ---
 
@@ -103,7 +103,7 @@ The mathematical framework directly enables biological insights:
 |--------------|---------------------|------|
 | Hyperbolic geometry | Protein hierarchy embedding | [CONJECTURES](02_MATHEMATICAL_FOUNDATIONS/CONJECTURES_INFORMATIONAL_GEOMETRY.md) → [MEDICAL_FRONTIERS](03_BIOLOGY_CONTEXT/MEDICAL_FRONTIERS.md) |
 | 3-adic ultrametrics | Codon similarity structure | [TOPOLOGY](02_MATHEMATICAL_FOUNDATIONS/TOPOLOGY_OF_INTELLIGENCE.md) → [SCIENTIFIC_DOMAINS](03_BIOLOGY_CONTEXT/SCIENTIFIC_DOMAINS.md) |
-| Poincare ball embedding | Vaccine target identification | [WHAT_DOES_MODEL_DO](02_MATHEMATICAL_FOUNDATIONS/THEORY/WHAT_DOES_THIS_MODEL_DO.md) → [STEALTH_NEOEPITOPE](06_REPORTS_AND_DISCOVERIES/DISCOVERIES/STEALTH_NEOEPITOPE_MODEL.md) |
+| Poincare ball embedding | Vaccine target identification | [WHAT_DOES_MODEL_DO](02_MATHEMATICAL_FOUNDATIONS/THEORY/WHAT_DOES_THIS_MODEL_DO.md) → [STEALTH_NEOEPITOPE](05_REPORTS_AND_DISCOVERIES/DISCOVERIES/STEALTH_NEOEPITOPE_MODEL.md) |
 
 ---
 
@@ -111,8 +111,8 @@ The mathematical framework directly enables biological insights:
 
 Curated research papers and proposals are in:
 
-- [RESEARCH_PROPOSALS/](09_BIBLIOGRAPHY_AND_RESOURCES/RESEARCH_PROPOSALS/) - Future research directions
-- [RESEARCH_LIBRARY/](09_BIBLIOGRAPHY_AND_RESOURCES/RESEARCH_LIBRARY/) - Categorized literature
+- [RESEARCH_PROPOSALS/](08_BIBLIOGRAPHY_AND_RESOURCES/RESEARCH_PROPOSALS/) - Future research directions
+- [RESEARCH_LIBRARY/](08_BIBLIOGRAPHY_AND_RESOURCES/RESEARCH_LIBRARY/) - Categorized literature
 
 Key research categories:
 - HIV vaccines and cure strategies
@@ -147,4 +147,4 @@ When using research from this section, cite as:
 
 ---
 
-*Last updated: 2025-12-24 | Version: 0.2*
+*Last updated: 2025-12-25 | Version: 0.3*

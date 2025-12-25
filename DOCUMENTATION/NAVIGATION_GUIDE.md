@@ -14,16 +14,16 @@
 2. [Technical Whitepaper](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Technical_Whitepaper.md) - Full theoretical treatment
 
 **Deep dives:**
-- [Mathematical Foundations](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/foundations/) - Hyperbolic geometry, 3-adic theory
-- [Biological Context](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/biology_context/) - Why this matters for biology
-- [Validation Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/validation_suite/) - Rigorous testing results
+- [Mathematical Foundations](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/02_MATHEMATICAL_FOUNDATIONS/) - Hyperbolic geometry, 3-adic theory
+- [Biological Context](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/03_BIOLOGY_CONTEXT/) - Why this matters for biology
+- [Validation Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/) - Rigorous testing results
 - [Code Architecture](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Code_Architecture.md) - How to run it yourself
 
 **Research domains:**
-- [HIV Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/hiv/)
-- [SARS-CoV-2 Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/sars_cov_2/)
-- [Rheumatoid Arthritis](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/rheumatoid_arthritis/)
-- [Neurodegeneration](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/neurodegeneration/)
+- [HIV Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/HIV/)
+- [SARS-CoV-2 Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/SARS_COV_2/)
+- [Rheumatoid Arthritis](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/RHEUMATOID_ARTHRITIS/)
+- [Neurodegeneration](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/NEURODEGENERATION/)
 
 ---
 
@@ -58,8 +58,8 @@
 
 **Validation:**
 - [Validation Reality](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/02_ACADEMIC_REVIEWERS/VALIDATION_REALITY.md) - Honest assessment of proof levels
-- [Biological Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/validation_suite/01_BIOLOGICAL_BENCHMARKS.md)
-- [Mathematical Stress Tests](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/validation_suite/02_MATHEMATICAL_STRESS_TESTS.md)
+- [Biological Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/01_BIOLOGICAL_BENCHMARKS.md)
+- [Mathematical Stress Tests](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/02_MATHEMATICAL_STRESS_TESTS.md)
 
 ---
 
@@ -86,11 +86,11 @@
 
 **Technical guides:**
 - [Architecture Specs](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/05_SPECS_AND_GUIDES/ARCHITECTURE.md)
-- [Testing Documentation](05_VALIDATION/)
+- [Testing Documentation](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/)
 - [Workflows](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/05_SPECS_AND_GUIDES/WORKFLOWS.md)
 
 **Code health:**
-- [Code Health Dashboard](02_PROJECT_MANAGEMENT/02_CODE_HEALTH_METRICS/CODE_HEALTH_DASHBOARD.md)
+- [Code Health Summary](02_PROJECT_MANAGEMENT/02_CODE_HEALTH_METRICS/CODE_HEALTH_SUMMARY.md)
 - [Technical Debt Audit](02_PROJECT_MANAGEMENT/02_CODE_HEALTH_METRICS/)
 
 ---
@@ -124,23 +124,23 @@
 | Topic | Document |
 |:------|:---------|
 | What is this project? | [QUICK_START.md](QUICK_START.md) |
-| Mathematical foundations | [02_THEORY_AND_FOUNDATIONS/foundations/](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/foundations/) |
+| Mathematical foundations | [02_MATHEMATICAL_FOUNDATIONS/](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/02_MATHEMATICAL_FOUNDATIONS/) |
 | Architecture overview | [Technical Whitepaper](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Technical_Whitepaper.md) |
 | Why hyperbolic geometry? | [Theory Deep Dives](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/) |
 
 ### Research Findings
 | Topic | Document |
 |:------|:---------|
-| HIV vulnerability mapping | [HIV Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/hiv/) |
-| Drug resistance predictions | [Drug Resistance Profiles](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/hiv/findings/01_DRUG_RESISTANCE_PROFILES.md) |
-| Glycan shield analysis | [Sentinel Glycans](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/hiv/findings/03_SENTINEL_GLYCANS.md) |
-| SARS-CoV-2 research | [COVID Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/sars_cov_2/) |
+| HIV vulnerability mapping | [HIV Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/HIV/) |
+| Drug resistance predictions | [Drug Resistance Profiles](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/HIV/FINDINGS/01_DRUG_RESISTANCE_PROFILES.md) |
+| Glycan shield analysis | [Sentinel Glycans](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/HIV/FINDINGS/03_SENTINEL_GLYCANS.md) |
+| SARS-CoV-2 research | [COVID Research](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/SARS_COV_2/) |
 
 ### Validation & Proof
 | Topic | Document |
 |:------|:---------|
 | What's proven vs claimed? | [Validation Reality](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/02_ACADEMIC_REVIEWERS/VALIDATION_REALITY.md) |
-| Benchmark results | [Validation Suite](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/validation_suite/) |
+| Benchmark results | [Validation Suite](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/) |
 | Claims matrix | [Claims](03_PRESENTATION_TIERS/02_TIER_2_INVESTOR/01_VENTURE_CAPITAL/CLAIMS.md) |
 
 ### Business & Strategy
@@ -160,4 +160,4 @@
 
 ---
 
-*Last updated: 2025-12-24*
+*Last updated: 2025-12-25*

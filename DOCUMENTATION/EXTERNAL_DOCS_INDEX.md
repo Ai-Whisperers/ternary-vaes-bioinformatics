@@ -13,11 +13,11 @@ Standard project governance files at repository root:
 | File | Purpose |
 |:-----|:--------|
 | [README.md](../README.md) | Main project overview and entry point |
-| [AUTHORS.md](../AUTHORS.md) | Project authors |
-| [CONTRIBUTORS.md](../CONTRIBUTORS.md) | Contributors list |
+| [AUTHORS.md](../LEGAL_AND_IP/AUTHORS.md) | Project authors |
+| [CONTRIBUTORS.md](../LEGAL_AND_IP/CONTRIBUTORS.md) | Contributors list |
 | [CONTRIBUTING.md](../CONTRIBUTING.md) | Contribution guidelines |
 | [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md) | Community code of conduct |
-| [CLA.md](../CLA.md) | Contributor License Agreement |
+| [CLA.md](../LEGAL_AND_IP/CLA.md) | Contributor License Agreement |
 | [SECURITY.md](../SECURITY.md) | Security policy and vulnerability reporting |
 | [LICENSE](../LICENSE) | PolyForm Noncommercial 1.0.0 |
 | [NOTICE](../NOTICE) | Third-party attributions |
@@ -82,9 +82,8 @@ Configuration documentation:
 | File | Purpose |
 |:-----|:--------|
 | [conductor/product.md](../conductor/product.md) | Product guide |
-| [conductor/workflow.md](../conductor/workflow.md) | Workflow documentation |
+| [conductor/product-guidelines.md](../conductor/product-guidelines.md) | Product guidelines |
 | [conductor/tech-stack.md](../conductor/tech-stack.md) | Technology stack |
-| [conductor/tracks.md](../conductor/tracks.md) | Track definitions |
 | [conductor/code_styleguides/](../conductor/code_styleguides/) | Code style guides |
 
 ---
@@ -104,7 +103,7 @@ Configuration documentation:
 | File | Purpose |
 |:-----|:--------|
 | [.claude/commands/](../.claude/commands/) | Claude Code command definitions |
-| [CLAUDE.md](../CLAUDE.md) | Project instructions for Claude |
+| [.claude/settings.json](../.claude/settings.json) | Claude Code project settings |
 
 ---
 
@@ -131,4 +130,4 @@ When creating documentation outside DOCUMENTATION/:
 
 ---
 
-*Last updated: 2025-12-24*
+*Last updated: 2025-12-25*

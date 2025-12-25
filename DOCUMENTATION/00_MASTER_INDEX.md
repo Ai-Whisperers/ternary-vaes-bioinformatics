@@ -51,7 +51,7 @@
 | **02_TIER_2_INVESTOR** | VCs, grant committees | Pitch materials, market analysis, case studies |
 | **03_TIER_3_TECHNICAL** | Due diligence, academic reviewers | Technical specs, IP inventory, theory deep dives |
 
-### 05 VALIDATION
+### 06 VALIDATION (under 02_THEORY_AND_FOUNDATIONS)
 **Purpose**: Test strategies and verification frameworks.
 
 | Section | Description |
@@ -59,6 +59,7 @@
 | **01_PLANS** | CI/CD plans, master test strategy |
 | **02_SUITES** | Unit, integration, scientific test documentation |
 | **03_TEST_FRAMEWORK_DOCS** | Test architecture and strategy guides |
+| **07_VALIDATION_SUITE** | Biological benchmarks, mathematical stress tests |
 
 ### 06 DIAGRAMS
 **Purpose**: Visual documentation (100+ Mermaid diagrams).
@@ -92,8 +93,8 @@ See [EXTERNAL_DOCS_INDEX.md](EXTERNAL_DOCS_INDEX.md) for the complete registry.
 ### For Scientists & Researchers
 - [Technical Whitepaper](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Technical_Whitepaper.md)
 - [Mathematical Foundations](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/)
-- [Validation Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/validation_suite/)
-- [HIV Research Findings](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/bioinformatics/codon_encoder_research/hiv/)
+- [Validation Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/)
+- [HIV Research Findings](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/CODON_ENCODER_RESEARCH/HIV/)
 
 ### For Investors & Partners
 - [Pitch Deck Script](03_PRESENTATION_TIERS/02_TIER_2_INVESTOR/01_VENTURE_CAPITAL/PITCH_DECK_SCRIPT.md)
@@ -104,7 +105,7 @@ See [EXTERNAL_DOCS_INDEX.md](EXTERNAL_DOCS_INDEX.md) for the complete registry.
 ### For Developers
 - [Source Architecture](../src/README.md)
 - [Setup Guide](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/05_SPECS_AND_GUIDES/SETUP.md)
-- [Testing Documentation](05_VALIDATION/)
+- [Testing Documentation](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/)
 - [Code Health Metrics](02_PROJECT_MANAGEMENT/02_CODE_HEALTH_METRICS/)
 
 ---
@@ -128,4 +129,4 @@ All documentation follows standards defined in:
 
 ---
 
-*Last updated: 2025-12-24*
+*Last updated: 2025-12-25*
