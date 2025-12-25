@@ -8,12 +8,8 @@
 import pytest
 import torch
 
-from src.encoders.ptm_encoder import (
-    GoldilocksZone,
-    PTMDataset,
-    PTMGoldilocksEncoder,
-    PTMType,
-)
+from src.encoders.ptm_encoder import (GoldilocksZone, PTMDataset,
+                                      PTMGoldilocksEncoder, PTMType)
 
 
 class TestPTMType:
@@ -115,16 +111,16 @@ class TestPTMGoldilocksEncoder:
     def test_goldilocks_membership(self, encoder):
         """Goldilocks membership should be computable."""
         # Test values in and out of zone
-        entropy_changes = torch.tensor([
-            -0.05,  # In zone
-            0.0,    # In zone (center)
-            -0.2,   # Below zone
-            0.1,    # Above zone
-        ])
-
-        in_zone, zone_dist = encoder.compute_goldilocks_membership(
-            entropy_changes, return_distance=True
+        entropy_changes = torch.tensor(
+            [
+                -0.05,  # In zone
+                0.0,  # In zone (center)
+                -0.2,  # Below zone
+                0.1,  # Above zone
+            ]
         )
+
+        in_zone, zone_dist = encoder.compute_goldilocks_membership(entropy_changes, return_distance=True)
 
         assert in_zone[0].item() is True
         assert in_zone[1].item() is True

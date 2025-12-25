@@ -14,10 +14,36 @@ This package provides specialized plotting functions for:
 - Training metrics (loss curves, accuracy over time)
 """
 
-# Placeholder for future plot modules
-# from .manifold import ...
-# from .surfaces import ...
-# from .distributions import ...
-# from .training import ...
+from .manifold import (
+    plot_distance_heatmap,
+    plot_embedding_clusters,
+    plot_geodesics,
+    plot_poincare_disk,
+    plot_radial_distribution,
+)
+from .training import (
+    create_training_dashboard,
+    plot_gradient_norms,
+    plot_learning_rate,
+    plot_loss_components,
+    plot_parameter_histogram,
+    plot_train_val_comparison,
+    plot_training_curves,
+)
 
-__all__: list[str] = []
+__all__ = [
+    # Manifold plots
+    "plot_poincare_disk",
+    "plot_geodesics",
+    "plot_embedding_clusters",
+    "plot_distance_heatmap",
+    "plot_radial_distribution",
+    # Training plots
+    "plot_training_curves",
+    "plot_loss_components",
+    "plot_gradient_norms",
+    "plot_learning_rate",
+    "plot_train_val_comparison",
+    "plot_parameter_histogram",
+    "create_training_dashboard",
+]

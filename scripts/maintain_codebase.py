@@ -75,6 +75,21 @@ def add_words_to_dictionary(words):
         print("No new words to add.")
 
 
+def run_mypy_check():
+    print("\nrunning Mypy (Type Checker)...")
+    try:
+        # Run mypy on src directory
+        subprocess.run(
+            "mypy src",
+            check=False,  # Don't fail the whole script, just report
+            shell=True,
+            cwd=PROJECT_ROOT,
+        )
+        print("✅ Mypy check complete (see output above).")
+    except Exception as e:
+        print(f"⚠️ Mypy failed to run: {e}")
+
+
 def run_syntax_check():
     print("\nrunning Syntax Check...")
     error_count = 0
@@ -204,6 +219,9 @@ def main():
 
     # 4. Unit Tests (New)
     run_tests()
+
+    # 5. Type Check (New)
+    run_mypy_check()
 
     # 2. Add Common Terms to Dictionary
     print("\nUpdating Dictionary...")

@@ -33,11 +33,7 @@ from typing import Dict, Optional, Tuple
 import torch
 import torch.nn as nn
 
-from src.geometry.poincare import (
-    PoincareModule,
-    poincare_distance,
-    project_to_poincare,
-)
+from src.geometry.poincare import (PoincareModule)
 
 
 class PTMType(IntEnum):
@@ -314,9 +310,7 @@ class PTMGoldilocksEncoder(PoincareModule):
         delta_h = self.compute_entropy_change(z_native, z_modified)
 
         # Goldilocks membership
-        in_zone, zone_dist = self.compute_goldilocks_membership(
-            delta_h, return_distance=True
-        )
+        in_zone, zone_dist = self.compute_goldilocks_membership(delta_h, return_distance=True)
 
         # Centroid shift
         native_centroid = z_native.mean(dim=1)  # (B, D)
@@ -396,10 +390,26 @@ class PTMDataset(torch.utils.data.Dataset):
 
         # Amino acid to index mapping
         self.aa_to_idx = {
-            "A": 1, "C": 2, "D": 3, "E": 4, "F": 5,
-            "G": 6, "H": 7, "I": 8, "K": 9, "L": 10,
-            "M": 11, "N": 12, "P": 13, "Q": 14, "R": 15,
-            "S": 16, "T": 17, "V": 18, "W": 19, "Y": 20,
+            "A": 1,
+            "C": 2,
+            "D": 3,
+            "E": 4,
+            "F": 5,
+            "G": 6,
+            "H": 7,
+            "I": 8,
+            "K": 9,
+            "L": 10,
+            "M": 11,
+            "N": 12,
+            "P": 13,
+            "Q": 14,
+            "R": 15,
+            "S": 16,
+            "T": 17,
+            "V": 18,
+            "W": 19,
+            "Y": 20,
             "X": 21,  # Unknown
         }
 
