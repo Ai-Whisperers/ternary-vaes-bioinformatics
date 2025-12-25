@@ -235,7 +235,7 @@ Add these topics in GitHub → Settings → General → Topics:
 
 - [x] Add `CODEOWNERS` file (Exists)
 - [x] Add Dependabot configuration (Exists)
-- [ ] Fix or remove empty `FUNDING.yml`
+- [x] Fix or remove empty `FUNDING.yml`
 - [ ] Add concurrency control to CI
 - [ ] Enable wiki for documentation
 

@@ -1,12 +1,6 @@
 # These are supported funding model platforms
 
-github: # Replace with your GitHub Sponsors username if applicable
-# patreon: # Replace with your Patreon username
-# open_collective: # Replace with your Open Collective username
-# ko_fi: # Replace with your Ko-fi username
-# tidelift: # npm/package-name
-# community_bridge: # project-name
-# liberapay: # username
-# issuehunt: # username
-# lfx_crowdfunding: # project-name
-custom: # ['support@aiwhisperers.com']
+# github: # Replace with your GitHub Sponsors username if applicable
+patreon: AIwhisperer664
+ko_fi: aiwhisperers
+custom: ["support@aiwhisperers.com"]
