@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = src
+source = src/
 omit =
     */__init__.py
     */tests/*
@@ -10,11 +10,12 @@ omit =
 exclude_lines =
     pragma: no cover
     def __repr__
-    if self.debug:
+    if self\.debug:
     if __name__ == .__main__.:
     raise NotImplementedError
-    pass
-    ...
+    ^\s*pass\s*$
+    ^\s*\.\.\.\s*$
 
 ignore_errors = True
 show_missing = True
+skip_empty = True
