@@ -8,6 +8,15 @@
 
 Active work items broken down by area.
 
+### Top-Level Analysis Documents (2025-12-25)
+
+| Document | Description |
+|:---------|:------------|
+| **[Codebase Deep Dive Analysis](00_TASKS/CODEBASE_DEEP_DIVE_ANALYSIS.md)** | 219 issues across 113 files, 23 critical bugs |
+| **[Research Proposal Implementation Analysis](00_TASKS/RESEARCH_PROPOSAL_IMPLEMENTATION_ANALYSIS.md)** | 20 proposals analyzed with blueprints for top 3 |
+
+### Task Categories
+
 - **[Bioinformatics](00_TASKS/01_BIOINFORMATICS/)**:
   - [P1_RA_AUTOIMMUNITY](00_TASKS/01_BIOINFORMATICS/P1_RA_AUTOIMMUNITY.md): Rheumatoid Arthritis & HLA.
   - [P1_VIRAL_EVOLUTION](00_TASKS/01_BIOINFORMATICS/P1_VIRAL_EVOLUTION.md): HIV/SARS-CoV-2 Glycan Shield.

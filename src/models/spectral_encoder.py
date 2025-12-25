@@ -79,21 +79,25 @@ class SpectralGraphEncoder(nn.Module):
         # Index 0 is often constant (0 eigenvalue) for connected components.
         # We take indices 1 to hidden_dim+1
 
-        target_dim = min(self.hidden_dim, N)
+        # We want to skip the first eigenvector (trivial) and take up to `hidden_dim` features.
+        # Indices available: 0 to N-1.
+        # We take 1 to k+1.
+        # Max index we can take is N.
+        # So slice is 1 : min(N, hidden_dim + 1)
 
-        # Take the eigenvectors corresponding to the smallest non-zero eigenvalues
-        # Shape: (B, N, target_dim)
-        spectral_features = eigvecs[:, :, 1 : target_dim + 1]
+        end_idx = min(N, self.hidden_dim + 1)
+        spectral_features = eigvecs[:, :, 1:end_idx]
 
-        # Flatten or pool?
-        # For a graph embedding, we often want a fixed size vector per graph.
-        # Simple pooling: mean over nodes
-        graph_embedding = spectral_features.mean(dim=1)  # (B, target_dim)
+        # Actual features obtained
+        num_features = spectral_features.shape[2]
 
-        # Pad if unique nodes < hidden_dim
-        if target_dim < self.hidden_dim:
+        # Flatten or pool
+        graph_embedding = spectral_features.mean(dim=1)  # (B, num_features)
+
+        # Pad if num_features < hidden_dim
+        if num_features < self.hidden_dim:
             padding = torch.zeros(
-                B, self.hidden_dim - target_dim, device=adjacency.device
+                B, self.hidden_dim - num_features, device=adjacency.device
             )
             graph_embedding = torch.cat([graph_embedding, padding], dim=1)
 

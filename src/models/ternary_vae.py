@@ -200,6 +200,7 @@ class TernaryVAEV5_11(nn.Module):
         n_projection_layers: int = 1,
         projection_dropout: float = 0.0,
         learnable_curvature: bool = False,
+        **kwargs,
     ):
         """Initialize TernaryVAEV5_11.
 
@@ -213,8 +214,19 @@ class TernaryVAEV5_11(nn.Module):
             n_projection_layers: Number of hidden layers in projection (1=shallow, 2+=deep)
             projection_dropout: Dropout rate for projection networks (default: 0.0)
             learnable_curvature: If True, curvature becomes learnable via geoopt (v5.11.11)
+
+            # Injected components (optional)
+            encoder_A: Injected encoder A (optional)
+            encoder_B: Injected encoder B (optional)
+            decoder_A: Injected decoder A (optional)
+            projection: Injected projection module (optional)
+            controller: Injected controller module (optional)
+            **kwargs: Additional arguments
         """
         super().__init__()
+
+        # Store kwargs for potential future use or inspection
+        self.kwargs = kwargs
 
         self.latent_dim = latent_dim
         self.hidden_dim = hidden_dim
@@ -227,39 +239,50 @@ class TernaryVAEV5_11(nn.Module):
         self.learnable_curvature = learnable_curvature
 
         # Frozen encoders (will be loaded from checkpoint)
-        self.encoder_A = FrozenEncoder(latent_dim=latent_dim)
-        self.encoder_B = FrozenEncoder(latent_dim=latent_dim)
+        # Injection allows mocks for testing
+        self.encoder_A = kwargs.pop("encoder_A", None) or FrozenEncoder(
+            latent_dim=latent_dim
+        )
+        self.encoder_B = kwargs.pop("encoder_B", None) or FrozenEncoder(
+            latent_dim=latent_dim
+        )
 
         # Frozen decoder (for verification only)
-        self.decoder_A = FrozenDecoder(latent_dim=latent_dim)
+        self.decoder_A = kwargs.pop("decoder_A", None) or FrozenDecoder(
+            latent_dim=latent_dim
+        )
 
         # Trainable hyperbolic projection
-        if use_dual_projection:
-            self.projection = DualHyperbolicProjection(
-                latent_dim=latent_dim,
-                hidden_dim=hidden_dim,
-                max_radius=max_radius,
-                curvature=curvature,
-                n_layers=n_projection_layers,
-                dropout=projection_dropout,
-                learnable_curvature=learnable_curvature,
-            )
-        else:
-            self.projection = HyperbolicProjection(
-                latent_dim=latent_dim,
-                hidden_dim=hidden_dim,
-                max_radius=max_radius,
-                curvature=curvature,
-                n_layers=n_projection_layers,
-                dropout=projection_dropout,
-                learnable_curvature=learnable_curvature,
-            )
+        self.projection = kwargs.pop("projection", None)
+        if self.projection is None:
+            if use_dual_projection:
+                self.projection = DualHyperbolicProjection(
+                    latent_dim=latent_dim,
+                    hidden_dim=hidden_dim,
+                    max_radius=max_radius,
+                    curvature=curvature,
+                    n_layers=n_projection_layers,
+                    dropout=projection_dropout,
+                    learnable_curvature=learnable_curvature,
+                )
+            else:
+                self.projection = HyperbolicProjection(
+                    latent_dim=latent_dim,
+                    hidden_dim=hidden_dim,
+                    max_radius=max_radius,
+                    curvature=curvature,
+                    n_layers=n_projection_layers,
+                    dropout=projection_dropout,
+                    learnable_curvature=learnable_curvature,
+                )
 
         # Trainable controller
-        if use_controller:
-            self.controller = DifferentiableController(input_dim=8, hidden_dim=32)
-        else:
-            self.controller = None
+        self.controller = kwargs.pop("controller", None)
+        if self.controller is None:
+            if use_controller:
+                self.controller = DifferentiableController(input_dim=8, hidden_dim=32)
+            else:
+                self.controller = None
 
         # Default control values (used when controller is disabled)
         self.default_control = {
