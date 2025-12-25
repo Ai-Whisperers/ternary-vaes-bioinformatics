@@ -30,8 +30,17 @@
         "node_modules",
         "__pycache__",
         "*.lock",
-        "integrity_report.md",
-        "detected_vocabulary.txt"
+        "integrity_report.md"
+    ],
+    "dictionaryDefinitions": [
+        {
+            "name": "project-words",
+            "path": "./configs/project-words.txt",
+            "addWords": true
+        }
+    ],
+    "dictionaries": [
+        "project-words"
     ],
     "import": [
         ".vscode/settings.json"
