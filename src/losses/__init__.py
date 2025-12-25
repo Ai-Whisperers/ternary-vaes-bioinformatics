@@ -78,6 +78,16 @@ from .coevolution_loss import (
     ResourceConservationLoss,
 )
 
+# Glycan shield analysis
+from .glycan_loss import (
+    GlycanRemovalSimulator,
+    GlycanSequonDetector,
+    GlycanShieldAnalyzer,
+    GlycanShieldMetrics,
+    GlycanSite,
+    SentinelGlycanLoss,
+)
+
 # Appetitive losses archived (unused in active training)
 # See src/losses/archive/appetitive_losses.py for legacy code
 
@@ -144,4 +154,11 @@ __all__ = [
     "ErrorMinimizationLoss",
     "ResourceConservationLoss",
     "PAdicStructureLoss",
+    # Glycan shield analysis
+    "SentinelGlycanLoss",
+    "GlycanShieldAnalyzer",
+    "GlycanShieldMetrics",
+    "GlycanSite",
+    "GlycanSequonDetector",
+    "GlycanRemovalSimulator",
 ]

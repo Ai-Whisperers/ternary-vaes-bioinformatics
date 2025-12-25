@@ -25,6 +25,18 @@ from .extraterrestrial_aminoacids import (
 )
 from .geometry import compute_delta_hyperbolicity, compute_pairwise_distances
 
+# Protein energy landscape analysis
+from .protein_landscape import (
+    ConformationState,
+    EnergyBasin,
+    FoldingFunnelAnalyzer,
+    LandscapeMetrics,
+    ProteinLandscapeAnalyzer,
+    TransitionPath,
+    TransitionStateAnalyzer,
+    UltrametricDistanceMatrix,
+)
+
 __all__ = [
     "compute_pairwise_distances",
     "compute_delta_hyperbolicity",
@@ -34,4 +46,13 @@ __all__ = [
     "ExtraterrestrialSample",
     "CompatibilityResult",
     "AminoAcidSource",
+    # Protein energy landscape
+    "ProteinLandscapeAnalyzer",
+    "FoldingFunnelAnalyzer",
+    "TransitionStateAnalyzer",
+    "UltrametricDistanceMatrix",
+    "ConformationState",
+    "EnergyBasin",
+    "TransitionPath",
+    "LandscapeMetrics",
 ]

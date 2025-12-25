@@ -28,6 +28,16 @@ from .motor_encoder import (ATPSynthaseEncoder, RotaryPositionEncoder,
                             TernaryMotorEncoder)
 from .ptm_encoder import (GoldilocksZone, PTMDataset, PTMGoldilocksEncoder,
                           PTMType)
+from .surface_encoder import (
+    GeodesicConv,
+    MaSIFEncoder,
+    PAdicSurfaceAttention,
+    SurfaceComplementarity,
+    SurfaceEncoderOutput,
+    SurfaceFeatureExtractor,
+    SurfaceInteractionPredictor,
+    SurfacePatchEncoder,
+)
 
 __all__ = [
     # Codon encoding
@@ -65,4 +75,13 @@ __all__ = [
     "PAdicGVP",
     "ProteinGVPEncoder",
     "CodonGVP",
+    # MaSIF-style surface encoder
+    "MaSIFEncoder",
+    "SurfaceEncoderOutput",
+    "SurfacePatchEncoder",
+    "SurfaceFeatureExtractor",
+    "GeodesicConv",
+    "PAdicSurfaceAttention",
+    "SurfaceInteractionPredictor",
+    "SurfaceComplementarity",
 ]

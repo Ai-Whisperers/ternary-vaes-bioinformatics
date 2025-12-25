@@ -23,6 +23,24 @@ from .ternary_lut import (TERNARY_LUT, VALUATION_LUT, get_3adic_distance,
                           get_3adic_distance_batch, get_ternary_batch,
                           get_valuation_batch)
 
+# P-adic shift operations
+from .padic_shift import (
+    PAdicCodonAnalyzer,
+    PAdicSequenceEncoder,
+    PAdicShiftResult,
+    batch_padic_distance,
+    codon_padic_distance,
+    codon_to_index,
+    index_to_codon,
+    padic_digits,
+    padic_distance,
+    padic_distance_matrix,
+    padic_norm,
+    padic_shift,
+    padic_valuation,
+    sequence_padic_encoding,
+)
+
 __all__ = [
     # Coverage metrics
     "evaluate_coverage",
@@ -39,4 +57,19 @@ __all__ = [
     "get_ternary_batch",
     "get_3adic_distance",
     "get_3adic_distance_batch",
+    # P-adic shift operations
+    "padic_shift",
+    "padic_valuation",
+    "padic_norm",
+    "padic_distance",
+    "padic_digits",
+    "padic_distance_matrix",
+    "batch_padic_distance",
+    "codon_to_index",
+    "index_to_codon",
+    "codon_padic_distance",
+    "sequence_padic_encoding",
+    "PAdicShiftResult",
+    "PAdicSequenceEncoder",
+    "PAdicCodonAnalyzer",
 ]
