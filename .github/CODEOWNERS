@@ -16,8 +16,8 @@
 /.github/ @IvanWeissVanDerPol
 
 # Critical files requiring owner review
-/LICENSE @IvanWeissVanDerPol
-/CLA.md @IvanWeissVanDerPol
+/LICENSE @IvanWeissVanDerPol @gesttaltt
+/CLA.md @IvanWeissVanDerPol @gesttaltt
 /pyproject.toml @IvanWeissVanDerPol @gesttaltt
 /requirements*.txt @IvanWeissVanDerPol @gesttaltt
 
