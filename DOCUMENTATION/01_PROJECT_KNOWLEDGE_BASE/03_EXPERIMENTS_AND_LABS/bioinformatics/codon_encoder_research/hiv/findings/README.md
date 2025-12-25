@@ -184,7 +184,7 @@ discoveries/
 | `../scripts/`                 | Analysis Python scripts     |
 | `../glycan_shield/`           | Sentinel glycan methodology |
 | `../results/`                 | Raw analysis outputs        |
-| `../../p-adic-genomics/`      | Cross-disease framework     |
+| `../../P_ADIC_GENOMICS/`      | Cross-disease framework     |
 | `../../rheumatoid_arthritis/` | RA comparison analysis      |
 
 ---

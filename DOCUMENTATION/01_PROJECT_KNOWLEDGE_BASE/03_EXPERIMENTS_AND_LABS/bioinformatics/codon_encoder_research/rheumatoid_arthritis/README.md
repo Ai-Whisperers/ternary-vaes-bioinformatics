@@ -534,7 +534,7 @@ timeline
 
 - [HIV Analysis](../hiv/README.md) - Inverse Goldilocks model
 - [SARS-CoV-2 Analysis](../sars_cov_2/glycan_shield/README.md) - Handshake model
-- [P-Adic Genomics](../../p-adic-genomics/) - Mathematical foundations
+- [P-Adic Genomics](../../P_ADIC_GENOMICS/) - Mathematical foundations
 
 ---
 

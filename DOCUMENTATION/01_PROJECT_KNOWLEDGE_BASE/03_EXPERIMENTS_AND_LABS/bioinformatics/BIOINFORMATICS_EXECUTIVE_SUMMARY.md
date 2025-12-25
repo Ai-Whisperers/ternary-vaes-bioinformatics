@@ -16,8 +16,8 @@ We operate three distinct research streams, each investigating a different scale
 - **Goldilocks Zone:** PTMs (like citrullination or glycosylation) that shift the p-adic geometry by **15-30%** are consistently immunogenic.
 - **Inverse Goldilocks:** HIV uses glycans to _hide_ this shift, maintaining "self-consistency" to evade antibodies.
 - **Applications:** Design of "Sentinel Glycan" vaccines and predictive autoimmune biomarker panels.
-  👉 **[Read the HIV Report](codon_encoder_research/hiv/DETAILED_REPORT.md)**
-  👉 **[Read the RA Findings](codon_encoder_research/rheumatoid_arthritis/summary.md)**
+  👉 **[Read the HIV Report](CODON_ENCODER_RESEARCH/HIV/DETAILED_REPORT.md)**
+  👉 **[Read the RA Findings](CODON_ENCODER_RESEARCH/RHEUMATOID_ARTHRITIS/CONSOLIDATED_FINDINGS.md)**
 
 ### 2. P-adic Genomics (The Genome Scale)
 
@@ -27,7 +27,7 @@ We operate three distinct research streams, each investigating a different scale
 - Viral genomes are not 1D strings but **~1.58D fractals**.
 - This dimensionality matches the Sierpinski Triangle (log 3 / log 2).
 - This suggests viral evolution explores "fractal space" rather than linear sequence space.
-  👉 **[Read the Full Report](p-adic-genomics/DISCOVERIES.md)**
+  👉 **[Read the Full Report](P_ADIC_GENOMICS/03_FINDINGS/DISCOVERIES.md)**
 
 ### 3. Spectral Analysis (The Model Scale)
 
@@ -37,7 +37,7 @@ We operate three distinct research streams, each investigating a different scale
 - **Perfect 3-adic Hierarchy:** The model learns a perfect ultrametric tree ($\rho = 0.590$).
 - **Zipf's Law:** The eigenvalue spectrum matches natural proteins, unlike standard VAEs (white noise).
 - **Null Result:** No direct correlation with Riemann Zeta zeros (yet).
-  👉 **[Read the Spectral Report](spectral_analysis_over_models/ANALYSIS_CONCLUSION.md)**
+  👉 **[Read the Spectral Report](SPECTRAL_ANALYSIS_OVER_MODELS/ANALYSIS_CONCLUSION.md)**
 
 ---
 

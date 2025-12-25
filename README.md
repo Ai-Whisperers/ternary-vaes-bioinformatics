@@ -120,13 +120,14 @@ Please cite the project using the provided `CITATION.cff`. Example BibTeX entry:
 
 ```bibtex
 @software{ternary_vae,
-  author = {Alejandro, et al.},
+  author = {{AI Whisperers}},
   title = {Ternary VAE Bioinformatics},
   year = {2025},
-  url = {https://github.com/Ai-Whisperers/ternary-vaes-bioinformatics},
-  doi = {10.5281/zenodo.XXXXXX}
+  url = {https://github.com/Ai-Whisperers/ternary-vaes-bioinformatics}
 }
 ```
+
+> **Note**: DOI pending Zenodo registration. See [CITATION.cff](CITATION.cff) for full citation details.
 
 ---
 

@@ -626,7 +626,7 @@ timeline
 - [HIV Analysis README](../README.md)
 - [Sentinel Glycans Hypothesis](../glycan_shield/IN_SILICO_HYPOTHESIS_SENTINEL_GLYCANS.md)
 - [Discovery Modules](./README.md)
-- [P-Adic Discoveries](../../p-adic-genomics/DISCOVERIES.md)
+- [P-Adic Discoveries](../../P_ADIC_GENOMICS/03_FINDINGS/DISCOVERIES.md)
 
 ### External Resources
 

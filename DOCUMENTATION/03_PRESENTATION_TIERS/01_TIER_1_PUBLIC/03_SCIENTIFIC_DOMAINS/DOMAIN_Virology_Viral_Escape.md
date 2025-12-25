@@ -32,7 +32,7 @@ Ternary VAE v5.11 models viral evolution as movement on a **Hyperbolic Manifold*
 
 ## 🔬 Evidence & Validation
 
-- **Case Study**: [SARS-CoV-2 Omicron](../../03_COMMERCIAL_SOLUTIONS/case_studies/CASE_STUDY_VIRAL_ESCAPE.md)
+- **Case Study**: [SARS-CoV-2 Omicron](../../02_TIER_2_INVESTOR/05_CASE_STUDIES/CASE_STUDY_VIRAL_ESCAPE.md)
 - Predicted 85% of Omicron's Spike mutations 6 months in advance by traversing the "optimal escape path" on the manifold.
 
 ## 🤝 Collaboration Opportunities

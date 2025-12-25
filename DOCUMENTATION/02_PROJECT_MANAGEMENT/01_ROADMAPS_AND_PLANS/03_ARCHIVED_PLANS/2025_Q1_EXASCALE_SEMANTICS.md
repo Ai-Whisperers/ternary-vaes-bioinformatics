@@ -336,5 +336,5 @@ Total: 8 weeks to proof-of-concept
 
 **Document Status:** Ready for execution
 **Next Action:** Begin Phase 1 - Hard Radial Separation training
-**Owner:** [TBD]
-**Review Date:** [TBD]
+**Owner:** Core Team (Archived)
+**Review Date:** 2025-Q1 (Plan superseded)

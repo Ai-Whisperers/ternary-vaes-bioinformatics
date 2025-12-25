@@ -125,4 +125,4 @@ Notes: ___________
 
 ---
 
-*Sequences provided in [../SEQUENCES/](../SEQUENCES/). Questions: See [../../pitch_tier2/CONTACT.md](../../pitch_tier2/CONTACT.md)*
+*Sequences provided in [../SEQUENCES/](../SEQUENCES/). Questions: See [CONTACT.md](../../../02_TIER_2_INVESTOR/01_VENTURE_CAPITAL/CONTACT.md)*

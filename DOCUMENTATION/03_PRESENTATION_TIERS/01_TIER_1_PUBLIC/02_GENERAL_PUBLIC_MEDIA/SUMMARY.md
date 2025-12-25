@@ -107,7 +107,7 @@ All predictions can be independently verified:
 
 ## Contact
 
-For Tier 2 access (methodology overview, custom predictions): See [../pitch_tier2/CONTACT.md](../pitch_tier2/CONTACT.md)
+For Tier 2 access (methodology overview, custom predictions): See [CONTACT.md](../../02_TIER_2_INVESTOR/01_VENTURE_CAPITAL/CONTACT.md)
 
 ---
 
