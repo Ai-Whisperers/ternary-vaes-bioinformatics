@@ -14,14 +14,14 @@ with consistent quality settings for publication and presentation.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING, Sequence
+from typing import Sequence
 
 import matplotlib.pyplot as plt
+import numpy as np
 from matplotlib.figure import Figure
 
-import numpy as np
-
-from ..config import DPI_PRESENTATION, DPI_PUBLICATION, ExportFormat, get_config
+from ..config import (DPI_PRESENTATION, DPI_PUBLICATION, ExportFormat,
+                      get_config)
 
 # =============================================================================
 # Export Functions
