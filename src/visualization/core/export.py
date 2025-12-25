@@ -20,8 +20,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.figure import Figure
 
-from ..config import (DPI_PRESENTATION, DPI_PUBLICATION, ExportFormat,
-                      get_config)
+from ..config import DPI_PRESENTATION, DPI_PUBLICATION, ExportFormat, get_config
 
 # =============================================================================
 # Export Functions
@@ -251,7 +250,7 @@ def get_figure_size_inches(fig: Figure) -> tuple[float, float]:
     Returns:
         (width, height) tuple in inches
     """
-    return fig.get_size_inches()
+    return tuple(fig.get_size_inches())
 
 
 def set_figure_size_inches(

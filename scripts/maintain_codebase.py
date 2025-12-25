@@ -10,6 +10,15 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 VSCODE_DIR = PROJECT_ROOT / ".vscode"
 SETTINGS_FILE = VSCODE_DIR / "settings.json"
 CSPELL_KEY = "cSpell.words"
+VENV_DIR = ".venv"
+IGNORED_DIRS = {VENV_DIR, ".git", "node_modules", "__pycache__"}
+
+
+def _prune_ignored_dirs(dirs):
+    """Remove ignored directories in-place to prevent os.walk traversal."""
+    to_remove = [d for d in dirs if d in IGNORED_DIRS]
+    for d in to_remove:
+        dirs.remove(d)
 
 
 def run_command(command, description):
@@ -235,28 +244,31 @@ def run_syntax_check():
     checked_count = 0
 
     for root, dirs, files in os.walk(PROJECT_ROOT):
-        # reuse ignore set if possible, but for now simple filter
-        if ".venv" in dirs:
-            dirs.remove(".venv")
-        if ".git" in dirs:
-            dirs.remove(".git")
+        _prune_ignored_dirs(dirs)
 
         for file in files:
             if file.endswith(".py"):
                 path = str(Path(root) / file)
                 checked_count += 1
-                try:
-                    py_compile.compile(path, doraise=True)
-                except py_compile.PyCompileError as e:
-                    print(f"❌ Syntax Error in {file}: {e}")
+                if not _check_syntax(path, file):
                     error_count += 1
-                except Exception as e:
-                    print(f"⚠️ Could not compile {file}: {e}")
 
     if error_count == 0:
         print(f"✅ Syntax Check Passed ({checked_count} file(s)).")
     else:
         print(f"❌ Found {error_count} syntax errors.")
+
+
+def _check_syntax(path, filename):
+    try:
+        py_compile.compile(path, doraise=True)
+        return True
+    except py_compile.PyCompileError as e:
+        print(f"❌ Syntax Error in {filename}: {e}")
+        return False
+    except Exception as e:
+        print(f"⚠️ Could not compile {filename}: {e}")
+        return False
 
 
 def run_integrity_audit():
@@ -282,7 +294,9 @@ def run_integrity_audit():
     if not missing_files:
         print("✅ No missing data dependencies found.")
     else:
-        print(f"⚠️ Found {len(missing_files)} missing data references (check 'integrity_report.log' for details).")
+        print(
+            f"⚠️ Found {len(missing_files)} missing data references (check 'integrity_report.log' for details)."
+        )
 
 
 def _check_file_integrity(path, pattern, missing_files_list):
@@ -298,7 +312,9 @@ def _check_file_integrity(path, pattern, missing_files_list):
                 if not _dependency_exists(path, filename):
                     # Only report if it looks like a local file
                     if not filename.startswith("http"):
-                        missing_files_list.append((str(path.relative_to(PROJECT_ROOT)), filename))
+                        missing_files_list.append(
+                            (str(path.relative_to(PROJECT_ROOT)), filename)
+                        )
     except Exception:
         pass
 
