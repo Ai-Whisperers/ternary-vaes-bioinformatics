@@ -28,11 +28,9 @@ References:
 
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 
 class PADEnzyme(Enum):
@@ -213,8 +211,6 @@ class CitrullinationPredictor(nn.Module):
         Returns:
             Dictionary with predictions
         """
-        batch_size = len(context_sequences)
-
         # Encode sequences
         encoded = torch.stack([
             self.encode_sequence(seq) for seq in context_sequences
