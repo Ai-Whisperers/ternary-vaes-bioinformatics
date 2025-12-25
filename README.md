@@ -1,9 +1,9 @@
 # Ternary VAE Bioinformatics
 
-[![License: PolyForm Non‑Commercial 1.0.0](https://img.shields.io/badge/License-PolyForm%20Non‑Commercial%201.0.0-lightgrey.svg)](LICENSE)
-[![License: CC‑BY‑4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](RESULTS_LICENSE.md)
-[![Open Medicine Policy](https://img.shields.io/badge/Open%20Medicine-Policy-blue.svg)](OPEN_MEDICINE_POLICY.md)
-[![GitHub stars](https://img.shields.io/github/stars/Alejandro/ternary-vaes-bioinformatics?style=social)](https://github.com/Alejandro/ternary-vaes-bioinformatics)
+[![License: PolyForm Non‑Commercial 1.0.0](https://img.shields.io/badge/License-PolyForm%20Non‑Commercial%201.0.0-lightgrey.svg)](LEGAL_AND_IP/LICENSE)
+[![License: CC‑BY‑4.0](https://img.shields.io/badge/License-CC%20BY%204.0-lightgrey.svg)](LEGAL_AND_IP/RESULTS_LICENSE.md)
+[![Open Medicine Policy](https://img.shields.io/badge/Open%20Medicine-Policy-blue.svg)](LEGAL_AND_IP/OPEN_MEDICINE_POLICY.md)
+[![GitHub stars](https://img.shields.io/github/stars/Ai-Whisperers/ternary-vaes-bioinformatics?style=social)](https://github.com/Ai-Whisperers/ternary-vaes-bioinformatics)
 
 ---
 
@@ -24,7 +24,7 @@ The project follows an **Open‑Medicine** philosophy: all scientific outputs (d
 
 ```bash
 # Clone the repository
-git clone https://github.com/Alejandro/ternary-vaes-bioinformatics.git
+git clone https://github.com/Ai-Whisperers/ternary-vaes-bioinformatics.git
 cd ternary-vaes-bioinformatics
 
 # Create a virtual environment (recommended)
@@ -35,7 +35,7 @@ source .venv/bin/activate   # on Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Run the core training script (example)
-python scripts/train_vae.py --config configs/default.yaml
+python scripts/train/train.py --config configs/ternary.yaml
 ```
 
 > **Tip**: The repository includes a `Dockerfile` for reproducible container builds.
@@ -80,19 +80,19 @@ pre-commit install
 ### Research Outputs (Data, Figures, Models)
 
 - **License**: CC‑BY‑4.0 – free for any reuse with attribution.
-- **Open‑Medicine Policy**: See `OPEN_MEDICINE_POLICY.md` for detailed terms.
+- **Open‑Medicine Policy**: See [`LEGAL_AND_IP/OPEN_MEDICINE_POLICY.md`](LEGAL_AND_IP/OPEN_MEDICINE_POLICY.md) for detailed terms.
 
-All legal documents are collected in the **Legal & IP** directory:
+All legal documents are collected in the [`LEGAL_AND_IP/`](LEGAL_AND_IP/) directory:
 
-- `LICENSE`
-- `NOTICE`
-- `OPEN_MEDICINE_POLICY.md`
-- `RESULTS_LICENSE.md`
-- `CLA.md`
-- `CONTRIBUTING.md`
-- `CODE_OF_CONDUCT.md`
-- `SECURITY.md`
-- `CITATION.cff`
+- [`LICENSE`](LEGAL_AND_IP/LICENSE)
+- [`NOTICE`](LEGAL_AND_IP/NOTICE)
+- [`OPEN_MEDICINE_POLICY.md`](LEGAL_AND_IP/OPEN_MEDICINE_POLICY.md)
+- [`RESULTS_LICENSE.md`](LEGAL_AND_IP/RESULTS_LICENSE.md)
+- [`CLA.md`](LEGAL_AND_IP/CLA.md)
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- [`SECURITY.md`](SECURITY.md)
+- [`CITATION.cff`](CITATION.cff)
 
 ---
 
@@ -100,9 +100,9 @@ All legal documents are collected in the **Legal & IP** directory:
 
 We welcome contributions! Please follow these steps:
 
-1. **Read the Contributor License Agreement** (`CLA.md`) and sign it.
-2. **Review the Code of Conduct** (`CODE_OF_CONDUCT.md`).
-3. **Check the contribution guidelines** (`CONTRIBUTING.md`) for branch naming, commit style, and testing requirements.
+1. **Read the Contributor License Agreement** ([`CLA.md`](LEGAL_AND_IP/CLA.md)) and sign it.
+2. **Review the Code of Conduct** ([`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)).
+3. **Check the contribution guidelines** ([`CONTRIBUTING.md`](CONTRIBUTING.md)) for branch naming, commit style, and testing requirements.
 4. **Open a Pull Request** – link it to an existing issue or create a new one.
 5. **Ensure all CI checks pass** (ruff, pytest, SPDX header verification).
 
@@ -110,7 +110,7 @@ We welcome contributions! Please follow these steps:
 
 ## 🔒 Security
 
-Report any vulnerabilities via the `SECURITY.md` policy. We use a coordinated disclosure process and will acknowledge contributors.
+Report any vulnerabilities via the [`SECURITY.md`](SECURITY.md) policy. We use a coordinated disclosure process and will acknowledge contributors.
 
 ---
 
@@ -123,7 +123,7 @@ Please cite the project using the provided `CITATION.cff`. Example BibTeX entry:
   author = {Alejandro, et al.},
   title = {Ternary VAE Bioinformatics},
   year = {2025},
-  url = {https://github.com/Alejandro/ternary-vaes-bioinformatics},
+  url = {https://github.com/Ai-Whisperers/ternary-vaes-bioinformatics},
   doi = {10.5281/zenodo.XXXXXX}
 }
 ```
@@ -132,8 +132,8 @@ Please cite the project using the provided `CITATION.cff`. Example BibTeX entry:
 
 ## 👥 Authors & Acknowledgments
 
-- **Primary Authors** – see `AUTHORS.md`.
-- **Contributors** – see `CONTRIBUTORS.md`.
+- **Primary Authors** – see [`AUTHORS.md`](LEGAL_AND_IP/AUTHORS.md).
+- **Contributors** – see [`CONTRIBUTORS.md`](LEGAL_AND_IP/CONTRIBUTORS.md).
 - **Funding** – this work is supported by open‑science grants and institutional collaborations.
 
 ---
@@ -144,4 +144,4 @@ For general questions, open an issue. For commercial licensing inquiries, email 
 
 ---
 
-_Last updated: 2025‑12‑24_
+_Last updated: 2025‑12‑25_
