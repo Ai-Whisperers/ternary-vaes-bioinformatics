@@ -461,12 +461,12 @@ def main():
         validations += 1
         print("✓ W131 mutation has direct crystal structure evidence")
 
-    if len([c for c in comparison_results.get("comparison", [])
+    if comparison_results and len([c for c in comparison_results.get("comparison", [])
             if c["structural_evidence"] == "INTERFACE"]) >= 3:
         validations += 1
         print("✓ Multiple reveal candidates at LEDGF interface")
 
-    if comparison_results.get("correlation", {}).get("r", 0) > 0.3:
+    if comparison_results and comparison_results.get("correlation", {}) and comparison_results.get("correlation", {}).get("r", 0) > 0.3:
         validations += 1
         print("✓ Positive correlation between structure and prediction")
 
