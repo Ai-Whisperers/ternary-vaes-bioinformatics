@@ -277,11 +277,15 @@ class HomeostaticReconLoss(HyperbolicReconLoss):
 
         # Adaptive parameters
         self.register_buffer("adaptive_geodesic_weight", torch.tensor(geodesic_weight))
+        self.adaptive_geodesic_weight: torch.Tensor  # Type hint for mypy
         self.register_buffer("adaptive_radius_power", torch.tensor(radius_power))
+        self.adaptive_radius_power: torch.Tensor  # Type hint for mypy
 
         # EMA tracking
         self.register_buffer("loss_ema", torch.tensor(1.0))
+        self.loss_ema: torch.Tensor  # Type hint for mypy
         self.register_buffer("coverage_ema", torch.tensor(50.0))
+        self.coverage_ema: torch.Tensor  # Type hint for mypy
 
     def update_homeostatic_state(self, loss: torch.Tensor, coverage: float, correlation: float = 0.0):
         """Update homeostatic parameters based on training state.

@@ -287,11 +287,15 @@ class HomeostaticHyperbolicPrior(HyperbolicPrior):
         # Learnable parameters for homeostatic control
         # (can be modulated by StateNet)
         self.register_buffer("adaptive_sigma", torch.tensor(prior_sigma))
+        self.adaptive_sigma: torch.Tensor  # Type hint for mypy
         self.register_buffer("adaptive_curvature", torch.tensor(curvature))
+        self.adaptive_curvature: torch.Tensor  # Type hint for mypy
 
         # EMA for tracking statistics
         self.register_buffer("mean_radius_ema", torch.tensor(0.5))
+        self.mean_radius_ema: torch.Tensor  # Type hint for mypy
         self.register_buffer("kl_ema", torch.tensor(1.0))
+        self.kl_ema: torch.Tensor  # Type hint for mypy
 
     def update_homeostatic_state(
         self,

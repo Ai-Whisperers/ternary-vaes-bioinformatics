@@ -330,8 +330,8 @@ class HyperbolicScheduler:
 def create_optimizer(
     model: nn.Module,
     optimizer_type: str = "mixed_riemannian",
-    **kwargs,
-) -> torch.optim.Optimizer:
+    **kwargs: Any,
+) -> Any:
     """Factory function to create optimizer for a model.
 
     Args:

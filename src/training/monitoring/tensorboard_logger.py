@@ -33,7 +33,7 @@ try:
     TENSORBOARD_AVAILABLE = True
 except ImportError:
     TENSORBOARD_AVAILABLE = False
-    SummaryWriter = None  # type: ignore[misc,assignment]
+    SummaryWriter = None
 
 if TYPE_CHECKING:
     from torch.utils.tensorboard import SummaryWriter as SummaryWriterType

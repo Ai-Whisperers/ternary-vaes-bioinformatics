@@ -23,14 +23,14 @@ class AutoimmunityLoader:
             [2, 0, 2, 0],  # Ternary motif example
         ]
 
-    def get_risk_score(self, sequence: torch.Tensor) -> float:
+    def get_risk_score(self, sequence: torch.Tensor) -> torch.Tensor:
         """Calculate autoimmunity risk score for a single sequence.
 
         Args:
            sequence: Tensor of shape (L,) or (Batch, L) representing codon indices or ternary ops.
 
         Returns:
-            Risk score (0.0 to 1.0). Higher means more autoimmune risk (should be avoided).
+            Risk score tensor (0.0 to 1.0). Higher means more autoimmune risk (should be avoided).
         """
         # For MVP, we'll implement a simple heuristic based on specific "forbidden" values
         # or repetitive patterns which might simulate low-complexity regions often immunogenic.
@@ -38,7 +38,7 @@ class AutoimmunityLoader:
         if sequence.dim() > 1:
             # Batch mode
             return torch.tensor(
-                [self.get_risk_score(s) for s in sequence],
+                [self.get_risk_score(s).item() for s in sequence],
                 device=sequence.device,
             )
 
@@ -48,14 +48,14 @@ class AutoimmunityLoader:
         diversity = len(uniques) / len(sequence)
 
         if diversity < 0.3:
-            return 0.8  # High risk for low complexity
+            return torch.tensor(0.8, device=sequence.device)  # High risk for low complexity
 
         # Heuristic 2: Specific "bad" codons (mock)
         # Let's say codon 63 (111111) is a "stop" or "toxic" equivalent we want to avoid
         if (sequence == 63).any():
-            return 0.9
+            return torch.tensor(0.9, device=sequence.device)
 
-        return 0.1  # Baseline low risk
+        return torch.tensor(0.1, device=sequence.device)  # Baseline low risk
 
     def get_batch_risk(self, batch_sequences: torch.Tensor) -> torch.Tensor:
         """Get risk scores for a batch."""

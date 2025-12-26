@@ -22,7 +22,7 @@ import shutil
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import torch
 
@@ -89,7 +89,7 @@ class EnvironmentStatus:
 
 
 def validate_environment(
-    config: dict,
+    config: Union[dict[str, Any], Any],
     monitor: Optional["TrainingMonitor"] = None,
     strict: bool = False,
 ) -> EnvironmentStatus:
@@ -215,7 +215,7 @@ def validate_environment(
     return status
 
 
-def require_valid_environment(config: dict, monitor: Optional["TrainingMonitor"] = None) -> EnvironmentStatus:
+def require_valid_environment(config: Union[dict[str, Any], Any], monitor: Optional["TrainingMonitor"] = None) -> EnvironmentStatus:
     """Validate environment and raise if invalid.
 
     Convenience wrapper that raises ConfigValidationError if

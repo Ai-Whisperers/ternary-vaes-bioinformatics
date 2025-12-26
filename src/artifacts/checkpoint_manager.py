@@ -19,7 +19,7 @@ import logging
 import queue
 import threading
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 import torch
 
@@ -44,7 +44,7 @@ class AsyncCheckpointSaver:
         Args:
             max_queue_size: Max pending saves before blocking
         """
-        self._queue = queue.Queue(maxsize=max_queue_size)
+        self._queue: queue.Queue[Tuple[Dict[str, Any], Path]] = queue.Queue(maxsize=max_queue_size)
         self._running = True
         self._thread = threading.Thread(target=self._save_loop, daemon=True)
         self._thread.start()
@@ -183,6 +183,7 @@ class CheckpointManager:
 
     def _save_async(self, checkpoint: Dict[str, Any], path: Path) -> None:
         """Asynchronous (non-blocking) save."""
+        assert self._async_saver is not None, "Async saver not initialized"
         self._async_saver.save_async(checkpoint, path)
 
     def shutdown(self) -> None:

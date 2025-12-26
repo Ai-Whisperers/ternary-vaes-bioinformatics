@@ -85,7 +85,7 @@ CODON_TABLE = {
 }
 
 # Synonymous codon groups
-SYNONYMOUS_CODONS = {}
+SYNONYMOUS_CODONS: dict[str, list[str]] = {}
 for codon, aa in CODON_TABLE.items():
     if aa not in SYNONYMOUS_CODONS:
         SYNONYMOUS_CODONS[aa] = []

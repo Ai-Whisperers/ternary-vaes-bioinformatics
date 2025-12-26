@@ -60,6 +60,7 @@ class ContinuousCurriculumModule(nn.Module):
 
         # Core curriculum state (buffer, not parameter - updated by StateNet)
         self.register_buffer("tau", torch.tensor(initial_tau, dtype=torch.float32))
+        self.tau: torch.Tensor  # Type hint for mypy
 
         # Bounds
         self.tau_min = tau_min
@@ -69,6 +70,7 @@ class ContinuousCurriculumModule(nn.Module):
 
         # History tracking for analysis
         self.register_buffer("tau_ema", torch.tensor(initial_tau, dtype=torch.float32))
+        self.tau_ema: torch.Tensor  # Type hint for mypy
         self.tau_history: List[float] = []  # For logging/visualization
 
     def update_tau(self, delta_curriculum: float) -> torch.Tensor:

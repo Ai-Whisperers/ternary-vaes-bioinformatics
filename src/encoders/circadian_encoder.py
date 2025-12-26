@@ -370,15 +370,16 @@ class KaiCClockEncoder(CircadianCycleEncoder):
         self,
         time_hours: torch.Tensor,
         phospho_state: Optional[torch.Tensor] = None,
+        phospho_continuous: Optional[torch.Tensor] = None,
         kaia_level: Optional[torch.Tensor] = None,
         kaib_level: Optional[torch.Tensor] = None,
-        **kwargs,
     ) -> torch.Tensor:
         """Encode KaiC state with optional KaiA/KaiB modulation.
 
         Args:
             time_hours: Time of day in hours, shape (Batch,)
             phospho_state: Phosphorylation state (0=U, 1=T, 2=ST, 3=S)
+            phospho_continuous: Continuous phosphorylation level [0, 1], shape (Batch,)
             kaia_level: KaiA concentration [0, 1], shape (Batch,)
             kaib_level: KaiB concentration [0, 1], shape (Batch,)
 
@@ -386,7 +387,7 @@ class KaiCClockEncoder(CircadianCycleEncoder):
             Embeddings, shape (Batch, embedding_dim)
         """
         # Get base encoding
-        base_emb = super().forward(time_hours, phospho_state=phospho_state, **kwargs)
+        base_emb = super().forward(time_hours, phospho_state=phospho_state, phospho_continuous=phospho_continuous)
 
         # Modulate by KaiA/KaiB if provided
         if kaia_level is not None or kaib_level is not None:
