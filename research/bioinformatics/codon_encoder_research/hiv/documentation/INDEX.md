@@ -2,9 +2,9 @@
 
 ## HIV P-adic Hyperbolic Analysis Documentation
 
-**Version:** 1.0
-**Last Updated:** December 25, 2025
-**Total Documents:** 20
+**Version:** 1.1
+**Last Updated:** December 26, 2025
+**Total Documents:** 22
 
 ---
 
@@ -13,6 +13,7 @@
 | I want to... | Go to... |
 |--------------|----------|
 | Get an overview of findings | [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) |
+| Understand the deep theory | [GEOMETRIC_THEORY_OF_EVOLUTION.md](GEOMETRIC_THEORY_OF_EVOLUTION.md) |
 | Run the analysis | [QUICK_START.md](quickstart/QUICK_START.md) |
 | Understand the methodology | [METHODOLOGY.md](methodology/METHODOLOGY.md) |
 | See what's novel | [NOVELTY_ASSESSMENT.md](NOVELTY_ASSESSMENT.md) |
@@ -28,6 +29,7 @@
 | Document | Description | Priority |
 |----------|-------------|----------|
 | [EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md) | Complete overview for researchers | **Essential** |
+| [GEOMETRIC_THEORY_OF_EVOLUTION.md](GEOMETRIC_THEORY_OF_EVOLUTION.md) | Theoretical framework and new approaches | **Essential** |
 | [NOVELTY_ASSESSMENT.md](NOVELTY_ASSESSMENT.md) | Novel vs. confirmed findings | **Essential** |
 | [QUICK_START.md](quickstart/QUICK_START.md) | 10-minute setup guide | **Essential** |
 | [IMPROVEMENT_PLAN.md](IMPROVEMENT_PLAN.md) | 47 improvements from 150 papers | **Development** |

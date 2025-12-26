@@ -5,6 +5,246 @@
 
 ---
 
+## API & Online Analysis Tools (No Download Required)
+
+### Quick Reference: What You Can Do Without Downloading
+
+| Database | API/Tool | Access Method | Best For |
+|:---------|:---------|:--------------|:---------|
+| **Stanford HIVDB** | Sierra GraphQL API | REST/GraphQL | Resistance interpretation |
+| **cBioPortal** | REST API + pyBioPortal | Python package | Cancer genomics queries |
+| **MalariaGEN Pf7** | Python API + Web App | `malariagen_data` package | Cloud-based analysis |
+| **BV-BRC** | Web Tools + CLI | Browser/Command line | Bacterial analysis |
+| **CARD** | URL-based ontology | Direct URLs | Resistance gene lookup |
+| **NCBI** | Entrez API + Datasets CLI | Biopython/CLI | Any NCBI data |
+| **PlasmoDB** | Web interface | Browser | Plasmodium queries |
+| **HBVdb** | Web tools | Browser | HBV resistance profiling |
+
+---
+
+### Detailed API Documentation
+
+#### 1. Stanford HIVDB - Sierra Web Service
+
+**URL**: [hivdb.stanford.edu/page/webservice](https://hivdb.stanford.edu/page/webservice/)
+
+**Access Methods**:
+- **GraphQL API** (Sierra v2): Preferred, JSON output
+- **Python client**: `SierraPy` package
+- **Interactive editor**: GraphiQL in-browser IDE
+
+**What You Can Do**:
+```python
+# Submit sequences, get resistance interpretation
+# No download required - send sequence, get results
+- Mutation penalty scores
+- Drug susceptibility estimates (NRTI, NNRTI, PI, INSTI)
+- Mutation comments and annotations
+- Quality assessments
+```
+
+**Use Case**: Submit your sequences via API, receive resistance interpretation immediately.
+
+---
+
+#### 2. cBioPortal - Cancer Genomics API
+
+**URL**: [cbioportal.org/api](https://www.cbioportal.org/api)
+
+**Access Methods**:
+- **REST API**: OpenAPI/Swagger documented
+- **pyBioPortal**: Python package (`pip install pyBioPortal`)
+- **cbio_py**: Alternative Python wrapper
+- **Bravado**: Direct Swagger client
+
+**Example (Python)**:
+```python
+from bravado.client import SwaggerClient
+cbioportal = SwaggerClient.from_url(
+    'https://www.cbioportal.org/api/v3/api-docs'
+)
+# Query cancer studies, mutations, clinical data
+# Returns pandas DataFrames
+```
+
+**What You Can Query**:
+- Mutation data by gene/study
+- Clinical outcomes
+- Copy number alterations
+- Expression data
+- Survival analysis
+
+---
+
+#### 3. MalariaGEN Pf7 - Cloud-Based Analysis
+
+**URLs**:
+- Web App: [apps.malariagen.net/apps/pf7](https://apps.malariagen.net/apps/pf7/)
+- Pf-HaploAtlas: [apps.malariagen.net/pf-haploatlas](https://apps.malariagen.net/pf-haploatlas)
+- API Docs: [malariagen.github.io/parasite-data/pf7/api](https://malariagen.github.io/parasite-data/pf7/api.html)
+
+**Access Methods**:
+```python
+pip install malariagen_data
+
+import malariagen_data
+pf7 = malariagen_data.Pf7()
+
+# Access data directly from Google Cloud Storage
+# No local download required!
+df = pf7.sample_metadata()
+seq = pf7.genome_sequence("Pf3D7_07_v3")
+```
+
+**Cloud Notebooks**:
+- Google Colab: Free, direct cloud access
+- MyBinder: Free, interactive notebooks
+- Data streams from `gs://pf7_release/`
+
+**What You Can Analyze**:
+- 20,864 samples metadata
+- Drug resistance markers (kelch13, etc.)
+- SNP calls genome-wide
+- Population structure
+
+---
+
+#### 4. BV-BRC (PATRIC) - Bacterial Bioinformatics
+
+**URL**: [bv-brc.org](https://www.bv-brc.org/)
+
+**Access Methods**:
+- **Web Interface**: Full analysis suite in browser
+- **Command Line Interface**: Bulk data + analysis
+- **GitHub tools**: [github.com/BV-BRC](https://github.com/BV-BRC)
+
+**Online Tools Available** (No download):
+| Tool | Function |
+|:-----|:---------|
+| Genome Annotation | Annotate uploaded contigs |
+| BLAST | Search against 500K+ genomes |
+| Phylogenetic Tree | Build custom trees |
+| Similar Genome Finder | Find related genomes |
+| Comprehensive Analysis | Full pipeline from reads |
+| Metagenomic Binning | Bin metagenome data |
+| RNA-Seq Analysis | Differential expression |
+
+**Use Case**: Upload your bacterial sequences, run complete analysis online.
+
+---
+
+#### 5. CARD - Antibiotic Resistance Database
+
+**URL**: [card.mcmaster.ca](https://card.mcmaster.ca/)
+
+**Access Methods**:
+- **URL-based ontology queries**:
+  ```
+  https://card.mcmaster.ca/aro/3003689  # ARO term
+  https://card.mcmaster.ca/ontology/40292  # Ontology
+  ```
+- **RGI Web**: Submit sequences for resistome prediction
+- **Download + local RGI**: For large-scale analysis
+
+**Online Analysis**:
+- Submit FASTA → Get resistance gene predictions
+- Browse ontology interactively
+- Search by gene, drug, mechanism
+
+---
+
+#### 6. NCBI - Entrez API & Datasets
+
+**Access Methods**:
+
+**Biopython (Entrez)**:
+```python
+from Bio import Entrez, SeqIO
+Entrez.email = "your@email.com"
+
+# Search and fetch sequences
+handle = Entrez.esearch(db="nucleotide", 
+                        term="SARS-CoV-2[Organism]")
+results = Entrez.read(handle)
+
+# Fetch specific sequences
+handle = Entrez.efetch(db="nucleotide", 
+                       id="NC_045512", 
+                       rettype="fasta")
+record = SeqIO.read(handle, "fasta")
+```
+
+**NCBI Datasets CLI**:
+```bash
+# Download virus data
+datasets download virus genome taxon sars-cov-2
+
+# Download by accession
+datasets download virus genome accession NC_063383.1
+```
+
+**Rate Limits**: 5 req/sec (10 with API key)
+
+---
+
+#### 7. HBVdb - Hepatitis B Analysis
+
+**URL**: [hbvdb.lyon.inserm.fr](https://hbvdb.lyon.inserm.fr/)
+
+**Online Tools**:
+- Genotyping
+- Drug resistance profiling
+- Sequence annotation
+- Phylogenetic analysis
+
+**Use Case**: Submit HBV sequence → Get genotype + resistance profile
+
+---
+
+#### 8. Liverpool HIV Drug Interactions
+
+**URL**: [hiv-druginteractions.org/checker](https://www.hiv-druginteractions.org/checker)
+
+**Access**: Fully web-based, no API needed
+- Select drugs → Get interaction assessment
+- Color-coded severity
+- Clinical recommendations
+
+---
+
+### Cloud Computing Options
+
+| Platform | Best For | Cost |
+|:---------|:---------|:-----|
+| **Google Colab** | MalariaGEN, general Python | Free |
+| **MyBinder** | Reproducible notebooks | Free |
+| **Terra.bio** | TCGA, large genomics | Pay-per-use |
+| **Galaxy** | General bioinformatics | Free (public) |
+| **DNAnexus** | Clinical genomics | Enterprise |
+
+---
+
+### Recommended Workflow: API-First Approach
+
+```
+1. EXPLORATORY PHASE (No download)
+   ├── Use web interfaces to explore data
+   ├── Query APIs for specific subsets
+   └── Run cloud notebooks (Colab/MyBinder)
+
+2. TARGETED ANALYSIS (Minimal download)
+   ├── Download only sequences you need via API
+   ├── Use online tools for annotation/interpretation
+   └── Store results, not raw data
+
+3. LARGE-SCALE (If needed)
+   ├── Download full datasets only when necessary
+   ├── Use cloud computing for processing
+   └── Consider BV-BRC/Galaxy for pipelines
+```
+
+---
+
 ## Quick Reference Summary
 
 | Research Area | Primary Database | Records | Access |
