@@ -1,3 +1,55 @@
+# Copyright 2024-2025 AI Whisperers (https://github.com/Ai-Whisperers)
+#
+# Licensed under the PolyForm Noncommercial License 1.0.0
+# See LICENSE file in the repository root for full license text.
+
+"""Specialized encoders for biological sequence and structure embedding.
+
+This module provides a collection of encoders that transform biological data
+into geometric representations suitable for the p-adic hyperbolic framework.
+
+Encoder Categories:
+    **Codon Encoding**:
+        CodonEncoder: P-adic encoding of DNA/RNA codons
+
+    **Post-Translational Modification (PTM)**:
+        PTMGoldilocksEncoder: Encodes PTM sites with stability zones
+        GoldilocksZone: Defines stability regions for modifications
+
+    **Motor Proteins / Ternary Logic**:
+        TernaryMotorEncoder: Ternary state encoding for molecular motors
+        ATPSynthaseEncoder: Rotary motor state encoding
+
+    **Circadian / Toroidal**:
+        CircadianCycleEncoder: Temporal cycle encoding on torus
+        KaiCClockEncoder: KaiC circadian clock protein encoding
+        ToroidalEmbedding: General toroidal manifold embedding
+
+    **Spectral / Holographic**:
+        HolographicEncoder: Multi-scale spectral graph encoding
+        GraphLaplacianEncoder: Laplacian eigenvector features
+        PPINetworkEncoder: Protein-protein interaction networks
+
+    **Diffusion Maps**:
+        DiffusionMapEncoder: Nonlinear dimensionality reduction
+        DiffusionPseudotime: Trajectory inference from diffusion
+
+    **Geometric Vector Perceptron (GVP)**:
+        GVPLayer: SE(3)-equivariant neural network layer
+        PAdicGVP: P-adic enhanced GVP
+        ProteinGVPEncoder: Protein structure encoding
+
+    **Surface / MaSIF-style**:
+        MaSIFEncoder: Molecular surface fingerprinting
+        SurfacePatchEncoder: Local surface patch features
+        GeodesicConv: Convolution on geodesic distances
+
+Example:
+    >>> from src.encoders import CodonEncoder, MaSIFEncoder
+    >>> codon_enc = CodonEncoder(prime=3)
+    >>> embeddings = codon_enc.encode_sequence("ATGCGA")
+"""
+
 from .circadian_encoder import (CircadianCycleEncoder, KaiCClockEncoder,
                                 ToroidalEmbedding)
 from .codon_encoder import CodonEncoder

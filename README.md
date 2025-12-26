@@ -61,10 +61,23 @@ Comprehensive analysis of 200,000+ HIV records using p‑adic hyperbolic geometr
 | [Full Documentation](research/bioinformatics/codon_encoder_research/hiv/README.md) | Complete HIV module README |
 
 **Key Results:**
-- **328 vaccine targets** identified with no drug resistance overlap
+- **387 vaccine targets** ranked by evolutionary stability
 - **85% tropism prediction accuracy** using geometric features
 - **Position 22** discovered as top tropism determinant (novel finding)
 - **r = 0.41 correlation** between hyperbolic distance and drug resistance
+- **P-adic vs Hamming**: Spearman r = 0.8339 (strong geometry validation)
+
+### Clinical Decision Support (NEW - 2025-12-26)
+
+| Finding | Value |
+|---------|-------|
+| Top Vaccine Candidate | **TPQDLNTML** (Gag, priority: 0.970) |
+| MDR High-Risk Sequences | 2,489 (34.8% of screened) |
+| Druggable Tat Targets | 247 kinases/receptors |
+| MDR Mutations Identified | 1,032 enriched signatures |
+| Host-Directed Targets | 19 HIV proteins → 3+ druggable hosts |
+
+See [`results/clinical_applications/CLINICAL_REPORT.md`](results/clinical_applications/CLINICAL_REPORT.md) for full details.
 
 ---
 
@@ -162,4 +175,4 @@ For general questions, open an issue. For commercial licensing inquiries, email 
 
 ---
 
-_Last updated: 2025‑12‑25_
+_Last updated: 2025‑12‑26_

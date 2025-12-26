@@ -1,12 +1,25 @@
 ● Bioinformatics Scripts - Ingestion & Models Summary
 
+  **Last Updated**: 2025-12-26
+
   Directory Structure
 
   bioinformatics/
   ├── rheumatoid_arthritis/   # 29 scripts - HLA alleles, citrullination
   ├── neurodegeneration/alzheimers/  # 6 scripts - tau phosphorylation
-  ├── hiv/                    # 5 scripts - CTL escape, glycan shield
+  ├── hiv/                    # HIV analysis (200K+ sequences)
+  │   ├── scripts/            # Analysis scripts including validate_datasets.py
+  │   └── results/            # Comprehensive analysis results
   └── sars_cov_2/             # 2 scripts - spike glycan analysis
+
+  Top-Level Analysis Scripts (NEW - 2025-12-26)
+
+  scripts/
+  ├── analyze_all_datasets.py   # Comprehensive multi-dataset analysis
+  ├── clinical_applications.py  # Clinical decision support generation
+  ├── research_discoveries.py   # Research findings pipeline
+  ├── train_codon_vae_hiv.py    # HIV-specific codon VAE training
+  └── train/train.py            # Main training entry point
 
   Primary Model: 3-Adic Codon Encoder (V5.11.3)
 
@@ -49,3 +62,25 @@
   - codon_to_onehot(), poincare_distance(), encode_sequence_hyperbolic()
   - 21 clusters (20 amino acids + stop codon)
   - Hyperbolic curvature c=1.0
+
+  Centralized Modules (NEW - 2025-12-26)
+
+  src/biology/                    # Single Source of Truth for biology constants
+  ├── amino_acids.py              # AMINO_ACID_PROPERTIES, hydrophobicity, charge
+  └── codons.py                   # GENETIC_CODE, CODON_TO_INDEX, conversions
+
+  src/analysis/immunology/        # Shared immunology utilities
+  ├── epitope_encoding.py         # encode_amino_acid_sequence()
+  ├── genetic_risk.py             # compute_hla_genetic_risk(), HLARiskProfile
+  ├── padic_utils.py              # compute_padic_valuation(), compute_goldilocks_score()
+  └── types.py                    # EpitopeAnalysisResult, HLAAlleleRisk
+
+  Results Directories (NEW - 2025-12-26)
+
+  results/
+  ├── clinical_applications/      # Clinical decision support reports
+  │   ├── CLINICAL_REPORT.md      # Human-readable clinical summary
+  │   └── clinical_decision_support.json  # Machine-readable for integration
+  └── research_discoveries/       # Research findings
+      ├── RESEARCH_FINDINGS.md    # Key discoveries summary
+      └── research_discoveries_report.json  # Full analysis results

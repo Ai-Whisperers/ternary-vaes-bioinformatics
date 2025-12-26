@@ -36,80 +36,15 @@ import torch
 import torch.nn as nn
 
 # =============================================================================
-# Genetic Code Tables
+# Genetic Code Tables (imported from centralized biology module)
 # =============================================================================
 
-# Standard genetic code: codon -> amino acid (single letter)
-GENETIC_CODE = {
-    "TTT": "F",
-    "TTC": "F",
-    "TTA": "L",
-    "TTG": "L",
-    "TCT": "S",
-    "TCC": "S",
-    "TCA": "S",
-    "TCG": "S",
-    "TAT": "Y",
-    "TAC": "Y",
-    "TAA": "*",
-    "TAG": "*",
-    "TGT": "C",
-    "TGC": "C",
-    "TGA": "*",
-    "TGG": "W",
-    "CTT": "L",
-    "CTC": "L",
-    "CTA": "L",
-    "CTG": "L",
-    "CCT": "P",
-    "CCC": "P",
-    "CCA": "P",
-    "CCG": "P",
-    "CAT": "H",
-    "CAC": "H",
-    "CAA": "Q",
-    "CAG": "Q",
-    "CGT": "R",
-    "CGC": "R",
-    "CGA": "R",
-    "CGG": "R",
-    "ATT": "I",
-    "ATC": "I",
-    "ATA": "I",
-    "ATG": "M",
-    "ACT": "T",
-    "ACC": "T",
-    "ACA": "T",
-    "ACG": "T",
-    "AAT": "N",
-    "AAC": "N",
-    "AAA": "K",
-    "AAG": "K",
-    "AGT": "S",
-    "AGC": "S",
-    "AGA": "R",
-    "AGG": "R",
-    "GTT": "V",
-    "GTC": "V",
-    "GTA": "V",
-    "GTG": "V",
-    "GCT": "A",
-    "GCC": "A",
-    "GCA": "A",
-    "GCG": "A",
-    "GAT": "D",
-    "GAC": "D",
-    "GAA": "E",
-    "GAG": "E",
-    "GGT": "G",
-    "GGC": "G",
-    "GGA": "G",
-    "GGG": "G",
-}
-
-# Base to index mapping (for p-adic computation)
-BASE_TO_IDX = {"T": 0, "C": 1, "A": 2, "G": 3}
-IDX_TO_BASE = {0: "T", 1: "C", 2: "A", 3: "G"}
+from src.biology.codons import (
+    GENETIC_CODE,
+    BASE_TO_IDX,
+    IDX_TO_BASE,
+    codon_index_to_triplet as _codon_index_to_triplet,
+)
 
 # Amino acid properties (normalized to [-1, 1])
 AA_PROPERTIES = {

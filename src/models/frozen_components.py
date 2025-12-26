@@ -84,6 +84,10 @@ class FrozenEncoder(nn.Module):
 
         Returns:
             FrozenEncoder with loaded weights
+
+        Security Note:
+            weights_only=False is required for full checkpoint loading.
+            Only load checkpoints from trusted sources.
         """
         checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
         model_state = checkpoint["model"]
@@ -170,6 +174,10 @@ class FrozenDecoder(nn.Module):
 
         Returns:
             FrozenDecoder with loaded weights
+
+        Security Note:
+            weights_only=False is required for full checkpoint loading.
+            Only load checkpoints from trusted sources.
         """
         checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
         model_state = checkpoint["model"]

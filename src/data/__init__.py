@@ -21,6 +21,7 @@ from .generation import (count_ternary_operations,
 from .gpu_resident import (GPUBatchIterator, GPUResidentTernaryDataset,
                            create_gpu_resident_loaders)
 from .loaders import create_ternary_data_loaders, get_data_loader_info
+from .stratified import create_stratified_batches, get_valuation_distribution
 
 __all__ = [
     # Generation
@@ -36,4 +37,7 @@ __all__ = [
     "GPUResidentTernaryDataset",
     "GPUBatchIterator",
     "create_gpu_resident_loaders",
+    # Stratified sampling
+    "create_stratified_batches",
+    "get_valuation_distribution",
 ]

@@ -2,6 +2,8 @@
 
 This document provides a high-level overview of the Ternary VAE codebase architecture.
 
+**Last Updated**: 2025-12-26
+
 ---
 
 ## Directory Structure
@@ -10,16 +12,42 @@ This document provides a high-level overview of the Ternary VAE codebase archite
 ternary-vaes-bioinformatics/
 ├── src/                          # Core library
 │   ├── models/                   # VAE architectures
-│   │   ├── ternary_vae_v5_6.py  # Current production model
-│   │   └── ternary_vae.py       # Base model
+│   │   ├── ternary_vae.py       # Current production model (V5.11)
+│   │   ├── swarm_vae.py         # Swarm intelligence VAE
+│   │   ├── homeostasis.py       # Homeostatic regulation
+│   │   └── curriculum.py        # Curriculum learning
 │   ├── losses/                   # Loss functions
 │   │   ├── dual_vae_loss.py     # Complete loss system
 │   │   ├── padic_losses.py      # 3-adic geometry losses
+│   │   ├── hyperbolic_prior.py  # Hyperbolic prior losses
+│   │   ├── hyperbolic_recon.py  # Hyperbolic reconstruction losses
 │   │   └── ...
 │   ├── training/                 # Training infrastructure
-│   │   ├── trainer.py           # Training loop orchestration
+│   │   ├── trainer.py           # TernaryVAETrainer (main loop)
+│   │   ├── hyperbolic_trainer.py # HyperbolicVAETrainer (geometry-aware)
+│   │   ├── base.py              # BaseTrainer with defensive patterns
+│   │   ├── data.py              # TernaryDataset, StratifiedBatchSampler
 │   │   ├── schedulers.py        # Parameter scheduling
-│   │   └── monitor.py           # Logging and metrics
+│   │   ├── monitor.py           # Logging and metrics
+│   │   └── environment.py       # Pre-training environment validation
+│   ├── biology/                  # Centralized biology constants (NEW)
+│   │   ├── amino_acids.py       # Amino acid properties and mappings
+│   │   └── codons.py            # Genetic code, codon indices
+│   ├── analysis/                 # Analysis modules
+│   │   ├── immunology/          # Shared immunology utilities (NEW)
+│   │   │   ├── epitope_encoding.py  # Epitope sequence encoding
+│   │   │   ├── genetic_risk.py      # HLA risk computation
+│   │   │   ├── padic_utils.py       # P-adic valuation utilities
+│   │   │   └── types.py             # EpitopeAnalysisResult, HLAAlleleRisk
+│   │   ├── crispr/              # CRISPR off-target analysis
+│   │   └── ...
+│   ├── optimizers/               # Custom optimizers
+│   │   ├── riemannian.py        # Riemannian optimizers (Poincaré, Lorentz)
+│   │   └── multi_objective.py   # Multi-objective optimization
+│   ├── encoders/                 # Specialized encoders
+│   │   ├── circadian_encoder.py # Circadian rhythm encoding
+│   │   ├── surface_encoder.py   # Protein surface encoding
+│   │   └── ...
 │   ├── data/                     # Data handling
 │   │   ├── generation.py        # Ternary operation generation
 │   │   └── dataset.py           # PyTorch datasets
@@ -27,13 +55,26 @@ ternary-vaes-bioinformatics/
 │   └── utils/                    # Metrics and utilities
 ├── scripts/                      # Entry points
 │   ├── train/                    # Training scripts
+│   │   └── train.py             # Main training entry point
+│   ├── train_codon_vae_hiv.py   # HIV-specific codon VAE training
+│   ├── analyze_all_datasets.py  # Comprehensive dataset analysis
+│   ├── clinical_applications.py # Clinical decision support
+│   ├── research_discoveries.py  # Research findings pipeline
 │   ├── benchmark/                # Benchmarking
 │   └── visualization/            # Visualization tools
 ├── configs/                      # YAML configurations
 ├── tests/                        # Test suite
+│   └── unit/
+│       ├── training/            # Training tests (hyperbolic, monitor)
+│       └── visualization/       # Visualization tests
 ├── research/                     # Research experiments
-│   └── alphafold3/              # AlphaFold3 integration
-├── results/                      # Training outputs
+│   ├── alphafold3/              # AlphaFold3 integration
+│   └── bioinformatics/          # Bioinformatics research
+│       └── codon_encoder_research/
+│           └── hiv/             # HIV analysis (200K+ sequences)
+├── results/                      # Analysis outputs
+│   ├── clinical_applications/   # Clinical decision support reports
+│   └── research_discoveries/    # Research findings reports
 └── DOCUMENTATION/                # Comprehensive docs
 ```
 
@@ -122,14 +163,72 @@ Training proceeds in phases:
 
 ---
 
+## New Modules (2025-12-26)
+
+### Biology Module (`src/biology/`)
+Centralized biology constants - Single Source of Truth:
+```python
+from src.biology import (
+    GENETIC_CODE,           # Codon → Amino acid mapping
+    AMINO_ACID_PROPERTIES,  # Hydrophobicity, charge, volume
+    codon_to_amino_acid,    # Conversion utilities
+    CODON_TO_INDEX,         # 64 codons indexed
+)
+```
+
+### Immunology Analysis (`src/analysis/immunology/`)
+Shared immunology utilities for disease modules:
+```python
+from src.analysis.immunology import (
+    encode_amino_acid_sequence,  # Epitope encoding
+    compute_hla_genetic_risk,    # HLA risk scoring
+    compute_padic_valuation,     # P-adic geometry
+    compute_goldilocks_score,    # Optimal stability zone
+    EpitopeAnalysisResult,       # Result dataclass
+)
+```
+
+### Training Data Infrastructure (`src/training/data.py`)
+Production-ready data handling:
+- `TernaryDataset`: PyTorch dataset with stratified sampling
+- `StratifiedBatchSampler`: Ensures balanced batches
+- `create_stratified_batches`: Batch generation utility
+
+### Hyperbolic VAE Trainer (`src/training/hyperbolic_trainer.py`)
+Geometry-aware training loop:
+- Riemannian gradient updates on Poincaré ball
+- Hyperbolic distance metrics
+- Curvature-adaptive learning rates
+
+---
+
 ## Bioinformatics Applications
 
 ### Codon Encoder Research
-Located in `DOCUMENTATION/.../bioinformatics/codon_encoder_research/`:
-- **HIV**: Glycan shield analysis, drug resistance
+Located in `research/bioinformatics/codon_encoder_research/`:
+- **HIV**: 200,000+ sequences analyzed
+  - Glycan shield analysis
+  - Drug resistance correlation (r = 0.41)
+  - 328 vaccine targets identified
+  - 85% tropism prediction accuracy
 - **SARS-CoV-2**: Spike protein analysis
 - **Rheumatoid Arthritis**: HLA-autoantigen relationships
 - **Neurodegeneration**: Tau phosphorylation
+
+### Clinical Applications (`results/clinical_applications/`)
+Generated 2025-12-26:
+- **Top Vaccine Candidate**: TPQDLNTML (Gag, priority score: 0.970)
+- **MDR Screening**: 2489 high-risk sequences (34.8%)
+- **Drug Targets**: 247 Tat-interacting druggable proteins
+- Clinical decision support JSON for integration
+
+### Research Discoveries (`results/research_discoveries/`)
+Key findings from comprehensive analysis:
+- 387 vaccine targets ranked by evolutionary stability
+- P-adic vs Hamming correlation: r = 0.8339
+- 1032 MDR-enriched mutations identified
+- 19 HIV proteins targeting 3+ druggable human proteins
+- Top host-directed target: Tat (449 druggable targets)
 
 ### AlphaFold3 Integration
 Located in `research/alphafold3/`:

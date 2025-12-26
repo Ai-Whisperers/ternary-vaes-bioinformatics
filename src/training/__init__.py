@@ -20,6 +20,7 @@ This module contains components for managing the training process:
 from .base import STATENET_KEYS, BaseTrainer
 from .config_schema import (ConfigValidationError, ModelConfig, TrainingConfig,
                             config_to_dict, validate_config)
+from .curriculum import AdaptiveCurriculum, CurriculumState
 from .data import (StratifiedBatchSampler, TernaryDataset,
                    create_stratified_batches)
 from .environment import (EnvironmentStatus, require_valid_environment,
@@ -60,4 +61,7 @@ __all__ = [
     "EnvironmentStatus",
     "validate_environment",
     "require_valid_environment",
+    # Curriculum learning
+    "AdaptiveCurriculum",
+    "CurriculumState",
 ]

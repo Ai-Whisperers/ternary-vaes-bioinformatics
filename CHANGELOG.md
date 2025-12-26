@@ -6,7 +6,37 @@ All notable changes to the Ternary VAE Bioinformatics project.
 
 ## [Unreleased]
 
-### Added
+### Added (2025-12-26)
+- **Clinical Decision Support System** (`scripts/clinical_applications.py`)
+  - Top vaccine candidate identification (TPQDLNTML, priority: 0.970)
+  - MDR risk screening (2,489 high-risk sequences, 34.8%)
+  - Host-directed therapy targets (247 Tat-interacting proteins)
+- **Research Discoveries Pipeline** (`scripts/research_discoveries.py`)
+  - 387 vaccine targets ranked by evolutionary stability
+  - P-adic geometry validation (Spearman r = 0.8339 vs Hamming)
+  - 1,032 MDR-enriched mutations identified
+  - 19 HIV proteins targeting druggable human proteins
+- **Centralized Biology Module** (`src/biology/`)
+  - Single Source of Truth for genetic code, amino acid properties
+  - `amino_acids.py`: AMINO_ACID_PROPERTIES, hydrophobicity, charge
+  - `codons.py`: GENETIC_CODE, CODON_TO_INDEX, conversion utilities
+- **Immunology Analysis Module** (`src/analysis/immunology/`)
+  - Epitope encoding and sequence analysis
+  - HLA genetic risk computation
+  - P-adic valuation and Goldilocks zone detection
+  - Shared dataclasses: EpitopeAnalysisResult, HLAAlleleRisk
+- **Training Infrastructure**
+  - `src/training/data.py`: TernaryDataset, StratifiedBatchSampler
+  - HyperbolicVAETrainer with Riemannian gradient updates
+  - Environment validation and pre-training checks
+- **Comprehensive Dataset Analysis** (`scripts/analyze_all_datasets.py`)
+- **HIV Codon VAE Training** (`scripts/train_codon_vae_hiv.py`)
+- **Test Coverage**
+  - `tests/unit/training/test_hyperbolic_trainer.py`
+  - `tests/unit/training/test_monitor.py`
+  - `tests/unit/visualization/test_visualization_core.py`
+
+### Added (Previous)
 - Hierarchical PTM mapping with 14-level ultrametric tree validation
 - Rigorous disruption prediction framework
 - Triple PTM combinatorics analysis
