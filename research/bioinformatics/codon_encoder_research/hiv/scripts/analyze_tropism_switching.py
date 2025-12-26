@@ -151,9 +151,24 @@ def prepare_v3_dataset(v3_df: pd.DataFrame) -> pd.DataFrame:
     # Clean sequences
     v3_df = v3_df[v3_df["v3_sequence"].str.len() >= 20].copy()
 
-    # Standardize tropism labels
-    v3_df["is_x4"] = v3_df["tropism_label"].str.contains("X4|CXCR4")
-    v3_df["is_r5"] = v3_df["tropism_label"].str.contains("R5|CCR5")
+    # Standardize tropism labels - handle both boolean columns and label columns
+    if "CXCR4" in v3_df.columns and "CCR5" in v3_df.columns:
+        # Boolean columns directly
+        v3_df["is_x4"] = v3_df["CXCR4"].astype(bool)
+        v3_df["is_r5"] = v3_df["CCR5"].astype(bool)
+    elif "tropism_label" in v3_df.columns:
+        v3_df["is_x4"] = v3_df["tropism_label"].str.contains("X4|CXCR4", case=False, na=False)
+        v3_df["is_r5"] = v3_df["tropism_label"].str.contains("R5|CCR5", case=False, na=False)
+    else:
+        # Try to find tropism column
+        for col in ["tropism", "Tropism", "label", "Label", "target"]:
+            if col in v3_df.columns:
+                v3_df["is_x4"] = v3_df[col].astype(str).str.upper().str.contains("X4|CXCR4")
+                v3_df["is_r5"] = v3_df[col].astype(str).str.upper().str.contains("R5|CCR5")
+                break
+        else:
+            print("  Could not identify tropism column")
+            return pd.DataFrame()
 
     # Calculate sequence properties
     v3_df["seq_length"] = v3_df["v3_sequence"].str.len()
