@@ -8,6 +8,24 @@
 
 ---
 
+## Quick Reference: Novel vs. Confirmed Findings
+
+| Finding | Status | Significance |
+|---------|--------|--------------|
+| P-adic hyperbolic codon geometry | **NOVEL METHODOLOGY** | First application to HIV |
+| Distance-resistance correlation (r=0.41) | **NOVEL DISCOVERY** | New predictive relationship |
+| Position 22 as top tropism determinant | **NOVEL DISCOVERY** | Exceeds classic 11/25 rule |
+| Breadth-centrality correlation for bnAbs | **NOVEL DISCOVERY** | New design principle |
+| 328 safe vaccine targets identified | **NOVEL DISCOVERY** | First systematic ranking |
+| Trade-off scoring system | **NOVEL METHODOLOGY** | New clinical metric |
+| B57/B27 protective HLA geometry | CONFIRMATION | Validates prior research |
+| 11/25 tropism rule | CONFIRMATION | Independent recovery |
+| bnAb potency profiles | CONFIRMATION | Matches literature |
+
+*See NOVELTY_ASSESSMENT.md for complete classification and citations*
+
+---
+
 ## Abstract
 
 This comprehensive analysis applies novel p-adic hyperbolic geometry to characterize HIV-1 evolution across multiple selective pressures. By encoding codon substitutions into 16-dimensional Poincare ball embeddings using 3-adic valuations, we identify geometric signatures underlying drug resistance, immune escape, antibody neutralization, and coreceptor tropism. Integration of 200,000+ records from Stanford HIVDB, LANL immunology databases, and CATNAP neutralization assays reveals previously uncharacterized trade-offs between selective pressures and identifies 328 high-confidence vaccine targets.
