@@ -3,28 +3,41 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Sideways VAE: Meta-Learning for Checkpoint Exploration.
+"""Epsilon-VAE: Meta-Learning Explorer for Checkpoint Space.
 
-This module implements a VAE that learns over model checkpoints,
-enabling:
-- Metric prediction from checkpoint weights
+Named 'Epsilon' from 'E' for 'Explorer' - this VAE explores the manifold
+of model checkpoints to discover optimal training configurations.
+
+Capabilities:
+- Metric prediction from checkpoint weights (without running the model)
 - Checkpoint interpolation in latent space
-- Pareto frontier discovery for multi-objective optimization
-- Guided initialization for training runs
+- Pareto frontier discovery for coverage-structure tradeoffs
+- Guided initialization for future training runs
+- Future-proof: trained on past checkpoints, generalizes to unseen ones
+
+Validation Strategy:
+    Train on historical checkpoints, validate on recent/unseen ones.
+    This ensures the model generalizes to future training runs.
 
 Usage:
     # Collect checkpoint data
     dataset = collect_checkpoint_dataset("sandbox-training/checkpoints")
 
-    # Train Sideways VAE
-    sideways_vae = SidewaysVAE(weight_dim=..., latent_dim=32)
-    train_sideways_vae(sideways_vae, dataset)
+    # Split temporally: train on older, validate on newer
+    train_data, val_data = split_by_date(dataset, cutoff="2025-12-26")
+
+    # Train Epsilon-VAE
+    epsilon_vae = EpsilonVAE(latent_dim=32)
+    train_epsilon_vae(epsilon_vae, train_data)
+
+    # Validate on unseen checkpoints
+    validate_epsilon_vae(epsilon_vae, val_data)
 
     # Find Pareto frontier
-    pareto_z, pareto_metrics = find_pareto_frontier(sideways_vae)
+    pareto_z, pareto_metrics = find_pareto_frontier(epsilon_vae)
 
-    # Interpolate between checkpoints
-    interpolated = interpolate_checkpoints(sideways_vae, ckpt_a, ckpt_b)
+    # Interpolate between frozen and unfrozen checkpoints
+    interpolated = interpolate_checkpoints(epsilon_vae, ckpt_frozen, ckpt_unfrozen)
 """
 
 from pathlib import Path
@@ -186,9 +199,9 @@ class CheckpointDecoder(nn.Module):
         return blocks
 
 
-class SidewaysVAE(nn.Module):
+class EpsilonVAE(nn.Module):
     """
-    Sideways VAE for checkpoint exploration.
+    Epsilon-VAE for checkpoint exploration.
 
     Learns the manifold of model checkpoints and enables:
     - Metric prediction without running the model
@@ -239,7 +252,7 @@ class SidewaysVAE(nn.Module):
         return mu, logvar, metrics_pred, weights_recon
 
 
-def sideways_vae_loss(
+def epsilon_vae_loss(
     metrics_pred: Tensor,
     metrics_true: Tensor,
     mu: Tensor,
@@ -250,7 +263,7 @@ def sideways_vae_loss(
     recon_weight: float = 0.1,
 ) -> dict[str, Tensor]:
     """
-    Compute Sideways VAE loss.
+    Compute Epsilon-VAE loss.
 
     Args:
         metrics_pred: Predicted [coverage, dist_corr, rad_hier]
@@ -394,7 +407,7 @@ def is_pareto_efficient(costs: Tensor) -> Tensor:
 
 
 def find_pareto_frontier(
-    sideways_vae: SidewaysVAE, n_samples: int = 1000, device: str = "cpu"
+    epsilon_vae: EpsilonVAE, n_samples: int = 1000, device: str = "cpu"
 ) -> tuple[Tensor, Tensor]:
     """
     Sample latent space to find Pareto-optimal configurations.
@@ -402,7 +415,7 @@ def find_pareto_frontier(
     Optimizes for: high coverage, high dist_corr (both maximized)
 
     Args:
-        sideways_vae: Trained Sideways VAE
+        epsilon_vae: Trained Epsilon-VAE
         n_samples: Number of latent samples
         device: Device to run on
 
@@ -410,12 +423,12 @@ def find_pareto_frontier(
         pareto_z: Latent vectors on Pareto frontier
         pareto_metrics: Corresponding metrics
     """
-    sideways_vae.eval()
-    sideways_vae.to(device)
+    epsilon_vae.eval()
+    epsilon_vae.to(device)
 
     with torch.no_grad():
-        z_samples = torch.randn(n_samples, sideways_vae.latent_dim, device=device)
-        metrics = sideways_vae.predict_metrics(z_samples)
+        z_samples = torch.randn(n_samples, epsilon_vae.latent_dim, device=device)
+        metrics = epsilon_vae.predict_metrics(z_samples)
 
         # Convert to costs (negate to minimize)
         # We want to maximize coverage and dist_corr
@@ -427,7 +440,7 @@ def find_pareto_frontier(
 
 
 def interpolate_checkpoints(
-    sideways_vae: SidewaysVAE,
+    epsilon_vae: EpsilonVAE,
     weights_a: list[Tensor],
     weights_b: list[Tensor],
     n_steps: int = 10,
@@ -436,24 +449,24 @@ def interpolate_checkpoints(
     Interpolate between two checkpoints in latent space.
 
     Args:
-        sideways_vae: Trained Sideways VAE
+        epsilon_vae: Trained Epsilon-VAE
         weights_a, weights_b: Weight blocks from two checkpoints
         n_steps: Number of interpolation steps
 
     Returns:
         List of {alpha, z, predicted_metrics, weights} dicts
     """
-    sideways_vae.eval()
+    epsilon_vae.eval()
 
     with torch.no_grad():
-        mu_a, _ = sideways_vae.encode(weights_a)
-        mu_b, _ = sideways_vae.encode(weights_b)
+        mu_a, _ = epsilon_vae.encode(weights_a)
+        mu_b, _ = epsilon_vae.encode(weights_b)
 
         interpolated = []
         for alpha in torch.linspace(0, 1, n_steps):
             z_interp = (1 - alpha) * mu_a + alpha * mu_b
-            metrics = sideways_vae.predict_metrics(z_interp)
-            weights = sideways_vae.decode(z_interp)
+            metrics = epsilon_vae.predict_metrics(z_interp)
+            weights = epsilon_vae.decode(z_interp)
 
             interpolated.append(
                 {

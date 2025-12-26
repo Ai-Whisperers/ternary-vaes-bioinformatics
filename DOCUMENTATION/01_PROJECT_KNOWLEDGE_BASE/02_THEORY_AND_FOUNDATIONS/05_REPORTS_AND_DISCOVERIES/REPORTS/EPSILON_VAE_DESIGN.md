@@ -1,4 +1,4 @@
-# Sideways VAE: Meta-Learning for Checkpoint Exploration
+# Epsilon-VAE: Meta-Learning for Checkpoint Exploration
 
 **Date:** December 26, 2025
 **Status:** Design Document
@@ -8,7 +8,7 @@
 
 ## Executive Summary
 
-The **Sideways VAE** is a meta-learning architecture that explores the space of model checkpoints to discover optimal training trajectories. Instead of training forward through epochs, it learns "sideways" across checkpoint variations to identify:
+The **Epsilon-VAE** is a meta-learning architecture that explores the space of model checkpoints to discover optimal training trajectories. Instead of training forward through epochs, it learns "sideways" across checkpoint variations to identify:
 
 1. Which weight configurations preserve coverage while improving structure
 2. Optimal interpolation paths between checkpoints
@@ -37,7 +37,7 @@ The space of model weights forms a manifold where:
 - Structure-optimal regions exist
 - The intersection (Pareto frontier) is navigable with the right guidance
 
-A Sideways VAE can learn this manifold and guide training toward the Pareto frontier.
+A Epsilon-VAE can learn this manifold and guide training toward the Pareto frontier.
 
 ---
 
@@ -161,7 +161,7 @@ class CheckpointDecoder(nn.Module):
 
 ---
 
-## Training the Sideways VAE
+## Training the Epsilon-VAE
 
 ### Data Collection
 
@@ -197,7 +197,7 @@ def collect_checkpoint_dataset():
 ### Loss Function
 
 ```python
-def sideways_vae_loss(
+def epsilon_vae_loss(
     weights_pred: Tensor,
     weights_true: Tensor,
     metrics_pred: Tensor,
@@ -207,7 +207,7 @@ def sideways_vae_loss(
     beta: float = 0.1
 ) -> Tensor:
     """
-    Combined loss for Sideways VAE.
+    Combined loss for Epsilon-VAE.
 
     Components:
     1. Weight reconstruction (optional, can be sparse)
@@ -235,12 +235,12 @@ def sideways_vae_loss(
 Find checkpoints that optimize the coverage-structure tradeoff:
 
 ```python
-def find_pareto_frontier(sideways_vae, n_samples=1000):
+def find_pareto_frontier(epsilon_vae, n_samples=1000):
     """
     Sample latent space to find Pareto-optimal configurations.
     """
     z_samples = torch.randn(n_samples, latent_dim)
-    metrics = sideways_vae.predict_metrics(z_samples)
+    metrics = epsilon_vae.predict_metrics(z_samples)
 
     # Find Pareto frontier
     pareto_mask = is_pareto_efficient(metrics)  # [coverage, dist_corr]
@@ -254,7 +254,7 @@ Create smooth paths between checkpoints:
 
 ```python
 def interpolate_checkpoints(
-    sideways_vae,
+    epsilon_vae,
     ckpt_frozen: dict,  # 100% coverage, 0.58 dist_corr
     ckpt_unfrozen: dict,  # 60% coverage, 0.93 dist_corr
     n_steps: int = 10
@@ -264,14 +264,14 @@ def interpolate_checkpoints(
 
     May discover intermediate configurations with better tradeoffs.
     """
-    z_frozen = sideways_vae.encode(ckpt_frozen)
-    z_unfrozen = sideways_vae.encode(ckpt_unfrozen)
+    z_frozen = epsilon_vae.encode(ckpt_frozen)
+    z_unfrozen = epsilon_vae.encode(ckpt_unfrozen)
 
     interpolated = []
     for alpha in torch.linspace(0, 1, n_steps):
         z_interp = (1 - alpha) * z_frozen + alpha * z_unfrozen
-        weights = sideways_vae.decode(z_interp)
-        metrics = sideways_vae.predict_metrics(z_interp)
+        weights = epsilon_vae.decode(z_interp)
+        metrics = epsilon_vae.predict_metrics(z_interp)
 
         interpolated.append({
             "weights": weights,
@@ -288,7 +288,7 @@ Find optimal starting points for new training runs:
 
 ```python
 def find_optimal_initialization(
-    sideways_vae,
+    epsilon_vae,
     target_coverage: float = 0.95,
     target_dist_corr: float = 0.85
 ) -> dict:
@@ -300,7 +300,7 @@ def find_optimal_initialization(
     optimizer = torch.optim.Adam([z], lr=0.01)
 
     for _ in range(1000):
-        metrics = sideways_vae.predict_metrics(z)
+        metrics = epsilon_vae.predict_metrics(z)
         coverage, dist_corr, _ = metrics[0]
 
         # Loss: distance from targets
@@ -311,7 +311,7 @@ def find_optimal_initialization(
         optimizer.step()
 
     # Decode to weights
-    return sideways_vae.decode(z.detach())
+    return epsilon_vae.decode(z.detach())
 ```
 
 ### 4. Training Trajectory Prediction
@@ -320,7 +320,7 @@ Predict where training will go before running:
 
 ```python
 def predict_training_trajectory(
-    sideways_vae,
+    epsilon_vae,
     initial_ckpt: dict,
     hyperparams: dict,
     n_epochs: int = 100
@@ -330,13 +330,13 @@ def predict_training_trajectory(
 
     Requires training with (ckpt, hyperparams, next_ckpt) tuples.
     """
-    z_current = sideways_vae.encode(initial_ckpt)
-    trajectory = [sideways_vae.predict_metrics(z_current)]
+    z_current = epsilon_vae.encode(initial_ckpt)
+    trajectory = [epsilon_vae.predict_metrics(z_current)]
 
     for epoch in range(n_epochs):
         # Predict next latent position given hyperparams
-        z_next = sideways_vae.predict_next_z(z_current, hyperparams, epoch)
-        trajectory.append(sideways_vae.predict_metrics(z_next))
+        z_next = epsilon_vae.predict_next_z(z_current, hyperparams, epoch)
+        trajectory.append(epsilon_vae.predict_metrics(z_next))
         z_current = z_next
 
     return trajectory
@@ -352,7 +352,7 @@ def predict_training_trajectory(
 2. Normalize and compress weight representations
 3. Create (weights, metrics) dataset
 
-### Phase 2: Basic Sideways VAE (2-3 days)
+### Phase 2: Basic Epsilon-VAE (2-3 days)
 
 1. Implement CheckpointEncoder
 2. Implement MetricPredictor
@@ -379,7 +379,7 @@ def predict_training_trajectory(
 
 ### 1. Weight-Space Meta-Learning
 
-Unlike hyperparameter tuning (which operates on scalars), Sideways VAE learns over the full weight manifold.
+Unlike hyperparameter tuning (which operates on scalars), Epsilon-VAE learns over the full weight manifold.
 
 ### 2. Pareto-Aware Exploration
 
@@ -410,7 +410,7 @@ Simulates training outcomes before expensive GPU runs.
 
 - ~100 checkpoints for initial training
 - GPU for encoder/decoder training
-- ~1 day to train basic Sideways VAE
+- ~1 day to train basic Epsilon-VAE
 - Integration with existing training pipeline
 
 ---
