@@ -14,9 +14,9 @@ from src.optimization.citrullination_optimizer import (
     CodonContextOptimizer,
     OptimizationResult,
     PAdicBoundaryAnalyzer,
-    codon_to_index,
-    padic_distance,
+    compute_padic_distance,
 )
+from src.biology.codons import codon_to_index
 
 
 class TestCodonToIndex:
@@ -40,29 +40,29 @@ class TestCodonToIndex:
 
 
 class TestPAdicDistance:
-    """Tests for padic_distance function."""
+    """Tests for compute_padic_distance function."""
 
     def test_same_index(self):
         """Test distance between same indices is 0."""
-        assert padic_distance(0, 0) == 0.0
-        assert padic_distance(27, 27) == 0.0
+        assert compute_padic_distance(0, 0) == 0.0
+        assert compute_padic_distance(27, 27) == 0.0
 
     def test_different_indices(self):
         """Test distance between different indices."""
         # Distance should be positive for different indices
-        dist = padic_distance(0, 1)
+        dist = compute_padic_distance(0, 1)
         assert dist > 0.0
 
     def test_p_divisibility(self):
         """Test p-adic distance reflects divisibility by p."""
         # Difference of 3 (divisible by 3 once)
-        dist_3 = padic_distance(0, 3, p=3)
+        dist_3 = compute_padic_distance(0, 3, p=3)
 
         # Difference of 9 (divisible by 3 twice)
-        dist_9 = padic_distance(0, 9, p=3)
+        dist_9 = compute_padic_distance(0, 9, p=3)
 
         # Difference of 1 (not divisible by 3)
-        dist_1 = padic_distance(0, 1, p=3)
+        dist_1 = compute_padic_distance(0, 1, p=3)
 
         # 9 should have smaller distance than 3 (higher valuation)
         assert dist_9 < dist_3
@@ -100,8 +100,8 @@ class TestOptimizationResult:
             original_codons=["AUG", "CGU"],
             optimized_codons=["AUG", "AGA"],
             changes_made=[(1, "CGU", "AGA")],
-            original_padic_distance=0.3,
-            optimized_padic_distance=0.5,
+            original_compute_padic_distance=0.3,
+            optimized_compute_padic_distance=0.5,
             improvement_score=0.2,
             immunogenicity_reduction=0.15,
         )

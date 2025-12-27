@@ -63,12 +63,12 @@ def encode_sequence_hyperbolic(sequence: str) -> np.ndarray:
 
     Returns array of p-adic-derived radial positions for each residue.
     """
-    from src.biology.codons import AMINO_ACID_TO_CODON, codon_to_index
+    from src.biology.codons import AMINO_ACID_TO_CODONS, codon_to_index
 
     features = []
 
     for aa in sequence:
-        codons = AMINO_ACID_TO_CODON.get(aa, [])
+        codons = AMINO_ACID_TO_CODONS.get(aa, [])
         if codons:
             try:
                 idx = codon_to_index(codons[0])

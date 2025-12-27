@@ -61,7 +61,7 @@ def load_datasets_for_vaccine_analysis() -> dict:
 
 def compute_epitope_conservation(ctl_df: pd.DataFrame) -> pd.DataFrame:
     """Compute conservation score for each epitope."""
-    from src.biology.codons import AMINO_ACID_TO_CODON, codon_to_index
+    from src.biology.codons import AMINO_ACID_TO_CODONS, codon_to_index
 
     results = []
 
@@ -73,7 +73,7 @@ def compute_epitope_conservation(ctl_df: pd.DataFrame) -> pd.DataFrame:
         # Compute sequence-based conservation
         radial_positions = []
         for aa in epitope:
-            codons = AMINO_ACID_TO_CODON.get(aa, [])
+            codons = AMINO_ACID_TO_CODONS.get(aa, [])
             if codons:
                 try:
                     idx = codon_to_index(codons[0])
