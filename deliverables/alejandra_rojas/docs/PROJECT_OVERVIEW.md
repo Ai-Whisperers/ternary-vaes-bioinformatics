@@ -1,8 +1,8 @@
-# Project Overview: Ternary VAE Bioinformatics
+# Project Overview: Ternary VAE for Arbovirus Surveillance
 
 ## The Big Picture
 
-This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your work on arbovirus surveillance is one of three partnership projects demonstrating these techniques.
+This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your deliverable focuses on arbovirus surveillance and trajectory forecasting using these techniques.
 
 ---
 
@@ -17,16 +17,6 @@ This project applies **novel mathematical frameworks** (p-adic numbers and hyper
 - **P-adic embeddings**: Capture codon structure hierarchically
 - **Hyperbolic trajectories**: Track evolution in curved space
 - **Velocity vectors**: Predict future positions
-
----
-
-## The Three Partnership Projects
-
-| Phase | Partner | Domain | Your Role |
-|-------|---------|--------|-----------|
-| 1 | Carlos Brizuela | Antimicrobial Peptides | Multi-objective optimization |
-| 2 | Dr. José Colbes | Protein Rotamers | Stability scoring |
-| **3** | **Alejandra Rojas (You)** | Arbovirus Surveillance | Trajectory forecasting |
 
 ---
 
@@ -100,9 +90,9 @@ Highest risk serotype: DENV-3
 
 | Rank | Position | Sequence | Stability | GC% | Tm |
 |------|----------|----------|-----------|-----|-----|
-| 1 | 7268 | GAAATGAGCAGCGGTGTCGC | 0.991 | 60% | 55.9°C |
-| 2 | 3600 | GAGTTGCGCGGTATTGGTGC | 0.989 | 60% | 55.9°C |
-| 3 | 1723 | CCCGGGAGGCAGACAATAGT | 0.987 | 60% | 55.9°C |
+| 1 | 7268 | GAAATGAGCAGCGGTGTCGC | 0.991 | 60% | 55.9C |
+| 2 | 3600 | GAGTTGCGCGGTATTGGTGC | 0.989 | 60% | 55.9C |
+| 3 | 1723 | CCCGGGAGGCAGACAATAGT | 0.987 | 60% | 55.9C |
 
 **How to interpret:**
 
@@ -111,7 +101,7 @@ Highest risk serotype: DENV-3
 | `stability_score` | Resistance to evolutionary change | Higher = better |
 | `conservation_score` | Fraction of sequences with exact match | Higher = better |
 | `gc_content` | GC percentage | 40-60% optimal |
-| `tm_estimate` | Melting temperature | 55-65°C optimal |
+| `tm_estimate` | Melting temperature | 55-65C optimal |
 | `variance_over_time` | Change across years | Lower = better |
 
 ---
@@ -122,12 +112,12 @@ Highest risk serotype: DENV-3
 
 ```
            DENV-2 (fast)
-              ↗
-     Origin ●─────→ DENV-3 (fastest)
-              ↘
+              /
+     Origin *------> DENV-3 (fastest)
+              \
            DENV-1 (slow)
 
-DENV-4 (stationary) ●
+DENV-4 (stationary) *
 ```
 
 - **Origin**: Average of all serotypes (reference point)
@@ -155,9 +145,9 @@ Each genome is represented by 6 features:
 ### The Problem with Traditional Primers
 
 ```
-2015: Primer matches all sequences ✓
-2020: Primer matches 95% ⚠️
-2023: Primer fails on 30% ✗ (false negatives!)
+2015: Primer matches all sequences (OK)
+2020: Primer matches 95% (Warning)
+2023: Primer fails on 30% (false negatives!)
 ```
 
 ### Our Solution
@@ -167,19 +157,19 @@ Track **embedding variance** over time:
 ```
 Position X:
   2015 embedding: [0.5, 0.3, ...]
-  2018 embedding: [0.5, 0.3, ...]  ← Low variance = stable
+  2018 embedding: [0.5, 0.3, ...]  <- Low variance = stable
   2023 embedding: [0.5, 0.3, ...]
 
 Position Y:
   2015 embedding: [0.5, 0.3, ...]
-  2018 embedding: [0.8, 0.1, ...]  ← High variance = unstable
+  2018 embedding: [0.8, 0.1, ...]  <- High variance = unstable
   2023 embedding: [0.2, 0.9, ...]
 ```
 
 **Stability Score** = 1 / (1 + variance)
 
-- High stability → region resists change → good primer site
-- Low stability → region evolves → avoid for primers
+- High stability = region resists change = good primer site
+- Low stability = region evolves = avoid for primers
 
 ---
 
@@ -188,34 +178,34 @@ Position Y:
 ### Proposed Workflow
 
 ```
-┌─────────────────────────────────────┐
-│         Monthly Update              │
-├─────────────────────────────────────┤
-│ 1. Download new NCBI sequences      │
-│ 2. Run trajectory analysis          │
-│ 3. Update primer stability scores   │
-│ 4. Generate risk assessment report  │
-└─────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│         Alert Triggers              │
-├─────────────────────────────────────┤
-│ • Serotype velocity > threshold     │
-│ • Risk score > 1.5                  │
-│ • Primer stability drops            │
-│ • New serotype trajectory detected  │
-└─────────────────────────────────────┘
-                 │
-                 ▼
-┌─────────────────────────────────────┐
-│         Public Health Action        │
-├─────────────────────────────────────┤
-│ • Update surveillance protocols     │
-│ • Validate/replace RT-PCR primers   │
-│ • Prepare for serotype shift        │
-│ • Communicate to health authorities │
-└─────────────────────────────────────┘
++-------------------------------------+
+|         Monthly Update              |
++-------------------------------------+
+| 1. Download new NCBI sequences      |
+| 2. Run trajectory analysis          |
+| 3. Update primer stability scores   |
+| 4. Generate risk assessment report  |
++-------------------------------------+
+                 |
+                 v
++-------------------------------------+
+|         Alert Triggers              |
++-------------------------------------+
+| * Serotype velocity > threshold     |
+| * Risk score > 1.5                  |
+| * Primer stability drops            |
+| * New serotype trajectory detected  |
++-------------------------------------+
+                 |
+                 v
++-------------------------------------+
+|         Public Health Action        |
++-------------------------------------+
+| * Update surveillance protocols     |
+| * Validate/replace RT-PCR primers   |
+| * Prepare for serotype shift        |
+| * Communicate to health authorities |
++-------------------------------------+
 ```
 
 ### Data Sources
@@ -269,5 +259,5 @@ Position Y:
 
 ---
 
-*This overview connects your work to the broader Ternary VAE project.*
-*Prepared for integration with IICS-UNA arbovirus surveillance.*
+*Prepared for Alejandra Rojas (IICS-UNA) - Ternary VAE Bioinformatics Partnership*
+*For integration with IICS-UNA arbovirus surveillance program*

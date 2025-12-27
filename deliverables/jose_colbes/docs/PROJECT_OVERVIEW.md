@@ -1,8 +1,8 @@
-# Project Overview: Ternary VAE Bioinformatics
+# Project Overview: Ternary VAE for Protein Rotamer Stability
 
 ## The Big Picture
 
-This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your work on protein rotamer stability is one of three partnership projects demonstrating these techniques.
+This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your deliverable focuses on protein rotamer stability scoring using these geometric techniques.
 
 ---
 
@@ -17,16 +17,6 @@ This project applies **novel mathematical frameworks** (p-adic numbers and hyper
 - **P-adic valuations**: Capture algebraic depth of angle encodings
 - **Hyperbolic distance**: Natural metric for conformational space
 - **Geometric scoring**: Complementary to statistical approaches
-
----
-
-## The Three Partnership Projects
-
-| Phase | Partner | Domain | Your Role |
-|-------|---------|--------|-----------|
-| 1 | Carlos Brizuela | Antimicrobial Peptides | Multi-objective optimization |
-| **2** | **Dr. José Colbes (You)** | Protein Rotamers | Stability scoring |
-| 3 | Alejandra Rojas | Arbovirus Surveillance | Trajectory forecasting |
 
 ---
 
@@ -80,7 +70,7 @@ Complete analysis of 500 demo residues.
 
 | Metric | Meaning | Interpretation |
 |--------|---------|----------------|
-| `hyperbolic_distance` | Distance in Poincaré ball model | Higher = more unusual conformation |
+| `hyperbolic_distance` | Distance in Poincare ball model | Higher = more unusual conformation |
 | `padic_valuation` | Divisibility by prime p=3 | Higher = "deeper" algebraic structure |
 | `euclidean_distance` | Standard distance to nearest rotamer | Traditional metric for comparison |
 | `hyp_eucl_correlation` | Correlation between metrics | Low = hyperbolic captures different info |
@@ -105,8 +95,8 @@ Each residue entry contains:
 ```
 
 **Interpretation:**
-- χ1 = -65.2° ≈ gauche- (m)
-- χ2 = 174.3° ≈ trans (t)
+- chi1 = -65.2 deg approx gauche- (m)
+- chi2 = 174.3 deg approx trans (t)
 - Nearest standard rotamer: "mt"
 - Flagged as rare: geometric analysis suggests instability
 
@@ -117,13 +107,13 @@ Each residue entry contains:
 ### E_geom Formula
 
 ```
-E_geom = α · d_hyp(χ) + β · v_p(χ) + γ · (1 - P_dunbrack)
+E_geom = a * d_hyp(chi) + b * v_p(chi) + c * (1 - P_dunbrack)
 
 Where:
-  d_hyp(χ)    = hyperbolic distance from common centroid
-  v_p(χ)      = p-adic valuation of chi angle encoding
-  P_dunbrack  = Dunbrack library probability
-  α, β, γ     = weighting parameters
+  d_hyp(chi)    = hyperbolic distance from common centroid
+  v_p(chi)      = p-adic valuation of chi angle encoding
+  P_dunbrack    = Dunbrack library probability
+  a, b, c       = weighting parameters
 ```
 
 ### Integration with Rosetta
@@ -146,7 +136,7 @@ def geometric_score(residue):
 
 ### Parameter Fitting
 
-To fit α, β, γ:
+To fit the weights:
 1. Collect structures with known stability issues
 2. Compare E_geom rankings with experimental stability
 3. Optimize weights to maximize correlation
@@ -155,21 +145,21 @@ To fit α, β, γ:
 
 ## Hyperbolic Geometry Explanation
 
-### The Poincaré Ball Model
+### The Poincare Ball Model
 
 Chi angles are mapped to a hyperbolic disk:
 
 ```
-         Boundary (∞)
-        ╭───────────╮
-       ╱             ╲
-      │    Common     │
-      │   Rotamers    │
-      │      ●        │
-      │               │
-       ╲    Rare     ╱
-        ╰─────────  ╯
-              ↑
+         Boundary (inf)
+        +---------------+
+       /                 \
+      |    Common         |
+      |   Rotamers        |
+      |      *            |
+      |                   |
+       \    Rare         /
+        +---------------+
+              ^
          High d_hyp
 ```
 
@@ -180,7 +170,7 @@ Chi angles are mapped to a hyperbolic disk:
 ### Why Hyperbolic?
 
 Angular space is naturally curved:
-- Angles "wrap around" (360° = 0°)
+- Angles "wrap around" (360 deg = 0 deg)
 - Small chi changes near common rotamers matter more
 - Hyperbolic metric captures this curvature
 
@@ -193,28 +183,28 @@ Angular space is naturally curved:
 For prime p=3, the valuation v_p(n) counts how many times 3 divides n:
 
 ```
-v_3(1) = 0    (1 = 3^0 × 1)
-v_3(3) = 1    (3 = 3^1 × 1)
-v_3(9) = 2    (9 = 3^2 × 1)
-v_3(27) = 3   (27 = 3^3 × 1)
-v_3(6) = 1    (6 = 3^1 × 2)
+v_3(1) = 0    (1 = 3^0 * 1)
+v_3(3) = 1    (3 = 3^1 * 1)
+v_3(9) = 2    (9 = 3^2 * 1)
+v_3(27) = 3   (27 = 3^3 * 1)
+v_3(6) = 1    (6 = 3^1 * 2)
 ```
 
 ### Application to Chi Angles
 
 Chi angles are encoded as integers (discretized):
 ```
-χ_encoded = int((χ + 180) / 10)  # 0-35 range
-combined = χ1_enc + 36 * χ2_enc + 36² * χ3_enc + ...
+chi_encoded = int((chi + 180) / 10)  # 0-35 range
+combined = chi1_enc + 36 * chi2_enc + 36^2 * chi3_enc + ...
 v_p = padic_valuation(combined, p=3)
 ```
 
-**High valuation** → angle combination aligns with algebraic structure
-**Low valuation** → "random" angle combination
+**High valuation** = angle combination aligns with algebraic structure
+**Low valuation** = "random" angle combination
 
 ---
 
-## Connection to Your 2016 Research
+## Connection to Your Research
 
 ### Hard-to-Fold Proteins
 
@@ -247,8 +237,7 @@ To validate:
 
 - Dunbrack, R.L. (2002). "Rotamer Libraries in the 21st Century"
 - Shapovalov, M.V. & Dunbrack, R.L. (2011). "A Smoothed Backbone-Dependent Rotamer Library"
-- Your 2016 paper on protein optimization
 
 ---
 
-*This overview connects your work to the broader Ternary VAE project.*
+*Prepared for Dr. Jose Colbes - Ternary VAE Bioinformatics Partnership*

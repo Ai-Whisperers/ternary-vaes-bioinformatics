@@ -1,8 +1,8 @@
-# Project Overview: Ternary VAE Bioinformatics
+# Project Overview: Ternary VAE for Antimicrobial Peptide Optimization
 
 ## The Big Picture
 
-This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your work on antimicrobial peptides is one of three partnership projects demonstrating these techniques.
+This project applies **novel mathematical frameworks** (p-adic numbers and hyperbolic geometry) to computational biology problems. Your deliverable focuses on multi-objective optimization of antimicrobial peptides using these techniques.
 
 ---
 
@@ -20,16 +20,6 @@ This project applies **novel mathematical frameworks** (p-adic numbers and hyper
 
 ---
 
-## The Three Partnership Projects
-
-| Phase | Partner | Domain | Your Role |
-|-------|---------|--------|-----------|
-| **1** | **Carlos Brizuela (You)** | Antimicrobial Peptides | Multi-objective optimization |
-| 2 | Dr. José Colbes | Protein Rotamers | Stability scoring |
-| 3 | Alejandra Rojas | Arbovirus Surveillance | Trajectory forecasting |
-
----
-
 ## Your Project: NSGA-II Latent Space Optimization
 
 ### The Problem
@@ -38,7 +28,7 @@ Designing antimicrobial peptides requires balancing:
 - Low toxicity to host cells
 - Structural stability
 
-Traditional methods mutate sequences directly → combinatorial explosion (20^L possibilities).
+Traditional methods mutate sequences directly - a combinatorial explosion (20^L possibilities).
 
 ### Our Solution
 Optimize in the **continuous latent space** of a trained VAE:
@@ -47,8 +37,8 @@ Optimize in the **continuous latent space** of a trained VAE:
 3. Decode optimal latent vectors back to sequences
 
 ### Why This Works
-- Latent space is continuous → gradient-free optimization is efficient
-- Similar sequences cluster together → local search finds related variants
+- Latent space is continuous - gradient-free optimization is efficient
+- Similar sequences cluster together - local search finds related variants
 - Multiple objectives handled naturally by Pareto optimization
 
 ---
@@ -77,13 +67,13 @@ Contains 100 Pareto-optimal solutions from demo run.
 
 ```
 Solution 2: obj_0=0.740, obj_1=0.00002, obj_2=-0.851
-           → Very low toxicity, moderate activity
+           - Very low toxicity, moderate activity
 
 Solution 3: obj_0=0.306, obj_1=0.132, obj_2=-0.534
-           → Balanced across all objectives
+           - Balanced across all objectives
 
 Solution 0: obj_0=7.054, obj_1=1.007, obj_2=-2.615
-           → Highest activity, but also higher toxicity
+           - Highest activity, but also higher toxicity
 ```
 
 ---
@@ -125,19 +115,19 @@ def real_activity(z):
 
 **SBX Crossover** (Simulated Binary Crossover):
 ```
-β = (2u)^(1/(η+1))           if u ≤ 0.5
-β = (1/(2(1-u)))^(1/(η+1))   if u > 0.5
+b = (2u)^(1/(n+1))           if u <= 0.5
+b = (1/(2(1-u)))^(1/(n+1))   if u > 0.5
 
-child1 = 0.5 * ((p1 + p2) - β * |p2 - p1|)
-child2 = 0.5 * ((p1 + p2) + β * |p2 - p1|)
+child1 = 0.5 * ((p1 + p2) - b * |p2 - p1|)
+child2 = 0.5 * ((p1 + p2) + b * |p2 - p1|)
 ```
 
 **Polynomial Mutation**:
 ```
-δ = (2u)^(1/(η+1)) - 1       if u < 0.5
-δ = 1 - (2(1-u))^(1/(η+1))   if u ≥ 0.5
+d = (2u)^(1/(n+1)) - 1       if u < 0.5
+d = 1 - (2(1-u))^(1/(n+1))   if u >= 0.5
 
-mutant = parent + δ * (upper - lower)
+mutant = parent + d * (upper - lower)
 ```
 
 ---
@@ -161,4 +151,4 @@ mutant = parent + δ * (upper - lower)
 
 ---
 
-*This overview connects your work to the broader Ternary VAE project.*
+*Prepared for Carlos Brizuela - Ternary VAE Bioinformatics Partnership*

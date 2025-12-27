@@ -1,102 +1,196 @@
-# Partnership Implementation Plan: Expert MVP Execution
+# Implementation Plan: Antimicrobial Peptide Optimization
 
-> **Actionable Roadmap for "The Expert MVP Strategy"**
+> **Technical Roadmap for Multi-Objective AMP Design**
 
-This document details the technical implementation steps to execute the MVP ideas for our three key partners. It focuses on **Data Acquisition** (via API/Ingest), **Analysis Implementation**, and **Deliverable Generation**.
-
----
-
-## 📅 Phased Execution Overview
-
-| Phase | Partner             | Focus Domain                  | Key Deliverable                        | Est. Timeline |
-| :---- | :------------------ | :---------------------------- | :------------------------------------- | :------------ |
-| **1** | **Carlos Brizuela** | Antimicrobial Peptides (AMPs) | `AMP_Hyperbolic_Navigator.ipynb`       | Week 1        |
-| **2** | **Dr. José Colbes** | Protein Optimization          | `Geometric_Rotamer_Scoring_Report.pdf` | Week 2        |
-| **3** | **Alejandra Rojas** | Arboviruses (Dengue/Zika)     | `Dengue_Serotype_Forecast_Dashboard`   | Week 3        |
+This document details the technical implementation steps for your antimicrobial peptide optimization project using NSGA-II in VAE latent space.
 
 ---
 
-## 🧬 Phase 1: Carlos Brizuela (Antimicrobial Peptides)
+## Project Focus
 
-### 1.1 Data Acquisition (StarPepDB)
-
-- **Source:** StarPepDB (Graph Database of AMPs).
-- **Existing Tool:** `scripts/ingest/ingest_starpep.py` (Verify coverage).
-- **Action:** Ensure the ingest script captures **Hemolytic Activity** and **MIC (Minimum Inhibitory Concentration)** fields, as these are critical for the multi-objective optimization MVP.
-
-### 1.2 New Implementations
-
-- **Script:** `scripts/analysis/amp_hyperbolic_navigator.py`
-  - **Logic:**
-    1.  Load `starpep_data.json`.
-    2.  Encode sequences into 5D Hyperbolic Space using `models.ternary_vae`.
-    3.  Compute "Geodesic Paths" from toxic AMPs to non-toxic clusters.
-- **Script:** `scripts/optimization/latent_nsga2.py`
-  - **Logic:** Implement NSGA-II algorithm where the decision variables are the _latent coordinates_ $(z_1, ..., z_5)$ rather than the discrete amino acids.
+| Aspect | Details |
+|--------|---------|
+| **Domain** | Antimicrobial Peptides (AMPs) |
+| **Key Deliverable** | `AMP_Hyperbolic_Navigator.ipynb` |
+| **Core Script** | `scripts/latent_nsga2.py` |
 
 ---
 
-## 🧩 Phase 2: Dr. José Colbes (Protein Optimization)
+## Data Acquisition (StarPepDB)
 
-### 2.1 Data Acquisition (RCSB PDB)
+- **Source:** StarPepDB (Graph Database of AMPs)
+- **Existing Tool:** `scripts/ingest/ingest_starpep.py`
+- **Critical Fields:**
+  - Hemolytic Activity (toxicity metric)
+  - MIC (Minimum Inhibitory Concentration)
+  - Sequence and length
+  - Activity against specific pathogens
 
-We need high-resolution protein structures to calculate side-chain angles (chi angles).
+### Data Format
 
-- **Source:** RCSB PDB Data API.
-- **API Strategy:**
-  - **Endpoint:** `https://data.rcsb.org/rest/v1/core/entry/{pdb_id}` (Metadata) + File Download.
-  - **Library:** `Biopython` (`Bio.PDB`) or `biotite`.
-  - **Target Dataset:** "Hard-to-fold" benchmark set (e.g., CASP targets or specific proteins from his 2016 paper).
-
-### 2.2 New Implementations
-
-- **Script:** `scripts/ingest/ingest_pdb_structures.py`
-  - **Command:** `python scripts/ingest/ingest_pdb_structures.py --pdb_ids "1CRN,1TIM,..."`
-  - **Logic:** Download `.cif` or `.pdb` files. Parsers atoms to extract `N, CA, C, CB, ...` coordinates.
-- **Script:** `scripts/analysis/rotamer_padic_score.py`
-  - **Logic:**
-    1.  Calculate side-chain dihedral angles ($\chi_1, \chi_2$).
-    2.  Compute the **3-adic distance** of the amino acid sequence context.
-    3.  Correlate "Rare/Unstable Rotamers" with "High P-adic Shift".
-
----
-
-## 🦟 Phase 3: Alejandra Rojas (Arboviruses)
-
-### 3.1 Data Acquisition (NCBI Virus)
-
-We need complete genomes of Dengue (DENV-1, 2, 3, 4), Zika, and Chikungunya, specifically chronological series from Paraguay/South America.
-
-- **Source:** NCBI Virus / GenBank.
-- **API Strategy:**
-  - **Tool:** `NCBI Datasets` CLI (Recommended) or `Bio.Entrez`.
-  - **Query:** `Organism: Dengue virus (taxid:12637)`, `Geo Location: Paraguay/South America`, `Collection Date: 2011-2025`.
-  - **Command:**
-    ```bash
-    datasets download virus genome taxon 12637 --geo-location "Paraguay" --include genome,biosample
-    ```
-
-### 3.2 New Implementations
-
-- **Script:** `scripts/ingest/ingest_arboviruses.py`
-  - **Logic:** Wrapper around `datasets` CLI or Entrez to fetch FASTA sequences and metadata (date, location).
-- **Script:** `scripts/analysis/arbovirus_hyperbolic_trajectory.py`
-  - **Logic:**
-    1.  Embed genomes into Hyperbolic Space.
-    2.  Group by `Date` (Month/Year).
-    3.  Calculate the "Velocity Vector" of the clade centroid.
-    4.  Predict next-month trajectory.
-- **Script:** `scripts/analysis/primer_stability_scanner.py`
-  - **Logic:** Scan genome with rolling window. Identify regions with minimal hyperbolic movement over the last 10 years.
+```json
+{
+  "id": "starPep_00001",
+  "sequence": "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",
+  "length": 37,
+  "hemolytic_activity": 0.23,
+  "mic_ecoli": 4.0,
+  "mic_saureus": 8.0,
+  "net_charge": 6,
+  "hydrophobicity": 0.45
+}
+```
 
 ---
 
-## 🛠 Shared Infrastructure Requirements
+## Implementation Components
 
-1.  **Bioinformatics Env:** Ensure `biopython`, `numpy`, `scipy` are installed.
-2.  **NCBI Tooling:** Install `ncbi-datasets-cli` via `winget` or Conda.
-3.  **Visualization:** Update `dash` dashboard to support "Protein 3D View" (for Colbes) and "Geographic Map" (for Rojas).
+### 1. Hyperbolic AMP Navigator
+
+**Script:** `scripts/analysis/amp_hyperbolic_navigator.py`
+
+**Logic:**
+1. Load AMP data from `starpep_data.json`
+2. Encode sequences into 5D Hyperbolic Space using the Ternary VAE
+3. Compute "Geodesic Paths" from toxic AMPs to non-toxic clusters
+4. Visualize the peptide landscape
+
+### 2. NSGA-II Latent Optimizer
+
+**Script:** `scripts/optimization/latent_nsga2.py`
+
+**Logic:**
+- Decision variables: Latent coordinates (z_1, ..., z_16)
+- NOT discrete amino acids (avoids combinatorial explosion)
+- Multi-objective optimization in continuous space
+
+**Objectives (all minimized):**
+1. Reconstruction loss (sequence validity)
+2. Toxicity score (hemolytic activity)
+3. Negative activity (more negative = better)
 
 ---
 
-_Plan Pending User Approval for Execution._
+## Algorithm Configuration
+
+### NSGA-II Parameters
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `population_size` | 200 | Individuals per generation |
+| `generations` | 100 | Evolutionary cycles |
+| `latent_dim` | 16 | VAE latent dimensionality |
+| `crossover_prob` | 0.9 | SBX crossover probability |
+| `mutation_prob` | 0.1 | Per-gene mutation rate |
+| `latent_bounds` | (-3, 3) | Valid latent range |
+
+### Genetic Operators
+
+**SBX Crossover:**
+- Simulates single-point crossover behavior in continuous space
+- Distribution index controls offspring spread
+
+**Polynomial Mutation:**
+- Bounded perturbation of latent coordinates
+- Respects latent space boundaries
+
+---
+
+## Output Specification
+
+### Pareto Front CSV
+
+```csv
+id,rank,crowding_distance,objective_0,objective_1,objective_2,z_0,z_1,...,z_15
+0,0,inf,0.305,0.132,-0.534,-0.234,1.456,...,0.678
+1,0,2.341,0.412,0.089,-0.623,0.123,-0.987,...,0.234
+```
+
+### Interpretation
+
+- **rank=0**: All solutions on the Pareto-optimal front
+- **crowding_distance=inf**: Boundary solutions (extreme objectives)
+- **objective_2 more negative**: Higher antimicrobial activity
+
+---
+
+## Integration Steps
+
+### Step 1: Prepare Your VAE
+
+```python
+from models.ternary_vae import TernaryVAE
+
+vae = TernaryVAE.load("path/to/checkpoint.pt")
+```
+
+### Step 2: Define Objective Functions
+
+```python
+def reconstruction_objective(z):
+    decoded = vae.decode(torch.tensor(z))
+    return float(vae.reconstruction_loss(decoded))
+
+def toxicity_objective(z):
+    sequence = vae.decode_to_sequence(z)
+    return float(toxicity_model.predict(sequence))
+
+def activity_objective(z):
+    sequence = vae.decode_to_sequence(z)
+    return -float(activity_model.predict(sequence))
+```
+
+### Step 3: Run Optimization
+
+```python
+from latent_nsga2 import LatentNSGA2, OptimizationConfig
+
+config = OptimizationConfig(
+    latent_dim=16,
+    population_size=200,
+    generations=100
+)
+
+optimizer = LatentNSGA2(
+    config=config,
+    objective_functions=[reconstruction_objective, toxicity_objective, activity_objective],
+    decoder=lambda z: vae.decode_to_sequence(z)
+)
+
+pareto_front = optimizer.run(verbose=True)
+optimizer.export_pareto_front("results/optimized_amps.csv")
+```
+
+---
+
+## Validation Workflow
+
+1. **Demo Run**: Execute with mock objectives (no VAE required)
+2. **VAE Integration**: Connect your trained model
+3. **Objective Calibration**: Verify objective function outputs
+4. **Pareto Analysis**: Examine trade-offs in results
+5. **Sequence Decoding**: Convert best latent vectors to sequences
+6. **Lab Validation**: Synthesize and test top candidates
+
+---
+
+## Expected Results
+
+With real StarPepDB data and trained models:
+
+- **100+ Pareto-optimal solutions** covering the activity-toxicity trade-off
+- **Clear clustering** of low-toxicity candidates
+- **Novel sequences** not in training data (generative capability)
+- **Interpretable trade-offs** for rational selection
+
+---
+
+## Dependencies
+
+```bash
+pip install numpy torch pandas matplotlib seaborn
+```
+
+---
+
+*Implementation Plan for Carlos Brizuela - Antimicrobial Peptide Optimization*
