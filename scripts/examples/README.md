@@ -39,16 +39,37 @@ Demonstrates hyperbolic graph neural networks:
 python scripts/examples/hyperbolic_gnn_demo.py
 ```
 
+### `protein_design_workflow.py`
+Complete end-to-end protein design pipeline:
+- Structure analysis with topology
+- Structure encoding with EGNN
+- Codon sequence generation with diffusion
+- Hyperbolic geometry analysis
+
+```bash
+python scripts/examples/protein_design_workflow.py
+```
+
+### `protein_family_classification.py`
+Few-shot protein family classification with meta-learning:
+- Contrastive pretraining with p-adic loss
+- MAML for few-shot adaptation
+- Evaluation on novel families
+
+```bash
+python scripts/examples/protein_family_classification.py
+```
+
 ## Module Overview
 
 | Module | Description | Example |
 |--------|-------------|---------|
-| `src.diffusion` | Discrete diffusion for codons | `diffusion_sequence_design.py` |
-| `src.equivariant` | SO(3)/SE(3) equivariant networks | `equivariant_networks.py` |
-| `src.graphs` | Hyperbolic GNNs | `hyperbolic_gnn_demo.py` |
-| `src.topology` | Persistent homology | Coming soon |
-| `src.contrastive` | P-adic contrastive learning | Coming soon |
-| `src.physics` | Statistical physics | Coming soon |
+| `src.diffusion` | Discrete diffusion for codons | `diffusion_sequence_design.py`, `protein_design_workflow.py` |
+| `src.equivariant` | SO(3)/SE(3) equivariant networks | `equivariant_networks.py`, `protein_design_workflow.py` |
+| `src.graphs` | Hyperbolic GNNs | `hyperbolic_gnn_demo.py`, `protein_design_workflow.py` |
+| `src.topology` | Persistent homology | `protein_design_workflow.py` |
+| `src.contrastive` | P-adic contrastive learning | `protein_family_classification.py` |
+| `src.meta` | Meta-learning (MAML, Reptile) | `protein_family_classification.py` |
 
 ## Requirements
 

@@ -5,7 +5,17 @@
 #
 # For commercial licensing inquiries: support@aiwhisperers.com
 
-"""Model definitions for Ternary VAE (canonical V5.11 architecture)."""
+"""Model definitions for Ternary VAE (canonical V5.11 architecture).
+
+V6.0 additions:
+- PLM encoders (ESM-2 integration)
+- SE(3)-equivariant structure encoders
+- Uncertainty quantification (Bayesian, Evidential, Ensemble)
+- Multi-task learning for drug resistance
+- Discrete diffusion for sequence generation
+- Contrastive learning (BYOL, SimCLR)
+- Cross-modal fusion layers
+"""
 
 from .curriculum import ContinuousCurriculumModule, CurriculumScheduler
 from .differentiable_controller import DifferentiableController
@@ -20,6 +30,39 @@ from .ternary_vae import (FrozenDecoder, FrozenEncoder, TernaryVAEV5_11,
 TernaryVAE = TernaryVAEV5_11
 TernaryVAE_PartialFreeze = TernaryVAEV5_11_PartialFreeze
 TernaryVAE_OptionC = TernaryVAEV5_11_OptionC  # Deprecated alias
+
+# V6.0 module imports (lazy loading for optional dependencies)
+def _import_plm():
+    from .plm import ESM2Encoder, ESM2Config, HyperbolicPLMEncoder, PLMEncoderBase
+    return ESM2Encoder, ESM2Config, HyperbolicPLMEncoder, PLMEncoderBase
+
+def _import_equivariant():
+    from .equivariant import SE3EquivariantEncoder, SE3Config, SE3WithHyperbolic
+    return SE3EquivariantEncoder, SE3Config, SE3WithHyperbolic
+
+def _import_uncertainty():
+    from .uncertainty import (
+        UncertaintyWrapper, BayesianPredictor, MCDropoutWrapper,
+        EvidentialPredictor, EvidentialLoss, EnsemblePredictor, DeepEnsemble
+    )
+    return (UncertaintyWrapper, BayesianPredictor, MCDropoutWrapper,
+            EvidentialPredictor, EvidentialLoss, EnsemblePredictor, DeepEnsemble)
+
+def _import_mtl():
+    from .mtl import MultiTaskResistancePredictor, MTLConfig, GradNormOptimizer
+    return MultiTaskResistancePredictor, MTLConfig, GradNormOptimizer
+
+def _import_diffusion():
+    from .diffusion import D3PM, D3PMConfig, SequenceGenerator, ConditionalGenerator
+    return D3PM, D3PMConfig, SequenceGenerator, ConditionalGenerator
+
+def _import_contrastive():
+    from .contrastive import BYOL, BYOLConfig, SimCLR, SequenceAugmentations
+    return BYOL, BYOLConfig, SimCLR, SequenceAugmentations
+
+def _import_fusion():
+    from .fusion import CrossModalFusion, FusionConfig, MultimodalEncoder, MultimodalConfig
+    return CrossModalFusion, FusionConfig, MultimodalEncoder, MultimodalConfig
 
 __all__ = [
     # Canonical (V5.11)
@@ -48,4 +91,11 @@ __all__ = [
     "AgentConfig",
     "AgentRole",
     "PheromoneField",
+    # V6.0 modules (accessible via submodule imports)
+    # from src.models.plm import ESM2Encoder
+    # from src.models.uncertainty import BayesianPredictor
+    # from src.models.mtl import MultiTaskResistancePredictor
+    # from src.models.diffusion import D3PM
+    # from src.models.contrastive import BYOL
+    # from src.models.fusion import CrossModalFusion
 ]
