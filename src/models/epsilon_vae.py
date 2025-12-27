@@ -397,11 +397,13 @@ def is_pareto_efficient(costs: Tensor) -> Tensor:
     is_efficient = torch.ones(n_points, dtype=torch.bool)
 
     for i in range(n_points):
-        if is_efficient[i]:
-            # Check if any other point dominates this one
-            dominated = (costs <= costs[i]).all(dim=1) & (costs < costs[i]).any(dim=1)
-            dominated[i] = False
-            is_efficient[dominated] = False
+        # Check if any other point strictly dominates point i
+        # Point j dominates i if: all(costs[j] <= costs[i]) AND any(costs[j] < costs[i])
+        strictly_dominates = (costs <= costs[i]).all(dim=1) & (costs < costs[i]).any(dim=1)
+        strictly_dominates[i] = False  # Don't compare with self
+
+        if strictly_dominates.any():
+            is_efficient[i] = False
 
     return is_efficient
 

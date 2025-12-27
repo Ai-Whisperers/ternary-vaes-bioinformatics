@@ -47,23 +47,36 @@ Modules with partial implementation:
 | `classifiers/` | 2 | Classification models |
 | `cli/` | 4 | Command-line interface |
 
-### Tier 4: FUTURE (Aspirational - Moved to `_future/`)
-These modules have been moved to `src/_future/` to clarify they are **not implemented**. They contain only placeholder `__init__.py` with documentation describing *intended* future functionality.
+### Tier 4: ADVANCED (Production Ready - v5.12)
+These modules provide advanced mathematical and computational frameworks for protein engineering.
 
-See [`_future/README.md`](./_future/README.md) for implementation priorities and contributing guidelines.
+| Module | Files | Description | Key Classes |
+|--------|-------|-------------|-------------|
+| `graphs/` | 1 | Hyperbolic GNNs for hierarchical structures | `HyboWaveNet`, `HyperbolicGraphConv` |
+| `topology/` | 1 | Persistent homology & TDA | `ProteinTopologyEncoder`, `RipsFiltration` |
+| `information/` | 1 | Fisher information geometry | `NaturalGradientOptimizer`, `KFACOptimizer` |
+| `contrastive/` | 1 | P-adic contrastive learning | `PAdicContrastiveLoss`, `SimCLREncoder` |
+| `physics/` | 1 | Statistical physics methods | `SpinGlassLandscape`, `ReplicaExchange` |
+| `tropical/` | 1 | Tropical geometry for NNs | `TropicalSemiring`, `TropicalNNAnalyzer` |
+| `categorical/` | 1 | Category theory abstractions | `CategoricalNetwork`, `ParametricLens` |
+| `meta/` | 1 | Meta-learning algorithms | `MAML`, `Reptile`, `PAdicTaskSampler` |
+| `equivariant/` | 5 | SO(3)/SE(3)-equivariant networks | `SO3Layer`, `SE3Transformer`, `CodonSymmetryLayer` |
+| `diffusion/` | 4 | Discrete diffusion for codons | `CodonDiffusion`, `StructureConditionedGen` |
 
-| Module | Intended Purpose | Priority |
-|--------|------------------|----------|
-| `_future/topology/` | Persistent homology, TDA | Medium |
-| `_future/categorical/` | Category theory abstractions | Low |
-| `_future/tropical/` | Tropical semiring operations | Low |
-| `_future/equivariant/` | SE(3) equivariant networks | **High** |
-| `_future/information/` | Information-theoretic measures | Medium |
-| `_future/graphs/` | Protein graph neural networks | **High** |
-| `_future/meta/` | Meta-learning algorithms | Low |
-| `_future/contrastive/` | Contrastive learning losses | Medium |
-| `_future/diffusion/` | Diffusion models | Medium |
-| `_future/physics/` | Statistical physics (spin glass) | Low |
+**Example Usage:**
+```python
+# Hyperbolic GNN for protein graphs
+from src.graphs import HyboWaveNet, HyperbolicGraphConv
+
+# Persistent homology for structure analysis
+from src.topology import ProteinTopologyEncoder
+
+# Equivariant networks respecting biological symmetries
+from src.equivariant import CodonSymmetryLayer, SO3Layer
+
+# Diffusion models for sequence generation
+from src.diffusion import CodonDiffusion, StructureConditionedGen
+```
 
 ---
 
@@ -282,6 +295,33 @@ src/
 │   └── hyperbolic.py
 ├── artifacts/           # No internal dependencies
 │   └── checkpoint_manager.py
-└── utils/               # No internal dependencies
-    └── reproducibility.py
+├── utils/               # No internal dependencies
+│   └── reproducibility.py
+│
+├── # === ADVANCED MODULES (v5.12) ===
+├── graphs/              # Hyperbolic graph neural networks
+│   └── hyperbolic_gnn.py  # HyboWaveNet, HyperbolicGraphConv
+├── topology/            # Topological data analysis
+│   └── persistent_homology.py  # ProteinTopologyEncoder, RipsFiltration
+├── information/         # Information geometry
+│   └── fisher_geometry.py  # NaturalGradientOptimizer, KFACOptimizer
+├── contrastive/         # Contrastive learning
+│   └── padic_contrastive.py  # PAdicContrastiveLoss, SimCLREncoder
+├── physics/             # Statistical physics
+│   └── statistical_physics.py  # SpinGlassLandscape, ReplicaExchange
+├── tropical/            # Tropical geometry
+│   └── tropical_geometry.py  # TropicalSemiring, TropicalNNAnalyzer
+├── categorical/         # Category theory
+│   └── category_theory.py  # CategoricalNetwork, ParametricLens
+├── meta/                # Meta-learning
+│   └── meta_learning.py  # MAML, Reptile, PAdicTaskSampler
+├── equivariant/         # Equivariant networks
+│   ├── spherical_harmonics.py  # SphericalHarmonics, ClebschGordanCoefficients
+│   ├── so3_layer.py      # SO3Layer, SO3GNN
+│   ├── se3_layer.py      # SE3Transformer, EGNN
+│   └── codon_symmetry.py  # CodonSymmetryLayer, CodonTransformer
+└── diffusion/           # Diffusion models
+    ├── noise_schedule.py  # NoiseScheduler, DiscreteNoiseScheduler
+    ├── codon_diffusion.py  # CodonDiffusion, TransformerDenoiser
+    └── structure_gen.py  # StructureConditionedGen, MultiObjectiveDesigner
 ```

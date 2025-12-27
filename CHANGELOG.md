@@ -4,6 +4,81 @@ All notable changes to the Ternary VAE Bioinformatics project.
 
 ---
 
+## [5.12.0] - 2025-12-27
+
+### Added - Advanced Modules (Production Ready)
+
+Major release: All 10 modules from `src/_future/` are now production-ready with comprehensive test coverage.
+
+#### Migrated Modules (8 modules, ~5,500 lines)
+- **`src/graphs/`** - Hyperbolic Graph Neural Networks (88 tests)
+  - `HyboWaveNet`: Combined wavelet + hyperbolic GNN architecture
+  - `HyperbolicGraphConv`: Graph convolution in Poincare ball
+  - `PoincareOperations`, `LorentzOperations`: Hyperbolic math primitives
+
+- **`src/topology/`** - Persistent Homology & TDA (126 tests)
+  - `ProteinTopologyEncoder`: Topological features from protein structure
+  - `RipsFiltration`, `PAdicFiltration`: Filtration computations
+  - `PersistenceVectorizer`: Convert persistence diagrams to vectors
+
+- **`src/information/`** - Fisher Information Geometry (93 tests)
+  - `NaturalGradientOptimizer`: Second-order optimization
+  - `KFACOptimizer`: Kronecker-factored approximate curvature
+  - `FisherInformationEstimator`: Fisher matrix computation
+
+- **`src/contrastive/`** - P-adic Contrastive Learning (97 tests)
+  - `PAdicContrastiveLoss`: P-adic distance-based contrastive loss
+  - `SimCLREncoder`, `MomentumContrastEncoder`: Self-supervised encoders
+  - `PAdicPositiveSampler`: Hierarchical positive sampling
+
+- **`src/physics/`** - Statistical Physics (72 tests)
+  - `SpinGlassLandscape`: Spin glass energy computation
+  - `ReplicaExchange`: Parallel tempering optimizer
+  - `UltrametricTreeExtractor`: Ultrametric structure from overlaps
+
+- **`src/tropical/`** - Tropical Geometry (58 tests)
+  - `TropicalSemiring`: Min-plus algebra operations
+  - `TropicalNNAnalyzer`: Neural network tropical analysis
+  - `TropicalPhylogeneticTree`: Phylogenetic tree construction
+
+- **`src/categorical/`** - Category Theory (61 tests)
+  - `CategoricalNetwork`: Compositional neural architecture
+  - `ParametricLens`, `ResidualOptic`: Bidirectional transformations
+  - `NaturalTransformation`: Functorial mappings
+
+- **`src/meta/`** - Meta-Learning (44 tests)
+  - `MAML`: Model-Agnostic Meta-Learning
+  - `Reptile`: First-order meta-learning
+  - `PAdicTaskSampler`: Hierarchical task sampling
+
+#### New Implementations (2 modules, ~2,500 lines)
+- **`src/equivariant/`** - SO(3)/SE(3)-Equivariant Networks (91 tests)
+  - `SphericalHarmonics`: Spherical harmonic basis functions
+  - `SO3Layer`, `SO3GNN`: Rotation-equivariant layers
+  - `SE3Transformer`, `EGNN`: Translation+rotation equivariant
+  - `CodonSymmetryLayer`: Biological symmetry (wobble, synonymy)
+  - `CodonTransformer`: Full transformer respecting codon structure
+
+- **`src/diffusion/`** - Discrete Diffusion Models (56 tests)
+  - `NoiseScheduler`: Linear, cosine, sigmoid, exponential schedules
+  - `DiscreteNoiseScheduler`: Absorbing state diffusion (D3PM)
+  - `CodonDiffusion`: Discrete diffusion for codon sequences
+  - `TransformerDenoiser`: Transformer-based denoising network
+  - `StructureConditionedGen`: Inverse folding at codon level
+  - `MultiObjectiveDesigner`: Multi-objective sequence optimization
+
+### Changed
+- Updated `src/__init__.py` with exports for all 10 new modules
+- Updated `src/README.md` with Tier 4: ADVANCED module documentation
+- Removed obsolete `src/_future/` directory
+
+### Test Coverage
+- **786 new tests** for advanced modules
+- **2,462 total tests** passing
+- All modules have 80%+ coverage
+
+---
+
 ## [Unreleased]
 
 ### Research Archive Organization (2025-12-26)

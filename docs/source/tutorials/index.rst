@@ -5,86 +5,97 @@ Step-by-step tutorials for common tasks with Ternary VAE.
 
 .. toctree::
    :maxdepth: 1
+   :caption: Getting Started
 
+   gpu_quick_start
    basic_training
+   full_training
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Applications
+
    hiv_resistance
    codon_analysis
+   predictors
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Advanced Topics
+
+   epsilon_vae
+   meta_learning
 
 
-Getting Started Tutorial
-------------------------
+Quick Start Guide
+-----------------
 
-This tutorial walks through training your first Ternary VAE model.
+New to Ternary VAE? Start here:
+
+1. **GPU Setup** (:doc:`gpu_quick_start`)
+   Verify your GPU works with a 5-minute test
+
+2. **Basic Training** (:doc:`basic_training`)
+   Train your first model on ternary operations
+
+3. **Full Training** (:doc:`full_training`)
+   Complete guide to V5.11 and V5.11.11 training
+
+
+Application Tutorials
+---------------------
+
+HIV Drug Resistance (:doc:`hiv_resistance`)
+    Analyze resistance mutations using hyperbolic embeddings
+
+Codon Analysis (:doc:`codon_analysis`)
+    Deep dive into codon structure and synonymous mutations
+
+Predictors (:doc:`predictors`)
+    Build resistance, escape, and tropism predictors
+
+
+Advanced Topics
+---------------
+
+Epsilon-VAE (:doc:`epsilon_vae`)
+    Meta-learning over checkpoint landscapes
+
+Meta-Learning (:doc:`meta_learning`)
+    Few-shot adaptation with MAML and Reptile
 
 
 Prerequisites
 ~~~~~~~~~~~~~
 
 1. Python 3.10+
-2. PyTorch 2.0+
-3. Ternary VAE installed (``pip install -e .``)
+2. PyTorch 2.0+ with CUDA
+3. Ternary VAE installed: ``pip install -e .``
 
 
-Step 1: Generate Data
-~~~~~~~~~~~~~~~~~~~~~
+Quick Commands
+~~~~~~~~~~~~~~
 
-.. code-block:: python
+.. code-block:: bash
 
-    from src.data import generate_all_ternary_operations
+    # GPU smoke test
+    python scripts/quick_train.py
 
-    # Generate all 27 ternary operations
-    x, indices = generate_all_ternary_operations()
-    print(f"Generated {len(x)} samples")
+    # Full training
+    python src/train.py --mode v5.11 --epochs 100
 
+    # HIV analysis
+    python scripts/hiv/run_full_hiv_pipeline.py --stage all
 
-Step 2: Create Model
-~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-    from src.models import TernaryVAE
-
-    model = TernaryVAE(
-        input_dim=27,
-        latent_dim=16,
-        hidden_dim=64,
-        use_hyperbolic=True
-    )
-
-
-Step 3: Train
-~~~~~~~~~~~~~
-
-.. code-block:: python
-
-    from src.training import TernaryVAETrainer
-
-    trainer = TernaryVAETrainer(model)
-    history = trainer.train(x, epochs=100)
-
-
-Step 4: Analyze Results
-~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-    import matplotlib.pyplot as plt
-
-    # Plot training loss
-    plt.plot(history['loss'])
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training Progress')
-    plt.show()
-
-    # Visualize latent space
-    from src.visualization import plot_latent_space
-    plot_latent_space(model, x)
+    # Train predictors
+    python scripts/train_predictors.py --predictor all
 
 
 Next Steps
 ~~~~~~~~~~
 
-- :doc:`hiv_resistance` - Analyze HIV drug resistance
-- :doc:`codon_analysis` - Deep dive into codon embeddings
-- :doc:`/guide/analysis` - Full analysis guide
+After completing these tutorials:
+
+- Explore the :doc:`/api/index` for detailed module documentation
+- Read the :doc:`/guide/analysis` for analysis workflows
+- Check :doc:`/contributing` to contribute improvements

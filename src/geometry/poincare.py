@@ -36,23 +36,38 @@ from geoopt import ManifoldParameter, ManifoldTensor
 from geoopt import PoincareBall as GeooptPoincareBall
 from geoopt.optim import RiemannianAdam, RiemannianSGD
 
-# Global manifold cache for efficiency
+# Global manifold cache for efficiency - keyed by (curvature, device)
 _manifold_cache = {}
 
 
-def get_manifold(c: float = 1.0) -> GeooptPoincareBall:
-    """Get a PoincareBall manifold with specified curvature.
+def get_manifold(c: float = 1.0, device: torch.device | str | None = None) -> GeooptPoincareBall:
+    """Get a PoincareBall manifold with specified curvature and device.
 
     Args:
         c: Curvature parameter (c > 0 for hyperbolic space)
+        device: Device for manifold tensors (default: CPU)
 
     Returns:
-        geoopt.PoincareBall manifold
+        geoopt.PoincareBall manifold with internal tensors on the specified device
     """
-    if c not in _manifold_cache:
-        _manifold_cache[c] = geoopt.PoincareBall(c=c)
+    # Normalize device to string for cache key
+    if device is None:
+        device_str = "cpu"
+    elif isinstance(device, torch.device):
+        device_str = str(device)
+    else:
+        device_str = device
 
-    return _manifold_cache[c]
+    cache_key = (c, device_str)
+    if cache_key not in _manifold_cache:
+        manifold = geoopt.PoincareBall(c=c)
+        # Move entire manifold (including k buffer) to the target device
+        # PoincareBall is an nn.Module, so .to() works
+        if device_str != "cpu":
+            manifold = manifold.to(device_str)
+        _manifold_cache[cache_key] = manifold
+
+    return _manifold_cache[cache_key]
 
 
 def poincare_distance(x: torch.Tensor, y: torch.Tensor, c: float = 1.0, keepdim: bool = False) -> torch.Tensor:
@@ -69,7 +84,7 @@ def poincare_distance(x: torch.Tensor, y: torch.Tensor, c: float = 1.0, keepdim:
     Returns:
         Poincare distances, shape (...) or (..., 1) if keepdim
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=x.device)
     return manifold.dist(x, y, keepdim=keepdim)
 
 
@@ -86,7 +101,7 @@ def project_to_poincare(z: torch.Tensor, max_norm: float = 0.95, c: float = 1.0)
     Returns:
         Projected points on Poincare ball
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=z.device)
     # geoopt's projx clamps to 1-eps boundary
     z_proj = manifold.projx(z)
 
@@ -108,7 +123,7 @@ def exp_map_zero(v: torch.Tensor, c: float = 1.0) -> torch.Tensor:
     Returns:
         Points on Poincare ball
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=v.device)
     origin = torch.zeros_like(v)
     return manifold.expmap(origin, v)
 
@@ -126,7 +141,7 @@ def log_map_zero(z: torch.Tensor, c: float = 1.0, max_norm: float = 0.95) -> tor
     Returns:
         Tangent vectors at origin
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=z.device)
     origin = torch.zeros_like(z)
     return manifold.logmap(origin, z)
 
@@ -145,7 +160,7 @@ def mobius_add(x: torch.Tensor, y: torch.Tensor, c: float = 1.0) -> torch.Tensor
     Returns:
         Result of Mobius addition
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=x.device)
     return manifold.mobius_add(x, y)
 
 
@@ -162,7 +177,7 @@ def lambda_x(x: torch.Tensor, c: float = 1.0, keepdim: bool = True) -> torch.Ten
     Returns:
         Conformal factors
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=x.device)
     return manifold.lambda_x(x, keepdim=keepdim)
 
 
@@ -178,7 +193,7 @@ def parallel_transport(x: torch.Tensor, y: torch.Tensor, v: torch.Tensor, c: flo
     Returns:
         Transported tangent vector at y
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=x.device)
     return manifold.transp(x, y, v)
 
 
@@ -253,7 +268,7 @@ def create_manifold_parameter(data: torch.Tensor, c: float = 1.0, requires_grad:
     Returns:
         ManifoldParameter on the Poincare ball
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=data.device)
     # Project data onto manifold for safety
     data_proj = manifold.projx(data)
     return ManifoldParameter(data_proj, manifold=manifold, requires_grad=requires_grad)
@@ -272,7 +287,7 @@ def create_manifold_tensor(data: torch.Tensor, c: float = 1.0) -> ManifoldTensor
     Returns:
         ManifoldTensor on the Poincare ball
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=data.device)
     data_proj = manifold.projx(data)
     return ManifoldTensor(data_proj, manifold=manifold)
 
@@ -309,7 +324,7 @@ def poincare_distance_matrix(z: torch.Tensor, c: float = 1.0) -> torch.Tensor:
     Returns:
         Distance matrix of shape (n, n)
     """
-    manifold = get_manifold(c)
+    manifold = get_manifold(c, device=z.device)
 
     # Expand for pairwise computation: (n, 1, dim) and (1, n, dim)
     z_i = z.unsqueeze(1)  # (n, 1, dim)

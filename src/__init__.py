@@ -10,7 +10,7 @@
 This package implements Dual Neural VAEs for learning 3-adic algebraic
 structure in ternary operation space using hyperbolic geometry.
 
-Key modules:
+Core Modules:
 - config: Centralized configuration (constants, schema, loader)
 - models: VAE architectures (canonical v5.11 with frozen encoder)
 - losses: Loss functions including p-adic geodesic loss
@@ -18,9 +18,21 @@ Key modules:
 - data: Ternary operation generation and datasets
 - metrics: Hyperbolic correlation metrics
 - observability: Logging, metrics buffer, async TensorBoard writer
+
+Advanced Modules (Production):
+- graphs: Hyperbolic graph neural networks
+- topology: Persistent homology and topological data analysis
+- information: Fisher information geometry and natural gradients
+- contrastive: P-adic contrastive learning
+- physics: Statistical physics and spin glass methods
+- tropical: Tropical geometry for neural network analysis
+- categorical: Category theory for neural networks
+- meta: Meta-learning (MAML, Reptile)
+- equivariant: SO(3)/SE(3)-equivariant networks and codon symmetry
+- diffusion: Discrete diffusion models for codon sequences
 """
 
-__version__ = "5.11.0"
+__version__ = "5.12.0"
 __author__ = "AI Whisperers"
 __license__ = "PolyForm-Noncommercial-1.0.0"
 
@@ -53,6 +65,19 @@ from .training.callbacks import CallbackList, EarlyStoppingCallback, CheckpointC
 
 # Observability
 from .observability import setup_logging, get_logger, MetricsBuffer
+
+# Advanced Modules (lazy imports to avoid heavy dependencies at startup)
+# These are imported on demand when accessed
+from . import graphs
+from . import topology
+from . import information
+from . import contrastive
+from . import physics
+from . import tropical
+from . import categorical
+from . import meta
+from . import equivariant
+from . import diffusion
 
 # Canonical aliases (after imports)
 TernaryVAE = TernaryVAEV5_11
@@ -91,4 +116,15 @@ __all__ = [
     "MetricsBuffer",
     # Metrics
     "compute_ranking_correlation_hyperbolic",
+    # Advanced Modules
+    "graphs",
+    "topology",
+    "information",
+    "contrastive",
+    "physics",
+    "tropical",
+    "categorical",
+    "meta",
+    "equivariant",
+    "diffusion",
 ]

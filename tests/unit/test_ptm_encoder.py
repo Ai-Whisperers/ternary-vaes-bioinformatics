@@ -12,6 +12,13 @@ from src.encoders.ptm_encoder import (GoldilocksZone, PTMDataset,
                                       PTMGoldilocksEncoder, PTMType)
 
 
+# Use CPU for all tests to avoid geoopt device mismatch
+@pytest.fixture
+def cpu_device():
+    """Force CPU for geoopt-related tests."""
+    return "cpu"
+
+
 class TestPTMType:
     """Tests for PTMType enumeration."""
 
@@ -49,22 +56,28 @@ class TestPTMGoldilocksEncoder:
     """Tests for PTMGoldilocksEncoder module."""
 
     @pytest.fixture
-    def encoder(self):
-        """Create encoder instance."""
-        return PTMGoldilocksEncoder(
+    def cpu_device(self):
+        """Force CPU for geoopt-related tests."""
+        return "cpu"
+
+    @pytest.fixture
+    def encoder(self, cpu_device):
+        """Create encoder instance on CPU."""
+        enc = PTMGoldilocksEncoder(
             embedding_dim=16,
             num_amino_acids=22,
             num_ptm_types=10,
             curvature=1.0,
         )
+        return enc.to(cpu_device)
 
     @pytest.fixture
-    def sample_input(self):
-        """Create sample input tensors."""
+    def sample_input(self, cpu_device):
+        """Create sample input tensors on CPU."""
         batch_size = 4
         seq_len = 10
-        aa_indices = torch.randint(1, 21, (batch_size, seq_len))
-        ptm_states = torch.zeros(batch_size, seq_len, dtype=torch.long)
+        aa_indices = torch.randint(1, 21, (batch_size, seq_len), device=cpu_device)
+        ptm_states = torch.zeros(batch_size, seq_len, dtype=torch.long, device=cpu_device)
         # Add some citrullination at arginine positions
         ptm_states[:, 3] = PTMType.CITRULLINATION
         return aa_indices, ptm_states
@@ -76,9 +89,9 @@ class TestPTMGoldilocksEncoder:
 
         assert output.shape == (4, 10, 16)
 
-    def test_forward_without_ptm(self, encoder):
+    def test_forward_without_ptm(self, encoder, cpu_device):
         """Forward should work without PTM states."""
-        aa_indices = torch.randint(1, 21, (2, 5))
+        aa_indices = torch.randint(1, 21, (2, 5), device=cpu_device)
         output = encoder(aa_indices)
 
         assert output.shape == (2, 5, 16)
@@ -91,14 +104,14 @@ class TestPTMGoldilocksEncoder:
         norms = torch.norm(output, dim=-1)
         assert torch.all(norms < 1.0)
 
-    def test_entropy_change_computation(self, encoder):
+    def test_entropy_change_computation(self, encoder, cpu_device):
         """Entropy change should be computable between embeddings."""
         batch_size = 2
         seq_len = 5
 
-        aa = torch.randint(1, 21, (batch_size, seq_len))
-        no_ptm = torch.zeros(batch_size, seq_len, dtype=torch.long)
-        with_ptm = torch.full((batch_size, seq_len), PTMType.CITRULLINATION)
+        aa = torch.randint(1, 21, (batch_size, seq_len), device=cpu_device)
+        no_ptm = torch.zeros(batch_size, seq_len, dtype=torch.long, device=cpu_device)
+        with_ptm = torch.full((batch_size, seq_len), PTMType.CITRULLINATION, device=cpu_device)
 
         z_native = encoder(aa, no_ptm)
         z_modified = encoder(aa, with_ptm)
@@ -128,14 +141,14 @@ class TestPTMGoldilocksEncoder:
         assert in_zone[3].item() is False
         assert zone_dist is not None
 
-    def test_immunogenicity_score(self, encoder):
+    def test_immunogenicity_score(self, encoder, cpu_device):
         """Comprehensive immunogenicity score should be computable."""
         batch_size = 2
         seq_len = 5
 
-        aa = torch.randint(1, 21, (batch_size, seq_len))
-        no_ptm = torch.zeros(batch_size, seq_len, dtype=torch.long)
-        with_ptm = torch.full((batch_size, seq_len), PTMType.CITRULLINATION)
+        aa = torch.randint(1, 21, (batch_size, seq_len), device=cpu_device)
+        no_ptm = torch.zeros(batch_size, seq_len, dtype=torch.long, device=cpu_device)
+        with_ptm = torch.full((batch_size, seq_len), PTMType.CITRULLINATION, device=cpu_device)
 
         z_native = encoder(aa, no_ptm)
         z_modified = encoder(aa, with_ptm)
@@ -150,7 +163,7 @@ class TestPTMGoldilocksEncoder:
 
         assert result["immunogenicity_score"].shape == (batch_size,)
 
-    def test_ptm_shift_vector(self, encoder):
+    def test_ptm_shift_vector(self, encoder, cpu_device):
         """PTM shift vector should be computable."""
         # Test citrullination of arginine (index 15)
         shift = encoder.get_ptm_shift_vector(15, PTMType.CITRULLINATION)

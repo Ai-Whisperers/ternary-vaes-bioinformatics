@@ -52,6 +52,22 @@ def cuda_available() -> bool:
     return torch.cuda.is_available()
 
 
+@pytest.fixture(autouse=True)
+def clear_manifold_cache():
+    """Clear the geoopt manifold cache before each test.
+
+    This prevents device mismatch issues when tests run on different devices.
+    The cache is cleared before each test to ensure fresh manifolds.
+    """
+    try:
+        from src.geometry.poincare import _manifold_cache
+
+        _manifold_cache.clear()
+    except ImportError:
+        pass  # Module not available in all test contexts
+    yield
+
+
 # =============================================================================
 # Random Seed Fixtures
 # =============================================================================
