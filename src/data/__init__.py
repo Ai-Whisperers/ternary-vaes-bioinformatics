@@ -7,11 +7,21 @@
 
 """Data generation and loading components.
 
-This module handles ternary operation data:
+This module handles:
+- Ternary operation data (generation, datasets, loaders)
+- HIV bioinformatics data (Stanford HIVDB, CATNAP, CTL epitopes, etc.)
+
+Ternary operations:
 - generation: Generate all possible ternary operations
 - dataset: Dataset classes for ternary operations
 - loaders: DataLoader creation and configuration
-- gpu_resident: GPU-resident dataset for zero-transfer training (P2 optimization)
+- gpu_resident: GPU-resident dataset for zero-transfer training
+
+HIV data (src.data.hiv):
+- Stanford HIVDB drug resistance (7,154 records)
+- CATNAP neutralization assays (189,879 records)
+- LANL CTL epitopes (2,116 epitopes)
+- External datasets (HuggingFace, Zenodo, GitHub, Kaggle)
 """
 
 from .dataset import TernaryOperationDataset

@@ -6,6 +6,19 @@ All notable changes to the Ternary VAE Bioinformatics project.
 
 ## [Unreleased]
 
+### Research Archive Organization (2025-12-26)
+- **Research Implementation Status** - New master index created
+  - `RESEARCH_IMPLEMENTATION_STATUS.md` - Tracks 12 implemented, 7 validated, 8 proposed
+  - Clear separation of IMPLEMENTED vs PROPOSED research
+  - Cross-references between proposals and `src/` code locations
+- **Research Master Index** - Consolidated navigation
+  - `RESEARCH_MASTER_INDEX.md` - Single entry point for all research docs
+  - 98+ paper summaries indexed by topic
+  - Links to RESEARCH_LIBRARY, RESEARCH_PROPOSALS, and results
+- **RESEARCH_PROPOSALS Cleanup** - Updated README with accurate status
+  - Corrected implementation labels for numbered proposals (01-08)
+  - Added implementation status indicators [IMPLEMENTED] / [PROPOSED]
+
 ### Reorganized (2025-12-26)
 - **HIV Documentation** - Moved from `research/.../hiv/documentation/` to `DOCUMENTATION/.../HIV_PADIC_ANALYSIS/`
   - 27 documents organized into 6 sections (Overview, Findings, Methodology, Reference, Implementation, Supplementary)
