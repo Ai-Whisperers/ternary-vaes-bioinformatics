@@ -3,25 +3,17 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""High-level optimization workflows for sequence and structure design.
+"""DEPRECATED: Use src.analysis.codon_optimization instead."""
 
-This package provides optimization workflows for designing biological
-sequences with specific properties, particularly focused on avoiding
-autoimmune triggers through p-adic analysis.
+import warnings
 
-Note:
-    This module contains application-specific optimization WORKFLOWS.
-    For low-level optimizer implementations (Riemannian, NSGA-II, etc.),
-    see src/optimizers/ instead.
+warnings.warn(
+    "src.optimization is deprecated. Use src.analysis.codon_optimization instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-    - src/optimization/ (this) = What to optimize (sequence design workflows)
-    - src/optimizers/ = How to optimize (optimizer algorithms)
-
-Modules:
-    - citrullination_optimizer: Codon optimization for citrullination safety
-"""
-
-from .citrullination_optimizer import (
+from src.analysis.codon_optimization import (
     CitrullinationBoundaryOptimizer,
     CodonChoice,
     CodonContextOptimizer,

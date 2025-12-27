@@ -3,9 +3,17 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Stability prediction modules for mRNA and protein sequences."""
+"""DEPRECATED: Use src.analysis.mrna_stability instead."""
 
-from .mrna_stability import (
+import warnings
+
+warnings.warn(
+    "src.stability is deprecated. Use src.analysis.mrna_stability instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from src.analysis.mrna_stability import (
     CODON_STABILITY_SCORES,
     MFEEstimator,
     mRNAStabilityPredictor,

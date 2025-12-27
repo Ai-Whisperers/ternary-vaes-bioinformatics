@@ -3,9 +3,17 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Evolution analysis modules for viral mutation prediction."""
+"""DEPRECATED: Use src.analysis.evolution instead."""
 
-from .viral_evolution import (
+import warnings
+
+warnings.warn(
+    "src.evolution is deprecated. Use src.analysis.evolution instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
+
+from src.analysis.evolution import (
     AMINO_ACID_PROPERTIES,
     EscapeMutation,
     EscapePrediction,

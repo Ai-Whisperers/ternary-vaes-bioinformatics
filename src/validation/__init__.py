@@ -2,19 +2,18 @@
 #
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
-#
-# For commercial licensing inquiries: support@aiwhisperers.com
 
-"""Validation modules for testing hypotheses.
+"""DEPRECATED: Use src.analysis.immune_validation instead."""
 
-This package provides tools for validating the Goldilocks Zone hypothesis
-and other theoretical predictions against experimental data.
+import warnings
 
-Modules:
-    - nobel_immune: Validation using immune recognition thresholds
-"""
+warnings.warn(
+    "src.validation is deprecated. Use src.analysis.immune_validation instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
-from .nobel_immune import (
+from src.analysis.immune_validation import (
     GoldilocksZoneValidator,
     ImmuneThresholdData,
     NobelImmuneValidator,
