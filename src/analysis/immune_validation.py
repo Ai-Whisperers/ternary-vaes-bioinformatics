@@ -22,7 +22,7 @@ The 15-30% p-adic distance shift corresponds to experimentally observed
 immune activation thresholds - the boundary between tolerance and response.
 
 Usage:
-    from src.validation.nobel_immune import NobelImmuneValidator
+    from src.analysis.immune_validation import NobelImmuneValidator
 
     validator = NobelImmuneValidator()
     result = validator.validate_threshold(experimental_data)

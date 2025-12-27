@@ -38,7 +38,7 @@ from .losses import (
 )
 
 # Metrics
-from .metrics import compute_ranking_correlation_hyperbolic
+from .core.metrics import compute_ranking_correlation_hyperbolic
 
 # Canonical model (V5.11)
 from .models.ternary_vae import (

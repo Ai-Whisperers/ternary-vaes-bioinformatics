@@ -31,7 +31,7 @@ from torch.utils.data import DataLoader
 
 logger = logging.getLogger(__name__)
 
-from ..artifacts import CheckpointManager
+from .checkpoint_manager import CheckpointManager
 from ..config.constants import N_TERNARY_OPERATIONS
 from ..losses import DualVAELoss, RadialStratificationLoss
 from ..models.curriculum import ContinuousCurriculumModule

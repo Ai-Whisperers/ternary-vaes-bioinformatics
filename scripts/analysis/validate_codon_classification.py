@@ -30,7 +30,7 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 
-from src.classifiers.padic_classifiers import CodonClassifier, PAdicKNN
+from src.analysis.classifiers import CodonClassifier, PAdicKNN
 from src.core.padic_math import padic_distance
 
 

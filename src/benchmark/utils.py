@@ -143,7 +143,7 @@ def load_checkpoint_safe(
         Checkpoint dict with 'epoch' key (or {'epoch': 'init'} on failure)
     """
     # Lazy import to allow sys.path.append in calling script
-    from src.artifacts import CheckpointManager
+    from src.training import CheckpointManager
 
     checkpoint_path = Path(checkpoint_dir)
     if not checkpoint_path.exists():

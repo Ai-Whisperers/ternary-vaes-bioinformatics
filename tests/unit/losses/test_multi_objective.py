@@ -1,6 +1,6 @@
 import torch
 
-from src.optimizers.multi_objective import ParetoFrontOptimizer
+from src.training.optimizers.multi_objective import ParetoFrontOptimizer
 
 
 def test_pareto_dominance():

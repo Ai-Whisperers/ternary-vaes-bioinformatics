@@ -8,7 +8,7 @@
 import pytest
 import torch
 
-from src.evolution.viral_evolution import (
+from src.analysis.evolution import (
     AMINO_ACID_PROPERTIES,
     EscapeMutation,
     EvolutionaryPressure,

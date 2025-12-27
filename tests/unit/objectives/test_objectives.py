@@ -306,7 +306,7 @@ class TestIntegration:
 
     def test_pareto_integration(self):
         """Test integration with ParetoFrontOptimizer."""
-        from src.optimizers.multi_objective import ParetoFrontOptimizer
+        from src.training.optimizers.multi_objective import ParetoFrontOptimizer
 
         registry = (
             ObjectiveRegistry()

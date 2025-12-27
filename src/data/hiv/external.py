@@ -20,12 +20,12 @@ import warnings
 
 import pandas as pd
 
-from src.research import get_project_root
+from src.config.paths import PROJECT_ROOT
 
 
 def _get_external_dir() -> Path:
     """Get the external data directory."""
-    return get_project_root() / "data" / "external"
+    return PROJECT_ROOT / "data" / "external"
 
 
 def load_v3_coreceptor() -> pd.DataFrame:

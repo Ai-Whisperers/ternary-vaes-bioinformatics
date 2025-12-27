@@ -151,6 +151,15 @@ def ensure_dirs(*dirs: Path) -> None:
         dir_path.mkdir(parents=True, exist_ok=True)
 
 
+def get_project_root() -> Path:
+    """Get the project root directory.
+
+    Returns:
+        Path to project root
+    """
+    return PROJECT_ROOT
+
+
 def get_checkpoint_path(name: str, version: str | None = None) -> Path:
     """Get path to a model checkpoint.
 
@@ -350,6 +359,7 @@ __all__ = [
     "DELIVERABLES_DIR",
     # Functions
     "ensure_dirs",
+    "get_project_root",
     "get_checkpoint_path",
     "get_results_path",
     "get_data_path",

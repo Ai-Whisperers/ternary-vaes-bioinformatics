@@ -7,7 +7,7 @@
 
 import pytest
 
-from src.validation.nobel_immune import (
+from src.analysis.immune_validation import (
     REFERENCE_THRESHOLDS,
     GoldilocksZoneValidator,
     ImmuneResponse,
@@ -250,7 +250,7 @@ class TestMHCClass:
 # NEW TESTS FOR EXPERIMENTAL DATA AND VALIDATION PIPELINE
 # =============================================================================
 
-from src.validation.nobel_immune import (
+from src.analysis.immune_validation import (
     SELF_PEPTIDE_REFERENCES,
     NONSELF_PEPTIDE_REFERENCES,
     AUTOIMMUNE_PEPTIDES,

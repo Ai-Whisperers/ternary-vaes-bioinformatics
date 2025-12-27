@@ -20,7 +20,7 @@ The 3-adic framework is particularly suited for:
     - CRISPR off-target risk assessment
 
 Usage:
-    from src.classifiers.padic_classifiers import PAdicKNN
+    from src.analysis.classifiers import PAdicKNN
 
     clf = PAdicKNN(k=5, p=3)
     clf.fit(X_train, y_train)

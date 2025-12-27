@@ -8,7 +8,7 @@
 import pytest
 import torch
 
-from src.stability.mrna_stability import (
+from src.analysis.mrna_stability import (
     CODON_STABILITY_SCORES,
     MFEEstimator,
     SecondaryStructurePredictor,

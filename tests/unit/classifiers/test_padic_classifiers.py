@@ -15,7 +15,7 @@ Tests cover:
 import numpy as np
 import pytest
 
-from src.classifiers.padic_classifiers import (
+from src.analysis.classifiers import (
     ClassificationResult,
     CodonClassifier,
     GoldilocksZoneClassifier,

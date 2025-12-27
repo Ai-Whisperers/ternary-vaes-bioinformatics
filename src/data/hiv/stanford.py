@@ -20,12 +20,12 @@ from typing import Optional
 
 import pandas as pd
 
-from src.research import get_project_root
+from src.config.paths import PROJECT_ROOT
 
 
 def _get_data_dir() -> Path:
     """Get the research datasets directory."""
-    return get_project_root() / "data" / "research" / "datasets"
+    return PROJECT_ROOT / "data" / "research" / "datasets"
 
 
 def load_stanford_hivdb(drug_class: str = "all") -> pd.DataFrame:

@@ -8,7 +8,7 @@
 import pytest
 import torch
 
-from src.optimization.citrullination_optimizer import (
+from src.analysis.codon_optimization import (
     CitrullinationBoundaryOptimizer,
     CodonChoice,
     CodonContextOptimizer,

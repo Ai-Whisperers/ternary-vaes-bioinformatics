@@ -25,7 +25,7 @@ from tabulate import tabulate
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.data import generate_all_ternary_operations
-from src.metrics import compute_ranking_correlation_hyperbolic
+from src.core.metrics import compute_ranking_correlation_hyperbolic
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 from src.models.ternary_vae_v5_10 import DualNeuralVAEV5_10
 from src.utils.metrics import compute_latent_entropy, evaluate_coverage

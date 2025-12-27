@@ -24,7 +24,7 @@ import pytest
 import torch
 import torch.nn as nn
 
-from src.artifacts.checkpoint_manager import AsyncCheckpointSaver, CheckpointManager
+from src.training.checkpoint_manager import AsyncCheckpointSaver, CheckpointManager
 
 
 # =============================================================================
