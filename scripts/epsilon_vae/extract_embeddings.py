@@ -33,6 +33,7 @@ import torch
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.epsilon_vae import extract_key_weights
 
@@ -249,9 +250,9 @@ def find_all_checkpoints(checkpoint_dir: Path) -> list:
 
 def main():
     parser = argparse.ArgumentParser(description="Extract embeddings from checkpoints")
-    parser.add_argument("--checkpoint_dir", type=str, default="sandbox-training/checkpoints",
+    parser.add_argument("--checkpoint_dir", type=str, default=str(CHECKPOINTS_DIR),
                        help="Directory containing checkpoint subdirectories")
-    parser.add_argument("--output_dir", type=str, default="sandbox-training/epsilon_vae_hybrid",
+    parser.add_argument("--output_dir", type=str, default=str(OUTPUT_DIR / "epsilon_vae_hybrid"),
                        help="Output directory for extracted data")
     parser.add_argument("--n_anchors", type=int, default=256,
                        help="Number of anchor operations")
@@ -263,8 +264,8 @@ def main():
                        help="Maximum number of checkpoints to process")
     args = parser.parse_args()
 
-    checkpoint_dir = PROJECT_ROOT / args.checkpoint_dir
-    output_dir = PROJECT_ROOT / args.output_dir
+    checkpoint_dir = Path(args.checkpoint_dir)
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     device = args.device if torch.cuda.is_available() else "cpu"

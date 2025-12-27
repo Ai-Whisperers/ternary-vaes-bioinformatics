@@ -39,6 +39,7 @@ from torch.utils.data import DataLoader, TensorDataset
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.data.generation import generate_all_ternary_operations
 from scripts.epsilon_vae.fractional_padic_architecture import (
     compute_padic_dimensions,
@@ -446,7 +447,7 @@ def run_interpolation(
     Returns:
         Interpolation results
     """
-    output_dir = output_dir or PROJECT_ROOT / "sandbox-training/fractional_padic"
+    output_dir = output_dir or OUTPUT_DIR / "fractional_padic"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     results = {
@@ -457,7 +458,7 @@ def run_interpolation(
     }
 
     # Load baseline model if this is starting at p=3
-    baseline_path = baseline_checkpoint or PROJECT_ROOT / "sandbox-training/checkpoints/v5_11_progressive/best.pt"
+    baseline_path = baseline_checkpoint or CHECKPOINTS_DIR / "v5_11_progressive" / "best.pt"
     if p_values[0] <= 3.0 and baseline_path.exists():
         print(f"\nLoading baseline from {baseline_path}")
         baseline_model = load_baseline_model(baseline_path, device)
@@ -591,13 +592,13 @@ def main():
     parser.add_argument("--epochs_per_p", type=int, default=30)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/fractional_padic")
+                       default=str(OUTPUT_DIR / "fractional_padic"))
     parser.add_argument("--full_run", action="store_true",
                        help="Run full interpolation to p=6")
     args = parser.parse_args()
 
     device = args.device if torch.cuda.is_available() else "cpu"
-    output_dir = PROJECT_ROOT / args.output_dir
+    output_dir = Path(args.output_dir)
 
     # Create interpolation schedule
     if args.full_run:

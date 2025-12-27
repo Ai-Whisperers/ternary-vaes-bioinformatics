@@ -31,6 +31,7 @@ from sklearn.manifold import TSNE
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from scripts.epsilon_vae.extract_embeddings import (
     load_model_from_checkpoint,
     select_anchor_operations,
@@ -437,13 +438,13 @@ def visualize_embedding_evolution(trajectory: dict, output_dir: Path):
 def main():
     parser = argparse.ArgumentParser(description="Analyze progressive checkpoints with Epsilon-VAE")
     parser.add_argument("--epsilon_vae_path", type=str,
-                       default="sandbox-training/epsilon_vae_hybrid_models/best.pt",
+                       default=str(OUTPUT_DIR / "epsilon_vae_hybrid_models" / "best.pt"),
                        help="Path to trained Epsilon-VAE")
     parser.add_argument("--checkpoint_dir", type=str,
-                       default="sandbox-training/checkpoints",
+                       default=str(CHECKPOINTS_DIR),
                        help="Root checkpoint directory")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/epsilon_vae_analysis",
+                       default=str(OUTPUT_DIR / "epsilon_vae_analysis"),
                        help="Output directory for results")
     parser.add_argument("--runs", nargs="+",
                        default=["progressive_tiny_lr", "progressive_conservative"],
@@ -452,9 +453,9 @@ def main():
                        help="Device to use")
     args = parser.parse_args()
 
-    epsilon_vae_path = PROJECT_ROOT / args.epsilon_vae_path
-    checkpoint_dir = PROJECT_ROOT / args.checkpoint_dir
-    output_dir = PROJECT_ROOT / args.output_dir
+    epsilon_vae_path = Path(args.epsilon_vae_path)
+    checkpoint_dir = Path(args.checkpoint_dir)
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     device = args.device if torch.cuda.is_available() else "cpu"

@@ -47,6 +47,7 @@ from torch.utils.tensorboard import SummaryWriter
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.core import TERNARY
 from src.data.generation import generate_all_ternary_operations
 from src.geometry import get_riemannian_optimizer
@@ -65,13 +66,13 @@ def parse_args():
     parser.add_argument(
         "--v5_5_checkpoint",
         type=str,
-        default="sandbox-training/checkpoints/v5_5/latest.pt",
+        default=str(CHECKPOINTS_DIR / "v5_5" / "latest.pt"),
         help="Path to v5.5 checkpoint",
     )
     parser.add_argument(
         "--save_dir",
         type=str,
-        default="sandbox-training/checkpoints/ternary",
+        default=str(CHECKPOINTS_DIR / "ternary"),
         help="Directory to save checkpoints",
     )
     parser.add_argument(
@@ -825,13 +826,14 @@ def main():
         variant_parts.append("dual")
     variant = "_".join(variant_parts)
 
-    default_save_dir = f"sandbox-training/checkpoints/ternary_{variant}"
+    default_save_dir = str(CHECKPOINTS_DIR / f"ternary_{variant}")
     save_dir = Path(config.get("save_dir", default_save_dir))
     save_dir.mkdir(parents=True, exist_ok=True)
 
     # Setup TensorBoard
+    from src.config.paths import RUNS_DIR
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_dir = Path("runs") / f"ternary_{variant}_{timestamp}"
+    log_dir = RUNS_DIR / f"ternary_{variant}_{timestamp}"
     writer = SummaryWriter(log_dir=str(log_dir))
 
     # Create model (Option A or Option C, with optional dual projection)
@@ -874,7 +876,7 @@ def main():
         )
 
     # Load v5.5 checkpoint
-    v5_5_path = Path(config.get("v5_5_checkpoint", "sandbox-training/checkpoints/v5_5/latest.pt"))
+    v5_5_path = Path(config.get("v5_5_checkpoint", str(CHECKPOINTS_DIR / "v5_5" / "latest.pt")))
     if not v5_5_path.exists():
         print(f"ERROR: v5.5 checkpoint not found at {v5_5_path}")
         sys.exit(1)

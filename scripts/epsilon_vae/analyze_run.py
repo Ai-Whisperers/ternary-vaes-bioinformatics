@@ -29,7 +29,7 @@ import numpy as np
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config.paths import OUTPUT_DIR
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.models.epsilon_vae import extract_key_weights
 
 
@@ -340,7 +340,7 @@ def main():
     print(f"Model loaded (latent_dim={latent_dim}, val_mae={ckpt.get('val_mae', 'N/A')})")
 
     # Analyze run
-    run_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / args.run
+    run_dir = CHECKPOINTS_DIR / args.run
 
     if not run_dir.exists():
         print(f"ERROR: Run directory not found: {run_dir}")
@@ -356,7 +356,7 @@ def main():
     print_detailed_analysis(results)
 
     # Save results
-    output_path = PROJECT_ROOT / "sandbox-training" / "epsilon_vae_data" / f"analysis_{args.run}.json"
+    output_path = OUTPUT_DIR / "epsilon_vae_data" / f"analysis_{args.run}.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     def convert_to_serializable(obj):

@@ -32,6 +32,7 @@ import torch
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.data.generation import generate_all_ternary_operations
 
 
@@ -370,10 +371,10 @@ IMPLICATION FOR P-ADIC GENERALIZATION:
 def main():
     parser = argparse.ArgumentParser(description="Analyze p-adic structure in encoder")
     parser.add_argument("--checkpoint_dir", type=str,
-                       default="sandbox-training/checkpoints",
+                       default=str(CHECKPOINTS_DIR),
                        help="Root checkpoint directory")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/epsilon_vae_analysis/padic_analysis",
+                       default=str(OUTPUT_DIR / "epsilon_vae_analysis" / "padic_analysis"),
                        help="Output directory")
     parser.add_argument("--runs", nargs="+",
                        default=["progressive_tiny_lr", "v5_11_progressive"],
@@ -382,8 +383,8 @@ def main():
                        help="Device to use")
     args = parser.parse_args()
 
-    checkpoint_dir = PROJECT_ROOT / args.checkpoint_dir
-    output_dir = PROJECT_ROOT / args.output_dir
+    checkpoint_dir = Path(args.checkpoint_dir)
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     device = args.device if torch.cuda.is_available() else "cpu"

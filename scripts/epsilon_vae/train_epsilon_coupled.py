@@ -33,8 +33,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 
 # Add project root to path
-sys.path.insert(0, os.getcwd())
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.core import TERNARY
 from src.losses import GlobalRankLoss, PAdicGeodesicLoss, RadialHierarchyLoss
 from src.models import TernaryVAEV5_11_PartialFreeze
@@ -56,12 +58,12 @@ def parse_args():
 
     # Checkpoints
     parser.add_argument("--v5_5_checkpoint", type=str,
-                        default="sandbox-training/checkpoints/v5_5/latest.pt",
+                        default=str(CHECKPOINTS_DIR / "v5_5" / "latest.pt"),
                         help="Path to v5.5 base checkpoint")
     parser.add_argument("--epsilon_checkpoint", type=str, default=None,
                         help="Path to pretrained Epsilon-VAE (optional)")
     parser.add_argument("--save_dir", type=str,
-                        default="sandbox-training/checkpoints/v5_11_epsilon_coupled",
+                        default=str(CHECKPOINTS_DIR / "v5_11_epsilon_coupled"),
                         help="Directory to save checkpoints")
 
     # Controller settings

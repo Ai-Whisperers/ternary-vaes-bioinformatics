@@ -36,6 +36,7 @@ from torch.utils.data import DataLoader, TensorDataset
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11
 
@@ -319,7 +320,7 @@ def train_incremental(
 def main():
     parser = argparse.ArgumentParser(description="Incremental p-adic expansion")
     parser.add_argument("--baseline_checkpoint", type=str,
-                       default="sandbox-training/checkpoints/v5_11_progressive/best.pt")
+                       default=str(CHECKPOINTS_DIR / "v5_11_progressive" / "best.pt"))
     parser.add_argument("--target_p", type=float, default=3.1,
                        help="Target p value")
     parser.add_argument("--steps", type=int, default=1,
@@ -328,11 +329,11 @@ def main():
     parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/incremental_padic")
+                       default=str(OUTPUT_DIR / "incremental_padic"))
     args = parser.parse_args()
 
     device = args.device if torch.cuda.is_available() else "cpu"
-    output_dir = PROJECT_ROOT / args.output_dir
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*70}")
@@ -343,7 +344,7 @@ def main():
     print(f"Device: {device}")
 
     # Load baseline
-    baseline_path = PROJECT_ROOT / args.baseline_checkpoint
+    baseline_path = Path(args.baseline_checkpoint)
     model = load_baseline_model(baseline_path, device)
 
     # Generate base operations

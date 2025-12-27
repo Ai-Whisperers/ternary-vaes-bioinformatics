@@ -42,6 +42,7 @@ import torch.optim as optim
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11
 
@@ -321,7 +322,7 @@ def train_optimized_p3(
     Returns:
         Training history
     """
-    output_dir = output_dir or PROJECT_ROOT / "sandbox-training/p3_optimized"
+    output_dir = output_dir or OUTPUT_DIR / "p3_optimized"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     # Initialize gradual unfreezer
@@ -478,10 +479,10 @@ def train_optimized_p3(
 def main():
     parser = argparse.ArgumentParser(description="Optimize p=3 baseline")
     parser.add_argument("--checkpoint", type=str,
-                       default="sandbox-training/checkpoints/v5_11_progressive/best.pt",
+                       default=str(CHECKPOINTS_DIR / "v5_11_progressive" / "best.pt"),
                        help="Reference checkpoint path")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/p3_optimized",
+                       default=str(OUTPUT_DIR / "p3_optimized"),
                        help="Output directory")
     parser.add_argument("--epochs", type=int, default=100)
     parser.add_argument("--lr", type=float, default=1e-4)
@@ -489,8 +490,8 @@ def main():
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
-    checkpoint_path = PROJECT_ROOT / args.checkpoint
-    output_dir = PROJECT_ROOT / args.output_dir
+    checkpoint_path = Path(args.checkpoint)
+    output_dir = Path(args.output_dir)
 
     device = args.device if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")

@@ -36,6 +36,7 @@ from scipy.stats import spearmanr
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR, OUTPUT_DIR
 from src.core import TERNARY
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11
@@ -302,19 +303,19 @@ TRADE-OFF: {'COMPLEMENTARY' if frozen_metrics['coverage'] >= 0.99 and unfrozen_m
 def main():
     parser = argparse.ArgumentParser(description="Compare frozen vs unfrozen encoder")
     parser.add_argument("--frozen_checkpoint", type=str,
-                       default="sandbox-training/checkpoints/v5_11_progressive/best.pt",
+                       default=str(CHECKPOINTS_DIR / "v5_11_progressive" / "best.pt"),
                        help="Path to frozen encoder checkpoint")
     parser.add_argument("--unfrozen_checkpoint", type=str,
-                       default="sandbox-training/checkpoints/progressive_tiny_lr/best.pt",
+                       default=str(CHECKPOINTS_DIR / "progressive_tiny_lr" / "best.pt"),
                        help="Path to unfrozen encoder checkpoint")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/epsilon_vae_analysis/frozen_vs_unfrozen",
+                       default=str(OUTPUT_DIR / "epsilon_vae_analysis" / "frozen_vs_unfrozen"),
                        help="Output directory")
     parser.add_argument("--device", type=str, default="cuda")
     args = parser.parse_args()
 
     device = args.device if torch.cuda.is_available() else "cpu"
-    output_dir = PROJECT_ROOT / args.output_dir
+    output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print(f"\n{'='*70}")

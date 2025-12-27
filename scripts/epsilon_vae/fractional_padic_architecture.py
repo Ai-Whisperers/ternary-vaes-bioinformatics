@@ -56,6 +56,8 @@ import torch.nn as nn
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import OUTPUT_DIR
+
 
 def compute_padic_dimensions(p: float) -> dict:
     """Compute architectural dimensions for fractional p.
@@ -424,11 +426,11 @@ def main():
                        default=[3.0, 3.1, 3.25, 3.5, 4.0, 5.0, 6.0],
                        help="P values to analyze")
     parser.add_argument("--output_dir", type=str,
-                       default="sandbox-training/epsilon_vae_analysis/fractional_padic",
+                       default=str(OUTPUT_DIR / "epsilon_vae_analysis" / "fractional_padic"),
                        help="Output directory")
     args = parser.parse_args()
 
-    output_dir = PROJECT_ROOT / args.output_dir
+    output_dir = Path(args.output_dir)
 
     # Analyze interpolation path
     results = analyze_p_interpolation_path(args.p_values, output_dir)
