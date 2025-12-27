@@ -119,6 +119,19 @@ from .ancestry import (
     TreeNode,
 )
 
+# Interpretability analysis
+from .interpretability import (
+    FeatureImportance,
+    IntegratedGradients,
+    GradientSHAP,
+    AttentionAnalyzer,
+    ResistanceMutationValidator,
+    LatentSpaceAnalyzer,
+    compute_feature_importance,
+    compute_position_importance,
+    extract_top_mutations,
+)
+
 __all__ = [
     # Geometry
     "compute_pairwise_distances",
@@ -195,4 +208,14 @@ __all__ = [
     "PhylogeneticReconstructor",
     "ReconstructionConfig",
     "TreeNode",
+    # Interpretability analysis
+    "FeatureImportance",
+    "IntegratedGradients",
+    "GradientSHAP",
+    "AttentionAnalyzer",
+    "ResistanceMutationValidator",
+    "LatentSpaceAnalyzer",
+    "compute_feature_importance",
+    "compute_position_importance",
+    "extract_top_mutations",
 ]

@@ -141,12 +141,8 @@ def load_stanford_data(drug_class: str = "pi") -> Tuple[pd.DataFrame, List[str],
     df = pd.read_csv(filepath, sep="\t", low_memory=False)
 
     # Get position columns
-    if drug_class == "pi":
-        prefix = "P"
-    elif drug_class in ["nrti", "nnrti"]:
-        prefix = "RT"
-    else:
-        prefix = "IN"
+    # All Stanford HIVDB files use "P" prefix for position columns
+    prefix = "P"
 
     position_cols = [col for col in df.columns if col.startswith(prefix) and col[len(prefix):].isdigit()]
     position_cols = sorted(position_cols, key=lambda x: int(x[len(prefix):]))
