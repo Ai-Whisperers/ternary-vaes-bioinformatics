@@ -471,10 +471,10 @@ def print_analysis(df: pd.DataFrame, analysis: Dict[str, Any]):
 
     print("\n2. INDIVIDUAL MODULE CONTRIBUTIONS")
     print("-" * 70)
-    print(f"{'Module':<20} {'Accuracy Δ':<15} {'Correlation Δ':<15}")
+    print(f"{'Module':<20} {'Accuracy Delta':<18} {'Correlation Delta':<18}")
     print("-" * 70)
     for module, contrib in analysis["individual_contributions"].items():
-        print(f"{module:<20} {contrib['accuracy_delta']:+.1%}          {contrib['correlation_delta']:+.4f}")
+        print(f"{module:<20} {contrib['accuracy_delta']:+.1%}             {contrib['correlation_delta']:+.4f}")
 
     print("\n3. BEST CONFIGURATIONS BY CORRELATION")
     print("-" * 70)

@@ -448,6 +448,56 @@ class KFACOptimizer(Optimizer):
             state["A"] = decay * state["A"] + (1 - decay) * A_new
             state["S"] = decay * state["S"] + (1 - decay) * S_new
 
+    def _safe_inverse(
+        self,
+        matrix: torch.Tensor,
+        damping: float,
+        max_damping: float = 1.0,
+        damping_factor: float = 10.0,
+    ) -> torch.Tensor:
+        """Numerically stable matrix inverse with adaptive damping.
+
+        Args:
+            matrix: Matrix to invert
+            damping: Initial damping value
+            max_damping: Maximum damping before giving up
+            damping_factor: Factor to increase damping on failure
+
+        Returns:
+            Inverse matrix, or identity-scaled approximation if inversion fails
+        """
+        device = matrix.device
+        n = matrix.size(0)
+        current_damping = damping
+
+        while current_damping <= max_damping:
+            damped = matrix + current_damping * torch.eye(n, device=device)
+
+            try:
+                # Try Cholesky decomposition first (faster, more stable for SPD)
+                L = torch.linalg.cholesky(damped)
+                return torch.cholesky_inverse(L)
+            except RuntimeError:
+                pass
+
+            try:
+                # Fall back to standard inverse
+                return torch.linalg.inv(damped)
+            except RuntimeError:
+                pass
+
+            try:
+                # Try pseudoinverse (SVD-based, most robust)
+                return torch.linalg.pinv(damped)
+            except RuntimeError:
+                pass
+
+            # Increase damping and retry
+            current_damping *= damping_factor
+
+        # Last resort: return scaled identity (equivalent to SGD step)
+        return torch.eye(n, device=device) / damping
+
     def _compute_natural_grad(
         self,
         name: str,
@@ -461,21 +511,36 @@ class KFACOptimizer(Optimizer):
         if A is None or S is None:
             return grad  # Fall back to standard gradient
 
-        # Add damping
-        A = A + self.damping * torch.eye(A.size(0), device=A.device)
-        S = S + self.damping * torch.eye(S.size(0), device=S.device)
+        # Check for numerical issues
+        if torch.isnan(A).any() or torch.isnan(S).any():
+            return grad  # Fall back on NaN
 
-        # Invert
-        A_inv = torch.linalg.inv(A)
-        S_inv = torch.linalg.inv(S)
+        if torch.isinf(A).any() or torch.isinf(S).any():
+            return grad  # Fall back on Inf
+
+        # Safe inversion with adaptive damping
+        A_inv = self._safe_inverse(A, self.damping)
+        S_inv = self._safe_inverse(S, self.damping)
 
         # Natural gradient: (A^{-1} tensor S^{-1}) vec(G) = vec(S^{-1} G A^{-1})
-        if grad.dim() == 2:
-            nat_grad = S_inv @ grad @ A_inv[:-1, :-1]  # Exclude bias row/col
-        else:
-            nat_grad = grad  # For bias
+        try:
+            if grad.dim() == 2:
+                # Handle dimension mismatch safely
+                a_size = A_inv.size(0) - 1  # Exclude bias
+                if a_size == grad.size(1):
+                    nat_grad = S_inv @ grad @ A_inv[:-1, :-1]
+                else:
+                    nat_grad = S_inv @ grad @ A_inv[:grad.size(1), :grad.size(1)]
+            else:
+                nat_grad = grad  # For bias
 
-        return nat_grad
+            # Sanity check
+            if torch.isnan(nat_grad).any() or torch.isinf(nat_grad).any():
+                return grad
+
+            return nat_grad
+        except RuntimeError:
+            return grad  # Fall back on any error
 
     @torch.no_grad()
     def step(self, closure: Optional[Callable] = None) -> Optional[torch.Tensor]:
