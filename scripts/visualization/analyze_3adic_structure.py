@@ -34,7 +34,7 @@ from sklearn.decomposition import PCA
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config.paths import VIZ_DIR
+from src.config.paths import CHECKPOINTS_DIR, VIZ_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
@@ -757,7 +757,7 @@ def main():
 
     args = parser.parse_args()
 
-    checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5"
+    checkpoint_dir = CHECKPOINTS_DIR / "v5_5"
     checkpoint_path = checkpoint_dir / args.checkpoint
     output_path = PROJECT_ROOT / args.output
     output_path.mkdir(parents=True, exist_ok=True)

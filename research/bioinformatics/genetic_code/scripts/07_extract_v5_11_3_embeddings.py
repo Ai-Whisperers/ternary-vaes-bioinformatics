@@ -25,6 +25,7 @@ from scipy.stats import spearmanr
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.core import TERNARY
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11_PartialFreeze
@@ -55,7 +56,7 @@ def load_v5_11_3_model(device="cpu"):
     )
 
     # Load v5.5 base checkpoint (frozen encoders)
-    v5_5_path = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5" / "latest.pt"
+    v5_5_path = CHECKPOINTS_DIR / "v5_5" / "latest.pt"
     if not v5_5_path.exists():
         raise FileNotFoundError(f"V5.5 checkpoint not found: {v5_5_path}")
 
@@ -63,7 +64,7 @@ def load_v5_11_3_model(device="cpu"):
     model.load_v5_5_checkpoint(v5_5_path, device=device)
 
     # Load V5.11.3 trained weights (projection layer + encoder_B)
-    v5_11_3_path = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_11_structural" / "best.pt"
+    v5_11_3_path = CHECKPOINTS_DIR / "v5_11_structural" / "best.pt"
     if not v5_11_3_path.exists():
         raise FileNotFoundError(f"V5.11.3 checkpoint not found: {v5_11_3_path}")
 

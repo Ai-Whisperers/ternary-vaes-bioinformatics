@@ -28,12 +28,13 @@ from scipy.stats import spearmanr
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.data.generation import generate_all_ternary_operations
 
 
 def load_v5_5_checkpoint(device: str = "cpu"):
     """Load v5.5 checkpoint."""
-    checkpoint_path = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5" / "latest.pt"
+    checkpoint_path = CHECKPOINTS_DIR / "v5_5" / "latest.pt"
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)
     return checkpoint
 

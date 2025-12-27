@@ -34,6 +34,7 @@ from scipy.spatial import Voronoi, voronoi_plot_2d
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
 
@@ -629,9 +630,9 @@ def main():
 
     # Find latest checkpoint
     checkpoint_dirs = [
-        project_root / "sandbox-training" / "checkpoints" / "v5_6",
-        project_root / "sandbox-training" / "checkpoints" / "v5_5",
-        project_root / "checkpoints",
+        CHECKPOINTS_DIR / "v5_6",
+        CHECKPOINTS_DIR / "v5_5",
+        CHECKPOINTS_DIR,
     ]
 
     checkpoints = []
@@ -644,7 +645,7 @@ def main():
         return
 
     # Prefer 'best.pt' from v5_6
-    best_v56 = project_root / "sandbox-training" / "checkpoints" / "v5_6" / "best.pt"
+    best_v56 = CHECKPOINTS_DIR / "v5_6" / "best.pt"
     if best_v56.exists():
         checkpoint_path = best_v56
     else:

@@ -29,6 +29,7 @@ from sklearn.decomposition import PCA
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.data.generation import generate_all_ternary_operations
 # V5.11 is the canonical model - alias for backwards compatibility
 from src.models import TernaryVAE as DualNeuralVAEV5
@@ -419,7 +420,7 @@ def analyze_training_trajectory(output_path, device="cpu"):
     print("ANALYSIS 3: TRAINING TRAJECTORY")
     print("=" * 60)
 
-    checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5"
+    checkpoint_dir = CHECKPOINTS_DIR / "v5_5"
 
     # Find available checkpoints
     checkpoints = sorted(checkpoint_dir.glob("epoch_*.pt"))
@@ -795,7 +796,7 @@ def main():
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(f"Device: {device}")
 
-    checkpoint_path = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5" / "latest.pt"
+    checkpoint_path = CHECKPOINTS_DIR / "v5_5" / "latest.pt"
     output_path = PROJECT_ROOT / "outputs" / "manifold_viz"
     output_path.mkdir(parents=True, exist_ok=True)
 

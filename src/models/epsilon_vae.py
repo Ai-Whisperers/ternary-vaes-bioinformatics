@@ -21,7 +21,7 @@ Validation Strategy:
 
 Usage:
     # Collect checkpoint data
-    dataset = collect_checkpoint_dataset("sandbox-training/checkpoints")
+    dataset = collect_checkpoint_dataset("outputs/models")
 
     # Split temporally: train on older, validate on newer
     train_data, val_data = split_by_date(dataset, cutoff="2025-12-26")

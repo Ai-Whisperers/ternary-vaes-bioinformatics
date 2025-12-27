@@ -41,6 +41,11 @@ try:
 except ImportError:
     HAS_MODEL_CLASS = False
 
+try:
+    from src.config.paths import CHECKPOINTS_DIR
+except ImportError:
+    CHECKPOINTS_DIR = project_root / "outputs" / "models"
+
 from .pdb_analyzer import HAS_BIOPYTHON, PDBAnalyzer
 
 # Standard genetic code for codon analysis
@@ -159,7 +164,7 @@ class HybridStructurePredictor:
 
         # Model path defaults
         if model_path is None:
-            model_path = project_root / "sandbox-training" / "checkpoints" / "v5_11_11_production" / "best.pt"
+            model_path = CHECKPOINTS_DIR / "v5_11_11_production" / "best.pt"
 
         self.model_path = model_path
         self.model = None

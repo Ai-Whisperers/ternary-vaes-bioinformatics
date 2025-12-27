@@ -547,7 +547,7 @@ def main():
 
     # Load embeddings
     print("\nLoading embeddings...")
-    data = load_embeddings("sandbox-training/checkpoints/v5_5/latest.pt", device)
+    data = load_embeddings(str(CHECKPOINTS_DIR / "v5_5" / "latest.pt"), device)
     z_A = data["z_A"]
 
     # Project to 3D

@@ -33,7 +33,7 @@ from sklearn.decomposition import PCA
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from src.config.paths import VIZ_DIR
+from src.config.paths import CHECKPOINTS_DIR, VIZ_DIR
 from src.data.generation import generate_all_ternary_operations
 # V5.11 is the canonical model - imports V5.6/V5.10 aliases for backwards compatibility
 from src.models import TernaryVAE as DualNeuralVAEV5
@@ -934,9 +934,9 @@ def main():
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.is_absolute():
         if args.model_version == "v5.10":
-            checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_10"
+            checkpoint_dir = CHECKPOINTS_DIR / "v5_10"
         else:
-            checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5"
+            checkpoint_dir = CHECKPOINTS_DIR / "v5_5"
         checkpoint_path = checkpoint_dir / args.checkpoint
 
     output_path = PROJECT_ROOT / args.output

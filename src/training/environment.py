@@ -26,6 +26,8 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 import torch
 
+from src.config.paths import CHECKPOINTS_DIR
+
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
@@ -138,7 +140,7 @@ def validate_environment(
         log_dir = config.log_dir
         tensorboard_dir = getattr(config, "tensorboard_dir", "runs")
     else:
-        checkpoint_dir = config.get("checkpoint_dir", "sandbox-training/checkpoints/v5_10")
+        checkpoint_dir = config.get("checkpoint_dir", str(CHECKPOINTS_DIR / "v5_10"))
         log_dir = config.get("log_dir", "logs")
         tensorboard_dir = config.get("tensorboard_dir", "runs")
 

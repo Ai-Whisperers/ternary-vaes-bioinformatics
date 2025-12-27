@@ -28,12 +28,14 @@ import torch
 PROJECT_ROOT = Path(__file__).resolve().parents[5]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
+
 
 def load_decoder():
     """Load the v5.5 decoder for intervention testing."""
     from src.models.ternary_vae import FrozenDecoder
 
-    checkpoint_path = Path(__file__).parent.parent / "sandbox-training" / "checkpoints" / "v5_5" / "best.pt"
+    checkpoint_path = CHECKPOINTS_DIR / "v5_5" / "best.pt"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     checkpoint = torch.load(checkpoint_path, map_location=device, weights_only=False)

@@ -38,7 +38,7 @@ from skimage import measure
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.config.paths import VIZ_DIR
+from src.config.paths import CHECKPOINTS_DIR, VIZ_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae_v5_6 import DualNeuralVAEV5
 
@@ -497,7 +497,7 @@ def main():
 
     # Load embeddings
     print("\nLoading embeddings...")
-    data = load_embeddings("sandbox-training/checkpoints/v5_5/latest.pt", device)
+    data = load_embeddings(str(CHECKPOINTS_DIR / "v5_5" / "latest.pt"), device)
 
     z_A = data["z_A"]  # (19683, 16)
     z_B = data["z_B"]  # (19683, 16)

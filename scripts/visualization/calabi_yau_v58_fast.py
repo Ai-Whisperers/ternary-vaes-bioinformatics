@@ -13,6 +13,8 @@ Efficient version using vectorized operations and sampling.
 
 import json
 import os
+import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -22,12 +24,15 @@ from projections import quintic_fibration
 from scipy.interpolate import splev, splprep
 from scipy.spatial import KDTree
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.config.paths import CHECKPOINTS_DIR
+
 OUTPUT_DIR = "outputs/viz/calabi_yau_v58"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 print("Loading v5.8 checkpoint...")
 ckpt = torch.load(
-    "sandbox-training/checkpoints/v5_8/latest.pt",
+    str(CHECKPOINTS_DIR / "v5_8" / "latest.pt"),
     map_location="cpu",
     weights_only=False,
 )

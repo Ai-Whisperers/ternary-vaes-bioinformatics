@@ -13,6 +13,8 @@ Cross-references multiple projection methods for comprehensive manifold analysis
 
 import json
 import os
+import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -20,6 +22,9 @@ import torch
 import torch.nn.functional as F
 from scipy.interpolate import splev, splprep
 from scipy.spatial import KDTree
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.config.paths import CHECKPOINTS_DIR
 
 # Canonical projection implementations available in projections.py
 # This script uses specialized variants for extended analysis
@@ -32,7 +37,7 @@ FIBER_LENGTH = 50
 
 print("Loading v5.8 checkpoint...")
 ckpt = torch.load(
-    "sandbox-training/checkpoints/v5_8/latest.pt",
+    str(CHECKPOINTS_DIR / "v5_8" / "latest.pt"),
     map_location="cpu",
     weights_only=False,
 )

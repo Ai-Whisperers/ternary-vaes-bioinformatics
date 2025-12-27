@@ -19,6 +19,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 import numpy as np
 import torch
 
+from src.config.paths import CHECKPOINTS_DIR
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11
 
@@ -182,7 +183,7 @@ def main():
     parser.add_argument(
         "--checkpoint",
         type=str,
-        default="sandbox-training/checkpoints/v5_5/best.pt",
+        default=str(CHECKPOINTS_DIR / "v5_5" / "best.pt"),
         help="Path to checkpoint",
     )
     parser.add_argument(

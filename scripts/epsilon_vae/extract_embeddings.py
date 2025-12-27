@@ -17,7 +17,7 @@ geometric structure of what each checkpoint produces.
 
 Usage:
     python scripts/epsilon_vae/extract_embeddings.py
-    python scripts/epsilon_vae/extract_embeddings.py --n_anchors 256 --output_dir sandbox-training/epsilon_vae_hybrid
+    python scripts/epsilon_vae/extract_embeddings.py --n_anchors 256 --output_dir outputs/epsilon_vae_hybrid
 """
 
 import argparse

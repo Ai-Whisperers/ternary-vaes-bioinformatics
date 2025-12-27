@@ -23,7 +23,7 @@ Strategy:
 
 Usage:
     python scripts/epsilon_vae/optimize_p3_baseline.py
-    python scripts/epsilon_vae/optimize_p3_baseline.py --checkpoint sandbox-training/checkpoints/v5_11_progressive/best.pt
+    python scripts/epsilon_vae/optimize_p3_baseline.py --checkpoint outputs/models/v5_11_progressive/best.pt
 """
 
 import argparse

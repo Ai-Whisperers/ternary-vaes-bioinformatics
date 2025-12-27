@@ -27,6 +27,8 @@ from matplotlib.gridspec import GridSpec
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
+
 
 def load_json(path):
     with open(path) as f:
@@ -604,7 +606,7 @@ def plot_coupled_system(output_path):
 
 def plot_checkpoint_evolution(output_path):
     """Analyze how metrics evolved across checkpoints."""
-    checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints" / "v5_5"
+    checkpoint_dir = CHECKPOINTS_DIR / "v5_5"
 
     checkpoints = sorted(checkpoint_dir.glob("epoch_*.pt"))
     if (checkpoint_dir / "latest.pt").exists():

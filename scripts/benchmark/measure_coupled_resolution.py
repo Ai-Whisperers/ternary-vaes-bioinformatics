@@ -21,6 +21,7 @@ sys.path.append(str(Path(__file__).parent.parent.parent))
 
 from src.benchmark import (BenchmarkBase, create_v5_6_model, get_device,
                            load_checkpoint_safe, load_config, save_results)
+from src.config.paths import CHECKPOINTS_DIR
 
 
 class CoupledSystemBenchmark(BenchmarkBase):
@@ -318,7 +319,7 @@ def main():
     # Initialize model
     print("Initializing model...")
     model = create_v5_6_model(config)
-    checkpoint = load_checkpoint_safe(model, "sandbox-training/checkpoints/v5_6", device)
+    checkpoint = load_checkpoint_safe(model, str(CHECKPOINTS_DIR / "v5_6"), device)
 
     # Run benchmark
     print("\nRunning coupled system benchmark...")

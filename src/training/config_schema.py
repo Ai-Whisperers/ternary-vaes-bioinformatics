@@ -18,6 +18,8 @@ Single responsibility: Configuration typing and validation only.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from src.config.paths import CHECKPOINTS_DIR, RUNS_DIR
+
 
 class ConfigValidationError(Exception):
     """Raised when configuration validation fails."""
@@ -241,8 +243,8 @@ class TrainingConfig:
     log_interval: int = 1
     log_dir: str = "logs"
     checkpoint_freq: int = 10
-    checkpoint_dir: str = "sandbox-training/checkpoints/v5_10"
-    tensorboard_dir: str = "runs"
+    checkpoint_dir: str = str(CHECKPOINTS_DIR / "v5_10")
+    tensorboard_dir: str = str(RUNS_DIR)
     experiment_name: Optional[str] = None
     histogram_interval: int = 10
     embedding_interval: int = 50  # Log embeddings every N epochs (0 to disable)
@@ -395,7 +397,7 @@ def validate_config(raw_config: Dict[str, Any]) -> TrainingConfig:
         log_interval=raw_config.get("log_interval", 1),
         log_dir=raw_config.get("log_dir", "logs"),
         checkpoint_freq=raw_config.get("checkpoint_freq", 10),
-        checkpoint_dir=raw_config.get("checkpoint_dir", "sandbox-training/checkpoints/v5_10"),
+        checkpoint_dir=raw_config.get("checkpoint_dir", str(CHECKPOINTS_DIR / "v5_10")),
         tensorboard_dir=raw_config.get("tensorboard_dir", "runs"),
         experiment_name=raw_config.get("experiment_name"),
         histogram_interval=raw_config.get("histogram_interval", 10),

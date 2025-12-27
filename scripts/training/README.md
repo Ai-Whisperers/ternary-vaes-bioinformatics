@@ -53,12 +53,12 @@ The training consists of two phases:
 #### Phase 1: V5.5 Base Model (Coverage Training)
 If no pre-trained v5.5 checkpoint exists, the script automatically trains one to achieve 100% reconstruction coverage. This takes ~10-20 minutes on RTX 2060 SUPER.
 
-**Checkpoint location**: `sandbox-training/checkpoints/v5_5/latest.pt`
+**Checkpoint location**: `outputs/models/v5_5/latest.pt`
 
 #### Phase 2: V5.11.11 Homeostatic Training
 Using the frozen v5.5 encoder_A, trains encoder_B to learn the 3-adic hierarchical structure.
 
-**Checkpoint location**: `sandbox-training/checkpoints/v5_11_11_homeostatic_ale_device/`
+**Checkpoint location**: `outputs/models/v5_11_11_homeostatic_ale_device/`
 - `best.pt`: Best model by composite score
 - `latest.pt`: Final model after training
 

@@ -15,6 +15,8 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.config.paths import CHECKPOINTS_DIR
+
 import json
 from typing import Any, Dict, Tuple
 
@@ -466,13 +468,12 @@ def main():
     print(f"Using device: {device}")
 
     # Paths
-    checkpoint_dir = PROJECT_ROOT / "sandbox-training" / "checkpoints"
-    v5_5_path = checkpoint_dir / "v5_5" / "best.pt"
+    v5_5_path = CHECKPOINTS_DIR / "v5_5" / "best.pt"
 
     checkpoints = {
-        "v5_11": checkpoint_dir / "v5_11" / "best.pt",
-        "v5_11_overnight": checkpoint_dir / "v5_11_overnight" / "best.pt",
-        "v5_11_structural": checkpoint_dir / "v5_11_structural" / "best.pt",
+        "v5_11": CHECKPOINTS_DIR / "v5_11" / "best.pt",
+        "v5_11_overnight": CHECKPOINTS_DIR / "v5_11_overnight" / "best.pt",
+        "v5_11_structural": CHECKPOINTS_DIR / "v5_11_structural" / "best.pt",
     }
 
     # Generate all ternary operations

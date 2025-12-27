@@ -16,12 +16,17 @@ Uses protein-style rendering for internal fibration visualization.
 
 import json
 import os
+import sys
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
 from scipy.interpolate import splev, splprep
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+from src.config.paths import CHECKPOINTS_DIR
 
 # Output directory
 OUTPUT_DIR = "outputs/viz/calabi_yau_v58"
@@ -66,7 +71,7 @@ class MultiLayerExtractor(nn.Module):
 
 def load_v58_checkpoint():
     """Load v5.8 checkpoint and extract model weights."""
-    ckpt_path = "sandbox-training/checkpoints/v5_8/latest.pt"
+    ckpt_path = str(CHECKPOINTS_DIR / "v5_8" / "latest.pt")
     ckpt = torch.load(ckpt_path, map_location=device, weights_only=False)
 
     print(f"Loaded v5.8 checkpoint - Epoch {ckpt['epoch']}")
