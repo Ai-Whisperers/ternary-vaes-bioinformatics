@@ -3,11 +3,11 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Latent space optimization scripts.
+"""Documentation generation utilities.
 
 Scripts:
-    latent_nsga2.py     NSGA-II multi-objective optimization in VAE latent space
+    add_spdx_frontmatter.py     Add SPDX license headers to documentation
 
 Usage:
-    python scripts/optimization/latent_nsga2.py --checkpoint outputs/models/best.pt
+    python scripts/docs/add_spdx_frontmatter.py DOCUMENTATION/
 """

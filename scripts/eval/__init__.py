@@ -3,11 +3,11 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Latent space optimization scripts.
+"""Model evaluation and downstream validation scripts.
 
 Scripts:
-    latent_nsga2.py     NSGA-II multi-objective optimization in VAE latent space
+    downstream_validation.py    Validate VAE embeddings on downstream tasks
 
 Usage:
-    python scripts/optimization/latent_nsga2.py --checkpoint outputs/models/best.pt
+    python scripts/eval/downstream_validation.py --checkpoint outputs/models/best.pt
 """

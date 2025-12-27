@@ -3,11 +3,11 @@
 # Licensed under the PolyForm Noncommercial License 1.0.0
 # See LICENSE file in the repository root for full license text.
 
-"""Latent space optimization scripts.
+"""Environment setup and configuration scripts.
 
 Scripts:
-    latent_nsga2.py     NSGA-II multi-objective optimization in VAE latent space
+    setup_hiv_analysis.py       Generate codon encoder for HIV analysis
 
 Usage:
-    python scripts/optimization/latent_nsga2.py --checkpoint outputs/models/best.pt
+    python scripts/setup/setup_hiv_analysis.py
 """

@@ -1,8 +1,8 @@
-# Scripts Directory
+# Scripts
 
-> **Entry points for training, analysis, and utilities**
+CLI entry points and executable scripts for the Ternary VAE project.
 
-**Last Updated:** December 26, 2025
+> **Note**: Reusable library code lives in `src/`. This directory contains only CLI entry points and executable scripts.
 
 ---
 
@@ -10,90 +10,165 @@
 
 ```
 scripts/
-├── train.py                    # Main training entry point
-├── train_codon_vae_hiv.py      # HIV-specific codon VAE training
-├── analyze_all_datasets.py     # Comprehensive dataset analysis
-├── clinical_applications.py    # Clinical decision support
-├── research_discoveries.py     # Research findings pipeline
+├── train.py                    # Main training entry point (v5.11)
+├── download_with_custom_dns.py # DNS-aware dataset downloader
 │
-├── analysis/           # Code analysis and auditing
-├── benchmark/          # Performance benchmarking
-├── clinical/           # Clinical decision support tools
-├── docs/               # Documentation generation
-├── epsilon_vae/        # Epsilon VAE training (experimental)
-├── eval/               # Model evaluation
-├── hiv/                # HIV-specific analysis pipelines
-├── ingest/             # Data ingestion utilities
-├── legal/              # License and copyright tools
-├── literature/         # Literature implementation scripts
-├── maintenance/        # Codebase maintenance utilities
-├── setup/              # Environment setup
-└── visualization/      # Visualization generation
+├── analysis/                   # Code quality and validation
+│   ├── audit_repo.py          # Linting, security, complexity checks
+│   ├── code_stats.py          # Code duplication analysis
+│   ├── run_metrics.py         # VAE quality metrics
+│   ├── validate_codon_classification.py
+│   └── verify_mathematical_proofs.py
+│
+├── benchmark/                  # Performance benchmarking
+│   ├── run_benchmark.py       # Comprehensive VAE benchmark
+│   ├── measure_manifold_resolution.py
+│   └── measure_coupled_resolution.py
+│
+├── docs/                       # Documentation utilities
+│   └── add_spdx_frontmatter.py
+│
+├── epsilon_vae/               # Epsilon-VAE research experiments
+│   ├── train_*.py             # Training variants (11 scripts)
+│   ├── analyze_*.py           # Analysis scripts
+│   ├── collect_checkpoints.py
+│   └── extract_embeddings.py
+│
+├── eval/                       # Model evaluation
+│   └── downstream_validation.py
+│
+├── hiv/                        # HIV analysis entry points
+│   ├── run_hiv_analysis.py    # Unified analysis router
+│   ├── validate_hiv_setup.py  # Environment validation
+│   ├── download_hiv_datasets.py
+│   └── train_codon_vae_hiv.py
+│
+├── ingest/                     # Data ingestion
+│   ├── ingest_arboviruses.py
+│   ├── ingest_pdb_rotamers.py
+│   └── ingest_starpep.py
+│
+├── legal/                      # License management
+│   └── add_copyright_headers.py
+│
+├── maintenance/               # Codebase maintenance
+│   ├── maintain_codebase.py   # Format, lint, typecheck
+│   ├── doc_auditor.py
+│   ├── doc_builder.py
+│   ├── validate_all_implementations.py
+│   ├── project_diagrams_generator.py
+│   ├── comprehensive_vocab_scan.py
+│   └── migrate_paths.py
+│
+├── optimization/              # Latent space optimization
+│   └── latent_nsga2.py        # NSGA-II multi-objective
+│
+├── setup/                     # Environment setup
+│   └── setup_hiv_analysis.py
+│
+├── training/                  # Training variants
+│   ├── train_universal_vae.py
+│   ├── train_toxicity_regressor.py
+│   └── train_v5_11_11_homeostatic.py
+│
+└── visualization/             # Plotting and visualization
+    ├── visualize_ternary_manifold.py
+    ├── calabi_yau_*.py        # Calabi-Yau projections (7 scripts)
+    ├── analyze_3adic_*.py     # 3-adic structure (2 scripts)
+    └── plot_training_artifacts.py
+```
+
+---
+
+## Quick Start
+
+### Training
+
+```bash
+# Main training (canonical v5.11)
+python scripts/train.py --config configs/ternary.yaml
+
+# Universal VAE training
+python scripts/training/train_universal_vae.py --config configs/universal.yaml
+
+# HIV-specific training
+python scripts/hiv/train_codon_vae_hiv.py
+```
+
+### Benchmarking
+
+```bash
+python scripts/benchmark/run_benchmark.py --config configs/ternary.yaml
+```
+
+### Visualization
+
+```bash
+python scripts/visualization/visualize_ternary_manifold.py
+python scripts/visualization/plot_training_artifacts.py --run outputs/runs/latest
+```
+
+### Code Quality
+
+```bash
+python scripts/analysis/audit_repo.py
+python scripts/maintenance/maintain_codebase.py
+```
+
+### HIV Analysis
+
+```bash
+python scripts/hiv/run_hiv_analysis.py --analysis all
+python scripts/hiv/validate_hiv_setup.py
+python scripts/hiv/download_hiv_datasets.py
 ```
 
 ---
 
 ## Script Categories
 
-### HIV Analysis (`hiv/`)
-Primary HIV research pipelines:
-- `clinical_applications.py` - Generate clinical decision support
-- `research_discoveries.py` - Run 5 research discovery pipelines
-- `analyze_all_datasets.py` - Comprehensive dataset analysis
-- `train_codon_vae_hiv.py` - Train HIV-specific codon VAE
-- `download_hiv_datasets.py` - Download public HIV datasets
-- `validate_hiv_setup.py` - Validate HIV analysis environment
-
-### Clinical Tools (`clinical/`)
-- `clinical_dashboard.py` - Interactive clinical dashboard
-- `clinical_integration.py` - Integration with clinical systems
-
-### Literature Analysis (`literature/`)
-- `advanced_literature_implementations.py` - Advanced implementations
-- `literature_implementations.py` - Standard implementations
-- `cutting_edge_implementations.py` - Latest research implementations
-- `advanced_research.py` - Advanced research experiments
-
-### Maintenance (`maintenance/`)
-- `maintain_codebase.py` - General codebase maintenance
-- `doc_auditor.py` - Documentation auditing
-- `doc_builder.py` - Documentation generation
-- `validate_all_implementations.py` - Validate all implementations
-- `project_diagrams_generator.py` - Generate architecture diagrams
-
-### Training (root level)
-- `train.py` - Main training entry point
-- `train_codon_vae_hiv.py` - HIV-specific codon VAE training
-
-### Visualization (`visualization/`)
-- Various visualization scripts for manifolds, Calabi-Yau, etc.
+| Category | Purpose | Location |
+|----------|---------|----------|
+| **Training** | Model training | `train.py`, `training/`, `epsilon_vae/` |
+| **Evaluation** | Model evaluation | `eval/`, `benchmark/` |
+| **Analysis** | Code quality | `analysis/` |
+| **Visualization** | Plotting | `visualization/` |
+| **HIV Research** | HIV analysis | `hiv/` |
+| **Maintenance** | Codebase health | `maintenance/` |
+| **Data** | Data ingestion | `ingest/` |
+| **Setup** | Environment | `setup/` |
 
 ---
 
-## Quick Start
+## Library Code (in src/)
 
-```bash
-# Train the main model
-python scripts/train.py
+The following modules contain reusable library code that was moved from scripts/:
 
-# Train HIV-specific codon VAE
-python scripts/train_codon_vae_hiv.py
-
-# Run clinical applications
-python scripts/clinical_applications.py
-
-# Run research discoveries
-python scripts/research_discoveries.py
-
-# Comprehensive dataset analysis
-python scripts/analyze_all_datasets.py
-```
+| src/ Module | Description |
+|-------------|-------------|
+| `src/implementations/literature/` | Literature implementations (p-adic encoders, VAE) |
+| `src/clinical/` | Clinical decision support systems |
+| `src/clinical/hiv/` | HIV clinical applications |
+| `src/analysis/hiv/` | HIV analysis algorithms |
+| `src/analysis/` | Primer stability, rotamer stability, sliding window |
+| `src/reporting/` | Report generation |
+| `src/research/hiv/` | HIV research pipelines |
 
 ---
 
-## Notes
+## Guidelines
 
-- Main training scripts are at the root level for easy access
-- Domain-specific scripts are organized into subdirectories
-- See individual subdirectory READMEs for detailed documentation
-- See [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) for full project layout
+1. **Scripts vs Library Code**: Scripts should be thin wrappers that import from `src/`
+2. **CLI Arguments**: Use `argparse` for command-line arguments
+3. **Logging**: Use `src.observability.get_logger()` for logging
+4. **Paths**: Use `src.config.paths` for all path resolution
+5. **Configuration**: Load configs from `configs/` using `src.config.load_config()`
+
+---
+
+## Related
+
+- `src/` - Reusable library code
+- `configs/` - Configuration files
+- `tests/` - Unit and integration tests
+- `outputs/` - Training outputs and results
