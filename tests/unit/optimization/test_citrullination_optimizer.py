@@ -100,8 +100,8 @@ class TestOptimizationResult:
             original_codons=["AUG", "CGU"],
             optimized_codons=["AUG", "AGA"],
             changes_made=[(1, "CGU", "AGA")],
-            original_compute_padic_distance=0.3,
-            optimized_compute_padic_distance=0.5,
+            original_padic_distance=0.3,
+            optimized_padic_distance=0.5,
             improvement_score=0.2,
             immunogenicity_reduction=0.15,
         )
