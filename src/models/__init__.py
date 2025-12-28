@@ -22,21 +22,15 @@ from .differentiable_controller import DifferentiableController
 from .homeostasis import HomeostasisController, compute_Q
 from .hyperbolic_projection import (DualHyperbolicProjection,
                                     HyperbolicProjection)
-<<<<<<< HEAD
 
-# Optional swarm_vae import (may not exist in all configurations)
-try:
-    from .swarm_vae import AgentConfig, AgentRole, PheromoneField, SwarmAgent, SwarmVAE
-except ImportError:
-    SwarmVAE = None
-    SwarmAgent = None
-    AgentConfig = None
-    AgentRole = None
-    PheromoneField = None
-
-=======
 # NOTE: SwarmVAE archived to src/ARCHIVE/v5_10_legacy/ - experimental, not in production
->>>>>>> 39e47219ed85396993b7c68f9b1455aee1f54f5d
+# Set to None for backward compatibility with code referencing these
+SwarmVAE = None
+SwarmAgent = None
+AgentConfig = None
+AgentRole = None
+PheromoneField = None
+
 from .ternary_vae import (FrozenDecoder, FrozenEncoder, TernaryVAEV5_11,
                           TernaryVAEV5_11_OptionC, TernaryVAEV5_11_PartialFreeze)
 
