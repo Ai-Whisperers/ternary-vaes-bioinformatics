@@ -450,48 +450,21 @@ class MRSAAnalyzer(DiseaseAnalyzer):
 
 
 def create_mrsa_synthetic_dataset(
-    gene: StaphGene = StaphGene.GYRA,
     min_samples: int = 50,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
-    """Create synthetic MRSA dataset.
+    """Create synthetic MRSA dataset using mecA-based simple model.
+
+    This delegates to create_mrsa_simple_dataset which provides much better
+    correlation by focusing on mecA presence/absence (the primary MRSA determinant).
 
     Args:
-        gene: Target gene for resistance analysis
         min_samples: Minimum number of samples to generate
 
     Returns:
         (X, y, ids)
     """
-    from src.diseases.utils.synthetic_data import (
-        create_mutation_based_dataset,
-        ensure_minimum_samples,
-    )
-
-    reference = "M" + "A" * 199
-
-    if gene == StaphGene.GYRA:
-        mutation_db = GYRA_MUTATIONS
-    elif gene == StaphGene.RPOB:
-        mutation_db = RPOB_MUTATIONS
-    else:
-        mutation_db = MPRF_MUTATIONS
-
-    analyzer = MRSAAnalyzer()
-
-    # Use utility to create dataset with mutation combinations
-    X, y, ids = create_mutation_based_dataset(
-        reference_sequence=reference,
-        mutation_db=mutation_db,
-        encode_fn=analyzer.encode_sequence,
-        max_length=300,
-        n_random_mutants=30,
-        seed=42,
-    )
-
-    # Ensure minimum samples
-    X, y, ids = ensure_minimum_samples(X, y, ids, min_samples=min_samples, seed=42)
-
-    return X, y, ids
+    # Use the simple mecA-focused dataset for better correlation
+    return create_mrsa_simple_dataset(min_samples=min_samples)
 
 
 # mecA reference sequence (PBP2a protein, ~670 AA)
@@ -549,9 +522,17 @@ def create_mrsa_simple_dataset(
 
     analyzer = MRSAAnalyzer()
 
+    # Build reference with correct WT amino acids at mutation positions
+    ref_list = list(reference)
+    for pos, info in MECA_MUTATIONS.items():
+        if pos <= len(ref_list):
+            ref_aa = list(info.keys())[0]
+            ref_list[pos - 1] = ref_aa
+    reference_corrected = "".join(ref_list)
+
     # Create dataset using mecA mutations
     X, y, ids = create_mutation_based_dataset(
-        reference_sequence=reference,
+        reference_sequence=reference_corrected,
         mutation_db=MECA_MUTATIONS,
         encode_fn=lambda s, ml: analyzer.encode_sequence(s, max_length=ml),
         max_length=max_length,

@@ -129,6 +129,14 @@ from src.diseases.ecoli_betalactam_analyzer import (
     TEM1_REFERENCE,
     create_ecoli_synthetic_dataset,
 )
+from src.diseases.hiv_analyzer import (
+    HIVAnalyzer,
+    HIVConfig,
+    HIVGene,
+    HIVDrug,
+    HIVDrugClass,
+    create_hiv_synthetic_dataset,
+)
 
 __all__ = [
     "DiseaseRegistry",
@@ -222,4 +230,11 @@ __all__ = [
     "TEM_MUTATIONS",
     "TEM1_REFERENCE",
     "create_ecoli_synthetic_dataset",
+    # HIV specific
+    "HIVAnalyzer",
+    "HIVConfig",
+    "HIVGene",
+    "HIVDrug",
+    "HIVDrugClass",
+    "create_hiv_synthetic_dataset",
 ]
