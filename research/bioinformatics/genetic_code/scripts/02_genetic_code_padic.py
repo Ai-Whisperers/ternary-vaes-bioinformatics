@@ -630,7 +630,9 @@ def visualize_padic_balls(geodesic_matrix, codons, amino_acids, codon_embeddings
 
 
 def main():
-    output_dir = PROJECT_ROOT / "riemann_hypothesis_sandbox" / "results"
+    # Use local data directory instead of deprecated riemann_hypothesis_sandbox
+    data_dir = Path(__file__).parent.parent / "data"
+    output_dir = data_dir / "results"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     print("=" * 70)
@@ -638,12 +640,14 @@ def main():
     print("Phase 1: Core Hypothesis - Do synonymous codons form p-adic balls?")
     print("=" * 70)
 
-    # Load embeddings
-    print("\nLoading v1.1.0 production embeddings...")
-    data = torch.load(
-        PROJECT_ROOT / "riemann_hypothesis_sandbox" / "embeddings" / "embeddings.pt",
-        weights_only=False,
-    )
+    # Load embeddings (from 3-adic hyperbolic extraction)
+    print("\nLoading hyperbolic embeddings...")
+    embeddings_path = data_dir / "v5_11_3_embeddings.pt"
+    if not embeddings_path.exists():
+        print(f"ERROR: Embeddings not found at {embeddings_path}")
+        print("Run 07_extract_v5_11_3_embeddings.py first")
+        return
+    data = torch.load(embeddings_path, weights_only=False)
 
     # Use VAE-B embeddings (better hierarchy)
     z_B = data.get("z_B_hyp", data.get("z_hyperbolic"))

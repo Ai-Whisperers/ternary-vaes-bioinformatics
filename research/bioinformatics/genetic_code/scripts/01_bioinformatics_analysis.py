@@ -720,15 +720,19 @@ def visualize_codon_embedding(embeddings, codon_results, output_dir):
 
 
 def main():
-    output_dir = PROJECT_ROOT / "riemann_hypothesis_sandbox" / "results"
+    # Use local data directory instead of deprecated riemann_hypothesis_sandbox
+    data_dir = Path(__file__).parent.parent / "data"
+    output_dir = data_dir / "results"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Load embeddings
+    # Load embeddings (from 3-adic hyperbolic extraction)
     print("Loading embeddings...")
-    data = torch.load(
-        PROJECT_ROOT / "riemann_hypothesis_sandbox" / "embeddings" / "embeddings.pt",
-        weights_only=False,
-    )
+    embeddings_path = data_dir / "v5_11_3_embeddings.pt"
+    if not embeddings_path.exists():
+        print(f"ERROR: Embeddings not found at {embeddings_path}")
+        print("Run 07_extract_v5_11_3_embeddings.py first")
+        return
+    data = torch.load(embeddings_path, weights_only=False)
 
     embeddings = {
         "z_A": (
