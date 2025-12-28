@@ -10,14 +10,14 @@ The homeostatic_rich checkpoint provides:
 - Hierarchy: ~-0.83 (from trained hyperbolic projection)
 - Richness: High (from homeostatic training)
 
-Output: research/genetic_code/data/fused_embeddings.pt
+Output: research/codon-encoder/data/fused_embeddings.pt
 """
 
 import sys
 from datetime import datetime
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import numpy as np

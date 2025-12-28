@@ -11,7 +11,7 @@ Key differences from original codon encoder:
 3. Uses Poincaré geodesic distance for contrastive and alignment losses
 4. Outputs embeddings in native Poincaré ball structure
 
-Output: research/genetic_code/data/codon_encoder_3adic.pt
+Output: research/codon-encoder/data/codon_encoder_3adic.pt
 """
 
 import json
@@ -20,7 +20,7 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[5]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import numpy as np

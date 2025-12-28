@@ -11,7 +11,7 @@ Strategy:
 3. Select 64 positions matching genetic code degeneracy [1,1,2,2,2,2,2,2,2,2,2,3,3,4,4,4,4,4,6,6,6]
 4. Validate that clusters form valid p-adic balls (within < between distances)
 
-Output: research/genetic_code/data/natural_positions_v5_11_3.json
+Output: research/codon-encoder/data/natural_positions_v5_11_3.json
 """
 
 import json
@@ -20,7 +20,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 
-PROJECT_ROOT = Path(__file__).resolve().parents[5]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 import numpy as np

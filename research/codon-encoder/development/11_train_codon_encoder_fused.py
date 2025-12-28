@@ -12,7 +12,7 @@ Key improvements over 09_train_codon_encoder_3adic.py:
 3. Radial targeting for 3-adic structure preservation
 4. Cluster separation optimization
 
-Output: research/genetic_code/data/codon_encoder_fused.pt
+Output: research/codon-encoder/data/codon_encoder_fused.pt
 """
 
 import json
@@ -28,7 +28,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 from scipy.stats import spearmanr
 
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 

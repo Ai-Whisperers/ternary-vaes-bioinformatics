@@ -12,7 +12,7 @@ The V5.11.3 model has:
 - Ultrametric compliance: 90%+
 - v9 radius: ~0.10, v0 radius: ~0.90
 
-Output: research/genetic_code/data/v5_11_3_embeddings.pt
+Output: research/codon-encoder/data/v5_11_3_embeddings.pt
 """
 
 import sys
@@ -21,8 +21,8 @@ from pathlib import Path
 import torch
 from scipy.stats import spearmanr
 
-# Add project root to path
-PROJECT_ROOT = Path(__file__).resolve().parents[5]
+# Add project root to path (development/ -> codon-encoder/ -> research/ -> ternary-vaes/)
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.config.paths import CHECKPOINTS_DIR
