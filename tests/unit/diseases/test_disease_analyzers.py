@@ -82,9 +82,8 @@ class TestTuberculosisAnalyzer:
         from src.diseases import ResistanceLevel
 
         assert hasattr(ResistanceLevel, "SUSCEPTIBLE")
-        assert hasattr(ResistanceLevel, "LOW")
-        assert hasattr(ResistanceLevel, "INTERMEDIATE")
-        assert hasattr(ResistanceLevel, "HIGH")
+        assert hasattr(ResistanceLevel, "RESISTANT")
+        assert hasattr(ResistanceLevel, "UNCERTAIN")
 
 
 class TestInfluenzaAnalyzer:
@@ -117,7 +116,7 @@ class TestInfluenzaAnalyzer:
         """Test influenza subtypes."""
         from src.diseases import InfluenzaSubtype
 
-        assert hasattr(InfluenzaSubtype, "H1N1")
+        assert hasattr(InfluenzaSubtype, "H1N1_SEASONAL")
         assert hasattr(InfluenzaSubtype, "H3N2")
 
 

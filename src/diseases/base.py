@@ -26,6 +26,8 @@ class DiseaseType(Enum):
     CANCER = "cancer"
     BACTERIAL = "bacterial"
     PARASITIC = "parasitic"
+    FUNGAL = "fungal"
+    ONCOLOGY = "oncology"
 
 
 class TaskType(Enum):
@@ -39,6 +41,9 @@ class TaskType(Enum):
     EXPRESSION = "expression"
     STABILITY = "stability"
     IMMUNOGENICITY = "immunogenicity"
+    FITNESS = "fitness"
+    VACCINE = "vaccine"
+    ANTIGENICITY = "antigenicity"
 
 
 @dataclass
