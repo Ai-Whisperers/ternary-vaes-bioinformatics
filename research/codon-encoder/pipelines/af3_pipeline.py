@@ -18,6 +18,7 @@ Date: December 2025
 
 from __future__ import annotations
 
+import sys
 import json
 import os
 import subprocess
@@ -28,15 +29,18 @@ from pathlib import Path
 from typing import Optional
 import shutil
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import PIPELINE_RESULTS_DIR, RESEARCH_DIR
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
 SCRIPT_DIR = Path(__file__).parent
-VALIDATION_DIR = SCRIPT_DIR.parent
-RESEARCH_DIR = VALIDATION_DIR.parent
-QUEUE_DIR = VALIDATION_DIR / "queue"
-RESULTS_DIR = VALIDATION_DIR / "results"
+CODON_ENCODER_DIR = SCRIPT_DIR.parent
+QUEUE_DIR = CODON_ENCODER_DIR / "queue"
+RESULTS_DIR = PIPELINE_RESULTS_DIR
 
 # AF3 paths
 AF3_REPO = RESEARCH_DIR.parent.parent / "alphafold3" / "repo"

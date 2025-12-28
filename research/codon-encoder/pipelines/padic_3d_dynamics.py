@@ -10,6 +10,7 @@ Integrates p-adic codon embeddings with 3D protein structures to predict:
 Uses AlphaFold structures + p-adic derived force constants.
 """
 
+import sys
 import numpy as np
 import json
 from pathlib import Path
@@ -19,10 +20,12 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 import urllib.request
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import PIPELINE_RESULTS_DIR, ANALYSIS_RESULTS_DIR
 
 # Paths
-SCRIPT_DIR = Path(__file__).parent
-RESULTS_DIR = SCRIPT_DIR.parent / "results" / "3d_dynamics"
+RESULTS_DIR = PIPELINE_RESULTS_DIR / "3d_dynamics"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
@@ -92,7 +95,7 @@ class Padic3DDynamics:
     """
 
     # Load dynamics results from the dynamics predictor
-    DYNAMICS_FILE = SCRIPT_DIR.parent / "results" / "dynamics_predictor" / "dynamics_predictor_results.json"
+    DYNAMICS_FILE = ANALYSIS_RESULTS_DIR / "dynamics_predictor" / "dynamics_predictor_results.json"
 
     def __init__(self):
         """Load p-adic dynamics data."""

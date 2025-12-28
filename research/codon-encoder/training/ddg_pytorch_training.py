@@ -39,17 +39,17 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset, Subset
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import GENETIC_CODE_DIR, TRAINING_RESULTS_DIR, CODON_TO_AA, load_padic_embeddings
+
 # Set up paths
-SCRIPT_DIR = Path(__file__).parent
-VALIDATION_DIR = SCRIPT_DIR.parent
-RESULTS_DIR = VALIDATION_DIR / "results" / "ddg_pytorch"
+RESULTS_DIR = TRAINING_RESULTS_DIR / "ddg_pytorch"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 CHECKPOINTS_DIR = RESULTS_DIR / "checkpoints"
 CHECKPOINTS_DIR.mkdir(exist_ok=True)
 LOGS_DIR = RESULTS_DIR / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
-
-GENETIC_CODE_DIR = SCRIPT_DIR.parent.parent.parent / "genetic_code" / "data"
 
 # Device
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

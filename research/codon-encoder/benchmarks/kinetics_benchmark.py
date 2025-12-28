@@ -27,6 +27,7 @@ Date: December 2025
 
 from __future__ import annotations
 
+import sys
 import json
 import math
 import numpy as np
@@ -37,16 +38,16 @@ from scipy import stats
 import warnings
 warnings.filterwarnings('ignore')
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import GENETIC_CODE_DIR, BENCHMARK_RESULTS_DIR, CODON_TO_AA, load_padic_embeddings
+
 # ============================================================================
 # CONFIGURATION
 # ============================================================================
 
-SCRIPT_DIR = Path(__file__).parent
-VALIDATION_DIR = SCRIPT_DIR.parent
-RESULTS_DIR = VALIDATION_DIR / "results"
+RESULTS_DIR = BENCHMARK_RESULTS_DIR
 RESULTS_DIR.mkdir(exist_ok=True)
-
-GENETIC_CODE_DIR = SCRIPT_DIR.parent.parent.parent / "genetic_code" / "data"
 
 # ============================================================================
 # AMINO ACID PROPERTIES

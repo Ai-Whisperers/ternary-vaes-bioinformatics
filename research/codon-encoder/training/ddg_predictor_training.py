@@ -35,17 +35,17 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 from scipy import stats
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import GENETIC_CODE_DIR, TRAINING_RESULTS_DIR, CODON_TO_AA, load_padic_embeddings
+
 # Set up paths
-SCRIPT_DIR = Path(__file__).parent
-VALIDATION_DIR = SCRIPT_DIR.parent
-RESULTS_DIR = VALIDATION_DIR / "results" / "ddg_predictor"
+RESULTS_DIR = TRAINING_RESULTS_DIR / "ddg_predictor"
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 CHECKPOINTS_DIR = RESULTS_DIR / "checkpoints"
 CHECKPOINTS_DIR.mkdir(exist_ok=True)
 LOGS_DIR = RESULTS_DIR / "logs"
 LOGS_DIR.mkdir(exist_ok=True)
-
-GENETIC_CODE_DIR = SCRIPT_DIR.parent.parent.parent / "genetic_code" / "data"
 
 # ============================================================================
 # LOGGING SETUP

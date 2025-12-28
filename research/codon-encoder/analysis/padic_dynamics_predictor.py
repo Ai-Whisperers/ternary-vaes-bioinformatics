@@ -20,9 +20,13 @@ from dataclasses import dataclass
 from typing import Dict, List, Tuple, Optional
 import sys
 
+# Add parent to path for config import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from config import GENETIC_CODE_DIR, ANALYSIS_RESULTS_DIR, CODON_TO_AA, load_padic_embeddings
+
 # Paths
-SCRIPT_DIR = Path(__file__).parent
-GENETIC_CODE_DIR = SCRIPT_DIR.parent.parent.parent / "genetic_code" / "data"
+RESULTS_DIR = ANALYSIS_RESULTS_DIR / "dynamics_predictor"
+RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @dataclass
@@ -465,7 +469,7 @@ Next steps for full 3D+time prediction:
 """)
 
     # Save results
-    results_dir = Path(__file__).parent.parent / "results" / "dynamics_predictor"
+    results_dir = RESULTS_DIR
     results_dir.mkdir(parents=True, exist_ok=True)
 
     # Convert to serializable format (handle numpy types)
