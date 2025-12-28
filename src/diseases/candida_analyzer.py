@@ -479,23 +479,35 @@ def create_candida_synthetic_dataset(
         ensure_minimum_samples,
     )
 
-    reference = "M" + "A" * 1399  # FKS1 is large
+    # FKS1 hotspot positions: HS1 at 639-649, HS2 at 1354-1355
+    # ERG11 positions: up to 466
+    # Need max_length to cover all mutation positions
 
     if gene == CandidaGene.FKS1:
+        # FKS1 needs 1400 AA to cover both hotspot regions
+        max_length = 1400
+        reference = "M" + "A" * (max_length - 1)
         mutation_db = {**FKS1_HOTSPOT1, **FKS1_HOTSPOT2}
     elif gene == CandidaGene.ERG11:
+        # ERG11 mutations go up to position 466
+        max_length = 500
+        reference = "M" + "A" * (max_length - 1)
         mutation_db = ERG11_MUTATIONS
     else:
+        # ERG3 mutations at position 271
+        max_length = 300
+        reference = "M" + "A" * (max_length - 1)
         mutation_db = ERG3_MUTATIONS
 
     analyzer = CandidaAnalyzer()
 
     # Use utility to create dataset with mutation combinations
+    # encode_fn signature: (sequence, max_length) -> np.ndarray
     X, y, ids = create_mutation_based_dataset(
         reference_sequence=reference,
         mutation_db=mutation_db,
-        encode_fn=analyzer.encode_sequence,
-        max_length=500,
+        encode_fn=lambda s, ml: analyzer.encode_sequence(s, max_length=ml),
+        max_length=max_length,
         n_random_mutants=30,
         seed=42,
     )

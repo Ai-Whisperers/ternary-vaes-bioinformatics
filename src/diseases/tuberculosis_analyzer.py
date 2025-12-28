@@ -510,48 +510,80 @@ class TuberculosisAnalyzer(DiseaseAnalyzer):
 
 def create_tb_synthetic_dataset(
     drug: TBDrug = TBDrug.RIFAMPICIN,
+    min_samples: int = 50,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Create synthetic TB dataset for testing.
 
     In production, use WHO catalogue or CRyPTIC data.
 
+    Args:
+        drug: Target TB drug for resistance prediction
+        min_samples: Minimum number of samples to generate
+
     Returns:
         (X, y, mutation_ids)
     """
+    from src.diseases.utils.synthetic_data import (
+        create_mutation_based_dataset,
+        ensure_minimum_samples,
+    )
+
+    # TB genes are large - need sequences long enough to cover mutation positions
+    # rpoB RRDR region: positions 426-452 (need ~500 AA)
+    # katG: positions up to 463 (need ~500 AA)
+    max_pos = 500
+
     if drug == TBDrug.RIFAMPICIN:
-        reference = "SGFRKMAFPSGKVEGCMVQVTCGTTTLNGLWLDDVVYCPRHVIC"  # Partial rpoB
+        # Create reference sequence long enough for rpoB RRDR (positions 426-452)
+        reference = "M" + "A" * (max_pos - 1)  # 500 AA sequence
         mutation_db = RPOB_MUTATIONS
         gene = TBGene.RPOB
     elif drug == TBDrug.ISONIAZID:
-        reference = "VWTAEPEQVAIQGDLYQLAAQGATPVVVLVFGKDEPIAKEQSADLQRPLPVSSAAHDFAG"  # Partial katG
+        # katG mutations go up to position 463
+        reference = "M" + "A" * (max_pos - 1)
         mutation_db = KATG_MUTATIONS
         gene = TBGene.KATG
+    elif drug == TBDrug.ETHAMBUTOL:
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = EMBB_MUTATIONS
+        gene = TBGene.EMBB
+    elif drug in [TBDrug.LEVOFLOXACIN, TBDrug.MOXIFLOXACIN]:
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = {**GYRA_MUTATIONS, **GYRB_MUTATIONS}
+        gene = TBGene.GYRA
+    elif drug == TBDrug.PYRAZINAMIDE:
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = PNCA_MUTATIONS
+        gene = TBGene.PNCA
+    elif drug in [TBDrug.AMIKACIN, TBDrug.KANAMYCIN, TBDrug.CAPREOMYCIN]:
+        # rrs mutations at positions 1401-1484 (16S rRNA)
+        # For protein-level, use reasonable length
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = RRS_MUTATIONS
+        gene = TBGene.RRS
+    elif drug == TBDrug.BEDAQUILINE:
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = {**ATPE_MUTATIONS, **RV0678_MUTATIONS}
+        gene = TBGene.ATPE
     else:
-        reference = "SGFRKMAFPSGKVEGCMVQVTCGTTTLNGLWLDDVVYCPRHVIC"
-        mutation_db = {}
+        reference = "M" + "A" * (max_pos - 1)
+        mutation_db = RPOB_MUTATIONS
         gene = TBGene.RPOB
 
-    sequences = [reference]  # Wild type
-    resistances = [0.0]
-    ids = ["WT"]
-
-    # Generate mutants
-    for pos, info in mutation_db.items():
-        if pos <= len(reference):
-            ref_aa = list(info.keys())[0]
-            for mut_aa in info[ref_aa]["mutations"]:
-                if mut_aa != "*":  # Skip stop codons
-                    mutant = list(reference)
-                    mutant[pos - 1] = mut_aa
-                    sequences.append("".join(mutant))
-
-                    effect_scores = {"high": 0.9, "moderate": 0.6, "low": 0.3}
-                    resistances.append(effect_scores.get(info[ref_aa]["effect"], 0.5))
-                    ids.append(f"{gene.value}_{ref_aa}{pos}{mut_aa}")
-
-    # Encode
     analyzer = TuberculosisAnalyzer()
-    X = np.array([analyzer.encode_gene_sequence(s, max_length=100) for s in sequences])
-    y = np.array(resistances, dtype=np.float32)
+
+    # Use new synthetic data utilities
+    # encode_fn signature: (sequence, max_length) -> np.ndarray
+    X, y, ids = create_mutation_based_dataset(
+        reference_sequence=reference,
+        mutation_db=mutation_db,
+        encode_fn=lambda s, ml: analyzer.encode_gene_sequence(s, max_length=ml),
+        max_length=max_pos,
+        n_random_mutants=30,
+        seed=42,
+    )
+
+    # Ensure minimum samples
+    X, y, ids = ensure_minimum_samples(X, y, ids, min_samples=min_samples, seed=42)
 
     return X, y, ids
