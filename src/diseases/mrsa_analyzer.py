@@ -492,3 +492,102 @@ def create_mrsa_synthetic_dataset(
     X, y, ids = ensure_minimum_samples(X, y, ids, min_samples=min_samples, seed=42)
 
     return X, y, ids
+
+
+# mecA reference sequence (PBP2a protein, ~670 AA)
+# This is the key MRSA determinant - mecA presence = methicillin resistance
+MECA_REFERENCE = (
+    "MKKLIVATAVAAVLSACASSGAQNANPAKVTNETTKGNTVVSGGTDQQLVELVKQVQNKD"
+    "LVNYINESGLVTYTTGDSGTVTAYVAQQNDWEATKERINIATSQGLLAATAAAGVTITDS"
+    "NDIYATLTTGGSAQVLYTPAKTGMNIIGSQNRLLAYVLSYGNKVDYAKDSLIAGLKDAGV"
+    "KYNAYNGYPNISVPNTDVKTVGVDQIGQGALRPAGNTIYKNGGVFLSGYTPNYDASTVTG"
+    "KLDNNVVTAADNGYRIITGGQALDANIPGVSSQNVSNYNPKNTVLVVGDKPSLGKKNISG"
+    "WDKYADQLNSFDQQGNAYVNDTVVKGDTVLVGGTDTVNATGPVGIPTVFDKKLFDKSYGG"
+    "YKPNVTLNLDYVTNNTGTPKDSVAALAQYTQQPQGSATMVGGTTNLNGLWLDDNVYCPRH"
+)
+
+
+# Simplified mecA mutations (expression level modulators)
+# Note: mecA presence/absence is the primary determinant, but these affect expression
+MECA_MUTATIONS = {
+    # Mutations affecting expression or function
+    512: {"K": {"mutations": ["R", "E"], "effect": "moderate"}},
+    525: {"R": {"mutations": ["H"], "effect": "low"}},
+    220: {"K": {"mutations": ["T", "N"], "effect": "moderate"}},
+    380: {"G": {"mutations": ["S", "D"], "effect": "low"}},
+}
+
+
+def create_mrsa_simple_dataset(
+    min_samples: int = 50,
+) -> tuple[np.ndarray, np.ndarray, list[str]]:
+    """Create simplified MRSA dataset focusing only on mecA.
+
+    This is the simplest MRSA model:
+    - mecA presence = MRSA (resistant to beta-lactams)
+    - mecA absence = MSSA (susceptible)
+    - Point mutations affect expression level
+
+    The goal is to achieve high correlation because:
+    1. Binary presence/absence is the primary determinant
+    2. Expression-level mutations add gradation
+
+    Args:
+        min_samples: Minimum number of samples to generate
+
+    Returns:
+        (X, y, ids) tuple
+    """
+    from src.diseases.utils.synthetic_data import (
+        create_mutation_based_dataset,
+        ensure_minimum_samples,
+    )
+
+    # mecA protein reference
+    reference = MECA_REFERENCE
+    max_length = 700  # Cover full mecA protein
+
+    analyzer = MRSAAnalyzer()
+
+    # Create dataset using mecA mutations
+    X, y, ids = create_mutation_based_dataset(
+        reference_sequence=reference,
+        mutation_db=MECA_MUTATIONS,
+        encode_fn=lambda s, ml: analyzer.encode_sequence(s, max_length=ml),
+        max_length=max_length,
+        n_random_mutants=20,
+        effect_scores={"high": 0.9, "moderate": 0.6, "low": 0.3},
+        seed=42,
+    )
+
+    # Add binary presence/absence samples for MRSA/MSSA distinction
+    # MSSA (mecA absent) = susceptible (y=0.0)
+    # MRSA (mecA present) = resistant (y=0.7-1.0 depending on mutations)
+
+    # Simulate mecA-negative (MSSA) samples - use random sequences
+    np.random.seed(42)
+    n_mssa = min_samples // 3  # 1/3 MSSA samples
+
+    mssa_X = []
+    mssa_y = []
+    mssa_ids = []
+
+    aa_list = list(analyzer.aa_alphabet[:-3])  # Exclude -, X, *
+    for i in range(n_mssa):
+        # Random sequence (not mecA)
+        random_seq = "".join(np.random.choice(aa_list, size=len(reference)))
+        encoded = analyzer.encode_sequence(random_seq, max_length=max_length)
+        mssa_X.append(encoded)
+        mssa_y.append(0.0 + np.random.uniform(0, 0.15))  # Low resistance (0-0.15)
+        mssa_ids.append(f"MSSA_{i+1}")
+
+    # Combine MRSA (from mutations) and MSSA samples
+    if mssa_X:
+        X = np.vstack([X, np.array(mssa_X)])
+        y = np.concatenate([y, np.array(mssa_y, dtype=np.float32)])
+        ids = ids + mssa_ids
+
+    # Ensure minimum samples
+    X, y, ids = ensure_minimum_samples(X, y, ids, min_samples=min_samples, seed=42)
+
+    return X, y, ids
