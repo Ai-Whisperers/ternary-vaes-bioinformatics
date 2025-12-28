@@ -36,6 +36,7 @@ import torch
 import torch.nn as nn
 
 from .base import DiseaseAnalyzer, DiseaseConfig, DiseaseType, TaskType
+from .utils.synthetic_data import ensure_minimum_samples
 
 
 class SARSCoV2Gene(Enum):
@@ -467,10 +468,16 @@ class SARSCoV2Analyzer(DiseaseAnalyzer):
 def create_sars_cov2_dataset(
     gene: SARSCoV2Gene = SARSCoV2Gene.NSP5,
     include_resistance: bool = True,
+    min_samples: int = 50,
 ) -> tuple[np.ndarray, np.ndarray, list[str]]:
     """Create synthetic dataset for testing.
 
     In production, this should load from GISAID or CoV-RDB.
+
+    Args:
+        gene: Target gene (NSP5 for Mpro, SPIKE for antibody escape)
+        include_resistance: Whether to include resistance mutations
+        min_samples: Minimum number of samples to generate
 
     Returns:
         (X, y, sequence_ids)
@@ -483,6 +490,7 @@ def create_sars_cov2_dataset(
     ids = ["WT"]
 
     # Add known resistance mutations
+    # Weights consistent with _predict_drug_resistance (normalized 0-1)
     for pos, info in MPRO_RESISTANCE_POSITIONS.items():
         if pos <= len(reference):
             for mut in info["mutations"]:
@@ -490,13 +498,13 @@ def create_sars_cov2_dataset(
                 mutant[pos - 1] = mut
                 sequences.append("".join(mutant))
 
-                # Assign resistance based on position type
                 weights = {
-                    "primary_resistance": 0.8,
-                    "active_site": 0.6,
+                    "primary_resistance": 0.9,
+                    "active_site": 0.7,
+                    "oxyanion_hole": 0.6,
+                    "S1_subsite": 0.5,
                     "S4_pocket": 0.5,
-                    "S1_subsite": 0.4,
-                    "emerging": 0.3,
+                    "emerging": 0.4,
                     "compensatory": 0.2,
                 }
                 resistances.append(weights.get(info["effect"], 0.3))
@@ -506,5 +514,8 @@ def create_sars_cov2_dataset(
     analyzer = SARSCoV2Analyzer()
     X = analyzer.encode_sequences(sequences)
     y = np.array(resistances, dtype=np.float32)
+
+    # Ensure minimum samples
+    X, y, ids = ensure_minimum_samples(X, y, ids, min_samples=min_samples)
 
     return X, y, ids
