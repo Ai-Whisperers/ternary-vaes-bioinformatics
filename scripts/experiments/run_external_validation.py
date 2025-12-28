@@ -38,7 +38,7 @@ project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 from src.data.hiv_data_loader import HIVDrugResistanceDataset
-from src.encoding.tam_aware_encoder import TAMAwareEncoder
+from src.encoders.tam_aware_encoder import TAMAwareEncoder
 from src.models import TernaryVAE
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")

@@ -109,6 +109,13 @@ from .surface_encoder import (
     SurfaceInteractionPredictor,
     SurfacePatchEncoder,
 )
+from .tam_aware_encoder import (
+    TAMAwareEncoder,
+    TAM_PATHWAYS,
+    NRTIFeatureExtractor,
+    detect_tam_patterns,
+    extract_tam_features,
+)
 
 __all__ = [
     # Codon encoding
@@ -172,4 +179,10 @@ __all__ = [
     "PAdicSurfaceAttention",
     "SurfaceInteractionPredictor",
     "SurfaceComplementarity",
+    # TAM-aware NRTI encoding
+    "TAMAwareEncoder",
+    "TAM_PATHWAYS",
+    "NRTIFeatureExtractor",
+    "detect_tam_patterns",
+    "extract_tam_features",
 ]

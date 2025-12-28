@@ -274,7 +274,7 @@ def encode_amino_acids(df: pd.DataFrame, position_cols: List[str]) -> np.ndarray
 
 def encode_with_tam(df: pd.DataFrame, position_cols: List[str]) -> Tuple[np.ndarray, int]:
     """Encode with TAM features for NRTI/NNRTI."""
-    from src.encoding.tam_aware_encoder import TAMAwareEncoder
+    from src.encoders.tam_aware_encoder import TAMAwareEncoder
 
     tam_encoder = TAMAwareEncoder(position_cols)
     X = tam_encoder.encode_dataframe(df)
