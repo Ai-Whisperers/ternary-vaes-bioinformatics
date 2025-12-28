@@ -1,0 +1,8 @@
+{
+  "synthetic_helix": {
+    "name": "Synthetic Alpha-Helix",
+    "n_residues": 29,
+    "spearman": -0.3264253573184675,
+    "pearson": -0.4375049320000237
+  }
+}
