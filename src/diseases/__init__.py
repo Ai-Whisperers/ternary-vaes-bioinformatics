@@ -119,6 +119,16 @@ from src.diseases.cancer_analyzer import (
     TargetedTherapy,
     create_cancer_synthetic_dataset,
 )
+from src.diseases.ecoli_betalactam_analyzer import (
+    EcoliBetaLactamAnalyzer,
+    EcoliBetaLactamConfig,
+    EcoliGene,
+    BetaLactam,
+    TEMVariant,
+    TEM_MUTATIONS,
+    TEM1_REFERENCE,
+    create_ecoli_synthetic_dataset,
+)
 
 __all__ = [
     "DiseaseRegistry",
@@ -203,4 +213,13 @@ __all__ = [
     "CancerGene",
     "TargetedTherapy",
     "create_cancer_synthetic_dataset",
+    # E. coli TEM beta-lactamase
+    "EcoliBetaLactamAnalyzer",
+    "EcoliBetaLactamConfig",
+    "EcoliGene",
+    "BetaLactam",
+    "TEMVariant",
+    "TEM_MUTATIONS",
+    "TEM1_REFERENCE",
+    "create_ecoli_synthetic_dataset",
 ]
