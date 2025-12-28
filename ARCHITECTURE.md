@@ -2,7 +2,7 @@
 
 This document provides a high-level overview of the Ternary VAE codebase architecture.
 
-**Last Updated**: 2025-12-26
+**Last Updated**: 2025-12-28
 
 ---
 
@@ -34,13 +34,27 @@ ternary-vaes-bioinformatics/
 │   │   ├── amino_acids.py       # Amino acid properties and mappings
 │   │   └── codons.py            # Genetic code, codon indices
 │   ├── analysis/                 # Analysis modules
-│   │   ├── immunology/          # Shared immunology utilities (NEW)
+│   │   ├── immunology/          # Shared immunology utilities
 │   │   │   ├── epitope_encoding.py  # Epitope sequence encoding
 │   │   │   ├── genetic_risk.py      # HLA risk computation
 │   │   │   ├── padic_utils.py       # P-adic valuation utilities
 │   │   │   └── types.py             # EpitopeAnalysisResult, HLAAlleleRisk
 │   │   ├── crispr/              # CRISPR off-target analysis
 │   │   └── ...
+│   ├── diseases/                 # Multi-disease framework (11 diseases)
+│   │   ├── base.py              # DiseaseAnalyzer base class
+│   │   ├── registry.py          # Disease registry
+│   │   ├── hiv_analyzer.py      # HIV (23 ARVs)
+│   │   ├── sars_cov2_analyzer.py # SARS-CoV-2 (Paxlovid, mAbs)
+│   │   ├── tuberculosis_analyzer.py # TB (13 drugs, MDR/XDR)
+│   │   ├── influenza_analyzer.py # Influenza (NAIs, vaccines)
+│   │   ├── hcv_analyzer.py      # HCV (DAAs)
+│   │   ├── hbv_analyzer.py      # HBV (NAs)
+│   │   ├── malaria_analyzer.py  # Malaria (K13, ACTs)
+│   │   ├── mrsa_analyzer.py     # MRSA (mecA, MDR)
+│   │   ├── candida_analyzer.py  # Candida auris (pan-resistance)
+│   │   ├── rsv_analyzer.py      # RSV (mAbs)
+│   │   └── cancer_analyzer.py   # Cancer (TKIs)
 │   ├── optimizers/               # Custom optimizers
 │   │   ├── riemannian.py        # Riemannian optimizers (Poincaré, Lorentz)
 │   │   └── multi_objective.py   # Multi-objective optimization
@@ -265,7 +279,7 @@ Training proceeds in phases:
 
 ---
 
-## New Modules (2025-12-26)
+## New Modules (2025-12-28)
 
 ### Biology Module (`src/biology/`)
 Centralized biology constants - Single Source of Truth:
@@ -301,6 +315,35 @@ Geometry-aware training loop:
 - Riemannian gradient updates on Poincaré ball
 - Hyperbolic distance metrics
 - Curvature-adaptive learning rates
+
+### Multi-Disease Platform (`src/diseases/`)
+Unified framework for drug resistance and escape prediction across 11 diseases:
+
+| Disease | Analyzer | Key Features |
+|---------|----------|--------------|
+| HIV | `hiv_analyzer.py` | 23 ARVs, transfer learning, 0.89 Spearman |
+| SARS-CoV-2 | `sars_cov2_analyzer.py` | Paxlovid resistance, Spike escape |
+| Tuberculosis | `tuberculosis_analyzer.py` | 13 drugs, MDR/XDR classification |
+| Influenza | `influenza_analyzer.py` | NAIs, baloxavir, vaccine selection |
+| HCV | `hcv_analyzer.py` | DAAs (NS3/NS5A/NS5B RAS) |
+| HBV | `hbv_analyzer.py` | NAs, S-gene overlap |
+| Malaria | `malaria_analyzer.py` | K13 artemisinin resistance |
+| MRSA | `mrsa_analyzer.py` | mecA/mecC, MDR profiling |
+| Candida auris | `candida_analyzer.py` | Pan-resistance alerts |
+| RSV | `rsv_analyzer.py` | Nirsevimab/palivizumab escape |
+| Cancer | `cancer_analyzer.py` | EGFR/BRAF/KRAS/ALK TKIs |
+
+```python
+from src.diseases import (
+    DiseaseRegistry,      # Disease registry
+    get_disease_config,   # Configuration loader
+    MultiDiseaseLoss,     # Cross-disease loss functions
+    # Disease-specific analyzers
+    SARSCoV2Analyzer, TuberculosisAnalyzer, InfluenzaAnalyzer,
+    HCVAnalyzer, HBVAnalyzer, MalariaAnalyzer, MRSAAnalyzer,
+    CandidaAnalyzer, RSVAnalyzer, CancerAnalyzer,
+)
+```
 
 ---
 

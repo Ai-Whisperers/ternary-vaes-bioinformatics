@@ -11,10 +11,10 @@
 
 **Ternary VAE** is a cutting‑edge variational auto‑encoder that learns representations in **hyperbolic geometry** and **3‑adic number spaces**. It is designed for bioinformatics applications such as:
 
+- **Drug resistance prediction** across 11 disease domains (HIV, TB, SARS-CoV-2, Influenza, HCV, HBV, Malaria, MRSA, Candida auris, RSV, Cancer).
 - **Geometric vaccine design** for HIV and emerging pathogens.
 - **Drug‑interaction modeling** using manifold‑centric embeddings.
 - **Codon‑space exploration** for synthetic biology.
-- **Agricultural drug discovery** (e.g., Pasteur Molecule‑Binding project).
 
 The project follows an **Open‑Medicine** philosophy: all scientific outputs (data, figures, model weights) are released under **CC‑BY‑4.0**, while the source code remains under the **PolyForm Non‑Commercial 1.0.0** license to prevent exclusive commercial exploitation.
 
@@ -109,6 +109,37 @@ python scripts/experiments/run_cross_resistance_test.py
 ```
 
 See [`UNDERSTANDING/34_FINAL_SUMMARY_AND_RECOMMENDATIONS.md`](UNDERSTANDING/34_FINAL_SUMMARY_AND_RECOMMENDATIONS.md) for full documentation.
+
+### 🦠 Multi-Disease Platform (NEW - 2025-12-28)
+
+**Unified drug resistance and escape prediction across 11 disease domains:**
+
+| Disease | Type | Analyzer | Key Features |
+|---------|------|----------|--------------|
+| **HIV** | Viral | `hiv_analyzer.py` | 23 ARVs, 0.89 Spearman correlation |
+| **SARS-CoV-2** | Viral | `sars_cov2_analyzer.py` | Paxlovid, mAb escape |
+| **Tuberculosis** | Bacterial | `tuberculosis_analyzer.py` | 13 drugs, MDR/XDR classification |
+| **Influenza** | Viral | `influenza_analyzer.py` | NAIs, vaccine strain selection |
+| **HCV** | Viral | `hcv_analyzer.py` | DAA resistance (NS3/NS5A/NS5B) |
+| **HBV** | Viral | `hbv_analyzer.py` | Nucleos(t)ide analogues |
+| **Malaria** | Parasitic | `malaria_analyzer.py` | K13 artemisinin resistance |
+| **MRSA** | Bacterial | `mrsa_analyzer.py` | mecA/mecC, MDR profiling |
+| **Candida auris** | Fungal | `candida_analyzer.py` | Pan-resistance alerts |
+| **RSV** | Viral | `rsv_analyzer.py` | Nirsevimab/palivizumab |
+| **Cancer** | Oncology | `cancer_analyzer.py` | EGFR/BRAF/KRAS/ALK TKIs |
+
+**Quick Start:**
+```python
+from src.diseases import TuberculosisAnalyzer, TBGene, TBDrug
+
+analyzer = TuberculosisAnalyzer()
+results = analyzer.analyze(
+    sequences={TBGene.RPOB: ["...rpoB sequence..."]},
+)
+print(results["mdr_classification"])  # DS-TB, MDR-TB, pre-XDR-TB, or XDR-TB
+```
+
+See [`src/diseases/README.md`](src/diseases/README.md) for full documentation.
 
 ---
 
@@ -206,4 +237,4 @@ For general questions, open an issue. For commercial licensing inquiries, email 
 
 ---
 
-_Last updated: 2025-12-27_
+_Last updated: 2025-12-28_
