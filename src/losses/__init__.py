@@ -46,9 +46,20 @@ from .components import (EntropyAlignmentComponent, EntropyLossComponent,
 from .consequence_predictor import (ConsequencePredictor,
                                     PurposefulRankingLoss,
                                     evaluate_addition_accuracy)
-from .dual_vae_loss import (DualVAELoss, EntropyRegularization,
-                            KLDivergenceLoss, ReconstructionLoss,
-                            RepulsionLoss)
+# Legacy imports from archive (backward compatibility)
+try:
+    from src.ARCHIVE.v5_10_legacy.dual_vae_loss import (
+        DualVAELoss, EntropyRegularization,
+        KLDivergenceLoss, ReconstructionLoss,
+        RepulsionLoss
+    )
+except ImportError:
+    # Create minimal shims if archive not available
+    DualVAELoss = None
+    EntropyRegularization = None
+    KLDivergenceLoss = None
+    ReconstructionLoss = None
+    RepulsionLoss = None
 from .hyperbolic_prior import HomeostaticHyperbolicPrior, HyperbolicPrior
 from .hyperbolic_recon import (HomeostaticReconLoss, HyperbolicCentroidLoss,
                                HyperbolicReconLoss)

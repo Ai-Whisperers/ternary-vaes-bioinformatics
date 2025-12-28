@@ -1,17 +1,21 @@
-"""Validation utilities for model evaluation."""
+"""Validation module for external and subtype-specific testing."""
 
-from src.validation.temporal_split import (
-    TemporalSplit,
-    temporal_split,
-    sequence_similarity_split,
-    cross_validation_temporal,
-    analyze_temporal_distribution,
+from .external_validator import (
+    ExternalValidator,
+    ExternalDataset,
+    ValidationResult,
+    LosAlamosAdapter,
+    EuResistAdapter,
+    StanfordAdapter,
+    create_synthetic_external_data,
 )
 
 __all__ = [
-    "TemporalSplit",
-    "temporal_split",
-    "sequence_similarity_split",
-    "cross_validation_temporal",
-    "analyze_temporal_distribution",
+    "ExternalValidator",
+    "ExternalDataset",
+    "ValidationResult",
+    "LosAlamosAdapter",
+    "EuResistAdapter",
+    "StanfordAdapter",
+    "create_synthetic_external_data",
 ]

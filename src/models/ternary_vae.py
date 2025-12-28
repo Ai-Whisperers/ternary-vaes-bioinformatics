@@ -86,7 +86,18 @@ import torch.nn as nn
 from src.utils.checkpoint import load_checkpoint_compat
 
 from .differentiable_controller import DifferentiableController
-from .frozen_components import FrozenDecoder, FrozenEncoder
+
+# Frozen components moved to archive - import with backward compatibility
+try:
+    from .frozen_components import FrozenDecoder, FrozenEncoder
+except ImportError:
+    try:
+        from src.ARCHIVE.v5_10_legacy.frozen_components import FrozenDecoder, FrozenEncoder
+    except ImportError:
+        # Create minimal stubs if not available
+        FrozenDecoder = None
+        FrozenEncoder = None
+
 from .hyperbolic_projection import DualHyperbolicProjection, HyperbolicProjection
 
 logger = logging.getLogger(__name__)

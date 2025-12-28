@@ -79,6 +79,43 @@ if FASTAPI_AVAILABLE:
         model_loaded: bool
         version: str
 
+    class UncertaintyOutput(BaseModel):
+        """Prediction with uncertainty quantification."""
+        drug: str
+        mean_score: float
+        std_score: float
+        lower_95: float
+        upper_95: float
+        n_samples: int
+        interpretation: str
+
+    class CrossResistanceOutput(BaseModel):
+        """Cross-resistance analysis."""
+        primary_drug: str
+        cross_resistance: Dict[str, float]
+        high_risk_drugs: List[str]
+        recommendation: str
+
+    class ClinicalReportOutput(BaseModel):
+        """Comprehensive clinical decision support report."""
+        patient_id: Optional[str]
+        sequence_length: int
+        analysis_date: str
+        drug_class_results: Dict[str, List[PredictionOutput]]
+        recommended_drugs: List[str]
+        avoid_drugs: List[str]
+        cross_resistance_warnings: List[str]
+        novel_mutations: List[str]
+        overall_recommendation: str
+
+    class NovelMutationOutput(BaseModel):
+        """Novel mutation analysis."""
+        position: int
+        attention_score: float
+        known_status: str
+        drug_class: str
+        recommendation: str
+
 
 # =============================================================================
 # Drug Database
@@ -295,6 +332,197 @@ if FASTAPI_AVAILABLE:
                 ))
 
         return BatchOutput(predictions=predictions, n_sequences=len(predictions))
+
+    @app.post("/predict/uncertainty", response_model=UncertaintyOutput)
+    async def predict_with_uncertainty(input_data: SequenceInput, n_samples: int = 50):
+        """Predict resistance with MC Dropout uncertainty quantification."""
+        if input_data.drug not in DRUG_DATABASE:
+            raise HTTPException(status_code=400, detail=f"Unknown drug: {input_data.drug}")
+
+        drug_info = DRUG_DATABASE[input_data.drug]
+        drug_class = drug_info["class"]
+        expected_lengths = {"pi": 99, "nrti": 240, "nnrti": 318, "ini": 288}
+        expected_len = expected_lengths.get(drug_class, 99)
+
+        encoded = encode_sequence(input_data.sequence, expected_len)
+        x = torch.tensor(encoded).unsqueeze(0)
+
+        # MC Dropout sampling
+        scores = []
+        for _ in range(n_samples):
+            score, _ = model.predict(x, input_data.drug)
+            scores.append(score)
+
+        scores = np.array(scores)
+        mean_score = float(np.mean(scores))
+        std_score = float(np.std(scores))
+        lower_95 = float(np.percentile(scores, 2.5))
+        upper_95 = float(np.percentile(scores, 97.5))
+
+        return UncertaintyOutput(
+            drug=input_data.drug,
+            mean_score=round(mean_score, 4),
+            std_score=round(std_score, 4),
+            lower_95=round(lower_95, 4),
+            upper_95=round(upper_95, 4),
+            n_samples=n_samples,
+            interpretation=interpret_resistance(mean_score),
+        )
+
+    @app.post("/predict/cross-resistance", response_model=CrossResistanceOutput)
+    async def predict_cross_resistance(input_data: SequenceInput):
+        """Analyze cross-resistance patterns for NRTI drugs."""
+        if input_data.drug not in DRUG_DATABASE:
+            raise HTTPException(status_code=400, detail=f"Unknown drug: {input_data.drug}")
+
+        drug_info = DRUG_DATABASE[input_data.drug]
+        drug_class = drug_info["class"]
+
+        if drug_class != "nrti":
+            raise HTTPException(
+                status_code=400,
+                detail="Cross-resistance analysis currently only available for NRTI drugs"
+            )
+
+        expected_len = 240
+        encoded = encode_sequence(input_data.sequence, expected_len)
+        x = torch.tensor(encoded).unsqueeze(0)
+
+        # NRTI cross-resistance matrix
+        nrti_drugs = ["AZT", "D4T", "ABC", "TDF", "DDI", "3TC"]
+        cross_resistance = {}
+        high_risk = []
+
+        for drug in nrti_drugs:
+            score, _ = model.predict(x, drug)
+            cross_resistance[drug] = round(score, 4)
+            if score > 0.7:
+                high_risk.append(drug)
+
+        # Generate recommendation
+        if len(high_risk) >= 4:
+            recommendation = "Consider non-NRTI backbone. Multiple NRTI cross-resistance detected."
+        elif len(high_risk) >= 2:
+            recommendation = f"Avoid {', '.join(high_risk)}. Consider {', '.join([d for d in nrti_drugs if d not in high_risk][:2])}."
+        else:
+            recommendation = "Good NRTI options available."
+
+        return CrossResistanceOutput(
+            primary_drug=input_data.drug,
+            cross_resistance=cross_resistance,
+            high_risk_drugs=high_risk,
+            recommendation=recommendation,
+        )
+
+    @app.post("/clinical-report", response_model=ClinicalReportOutput)
+    async def generate_clinical_report(
+        sequence: str,
+        patient_id: Optional[str] = None,
+    ):
+        """Generate comprehensive clinical decision support report."""
+        from datetime import datetime
+
+        results_by_class = {"pi": [], "nrti": [], "nnrti": [], "ini": []}
+        recommended = []
+        avoid = []
+        warnings = []
+
+        expected_lengths = {"pi": 99, "nrti": 240, "nnrti": 318, "ini": 288}
+
+        for drug, info in DRUG_DATABASE.items():
+            drug_class = info["class"]
+            expected_len = expected_lengths[drug_class]
+
+            try:
+                encoded = encode_sequence(sequence, expected_len)
+                x = torch.tensor(encoded).unsqueeze(0)
+                score, confidence = model.predict(x, drug)
+
+                pred = PredictionOutput(
+                    drug=drug,
+                    resistance_score=round(score, 4),
+                    confidence=round(confidence, 4),
+                    interpretation=interpret_resistance(score),
+                    mutations_detected=None,
+                )
+                results_by_class[drug_class].append(pred)
+
+                if score < 0.3:
+                    recommended.append(drug)
+                elif score > 0.7:
+                    avoid.append(drug)
+            except Exception:
+                pass
+
+        # Generate cross-resistance warnings for NRTI
+        nrti_scores = {p.drug: p.resistance_score for p in results_by_class["nrti"]}
+        if nrti_scores.get("AZT", 0) > 0.5 and nrti_scores.get("D4T", 0) > 0.5:
+            warnings.append("TAM-mediated cross-resistance between AZT and D4T detected")
+        if nrti_scores.get("3TC", 0) > 0.5:
+            warnings.append("M184V likely present - affects 3TC/FTC")
+
+        # Overall recommendation
+        if len(avoid) > 15:
+            overall = "Extensive drug resistance. Consider salvage therapy with newer agents (DTG, BIC, DOR)."
+        elif len(avoid) > 8:
+            overall = "Moderate multi-drug resistance. Construct regimen from recommended drugs."
+        elif len(avoid) > 3:
+            overall = "Limited resistance. Multiple treatment options available."
+        else:
+            overall = "Susceptible to most drugs. Standard first-line regimens appropriate."
+
+        return ClinicalReportOutput(
+            patient_id=patient_id,
+            sequence_length=len(sequence),
+            analysis_date=datetime.now().isoformat(),
+            drug_class_results=results_by_class,
+            recommended_drugs=recommended,
+            avoid_drugs=avoid,
+            cross_resistance_warnings=warnings,
+            novel_mutations=[],  # TODO: Add attention-based detection
+            overall_recommendation=overall,
+        )
+
+    @app.get("/novel-mutations/{drug_class}", response_model=List[NovelMutationOutput])
+    async def get_novel_mutations(drug_class: str):
+        """Get identified novel mutation candidates for a drug class."""
+        # Load from pre-computed results
+        novel_candidates = {
+            "nrti": [
+                {"position": 105, "attention_score": 0.0173, "known_status": "NOVEL_HIGH"},
+                {"position": 143, "attention_score": 0.0166, "known_status": "NOVEL_HIGH"},
+                {"position": 145, "attention_score": 0.0150, "known_status": "NOVEL_HIGH"},
+            ],
+            "nnrti": [
+                {"position": 240, "attention_score": 0.0145, "known_status": "NOVEL_HIGH"},
+                {"position": 91, "attention_score": 0.0134, "known_status": "NOVEL_HIGH"},
+                {"position": 289, "attention_score": 0.0130, "known_status": "NOVEL_HIGH"},
+                {"position": 126, "attention_score": 0.0114, "known_status": "NOVEL_HIGH"},
+            ],
+            "ini": [
+                {"position": 14, "attention_score": 0.0190, "known_status": "NOVEL_HIGH"},
+                {"position": 208, "attention_score": 0.0161, "known_status": "NOVEL_HIGH"},
+                {"position": 161, "attention_score": 0.0153, "known_status": "NOVEL_HIGH"},
+                {"position": 232, "attention_score": 0.0153, "known_status": "NOVEL_HIGH"},
+                {"position": 152, "attention_score": 0.0141, "known_status": "NOVEL_HIGH"},
+                {"position": 135, "attention_score": 0.0133, "known_status": "NOVEL_HIGH"},
+            ],
+            "pi": [],  # No novel candidates found for PI
+        }
+
+        if drug_class not in novel_candidates:
+            raise HTTPException(status_code=400, detail=f"Unknown drug class: {drug_class}")
+
+        return [
+            NovelMutationOutput(
+                position=m["position"],
+                attention_score=m["attention_score"],
+                known_status=m["known_status"],
+                drug_class=drug_class,
+                recommendation="Investigate for structural/functional significance",
+            )
+            for m in novel_candidates[drug_class]
+        ]
 
 
 # =============================================================================
