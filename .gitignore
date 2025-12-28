@@ -55,7 +55,9 @@ env/
 *~
 .cursor/
 .gemini/
-.claude/
+.claude/*
+!.claude/CLAUDE.md
+!.claude/commands/
 conductor/
 
 # Build artifacts and analysis outputs (root level)
@@ -106,6 +108,12 @@ local/
 
 # Training runs (TensorBoard logs)
 runs/
+
+# Codon-encoder research: ignore heavy training artifacts, keep scripts and light results
+research/codon-encoder/results/training/**/checkpoints/
+research/codon-encoder/results/training/**/*.pt
+research/codon-encoder/results/training/**/*.pkl
+research/codon-encoder/results/training/**/*.log
 
 # Build artifacts
 engine/build/
