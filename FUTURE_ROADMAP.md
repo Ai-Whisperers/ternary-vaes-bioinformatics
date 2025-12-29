@@ -1,5 +1,9 @@
 # Future Development Roadmap
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/development/roadmap.md`](docs/content/development/roadmap.md) for current roadmap documentation.
+
+---
+
 This document provides a comprehensive analysis of all future development opportunities for the Ternary VAE Bioinformatics project, including detailed plans for the `src/_future` modules and enhancement ideas for existing core modules.
 
 ---

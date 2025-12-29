@@ -1,8 +1,12 @@
 # Project Structure Guide
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/architecture/README.md`](docs/content/architecture/README.md) for current project structure documentation.
+
+---
+
 This document provides an overview of the directory structure for the Ternary VAE Bioinformatics project.
 
-**Last Updated**: 2025-12-26
+**Last Updated**: 2025-12-28
 
 ---
 
@@ -58,8 +62,15 @@ src/
 ### Key Modules
 
 - **`models/ternary_vae.py`**: Canonical V5.11 architecture
+- **`models/base_vae.py`**: Unified base class for all VAE variants
+- **`models/structure_aware_vae.py`**: AlphaFold2 structure integration
+- **`models/epistasis_module.py`**: Mutation interaction modeling
 - **`losses/dual_vae_loss.py`**: Complete loss system
+- **`losses/epistasis_loss.py`**: Unified epistasis loss
 - **`training/trainer.py`**: Main training loop
+- **`training/transfer_pipeline.py`**: Multi-disease transfer learning
+- **`diseases/uncertainty_aware_analyzer.py`**: Uncertainty quantification
+- **`encoders/alphafold_encoder.py`**: SE(3)-equivariant structure encoder
 - **`biology/codons.py`**: Single source of truth for codon encoding
 
 ---
@@ -106,17 +117,29 @@ Comprehensive test suite mirroring the `src/` structure.
 tests/
 ├── conftest.py       # Shared pytest fixtures
 ├── unit/             # Unit tests (mirrors src/)
-│   ├── test_models/
-│   ├── test_losses/
-│   ├── test_training/
+│   ├── models/
+│   │   ├── test_base_vae.py           # BaseVAE tests (33 tests)
+│   │   ├── test_epistasis_module.py   # Epistasis tests (32 tests)
+│   │   └── test_structure_aware_vae.py # Structure VAE tests (35 tests)
+│   ├── losses/
+│   │   └── test_epistasis_loss.py     # Epistasis loss tests (29 tests)
+│   ├── diseases/
+│   │   └── test_uncertainty_integration.py # Uncertainty tests (21 tests)
+│   ├── training/
+│   │   └── test_transfer_pipeline.py  # Transfer learning tests (30 tests)
+│   ├── encoders/
+│   │   └── test_alphafold_encoder.py  # AlphaFold encoder tests (18 tests)
 │   └── ...
 ├── integration/      # Cross-module integration tests
+│   └── test_full_pipeline.py          # End-to-end integration (33 tests)
 ├── e2e/              # End-to-end scientific validation
 ├── fixtures/         # Test data and fixtures
 ├── factories/        # Test factories
 ├── core/             # Test utilities and helpers
 └── harnesses/        # Test harness infrastructure
 ```
+
+**Test Coverage**: 231 tests across 8 test files (97.4% pass rate)
 
 ### Running Tests
 

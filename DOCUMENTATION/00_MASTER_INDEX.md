@@ -26,6 +26,7 @@
 
 | Section                       | Description                             | Key Documents                                         |
 | :---------------------------- | :-------------------------------------- | :---------------------------------------------------- |
+| **02_ARCHITECTURE_AND_DESIGN** | Architecture improvements 2025 | BaseVAE, Epistasis, Uncertainty, Transfer, Structure |
 | **02_THEORY_AND_FOUNDATIONS** | Mathematical and biological foundations | Hyperbolic geometry, 3-adic theory, validation suites |
 | **03_EXPERIMENTS_AND_LABS**   | Active research notebooks and findings  | HIV, SARS-CoV-2, RA, neurodegeneration research       |
 | **04_SCIENTIFIC_HISTORY**     | Archive of discoveries and reports      | Discovery records, academic outputs                   |
@@ -99,7 +100,15 @@ See [EXTERNAL_DOCS_INDEX.md](EXTERNAL_DOCS_INDEX.md) for the complete registry.
 - [Technical Whitepaper](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Technical_Whitepaper.md)
 - [Mathematical Foundations](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/)
 - [Validation Benchmarks](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/07_VALIDATION_SUITE/)
-- [**HIV P-adic Analysis (27 docs)**](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/HIV_PADIC_ANALYSIS/) - NEW
+- [**HIV P-adic Analysis (27 docs)**](01_PROJECT_KNOWLEDGE_BASE/03_EXPERIMENTS_AND_LABS/BIOINFORMATICS/HIV_PADIC_ANALYSIS/)
+- [**Architecture Improvements 2025**](01_PROJECT_KNOWLEDGE_BASE/02_ARCHITECTURE_AND_DESIGN/ARCHITECTURE_IMPROVEMENTS_2025.md) - NEW
+
+### Architecture Deep Dives (NEW - 2025-12-28)
+
+- [Uncertainty Quantification](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Uncertainty_Quantification.md) - MC Dropout, Evidential, Ensemble
+- [Transfer Learning](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Transfer_Learning.md) - Multi-disease transfer, MAML, LoRA
+- [Structure-Aware Modeling](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Structure_Aware_Modeling.md) - AlphaFold2, SE(3) encoders
+- [Epistasis Modeling](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/04_THEORY_DEEP_DIVES/THEORY_Epistasis_Modeling.md) - Mutation interactions
 
 ### For Investors & Partners
 
@@ -114,6 +123,8 @@ See [EXTERNAL_DOCS_INDEX.md](EXTERNAL_DOCS_INDEX.md) for the complete registry.
 - [Setup Guide](03_PRESENTATION_TIERS/03_TIER_3_TECHNICAL/05_SPECS_AND_GUIDES/SETUP.md)
 - [Testing Documentation](01_PROJECT_KNOWLEDGE_BASE/02_THEORY_AND_FOUNDATIONS/06_VALIDATION/)
 - [Code Health Metrics](02_PROJECT_MANAGEMENT/02_CODE_HEALTH_METRICS/)
+- [**Architecture Improvements 2025**](01_PROJECT_KNOWLEDGE_BASE/02_ARCHITECTURE_AND_DESIGN/ARCHITECTURE_IMPROVEMENTS_2025.md) - NEW
+- [API Documentation (Sphinx)](../docs/source/api/index.rst)
 
 ---
 
@@ -137,4 +148,4 @@ All documentation follows standards defined in:
 
 ---
 
-_Last updated: 2025-12-26_
+_Last updated: 2025-12-28_

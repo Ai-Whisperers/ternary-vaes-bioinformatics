@@ -1,5 +1,9 @@
 # Detailed Next Steps Plan
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/development/roadmap.md`](docs/content/development/roadmap.md) for current roadmap and status.
+
+---
+
 **Generated**: 2025-12-28
 **Current Status**: Infrastructure complete, synthetic benchmarks passing, real data integration needed
 

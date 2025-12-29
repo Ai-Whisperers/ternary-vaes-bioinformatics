@@ -1,5 +1,9 @@
 # Architecture Overview
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/architecture/README.md`](docs/content/architecture/README.md) for current architecture documentation.
+
+---
+
 This document provides a high-level overview of the Ternary VAE codebase architecture.
 
 **Last Updated**: 2025-12-28
@@ -276,6 +280,120 @@ Training proceeds in phases:
 2. **Phase 2 (40-49)**: Consolidation
 3. **Phase 3 (50)**: Disruption (β-B warmup)
 4. **Phase 4 (50+)**: Convergence
+
+---
+
+## Architecture Improvements (2025-12-28)
+
+### BaseVAE Abstraction (`src/models/base_vae.py`)
+
+Unified base class for all 19+ VAE variants, reducing code duplication:
+
+```python
+from src.models.base_vae import BaseVAE, VAEConfig, VAEOutput
+
+class MyCustomVAE(BaseVAE):
+    def encode(self, x) -> Tuple[Tensor, Tensor]:
+        # Custom encoder
+        return mu, logvar
+
+    def decode(self, z) -> Tensor:
+        # Custom decoder
+        return reconstruction
+```
+
+Key features:
+- Standardized `encode()`, `decode()`, `reparameterize()` methods
+- Common loss computation utilities
+- Parameter counting and model introspection
+- Hyperbolic projection support
+
+### Epistasis Integration
+
+Mutation interaction modeling for drug resistance:
+
+| Module | Purpose |
+|--------|---------|
+| `src/models/epistasis_module.py` | Pairwise & higher-order mutation interactions |
+| `src/losses/epistasis_loss.py` | Unified epistasis loss with coevolution |
+
+```python
+from src.models.epistasis_module import EpistasisModule
+
+epistasis = EpistasisModule(n_positions=300, embed_dim=64)
+result = epistasis(positions=torch.tensor([[65, 184, 215]]))
+# result.interaction_score, result.synergistic, result.antagonistic
+```
+
+### Uncertainty Quantification (`src/diseases/uncertainty_aware_analyzer.py`)
+
+Integrated uncertainty methods for clinical decision support:
+
+- **MC Dropout**: Multiple forward passes with dropout
+- **Evidential**: Single-pass uncertainty via evidential deep learning
+- **Ensemble**: Multiple model predictions combined
+- **Calibration**: Temperature scaling for reliable confidence intervals
+
+```python
+from src.diseases.uncertainty_aware_analyzer import (
+    UncertaintyAwareAnalyzer, UncertaintyConfig, UncertaintyMethod
+)
+
+config = UncertaintyConfig(method=UncertaintyMethod.EVIDENTIAL)
+analyzer = UncertaintyAwareAnalyzer(base_analyzer, config=config, model=model)
+results = analyzer.analyze_with_uncertainty(sequences, encodings=x)
+```
+
+### Transfer Learning Pipeline (`src/training/transfer_pipeline.py`)
+
+Multi-disease transfer learning strategies:
+
+| Strategy | Description |
+|----------|-------------|
+| `FROZEN_ENCODER` | Pre-train encoder, freeze it, train new head |
+| `FULL_FINETUNE` | Fine-tune all parameters |
+| `ADAPTER` | Add small trainable adapter modules |
+| `LORA` | Low-rank adaptation |
+| `MAML` | Model-agnostic meta-learning for few-shot |
+
+```python
+from src.training.transfer_pipeline import TransferLearningPipeline, TransferConfig
+
+pipeline = TransferLearningPipeline(config)
+pretrained = pipeline.pretrain(all_disease_data)
+finetuned = pipeline.finetune("hiv", hiv_data)
+```
+
+### Structure-Aware VAE (`src/models/structure_aware_vae.py`)
+
+AlphaFold2 integration with SE(3)-equivariant encoding:
+
+- **SE3Encoder**: Rotation/translation invariant structure encoding
+- **InvariantPointAttention (IPA)**: Structure-aware attention from AlphaFold2
+- **pLDDT weighting**: Confidence-weighted structure features
+- **Fusion types**: Cross-attention, gated, concatenation
+
+```python
+from src.models.structure_aware_vae import StructureAwareVAE, StructureConfig
+
+config = StructureConfig(use_structure=True, fusion_type="cross_attention")
+model = StructureAwareVAE(input_dim=128, latent_dim=32, structure_config=config)
+outputs = model(x=seq_embed, structure=coords, plddt=confidence)
+```
+
+### AlphaFold Encoder (`src/encoders/alphafold_encoder.py`)
+
+Download and encode AlphaFold2 predicted structures:
+
+```python
+from src.encoders.alphafold_encoder import AlphaFoldEncoder, AlphaFoldStructureLoader
+
+loader = AlphaFoldStructureLoader(cache_dir=".alphafold_cache")
+structure = loader.get_structure("P04637")  # UniProt ID
+
+encoder = AlphaFoldEncoder(config)
+embedding = encoder(coords, plddt_scores)
+```
 
 ---
 

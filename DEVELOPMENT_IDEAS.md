@@ -1,5 +1,9 @@
 # Detailed Development Ideas by Module
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/development/`](docs/content/development/README.md) for current development documentation.
+
+---
+
 This document provides concrete, actionable development ideas for each of the core modules in the Ternary VAE project. Each section includes specific features, code sketches, and integration paths.
 
 ---

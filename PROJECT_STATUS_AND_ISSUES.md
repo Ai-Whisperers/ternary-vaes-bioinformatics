@@ -1,5 +1,9 @@
 # Project Status and Issues Report
 
+> **⚠️ DEPRECATED**: This document is being phased out. See [`docs/content/validation/README.md`](docs/content/validation/README.md) and [`docs/content/research/README.md`](docs/content/research/README.md) for current status.
+
+---
+
 **Generated**: 2025-12-28 (Updated with HIV Analyzer and Full Benchmarks)
 **Project**: Ternary VAE Bioinformatics (p-adic encoding for drug resistance prediction)
 

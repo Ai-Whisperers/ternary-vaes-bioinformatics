@@ -1,10 +1,33 @@
-# Ternary VAE Bioinformatics Documentation
+# Legacy Documentation
 
-> **Unified Documentation Hub - Single source of truth for the project.**
+> **This folder contains legacy documentation. See [`docs/content/`](../docs/content/README.md) for current documentation.**
 
 ---
 
-## Quick Start
+## NEW DOCUMENTATION LOCATION
+
+**All documentation has been consolidated in [`docs/content/`](../docs/content/README.md).**
+
+| Topic | New Location |
+|:------|:-------------|
+| Getting Started | [docs/content/getting-started/](../docs/content/getting-started/README.md) |
+| Architecture | [docs/content/architecture/](../docs/content/architecture/README.md) |
+| Theory | [docs/content/theory/](../docs/content/theory/README.md) |
+| Research | [docs/content/research/](../docs/content/research/README.md) |
+| Development | [docs/content/development/](../docs/content/development/README.md) |
+| Stakeholders | [docs/content/stakeholders/](../docs/content/stakeholders/README.md) |
+
+See [LEGACY_NOTICE.md](LEGACY_NOTICE.md) for full migration details.
+
+---
+
+# Legacy Content Below
+
+> **The content below is preserved for historical reference.**
+
+---
+
+## Quick Start (Legacy)
 
 | Resource                                   | Description                |
 | :----------------------------------------- | :------------------------- |
