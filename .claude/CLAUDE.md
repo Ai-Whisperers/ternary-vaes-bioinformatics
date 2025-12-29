@@ -290,10 +290,107 @@ hierarchy = spearmanr(valuations.cpu(), radii_B.cpu())[0]  # Use VAE-B for p-adi
 
 ---
 
+## V5.12.2 COMPLETE FIX LIST
+
+**Total: 278 norm() calls analyzed, ~75 need fixing**
+
+### Priority 1: Core Losses (5 files, 7 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/losses/padic/metric_loss.py` | 84 | `d_latent = torch.norm(z[i] - z[j])` |
+| `src/losses/padic/ranking_loss.py` | 97-98 | `d_anchor_pos/neg` triplet distances |
+| `src/losses/padic/ranking_v2.py` | 131-132 | `d_anchor_pos/neg` triplet distances |
+| `src/losses/set_theory_loss.py` | 105 | `distances = torch.norm(embeddings)` radii |
+| `src/losses/objectives/solubility.py` | 231 | `norms = torch.norm(latent)` compactness |
+
+### Priority 2: Core Geometry/Models (5 files, 6 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/geometry/holographic_poincare.py` | 251 | `holographic_distance` uses Euclidean |
+| `src/models/holographic/bulk_boundary.py` | 205 | `distance_to_origin` uses Euclidean |
+| `src/models/lattice_projection.py` | 205 | `_adjust_radii` uses Euclidean norms |
+| `src/models/contrastive/concept_aware.py` | 445 | `distances = torch.norm(diff)` |
+| `src/diseases/rheumatoid_arthritis.py` | 346 | `shift_magnitude` uses Euclidean |
+
+### Priority 3: Encoders (1 file, 1 usage)
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/encoders/codon_encoder.py` | 413 | `emb_dist = torch.norm(emb1 - emb2)` |
+
+### Priority 4: Visualization (2 files, 7 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/visualization/projections/poincare.py` | 67,102,108,177,260,328 | radii, norms, centroids |
+| `src/visualization/plots/manifold.py` | 378 | `euclidean_norms` for radial plot |
+
+### Priority 5: Training/Monitoring (1 file, 2 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `src/training/monitoring/tensorboard_logger.py` | 463,466 | `z_A/B_euc_norm` |
+
+### Priority 6: Research Scripts - HIV (4 files, ~12 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `hiv/scripts/03_hiv_handshake_analysis.py` | 274,283,295 | `encode_context` clamping |
+| `hiv/src/03_hiv_handshake_analysis.py` | 267,276,288 | duplicate file |
+| `hiv/scripts/analyze_tropism_switching.py` | 273,340 | centroid_distance, separation |
+| `hiv/scripts/esm2_integration.py` | 279,283,460,615,626,720 | ESM2 distances (verify if hyperbolic) |
+
+### Priority 7: Research Scripts - RA (3 files, ~8 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `rheumatoid_arthritis/scripts/03_citrullination_analysis.py` | 273,279 | euclidean_shift, cosine_sim |
+| `rheumatoid_arthritis/scripts/04_codon_optimizer.py` | 228,273,323,324 | cluster distances |
+| `rheumatoid_arthritis/scripts/cross_validate_encoder.py` | 185 | euc_context |
+
+### Priority 8: Research Scripts - Genetic Code (5 files, ~12 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `genetic_code/scripts/04_fast_reverse_search.py` | 138,184 | radii, centroid dists |
+| `genetic_code/scripts/07_extract_v5_11_3_embeddings.py` | 136,137 | radii_A/B |
+| `genetic_code/scripts/09_train_codon_encoder_3adic.py` | 412 | radii |
+| `genetic_code/scripts/10_extract_fused_embeddings.py` | 151,152 | radii_A/B |
+| `genetic_code/scripts/11_train_codon_encoder_fused.py` | 166,302,395,459 | radii |
+
+### Priority 9: Research Scripts - Spectral Analysis (6 files, ~18 usages)
+| File | Lines | Issue |
+|------|-------|-------|
+| `spectral_analysis/scripts/01_extract_embeddings.py` | 253,254 | radii_A/B |
+| `spectral_analysis/scripts/04_padic_spectral_analysis.py` | 94 | radii |
+| `spectral_analysis/scripts/05_exact_padic_analysis.py` | 242 | radii |
+| `spectral_analysis/scripts/07_adelic_analysis.py` | 65,134,194,275,280,296,341 | radii, emb_dists |
+| `spectral_analysis/scripts/08_alternative_spectral_operators.py` | 106,196 | emb_dist, radii |
+| `spectral_analysis/scripts/09_binary_ternary_decomposition.py` | 115,181,289 | radii |
+| `spectral_analysis/scripts/10_semantic_amplification_benchmark.py` | 195 | radii |
+
+### Priority 10: Experimental (1 file, 1 usage)
+| File | Lines | Issue |
+|------|-------|-------|
+| `_experimental/implementations/literature/literature_implementations.py` | 1191 | `z_norms` debug |
+
+### VERIFIED CORRECT (No Fix Needed)
+These 190+ usages are intentionally Euclidean:
+- Inside exp_map/log_map/poincare_distance formulas
+- `self.norm(x)` = LayerNorm/BatchNorm
+- Direction normalization: `v / norm(v)`
+- Ball projection/clamping: `norm < max_radius`
+- 3D physical coordinates
+- Intentionally Euclidean functions (`euclidean_distance`, `cosine_distance`)
+- p-adic norm (different mathematical object)
+- Convergence checks, gradient norms
+
+**Audit Documents:**
+- `V5.12.2_ALL_278_CALLS.md` - Complete listing
+- `V5.12.2_CATEGORIZED_REVIEW.md` - Detailed categorization
+- `scripts/audit_hyperbolic_norms.py` - AST scanner
+
+---
+
 ## Version History
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2025-12-29 | 1.4 | V5.12.2 COMPLETE FIX LIST - all 75 files needing fixes documented |
 | 2025-12-29 | 1.3 | V5.12.2 audit COMPLETE - all core files fixed, deprecated geometry_utils.py |
 | 2025-12-29 | 1.2 | V5.12.2 hyperbolic audit warning, fixed Quick Evaluation example |
 | 2025-12-28 | 1.1 | Added codon-encoder research section with key discoveries |
