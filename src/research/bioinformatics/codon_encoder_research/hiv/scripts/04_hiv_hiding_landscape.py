@@ -37,6 +37,18 @@ from typing import Dict, List, Optional
 import numpy as np
 import torch
 
+
+def hyperbolic_radius(embedding: np.ndarray, c: float = 1.0) -> float:
+    """Compute hyperbolic distance from origin for a Poincare ball embedding.
+
+    V5.12.2: Use proper hyperbolic distance formula instead of Euclidean norm.
+    """
+    sqrt_c = np.sqrt(c)
+    euclidean_norm = np.linalg.norm(embedding)
+    clamped = np.clip(euclidean_norm * sqrt_c, 0, 0.999)
+    return 2.0 * np.arctanh(clamped) / sqrt_c
+
+
 # Add local path for imports
 script_dir = Path(__file__).parent
 sys.path.insert(0, str(script_dir))
@@ -1239,7 +1251,7 @@ class HidingLandscapeAnalyzer:
                     radius = np.max(distances) if distances else 0.0
 
                     # Distance from origin (center of Poincare ball)
-                    origin_dist = np.linalg.norm(centroid)
+                    origin_dist = hyperbolic_radius(centroid)  # V5.12.2
 
                     results["codon_analysis"][region] = {
                         "codons": valid_codons,
@@ -1313,7 +1325,7 @@ class HidingLandscapeAnalyzer:
             distances_from_center = [self.compute_poincare_distance(overall_centroid, c) for c in all_centroids]
 
             geometry = {
-                "overall_centroid_norm": float(np.linalg.norm(overall_centroid)),
+                "overall_centroid_norm": hyperbolic_radius(overall_centroid),  # V5.12.2
                 "mean_radius": float(np.mean(distances_from_center)),
                 "max_radius": float(np.max(distances_from_center)),
                 "std_radius": float(np.std(distances_from_center)),
@@ -1327,7 +1339,7 @@ class HidingLandscapeAnalyzer:
             if centroids:
                 level_centroid = self.compute_centroid(centroids)
                 level_geometry[level] = {
-                    "centroid_norm": float(np.linalg.norm(level_centroid)),
+                    "centroid_norm": hyperbolic_radius(level_centroid),  # V5.12.2
                     "n_proteins": len(centroids),
                 }
 
