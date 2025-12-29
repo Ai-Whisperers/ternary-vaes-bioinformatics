@@ -29,6 +29,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+from src.geometry import poincare_distance
+
 # =============================================================================
 # GENETIC CODE DATA
 # =============================================================================
@@ -408,8 +410,9 @@ def evaluate_mapping(model, data, vae_embeddings):
     mean_between = np.mean(between_dists) if between_dists else 0
     separation = mean_between / mean_within if mean_within > 0 else 0
 
-    # Check hierarchy correlation (embeddings should inherit V5.11.3 structure)
-    radii = torch.norm(embeddings, dim=1).numpy()
+    # V5.12.2: Check hierarchy correlation (use hyperbolic radii)
+    origin = torch.zeros_like(embeddings)
+    radii = poincare_distance(embeddings, origin, c=1.0).numpy()
 
     print("\n  Evaluation Results:")
     print(f"    Cluster accuracy: {cluster_acc*100:.1f}%")
