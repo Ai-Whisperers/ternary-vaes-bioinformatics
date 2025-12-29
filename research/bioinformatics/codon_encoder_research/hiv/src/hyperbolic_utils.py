@@ -266,7 +266,7 @@ def load_codon_encoder(device: str = "cpu", version: str = "3adic") -> Tuple[Cod
     # script_dir = .../hiv/scripts
     # parents: [0]=scripts, [1]=hiv, [2]=codon_encoder_research, [3]=bioinformatics,
     #          [4]=03_EXPERIMENTS_AND_LABS, [5]=01_PROJECT_KNOWLEDGE_BASE, [6]=DOCUMENTATION, [7]=ternary-vaes
-    project_root = script_dir.parents[6]  # Navigate to ternary-vaes root
+    project_root = script_dir.parents[5]  # Navigate to ternary-vaes root
 
     if version == "3adic":
         # New native hyperbolic encoder (trained on V5.11.3 embeddings)

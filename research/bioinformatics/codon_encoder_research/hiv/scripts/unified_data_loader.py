@@ -33,7 +33,7 @@ import pandas as pd
 
 # Get project root by traversing up from script location
 _SCRIPT_DIR = Path(__file__).parent
-_PROJECT_ROOT = _SCRIPT_DIR.parents[4]  # hiv -> codon_encoder_research -> bioinformatics -> research -> root
+_PROJECT_ROOT = _SCRIPT_DIR.parents[5]  # hiv -> codon_encoder_research -> bioinformatics -> research -> root
 
 # Data directories
 RESEARCH_DATASETS_DIR = _PROJECT_ROOT / "research" / "datasets"

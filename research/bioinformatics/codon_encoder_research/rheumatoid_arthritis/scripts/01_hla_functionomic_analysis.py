@@ -513,7 +513,7 @@ def main():
     # Assuming standard structure:
     # DOCUMENTATION/03../bioinformatics/codon_encoder_research/rheumatoid_arthritis/scripts/
     # So root is 6 levels up.
-    PROJECT_ROOT = Path(__file__).resolve().parents[6]
+    PROJECT_ROOT = Path(__file__).resolve().parents[5]
     results_dir = get_results_dir(hyperbolic=True)
     print(f"\nResults will be saved to: {results_dir}")
 

@@ -268,7 +268,7 @@ def load_codon_encoder(device: str = "cpu", version: str = "3adic") -> Tuple[Cod
     #          [3]=03_EXPERIMENTS_AND_LABS, [4]=01_PROJECT_KNOWLEDGE_BASE,
     #          [5]=DOCUMENTATION, [6]=ternary-vaes (project root)
     try:
-        project_root = script_dir.parents[6]  # Navigate to ternary-vaes root from DOCUMENTATION
+        project_root = script_dir.parents[5]  # Navigate to ternary-vaes root from DOCUMENTATION
     except IndexError:
         project_root = script_dir.parents[3]  # Fallback for research/ structure
 
