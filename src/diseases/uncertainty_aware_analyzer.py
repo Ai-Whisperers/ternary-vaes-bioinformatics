@@ -447,12 +447,11 @@ class UncertaintyAwareAnalyzer:
         # Get predictions with uncertainty
         estimate = self.uncertainty_wrapper.predict_with_uncertainty(validation_encodings)
 
-        # Calibrate
-        self.calibrator.calibrate(
+        # Fit the calibrator with validation data
+        self.calibrator.fit(
             predictions=estimate.mean,
             uncertainties=estimate.std,
             targets=validation_targets,
-            target_coverage=self.config.confidence_level,
         )
 
         self.is_calibrated = True

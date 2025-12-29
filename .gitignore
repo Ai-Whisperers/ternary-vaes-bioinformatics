@@ -142,10 +142,10 @@ research/bioinformatics/codon_encoder_research/hiv/data/
 research/embeddings_analysis/
 
 # Legacy documentation (replaced by docs/content/)
-DOCUMENTATION/
+# DOCUMENTATION/ (Migrated to docs/content)
 
 # Knowledge synthesis (AI-generated)
-UNDERSTANDING/
+# UNDERSTANDING/ (Migrated to docs/content)
 
 # Legacy/archive code
 src/ARCHIVE/
