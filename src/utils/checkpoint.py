@@ -521,6 +521,238 @@ def compare_checkpoints(
     return "\n".join(lines)
 
 
+@dataclass
+class ArchitectureConfig:
+    """Architecture configuration extracted from checkpoint.
+
+    Used to ensure model architecture matches checkpoint before loading.
+    Mismatched architectures cause silent failures with strict=False.
+    """
+    latent_dim: int = 16
+    hidden_dim: int = 64
+    curvature: float = 1.0
+    max_radius: float = 0.95
+    use_controller: bool = False
+    use_dual_projection: bool = True
+    n_projection_layers: int = 1
+
+    @classmethod
+    def from_checkpoint(cls, checkpoint: dict[str, Any]) -> "ArchitectureConfig":
+        """Extract architecture config from checkpoint.
+
+        Args:
+            checkpoint: Loaded checkpoint dictionary
+
+        Returns:
+            ArchitectureConfig with values from checkpoint
+        """
+        config = checkpoint.get("config", {})
+
+        # Handle nested config (some checkpoints have config.config)
+        if isinstance(config, dict) and "config" in config and config["config"] is None:
+            # The actual config values are at top level of config dict
+            pass
+
+        return cls(
+            latent_dim=config.get("latent_dim", 16),
+            hidden_dim=config.get("hidden_dim", config.get("projection_hidden_dim", 64)),
+            curvature=config.get("curvature", 1.0),
+            max_radius=config.get("max_radius", 0.95),
+            use_controller=config.get("use_controller", False),
+            use_dual_projection=config.get("dual_projection", True),
+            n_projection_layers=config.get("projection_layers", 1),
+        )
+
+    @classmethod
+    def from_model_state(cls, state_dict: dict[str, torch.Tensor]) -> "ArchitectureConfig":
+        """Infer architecture config from model state dict keys and shapes.
+
+        Args:
+            state_dict: Model state dictionary
+
+        Returns:
+            ArchitectureConfig inferred from state dict
+        """
+        # Check for controller
+        use_controller = any(k.startswith("controller.") for k in state_dict.keys())
+
+        # Infer hidden_dim from encoder weight shape
+        hidden_dim = 64
+        for key in ["encoder_A.encoder.0.weight", "encoder_A.layers.0.weight"]:
+            if key in state_dict:
+                hidden_dim = state_dict[key].shape[0]
+                break
+
+        # Infer latent_dim from fc_mu weight shape
+        latent_dim = 16
+        if "encoder_A.fc_mu.weight" in state_dict:
+            latent_dim = state_dict["encoder_A.fc_mu.weight"].shape[0]
+
+        # Count projection layers by checking direction_net weights
+        n_projection_layers = 1
+        for i in range(10):
+            if f"projection.proj_A.direction_net.{i*2}.weight" in state_dict:
+                n_projection_layers = i // 2 + 1
+
+        return cls(
+            latent_dim=latent_dim,
+            hidden_dim=hidden_dim,
+            use_controller=use_controller,
+            n_projection_layers=n_projection_layers,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Convert to dictionary for model construction."""
+        return {
+            "latent_dim": self.latent_dim,
+            "hidden_dim": self.hidden_dim,
+            "curvature": self.curvature,
+            "max_radius": self.max_radius,
+            "use_controller": self.use_controller,
+            "use_dual_projection": self.use_dual_projection,
+        }
+
+
+class CheckpointArchitectureMismatch(Exception):
+    """Raised when model architecture doesn't match checkpoint."""
+    pass
+
+
+def validate_checkpoint_architecture(
+    model_state: dict[str, torch.Tensor],
+    checkpoint_state: dict[str, torch.Tensor],
+    raise_on_mismatch: bool = True,
+) -> tuple[bool, list[str], list[str]]:
+    """Validate that model architecture matches checkpoint.
+
+    This catches the silent failure bug where strict=False loading
+    leaves projection layers randomly initialized.
+
+    Args:
+        model_state: State dict from model.state_dict()
+        checkpoint_state: State dict from checkpoint
+        raise_on_mismatch: Whether to raise exception on mismatch
+
+    Returns:
+        Tuple of (is_valid, missing_keys, extra_keys)
+
+    Raises:
+        CheckpointArchitectureMismatch: If mismatch and raise_on_mismatch=True
+    """
+    model_keys = set(model_state.keys())
+    checkpoint_keys = set(checkpoint_state.keys())
+
+    missing_keys = sorted(model_keys - checkpoint_keys)
+    extra_keys = sorted(checkpoint_keys - model_keys)
+
+    # Critical keys that MUST match (projection layers)
+    critical_missing = [k for k in missing_keys if "projection" in k or "manifold" in k]
+
+    is_valid = len(critical_missing) == 0
+
+    if not is_valid and raise_on_mismatch:
+        msg = (
+            f"Checkpoint architecture mismatch!\n"
+            f"  Missing {len(missing_keys)} keys ({len(critical_missing)} critical)\n"
+            f"  Extra {len(extra_keys)} keys\n"
+            f"  Critical missing: {critical_missing[:5]}...\n"
+            f"  This will cause random initialization of projection layers.\n"
+            f"  Fix: Match model architecture to checkpoint config."
+        )
+        raise CheckpointArchitectureMismatch(msg)
+
+    return is_valid, missing_keys, extra_keys
+
+
+def load_checkpoint_safe(
+    path: Path | str,
+    model: torch.nn.Module,
+    map_location: str | torch.device = "cpu",
+    strict: bool = True,
+    validate_architecture: bool = True,
+) -> tuple[dict[str, Any], bool]:
+    """Load checkpoint with architecture validation.
+
+    This is the recommended way to load checkpoints. It validates that
+    the model architecture matches the checkpoint before loading, preventing
+    the silent failure bug with strict=False.
+
+    Args:
+        path: Path to checkpoint file
+        model: Model to load state into
+        map_location: Device to map tensors to
+        strict: Whether to use strict loading (recommended: True)
+        validate_architecture: Whether to validate architecture match
+
+    Returns:
+        Tuple of (checkpoint_dict, was_strict_load_successful)
+
+    Raises:
+        CheckpointArchitectureMismatch: If architecture validation fails
+
+    Example:
+        >>> model = TernaryVAEV5_11_PartialFreeze(**arch_config.to_dict())
+        >>> ckpt, strict_ok = load_checkpoint_safe("best.pt", model)
+        >>> if not strict_ok:
+        ...     print("Warning: Some keys didn't match")
+    """
+    checkpoint = load_checkpoint_compat(path, map_location)
+    checkpoint_state = get_model_state_dict(checkpoint)
+    model_state = model.state_dict()
+
+    # Validate architecture
+    if validate_architecture:
+        validate_checkpoint_architecture(model_state, checkpoint_state, raise_on_mismatch=True)
+
+    # Try strict load
+    try:
+        model.load_state_dict(checkpoint_state, strict=True)
+        return checkpoint, True
+    except RuntimeError as e:
+        if strict:
+            raise
+        # Fall back to non-strict
+        model.load_state_dict(checkpoint_state, strict=False)
+        return checkpoint, False
+
+
+def get_checkpoint_architecture(
+    path: Path | str,
+    map_location: str | torch.device = "cpu",
+) -> ArchitectureConfig:
+    """Get architecture config needed to load a checkpoint.
+
+    Use this to determine what model architecture to create before loading.
+
+    Args:
+        path: Path to checkpoint file
+        map_location: Device to map tensors to
+
+    Returns:
+        ArchitectureConfig with required architecture settings
+
+    Example:
+        >>> arch = get_checkpoint_architecture("v5_11_homeostasis/best.pt")
+        >>> print(f"Need: curvature={arch.curvature}, controller={arch.use_controller}")
+        >>> model = TernaryVAEV5_11_PartialFreeze(**arch.to_dict())
+    """
+    checkpoint = load_checkpoint_compat(path, map_location)
+
+    # First try to get from stored config
+    arch = ArchitectureConfig.from_checkpoint(checkpoint)
+
+    # Validate against state dict
+    checkpoint_state = get_model_state_dict(checkpoint)
+    inferred = ArchitectureConfig.from_model_state(checkpoint_state)
+
+    # Use inferred values for fields that can be determined from state dict
+    arch.use_controller = inferred.use_controller
+    arch.latent_dim = inferred.latent_dim
+    arch.hidden_dim = inferred.hidden_dim
+
+    return arch
+
+
 __all__ = [
     # Core loading
     "NumpyBackwardsCompatUnpickler",
@@ -529,6 +761,12 @@ __all__ = [
     # Model state extraction
     "get_model_state_dict",
     "extract_model_state",
+    # Architecture validation (NEW)
+    "ArchitectureConfig",
+    "CheckpointArchitectureMismatch",
+    "validate_checkpoint_architecture",
+    "load_checkpoint_safe",
+    "get_checkpoint_architecture",
     # Comprehensive metadata
     "CheckpointMetrics",
     "CheckpointInfo",
