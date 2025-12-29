@@ -140,7 +140,11 @@ sandbox-training/
 # Use: python -m src.utils.checkpoint_hub download --checkpoint <name>
 **/*.pt
 *.7z
-outputs/
+
+# Keep outputs results (JSON, NPY tracked via Git LFS)
+# But ignore model subdirectories with checkpoints
+outputs/models/
+outputs/optimal/
 
 # Keep the directory structure
 !outputs/models/.gitkeep
