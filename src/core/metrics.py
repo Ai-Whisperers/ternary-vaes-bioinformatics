@@ -60,7 +60,7 @@ def compute_ranking_correlation_hyperbolic(
     device: str,
     n_samples: int = 5000,
     max_norm: float = 0.95,
-    curvature: float = 2.0,
+    curvature: float = 1.0,
     n_triplets: int = 1000,
 ) -> Tuple[float, float, float, float, float, float]:
     """Compute 3-adic ranking correlation using Poincare distance.
@@ -75,10 +75,11 @@ def compute_ranking_correlation_hyperbolic(
     Concordance rate measures how often these orderings agree.
 
     Args:
-        model: VAE model with forward() returning dict with z_A, z_B
+        model: VAE model with forward(x, compute_control) returning dict with
+               z_A_hyp, z_B_hyp (hyperbolic) and z_A_euc, z_B_euc (Euclidean)
         device: Device to run evaluation on
         n_samples: Number of samples to generate
-        max_norm: Maximum norm for Poincare projection
+        max_norm: Maximum norm for Poincare projection (unused, model handles projection)
         curvature: Hyperbolic curvature parameter
         n_triplets: Number of triplets to evaluate
 
@@ -100,14 +101,16 @@ def compute_ranking_correlation_hyperbolic(
         for i in range(9):
             ternary_data[:, i] = ((indices // (3**i)) % 3) - 1
 
-        # Forward pass through model
-        outputs = model(ternary_data.float(), 1.0, 1.0, 0.5, 0.5)
-        z_A = outputs["z_A"]
-        z_B = outputs["z_B"]
+        # Forward pass through model (V5.11+ API)
+        outputs = model(ternary_data.float(), compute_control=False)
 
-        # Project to Poincare ball
-        z_A_hyp = project_to_poincare(z_A, max_norm)
-        z_B_hyp = project_to_poincare(z_B, max_norm)
+        # Get hyperbolic embeddings (already projected by model)
+        z_A_hyp = outputs["z_A_hyp"]
+        z_B_hyp = outputs["z_B_hyp"]
+
+        # Get Euclidean embeddings for comparison
+        z_A_euc = outputs["z_A_euc"]
+        z_B_euc = outputs["z_B_euc"]
 
         # Compute mean radius (for homeostatic monitoring)
         mean_radius_A = torch.norm(z_A_hyp, dim=1).mean().item()
@@ -145,10 +148,10 @@ def compute_ranking_correlation_hyperbolic(
         d_B_ik = poincare_distance(z_B_hyp[i_idx], z_B_hyp[k_idx], curvature)
 
         # Euclidean distances (for comparison)
-        d_A_ij_euc = torch.norm(z_A[i_idx] - z_A[j_idx], dim=1)
-        d_A_ik_euc = torch.norm(z_A[i_idx] - z_A[k_idx], dim=1)
-        d_B_ij_euc = torch.norm(z_B[i_idx] - z_B[j_idx], dim=1)
-        d_B_ik_euc = torch.norm(z_B[i_idx] - z_B[k_idx], dim=1)
+        d_A_ij_euc = torch.norm(z_A_euc[i_idx] - z_A_euc[j_idx], dim=1)
+        d_A_ik_euc = torch.norm(z_A_euc[i_idx] - z_A_euc[k_idx], dim=1)
+        d_B_ij_euc = torch.norm(z_B_euc[i_idx] - z_B_euc[j_idx], dim=1)
+        d_B_ik_euc = torch.norm(z_B_euc[i_idx] - z_B_euc[k_idx], dim=1)
 
         # Hyperbolic correlations
         latent_A_closer_hyp = (d_A_ij < d_A_ik).float()
