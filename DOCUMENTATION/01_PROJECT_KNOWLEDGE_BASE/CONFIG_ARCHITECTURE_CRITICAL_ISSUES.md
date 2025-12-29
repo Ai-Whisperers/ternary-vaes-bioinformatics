@@ -282,27 +282,27 @@ grep -r "from src.config.loader import load_config" scripts/
 
 ## Remediation Roadmap
 
-### Phase 1: Document and Freeze (Week 1)
+### Phase 1: Document and Freeze
 - [x] Create this document
 - [ ] Add deprecation warnings to unused code
 - [ ] Document which env vars actually work
 
-### Phase 2: Unify Environment Variables (Week 2)
+### Phase 2: Unify Environment Variables
 - [ ] Choose ONE prefix: `TERNARY_` (matches project name)
 - [ ] Migrate all modules to use `TERNARY_` prefix
 - [ ] Update documentation
 
-### Phase 3: Schema Redesign (Week 3-4)
+### Phase 3: Schema Redesign
 - [ ] Design new schema matching actual config structure
 - [ ] Create V5ConfigSchema matching v5.11+ configs
 - [ ] Add migration path from current configs
 
-### Phase 4: Integration (Week 5-6)
+### Phase 4: Integration
 - [ ] Update all scripts to use `load_config()`
 - [ ] Add validation to all training scripts
 - [ ] Remove dead code
 
-### Phase 5: Path Migration (Week 7-8)
+### Phase 5: Path Migration
 - [ ] Migrate checkpoints from `sandbox-training/` to `outputs/models/`
 - [ ] Update all configs to use new paths
 - [ ] Add backwards compatibility for existing checkpoints
@@ -1048,6 +1048,175 @@ def save_checkpoint(
 
 ---
 
+## Issue 10: IDEAL MODEL QUALITY - What "Perfect" Means
+
+### The Goal
+
+A **PERFECT** Ternary VAE model must achieve:
+
+1. **100% Coverage** - All 19,683 ternary operations correctly reconstructed
+2. **Ceiling Hierarchy** - Spearman correlation at mathematical limit (-0.8321)
+3. **High Richness** - Within-level variance preserved (not collapsed to shells)
+4. **Strong Distance Correlation** - Geometric relationships preserved in embedding
+5. **Clear Radial Separation** - v0 at outer edge, v9 at center with maximum gap
+
+### Metric Definitions and Targets
+
+| Metric | Definition | Target | Mathematical Limit | Why It Matters |
+|--------|------------|--------|-------------------|----------------|
+| **Coverage** | % of 19,683 ops correctly reconstructed | 100% | 100% | Model must be complete |
+| **Hierarchy_B** | Spearman(3-adic valuation, radius) | -0.8321 | -0.8321* | Correct p-adic ordering |
+| **Richness** | Mean within-valuation variance of radii | ≥ 0.006 | ~0.01 | Meaningful structure beyond ordering |
+| **dist_corr_B** | Distance correlation in latent space | ≥ 0.9 | 1.0 | Geometric preservation |
+| **r_v0** | Mean radius for valuation=0 operations | ≥ 0.9 | 0.95 | v0 at outer edge |
+| **r_v9** | Mean radius for valuation=9 operations | ≤ 0.15 | 0.0 | v9 at center |
+| **Q** | Composite: dist_corr + 1.5×|hierarchy| | ≥ 1.8 | ~2.25 | Overall quality |
+
+*Hierarchy ceiling of -0.8321 is due to v=0 containing 66.7% of samples (13,122/19,683). Any within-level variance creates ties that limit Spearman correlation.
+
+### Detailed Checkpoint Analysis (Extracted Metrics)
+
+#### Best Checkpoints by Each Metric
+
+**COVERAGE (Target: 100%)**
+| Checkpoint | Coverage | Notes |
+|------------|----------|-------|
+| `v5_11_structural` | 100.0% | ✓ |
+| `balanced_radial` | 100.0% | ✓ |
+| `homeostatic_rich` | 100.0% | ✓ |
+| `final_rich_lr3e4` | 100.0% | ✓ |
+| `v5_11_homeostasis` | 99.9% | Near-perfect |
+
+**HIERARCHY_B (Target: -0.8321)**
+| Checkpoint | Hierarchy_B | Gap from Ceiling |
+|------------|-------------|------------------|
+| `balanced_radial` | -0.8321 | 0.0000 (AT CEILING) |
+| `v5_11_structural` | -0.8320 | 0.0001 |
+| `v5_11_homeostasis` | -0.8318 | 0.0003 |
+| `homeostatic_rich` | -0.6944 | 0.1377 (sacrificed for richness) |
+| `final_rich_lr3e4` | -0.6691 | 0.1630 (sacrificed for richness) |
+
+**RICHNESS (Target: ≥ 0.006)**
+| Checkpoint | Richness | Status |
+|------------|----------|--------|
+| `final_rich_lr5e5` | 0.008583 | **BEST** |
+| `final_rich_lr3e4` | 0.008205 | Excellent |
+| `final_rich_lr1e4` | 0.006825 | Good |
+| `homeostatic_rich` | 0.006615 | Good |
+| `balanced_radial` | 0.000048 | **COLLAPSED** |
+| `max_hierarchy` | 0.000265 | **COLLAPSED** |
+
+**DISTANCE CORRELATION (Target: ≥ 0.9)**
+| Checkpoint | dist_corr_B | dist_corr_A | Notes |
+|------------|-------------|-------------|-------|
+| `v5_11_structural` | 0.9741 | 0.5487 | **BEST** - VAE-B excels |
+| `v5_11_homeostasis` | 0.9152 | 0.7315 | Balanced |
+
+**RADIAL SEPARATION (Target: r_v0 ≥ 0.9, r_v9 ≤ 0.15)**
+| Checkpoint | r_v0 | r_v9 | Gap | Status |
+|------------|------|------|-----|--------|
+| `v5_11_homeostasis` | 0.932 | 0.013 | 0.919 | **BEST** separation |
+| `balanced_radial` | 0.948 | 0.172 | 0.776 | Good |
+| `final_rich_lr3e4` | 0.915 | 0.216 | 0.699 | Moderate |
+| `v5_11_structural` | 0.898 | 0.194 | 0.704 | Moderate |
+
+### The Tradeoff Matrix
+
+**CRITICAL INSIGHT: Hierarchy and Richness are NOT mutually exclusive, but require careful balance.**
+
+| Checkpoint | Coverage | Hierarchy | Richness | dist_corr | Separation | Overall |
+|------------|----------|-----------|----------|-----------|------------|---------|
+| **v5_11_structural** | 100% | -0.8320 | N/A | 0.974 | 0.704 | Best hierarchy+dist_corr |
+| **v5_11_homeostasis** | 99.9% | -0.8318 | N/A | 0.915 | **0.919** | Best separation |
+| **homeostatic_rich** | 100% | -0.6944 | 0.00662 | N/A | N/A | Best balance |
+| **final_rich_lr3e4** | 100% | -0.6691 | **0.00821** | N/A | 0.699 | Best richness |
+| **balanced_radial** | 100% | **-0.8321** | 0.00005 | N/A | 0.776 | Ceiling hier, collapsed |
+
+### What Collapse Looks Like
+
+**COLLAPSED MODEL (balanced_radial):**
+- Richness: 0.000048 (near zero)
+- Unique radii: 10,274 out of 19,683 (only 52% distinct!)
+- Operations within each valuation level snap to identical radii
+- Loses within-level structure - trivial solution
+
+**HEALTHY MODEL (homeostatic_rich):**
+- Richness: 0.006615 (138x more than collapsed)
+- Operations within each valuation level have meaningful variance
+- Preserves fine-grained structure within p-adic levels
+
+### The Perfect Model Definition
+
+**THE PERFECT TERNARY VAE V5.12 MUST ACHIEVE:**
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    IDEAL METRICS TARGET                      │
+├────────────────┬───────────────┬────────────────────────────┤
+│ Metric         │ Target        │ Acceptable Range           │
+├────────────────┼───────────────┼────────────────────────────┤
+│ Coverage       │ 100%          │ ≥ 99.9%                    │
+│ Hierarchy_B    │ -0.8321       │ ≤ -0.80                    │
+│ Richness       │ ≥ 0.007       │ ≥ 0.005 (NOT collapsed)    │
+│ dist_corr_B    │ ≥ 0.95        │ ≥ 0.85                     │
+│ r_v0           │ ≥ 0.93        │ ≥ 0.88                     │
+│ r_v9           │ ≤ 0.05        │ ≤ 0.20                     │
+│ Separation     │ ≥ 0.90        │ ≥ 0.70                     │
+│ Q              │ ≥ 1.90        │ ≥ 1.50                     │
+└────────────────┴───────────────┴────────────────────────────┘
+```
+
+### Why No Existing Checkpoint is Perfect
+
+| Checkpoint | What's Missing |
+|------------|----------------|
+| `v5_11_structural` | No richness data, moderate separation (0.70) |
+| `v5_11_homeostasis` | Coverage 99.9% (not 100%), no richness data |
+| `homeostatic_rich` | Hierarchy -0.69 (not ceiling -0.83) |
+| `final_rich_lr3e4` | Hierarchy -0.67 (not ceiling -0.83) |
+| `balanced_radial` | Richness collapsed (0.00005) |
+
+### The V5.12 Mission
+
+**V5.12 MUST achieve what NO checkpoint has achieved:**
+
+1. **100% coverage** (like v5_11_structural, balanced_radial)
+2. **Ceiling hierarchy -0.8321** (like balanced_radial)
+3. **High richness ≥ 0.007** (like final_rich_lr3e4)
+4. **High dist_corr ≥ 0.95** (like v5_11_structural)
+5. **Maximum separation ≥ 0.90** (like v5_11_homeostasis)
+
+This requires the **RichHierarchyLoss** approach with careful balance:
+- `hierarchy_weight: 5.0` - Push toward ceiling
+- `richness_weight: 2.0` - Prevent collapse
+- `separation_weight: 3.0` - Maximize radial spread
+- `coverage_weight: 1.0` - Maintain reconstruction
+
+### Checkpoint Metadata That MUST Be Stored
+
+Every V5.12+ checkpoint MUST store these metrics for comparison:
+
+```python
+{
+    'metrics': {
+        'coverage': float,           # Required: 0.0-1.0
+        'hierarchy_A': float,        # Required: Spearman for VAE-A
+        'hierarchy_B': float,        # Required: Spearman for VAE-B
+        'richness': float,           # Required: Mean within-level variance
+        'dist_corr_A': float,        # Required: Distance correlation A
+        'dist_corr_B': float,        # Required: Distance correlation B
+        'r_v0': float,               # Required: Mean radius for v=0
+        'r_v9': float,               # Required: Mean radius for v=9
+        'radial_gap': float,         # Computed: r_v0 - r_v9
+        'Q': float,                  # Computed: dist_corr + 1.5*|hierarchy|
+        'unique_radii': int,         # Count of distinct radii
+        'mean_radius': float,        # Overall mean radius
+    }
+}
+```
+
+---
+
 ## Version History
 
 | Date | Version | Author | Changes |
@@ -1055,3 +1224,4 @@ def save_checkpoint(
 | 2025-12-29 | 1.0 | AI Whisperers | Initial critical issue documentation |
 | 2025-12-29 | 1.1 | AI Whisperers | Added checkpoint chaos analysis (Issues 7-8) |
 | 2025-12-29 | 1.2 | AI Whisperers | Added Issue 9: THE CORRECT ARCHITECTURE - canonical src/config vision |
+| 2025-12-29 | 1.3 | AI Whisperers | Added Issue 10: IDEAL MODEL QUALITY - perfect metrics definition |
