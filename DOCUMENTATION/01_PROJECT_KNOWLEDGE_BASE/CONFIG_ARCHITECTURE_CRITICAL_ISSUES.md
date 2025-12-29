@@ -644,9 +644,414 @@ Checkpoints lack standardized metadata making it impossible to:
 
 ---
 
+## Issue 9: THE CORRECT ARCHITECTURE (What MUST Be Done)
+
+### The Core Problem
+
+The current approach is BACKWARDS:
+- Scripts define their own config loading (yaml.safe_load)
+- Scripts define their own config structure
+- `src/config/` is ignored
+- Each script is its own island
+
+### The Correct Architecture
+
+**`src/config/` MUST be the SINGLE SOURCE OF TRUTH.**
+
+```
+src/config/
+├── __init__.py              # Exports canonical schema and loader
+├── schema.py                # V5.12 canonical schema (REDESIGNED)
+├── loader.py                # Canonical loader using schema
+├── constants.py             # All constants (already good)
+├── paths.py                 # All paths (already good)
+└── environment.py           # Unified env vars (TERNARY_* prefix)
+
+scripts/training/
+├── train_v5_12.py           # MUST use: from src.config import load_config
+└── ...                      # All scripts use src/config
+
+configs/
+├── v5_12.yaml               # MUST match src/config/schema.py structure
+└── ...                      # All configs validated by schema
+```
+
+### V5.12 Structure as the NEW Canonical Schema
+
+The V5.12 config structure MUST become the canonical schema in `src/config/schema.py`:
+
+```python
+# THIS IS WHAT src/config/schema.py MUST BECOME:
+
+@dataclass
+class DeviceConfig:
+    """Device configuration."""
+    name: str = "v5_12_production"
+    cuda_device: int = 0
+    use_amp: bool = False
+    pin_memory: bool = True
+    num_workers: int = 4
+
+@dataclass
+class ModelConfig:
+    """Model architecture configuration."""
+    name: str = "TernaryVAEV5_11_PartialFreeze"
+    latent_dim: int = 16
+    hidden_dim: int = 64
+    max_radius: float = 0.95
+    curvature: float = 1.0
+    use_controller: bool = True
+    use_dual_projection: bool = True
+    learnable_curvature: bool = True
+    manifold_aware: bool = True
+    projection_layers: int = 2
+    projection_dropout: float = 0.1
+
+@dataclass
+class OptionCConfig:
+    """Option C: Partial Freeze configuration."""
+    enabled: bool = True
+    encoder_b_lr_scale: float = 0.1
+    encoder_a_lr_scale: float = 0.05
+
+@dataclass
+class FrozenCheckpointConfig:
+    """Frozen checkpoint configuration."""
+    path: str = "sandbox-training/checkpoints/v5_5/latest.pt"
+    encoder_to_load: str = "both"
+    decoder_to_load: str = "decoder_A"
+
+@dataclass
+class HomeostasisConfig:
+    """Homeostatic control configuration."""
+    enabled: bool = True
+    coverage_freeze_threshold: float = 0.995
+    coverage_unfreeze_threshold: float = 1.0
+    coverage_floor: float = 0.95
+    warmup_epochs: int = 5
+    hysteresis_epochs: int = 3
+    enable_annealing: bool = True
+    annealing_step: float = 0.003
+    hierarchy_plateau_threshold: float = 0.001
+    hierarchy_plateau_patience: int = 7
+    hierarchy_patience_ceiling: int = 20
+    controller_grad_threshold: float = 0.01
+    controller_grad_patience: int = 5
+
+@dataclass
+class RichHierarchyLossConfig:
+    """RichHierarchyLoss configuration."""
+    enabled: bool = True
+    hierarchy_weight: float = 5.0
+    coverage_weight: float = 1.0
+    richness_weight: float = 2.0
+    separation_weight: float = 3.0
+    min_richness_ratio: float = 0.5
+
+@dataclass
+class RadialLossConfig:
+    """Radial loss configuration."""
+    enabled: bool = True
+    inner_radius: float = 0.08
+    outer_radius: float = 0.90
+    radial_weight: float = 1.0
+    margin_weight: float = 0.5
+
+@dataclass
+class GeodesicLossConfig:
+    """Geodesic loss configuration."""
+    enabled: bool = True
+    phase_start_epoch: int = 50
+    curvature: float = 1.0
+    max_target_distance: float = 3.0
+    n_pairs: int = 2000
+    use_smooth_l1: bool = True
+    weight: float = 0.3
+
+@dataclass
+class RankLossConfig:
+    """Rank loss configuration."""
+    enabled: bool = True
+    weight: float = 0.5
+    temperature: float = 0.1
+    n_pairs: int = 2000
+
+@dataclass
+class ZeroStructureLossConfig:
+    """Zero structure loss configuration."""
+    enabled: bool = True
+    valuation_weight: float = 0.5
+    sparsity_weight: float = 0.3
+
+@dataclass
+class LossConfig:
+    """Complete loss configuration."""
+    rich_hierarchy: RichHierarchyLossConfig
+    radial: RadialLossConfig
+    geodesic: GeodesicLossConfig
+    rank: RankLossConfig
+    zero_structure: ZeroStructureLossConfig
+
+@dataclass
+class SchedulerConfig:
+    """LR scheduler configuration."""
+    type: str = "cosine_warmup_restart"
+    T_0: int = 25
+    T_mult: int = 2
+
+@dataclass
+class TrainingConfig:
+    """Training configuration."""
+    epochs: int = 200
+    batch_size: int = 512
+    lr: float = 1e-3
+    weight_decay: float = 1e-4
+    max_grad_norm: float = 1.0
+    use_stratified: bool = True
+    high_v_budget_ratio: float = 0.25
+    use_adaptive: bool = True
+    hierarchy_threshold: float = -0.75
+    patience: int = 25
+    min_epochs: int = 40
+    scheduler: SchedulerConfig
+    eval_every: int = 5
+    save_every: int = 25
+    print_every: int = 5
+
+@dataclass
+class RiemannianConfig:
+    """Riemannian optimizer configuration."""
+    enabled: bool = True
+    optimizer: str = "adam"
+
+@dataclass
+class DataConfig:
+    """Data configuration."""
+    use_full_dataset: bool = True
+    n_operations: int = 19683
+
+@dataclass
+class LoggingConfig:
+    """Logging configuration."""
+    tensorboard: bool = True
+    log_dir: str = "runs/v5_12_production"
+    print_every: int = 5
+
+@dataclass
+class CheckpointsConfig:
+    """Checkpoints configuration."""
+    save_dir: str = "sandbox-training/checkpoints/v5_12"
+    save_best: bool = True
+    best_metric: str = "composite_score"
+    checkpoint_name: str = "v5_12_production"
+
+@dataclass
+class TargetsConfig:
+    """Success criteria targets."""
+    coverage: float = 1.0
+    hierarchy_B: float = -0.80
+    richness: float = 0.007
+    r_v9: float = 0.15
+    distance_correlation: float = 0.65
+    Q_target: float = 1.8
+
+@dataclass
+class MemoryConfig:
+    """Memory optimization configuration."""
+    gradient_checkpointing: bool = False
+    empty_cache_freq: int = 10
+    cudnn_benchmark: bool = True
+
+@dataclass
+class VersionConfig:
+    """Version tracking."""
+    model: str = "5.12"
+    config: str = "1.0"
+    date: str = "2025-12-29"
+
+@dataclass
+class V512Config:
+    """CANONICAL V5.12 Configuration - THE SINGLE SOURCE OF TRUTH."""
+    device: DeviceConfig
+    model: ModelConfig
+    option_c: OptionCConfig
+    frozen_checkpoint: FrozenCheckpointConfig
+    homeostasis: HomeostasisConfig
+    progressive_unfreeze: dict  # enabled: false
+    loss: LossConfig
+    riemannian: RiemannianConfig
+    training: TrainingConfig
+    data: DataConfig
+    logging: LoggingConfig
+    checkpoints: CheckpointsConfig
+    targets: TargetsConfig
+    memory: MemoryConfig
+    version: VersionConfig
+```
+
+### Environment Variable Unification
+
+**ALL modules MUST use `TERNARY_` prefix:**
+
+| Current (BROKEN) | Correct (UNIFIED) |
+|------------------|-------------------|
+| `TVAE_EPOCHS` | `TERNARY_EPOCHS` |
+| `TVAE_CHECKPOINT_DIR` | `TERNARY_CHECKPOINT_DIR` |
+| `CHECKPOINT_DIR` (no prefix) | `TERNARY_CHECKPOINT_DIR` |
+| `TENSORBOARD_DIR` (no prefix) | `TERNARY_TENSORBOARD_DIR` |
+| `LOG_DIR` (no prefix) | `TERNARY_LOG_DIR` |
+| `LOG_LEVEL` (no prefix) | `TERNARY_LOG_LEVEL` |
+
+### How Scripts MUST Use the Canonical Config
+
+```python
+# CORRECT - What train_v5_12.py MUST do:
+
+from src.config import load_config, V512Config
+
+def main():
+    # Load and validate config from YAML
+    config: V512Config = load_config("configs/v5_12.yaml")
+
+    # Config is now validated, typed, and canonical
+    print(f"Training for {config.training.epochs} epochs")
+    print(f"Model: {config.model.name}")
+    print(f"Hierarchy target: {config.targets.hierarchy_B}")
+
+    # Create model using canonical config
+    model = TernaryVAEV5_11_PartialFreeze(
+        latent_dim=config.model.latent_dim,
+        hidden_dim=config.model.hidden_dim,
+        max_radius=config.model.max_radius,
+        curvature=config.model.curvature,
+        use_controller=config.model.use_controller,
+        use_dual_projection=config.model.use_dual_projection,
+        # ... all params from config
+    )
+```
+
+### Constants Integration
+
+Constants in `src/config/constants.py` MUST be the DEFAULT VALUES for the schema:
+
+```python
+# In src/config/schema.py:
+from .constants import (
+    HOMEOSTATIC_COVERAGE_FREEZE_THRESHOLD,
+    HOMEOSTATIC_ANNEALING_STEP,
+    # ... etc
+)
+
+@dataclass
+class HomeostasisConfig:
+    coverage_freeze_threshold: float = HOMEOSTATIC_COVERAGE_FREEZE_THRESHOLD
+    annealing_step: float = HOMEOSTATIC_ANNEALING_STEP
+    # Configs can OVERRIDE these defaults, but defaults come from constants
+```
+
+### Checkpoint Metadata Standard
+
+ALL checkpoints MUST include standardized metadata:
+
+```python
+# In src/config/checkpoint.py (NEW FILE):
+
+@dataclass
+class CheckpointMetadata:
+    """Standardized checkpoint metadata."""
+    version: str                    # "5.12"
+    created_at: str                 # ISO timestamp
+    training_script: str            # "scripts/training/train_v5_12.py"
+    config_path: str                # "configs/v5_12.yaml"
+    config_hash: str                # SHA256 of config for reproducibility
+    base_checkpoint: Optional[str]  # Parent checkpoint path
+    epoch: int
+    metrics: MetricsDict            # Standardized metrics
+    architecture: ArchitectureDict  # Model architecture info
+
+def save_checkpoint(
+    model: nn.Module,
+    optimizer: Optimizer,
+    config: V512Config,
+    metrics: dict,
+    path: Path,
+    epoch: int,
+    base_checkpoint: Optional[str] = None,
+):
+    """Save checkpoint with standardized metadata."""
+    metadata = CheckpointMetadata(
+        version=config.version.model,
+        created_at=datetime.now().isoformat(),
+        training_script=sys.argv[0],
+        config_path=str(config._source_path),
+        config_hash=hash_config(config),
+        base_checkpoint=base_checkpoint,
+        epoch=epoch,
+        metrics=standardize_metrics(metrics),
+        architecture=extract_architecture(model),
+    )
+
+    torch.save({
+        'metadata': asdict(metadata),
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'config': config.to_dict(),
+    }, path)
+```
+
+### Migration Path
+
+1. **Phase 1: Schema Redesign** (src/config/schema.py)
+   - Replace TrainingConfig with V512Config
+   - Match exact structure of configs/v5_12.yaml
+   - Use constants as default values
+
+2. **Phase 2: Loader Update** (src/config/loader.py)
+   - Update load_config() to return V512Config
+   - Validate YAML against schema
+   - Support TERNARY_* environment overrides
+
+3. **Phase 3: Environment Unification** (src/config/environment.py)
+   - Change all env vars to TERNARY_* prefix
+   - Remove conflicting prefixes
+
+4. **Phase 4: Script Integration** (scripts/training/train_v5_12.py)
+   - Replace yaml.safe_load() with src.config.load_config()
+   - Use typed config throughout
+   - Remove local validation (schema handles it)
+
+5. **Phase 5: Checkpoint Standardization**
+   - Create src/config/checkpoint.py
+   - Update all save/load to use standardized format
+   - Migrate existing checkpoints (add metadata)
+
+### Files That MUST Change
+
+| File | Current State | Required Change |
+|------|---------------|-----------------|
+| `src/config/schema.py` | TrainingConfig (WRONG structure) | V512Config (V5.12 structure) |
+| `src/config/loader.py` | Returns TrainingConfig | Returns V512Config |
+| `src/config/environment.py` | Mixed prefixes | TERNARY_* only |
+| `src/config/__init__.py` | Exports old schema | Exports V512Config |
+| `scripts/training/train_v5_12.py` | yaml.safe_load() | src.config.load_config() |
+| `configs/v5_12.yaml` | Standalone | Validated by V512Config |
+
+### What This Achieves
+
+1. **Single Source of Truth**: `src/config/schema.py` defines THE structure
+2. **Type Safety**: All scripts get typed config objects
+3. **Validation**: Invalid configs fail at load time, not runtime
+4. **Consistency**: All scripts use same config loading
+5. **Environment Overrides**: Single TERNARY_* prefix works everywhere
+6. **Reproducibility**: Checkpoint metadata enables exact reproduction
+7. **Maintainability**: Change schema once, all scripts updated
+
+---
+
 ## Version History
 
 | Date | Version | Author | Changes |
 |------|---------|--------|---------|
 | 2025-12-29 | 1.0 | AI Whisperers | Initial critical issue documentation |
 | 2025-12-29 | 1.1 | AI Whisperers | Added checkpoint chaos analysis (Issues 7-8) |
+| 2025-12-29 | 1.2 | AI Whisperers | Added Issue 9: THE CORRECT ARCHITECTURE - canonical src/config vision |
