@@ -66,6 +66,54 @@ def load_config(config_path: Path) -> dict:
         return yaml.safe_load(f)
 
 
+def validate_config(config: dict) -> None:
+    """Validate V5.12 configuration structure.
+
+    Raises:
+        ValueError: If required keys are missing or have invalid values
+    """
+    # Required top-level sections
+    required_sections = ['model', 'training', 'loss', 'homeostasis', 'checkpoints']
+    for section in required_sections:
+        if section not in config:
+            raise ValueError(f"Missing required config section: '{section}'")
+
+    # Required model parameters
+    model_cfg = config['model']
+    required_model_keys = ['latent_dim', 'hidden_dim', 'max_radius', 'curvature']
+    for key in required_model_keys:
+        if key not in model_cfg:
+            raise ValueError(f"Missing required model parameter: 'model.{key}'")
+
+    # Validate numeric ranges
+    if not (0 < model_cfg.get('max_radius', 0.95) < 1.0):
+        raise ValueError(f"model.max_radius must be in (0, 1), got {model_cfg.get('max_radius')}")
+    if model_cfg.get('curvature', 1.0) <= 0:
+        raise ValueError(f"model.curvature must be > 0, got {model_cfg.get('curvature')}")
+    if model_cfg.get('latent_dim', 16) < 2:
+        raise ValueError(f"model.latent_dim must be >= 2, got {model_cfg.get('latent_dim')}")
+
+    # Required training parameters
+    train_cfg = config['training']
+    if train_cfg.get('epochs', 200) < 1:
+        raise ValueError(f"training.epochs must be >= 1, got {train_cfg.get('epochs')}")
+    if train_cfg.get('batch_size', 512) < 1:
+        raise ValueError(f"training.batch_size must be >= 1, got {train_cfg.get('batch_size')}")
+
+    # Required loss sections
+    loss_cfg = config['loss']
+    if 'rich_hierarchy' not in loss_cfg:
+        raise ValueError("Missing required loss section: 'loss.rich_hierarchy'")
+    if 'radial' not in loss_cfg:
+        raise ValueError("Missing required loss section: 'loss.radial'")
+
+    # Validate checkpoint directory
+    if 'save_dir' not in config.get('checkpoints', {}):
+        raise ValueError("Missing required config: 'checkpoints.save_dir'")
+
+    print("Config validation: PASSED")
+
+
 def check_cuda():
     """Verify CUDA is available and print device info."""
     if not torch.cuda.is_available():
@@ -388,6 +436,9 @@ def main():
 
     config = load_config(config_path)
     print(f"Loaded V5.12 config from: {config_path}")
+
+    # Validate config structure
+    validate_config(config)
 
     # Override with command line args
     if args.epochs:
