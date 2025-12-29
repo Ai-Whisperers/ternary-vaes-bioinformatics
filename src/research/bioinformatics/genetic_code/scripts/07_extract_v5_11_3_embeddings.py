@@ -25,6 +25,8 @@ from scipy.stats import spearmanr
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(PROJECT_ROOT))
 
+from src.geometry import poincare_distance
+
 from src.config.paths import CHECKPOINTS_DIR
 from src.core import TERNARY
 from src.data.generation import generate_all_ternary_operations
@@ -132,9 +134,11 @@ def extract_embeddings(model, device="cpu"):
     z_A_euc = outputs["z_A_euc"].cpu()
     z_B_euc = outputs["z_B_euc"].cpu()
 
-    # Compute radii
-    radii_A = torch.norm(z_A_hyp, dim=1)
-    radii_B = torch.norm(z_B_hyp, dim=1)
+    # V5.12.2: Compute hyperbolic radii from origin
+    origin_A = torch.zeros_like(z_A_hyp)
+    origin_B = torch.zeros_like(z_B_hyp)
+    radii_A = poincare_distance(z_A_hyp, origin_A, c=1.0)
+    radii_B = poincare_distance(z_B_hyp, origin_B, c=1.0)
 
     print(f"  z_A_hyp shape: {z_A_hyp.shape}")
     print(f"  z_B_hyp shape: {z_B_hyp.shape}")

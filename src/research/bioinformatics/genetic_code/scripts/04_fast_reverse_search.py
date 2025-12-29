@@ -22,6 +22,24 @@ import numpy as np
 import torch
 from sklearn.cluster import KMeans
 
+
+def hyperbolic_radius(embeddings: np.ndarray, c: float = 1.0) -> np.ndarray:
+    """V5.12.2: Compute hyperbolic distance from origin."""
+    sqrt_c = np.sqrt(c)
+    euclidean_norms = np.linalg.norm(embeddings, axis=-1)
+    clamped = np.clip(euclidean_norms * sqrt_c, 0, 0.999)
+    return 2.0 * np.arctanh(clamped) / sqrt_c
+
+
+def poincare_distance_np(x: np.ndarray, y: np.ndarray, c: float = 1.0) -> float:
+    """V5.12.2: Compute hyperbolic distance between two points."""
+    x_norm_sq = np.clip(np.sum(x**2), 0, 0.999)
+    y_norm_sq = np.clip(np.sum(y**2), 0, 0.999)
+    diff_norm_sq = np.sum((x - y) ** 2)
+    denom = (1 - c * x_norm_sq) * (1 - c * y_norm_sq)
+    arg = 1 + 2 * c * diff_norm_sq / (denom + 1e-10)
+    return float(np.arccosh(np.clip(arg, 1.0, 1e10)))
+
 # Genetic code degeneracy: 21 groups with sizes [1,1,2,2,2,2,2,2,2,2,2,3,3,4,4,4,4,4,6,6,6]
 DEGENERACY_PATTERN = [
     1,
@@ -134,8 +152,9 @@ def main():
     print(f"Loaded {n_total} embeddings, dim={z_B.shape[1]}")
 
     # Step 1: Compute radius for all points (O(n))
-    print("\nStep 1: Computing radii (O(n))...")
-    radii = np.linalg.norm(z_B, axis=1)
+    # V5.12.2: Use hyperbolic radius for Poincaré ball embeddings
+    print("\nStep 1: Computing hyperbolic radii (O(n))...")
+    radii = hyperbolic_radius(z_B)
 
     # Step 2: Bin by radius into 10 bands (matching valuation levels 0-9)
     print("Step 2: Binning by radius into valuation bands...")
@@ -180,8 +199,9 @@ def main():
             c_indices = band_indices[c_mask]
             if len(c_indices) > 0:
                 # Find center (point closest to centroid)
+                # V5.12.2: Use hyperbolic distance for Poincaré ball
                 centroid = z_B[c_indices].mean(axis=0)
-                dists = np.linalg.norm(z_B[c_indices] - centroid, axis=1)
+                dists = np.array([poincare_distance_np(z_B[i], centroid) for i in c_indices])
                 center_local = np.argmin(dists)
                 center_idx = c_indices[center_local]
                 clusters.append((center_idx, c_indices))

@@ -148,8 +148,11 @@ def extract_embeddings(model, device="cpu"):
     z_A_euc = outputs["z_A_euc"].cpu()
     z_B_euc = outputs["z_B_euc"].cpu()
 
-    radii_A = torch.norm(z_A_hyp, dim=1)
-    radii_B = torch.norm(z_B_hyp, dim=1)
+    # V5.12.2: Use hyperbolic radii
+    origin_A = torch.zeros_like(z_A_hyp)
+    origin_B = torch.zeros_like(z_B_hyp)
+    radii_A = poincare_distance(z_A_hyp, origin_A, c=1.0)
+    radii_B = poincare_distance(z_B_hyp, origin_B, c=1.0)
 
     # Compute hierarchy correlation
     vals = valuations.cpu().numpy()
