@@ -36,8 +36,7 @@ model:
   learnable_curvature: true
   manifold_aware: true                    # Note: Passed via **kwargs, implementation pending
 
-  # Projection network capacity
-  projection_hidden_dim: 64
+  # Projection network capacity (uses hidden_dim for projection layers)
   projection_layers: 2
   projection_dropout: 0.1
 
