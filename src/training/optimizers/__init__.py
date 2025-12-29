@@ -5,11 +5,12 @@
 
 """Training optimizers module.
 
-Provides specialized optimizers for mixed Euclidean/Hyperbolic training:
-- MixedRiemannianOptimizer: Handles both standard and manifold parameters
-- MultiObjectiveOptimizer: Multi-objective optimization support
+Provides specialized optimizers for training:
+- MultiObjectiveOptimizer: Multi-objective optimization support (NSGA-II, Pareto)
 
-Consolidated from src/optimizers/ for better organization.
+Note: Riemannian/hyperbolic optimizers (RiemannianAdam, get_riemannian_optimizer)
+are in src.geometry, not here. Use:
+    from src.geometry import get_riemannian_optimizer
 """
 
 from src.training.optimizers.multi_objective import (
@@ -19,12 +20,6 @@ from src.training.optimizers.multi_objective import (
     compute_crowding_distance,
     fast_non_dominated_sort,
 )
-from src.training.optimizers.riemannian import (
-    HyperbolicScheduler,
-    MixedRiemannianOptimizer,
-    OptimizerConfig,
-    create_optimizer,
-)
 
 __all__ = [
     # Multi-objective optimization
@@ -33,9 +28,4 @@ __all__ = [
     "NSGAConfig",
     "fast_non_dominated_sort",
     "compute_crowding_distance",
-    # Riemannian optimization
-    "MixedRiemannianOptimizer",
-    "HyperbolicScheduler",
-    "OptimizerConfig",
-    "create_optimizer",
 ]
