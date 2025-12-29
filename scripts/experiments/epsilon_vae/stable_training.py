@@ -112,15 +112,22 @@ def run_stable_experiment(run_id, all_ops, indices, device, ckpt_path, epochs=30
     save_dir = PROJECT_ROOT / f"sandbox-training/checkpoints/stable_run_{run_id}"
     save_dir.mkdir(parents=True, exist_ok=True)
 
-    # CRITICAL: Match checkpoint architecture EXACTLY
-    # From stored config: use_controller=True, curvature=1.0, max_radius=0.95
+    # Get checkpoint config for key architecture params
+    ckpt_preview = load_checkpoint_compat(ckpt_path, map_location='cpu')
+    ckpt_config = ckpt_preview.get('config', {})
+    print(f"  Checkpoint config: curv={ckpt_config.get('curvature', 1.0)}, "
+          f"controller={ckpt_config.get('use_controller', False)}, "
+          f"proj_hidden={ckpt_config.get('projection_hidden_dim', 64)}")
+
+    # CRITICAL: Use projection_hidden_dim (64) as hidden_dim to match projection layers
+    # The encoder weights will partially load via strict=False
     model = TernaryVAEV5_11_PartialFreeze(
         latent_dim=16,
-        hidden_dim=64,
-        max_radius=0.95,      # Match checkpoint!
-        curvature=1.0,        # Match checkpoint!
-        use_controller=True,  # Match checkpoint!
-        use_dual_projection=True,
+        hidden_dim=ckpt_config.get('projection_hidden_dim', 64),  # Match projection!
+        max_radius=ckpt_config.get('max_radius', 0.95),
+        curvature=ckpt_config.get('curvature', 1.0),
+        use_controller=ckpt_config.get('use_controller', True),
+        use_dual_projection=ckpt_config.get('dual_projection', True),
         freeze_encoder_b=False,
         encoder_b_lr_scale=0.1,
         encoder_a_lr_scale=0.05,
