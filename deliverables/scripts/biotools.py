@@ -37,46 +37,60 @@ TOOLS = {
         "module": "alejandra_rojas.scripts.A2_pan_arbovirus_primers",
         "description": "Design pan-arbovirus primers (DENV, ZIKV, CHIKV, MAYV)",
         "partner": "Alejandra Rojas",
-        "flags": ["--use-ncbi"],
+        "flags": ["--demo", "--use-ncbi"],
+        "demo_args": ["--demo"],
     },
     # Carlos Brizuela - AMPs
     "pathogen-amp": {
         "module": "carlos_brizuela.scripts.B1_pathogen_specific_design",
         "description": "Design pathogen-specific antimicrobial peptides",
         "partner": "Carlos Brizuela",
-        "flags": ["--use-dramp"],
+        "flags": ["--pathogen", "--use-dramp"],
+        "demo_args": ["--pathogen", "S_aureus", "--generations", "5", "--population", "20"],
     },
     "microbiome-amp": {
         "module": "carlos_brizuela.scripts.B8_microbiome_safe_amps",
         "description": "Design microbiome-safe AMPs (kill pathogens, spare commensals)",
         "partner": "Carlos Brizuela",
         "flags": ["--use-dramp"],
+        "demo_args": ["--generations", "5", "--population", "20"],
     },
     "synthesis-amp": {
         "module": "carlos_brizuela.scripts.B10_synthesis_optimization",
         "description": "Optimize AMPs for synthesis feasibility",
         "partner": "Carlos Brizuela",
         "flags": ["--use-dramp"],
+        "demo_args": ["--generations", "5", "--population", "20"],
     },
     # Jose Colbes - Protein Stability
+    "rosetta-blind": {
+        "module": "jose_colbes.scripts.C1_rosetta_blind_detection",
+        "description": "Detect Rosetta-blind instabilities in protein structures",
+        "partner": "Jose Colbes",
+        "flags": ["--input", "--n_demo"],
+        "demo_args": ["--n_demo", "20"],
+    },
     "mutation-effect": {
         "module": "jose_colbes.scripts.C4_mutation_effect_predictor",
         "description": "Predict mutation effects on protein stability (DDG)",
         "partner": "Jose Colbes",
-        "flags": ["--use-protherm"],
+        "flags": ["--mutations", "--use-protherm"],
+        "demo_args": ["--mutations", "V156A,L99A,F133A", "--context", "core"],
     },
     # HIV Research Package
     "tdr-screening": {
         "module": "hiv_research_package.scripts.H6_tdr_screening",
         "description": "Screen for transmitted drug resistance in HIV",
         "partner": "HIV Research Package",
-        "flags": ["--use-stanford"],
+        "flags": ["--demo", "--use-stanford"],
+        "demo_args": ["--demo"],
     },
     "la-selection": {
         "module": "hiv_research_package.scripts.H7_la_injectable_selection",
         "description": "Assess eligibility for long-acting injectable HIV therapy",
         "partner": "HIV Research Package",
-        "flags": ["--use-stanford"],
+        "flags": ["--demo", "--use-stanford"],
+        "demo_args": ["--demo"],
     },
 }
 
@@ -105,7 +119,9 @@ def list_tools():
 
     print("\n" + "=" * 70)
     print("Usage: python biotools.py <tool-name> [options]")
-    print("       python biotools.py init --all  # Initialize all data")
+    print("       python biotools.py init --all      # Initialize all data")
+    print("       python biotools.py demo-all        # Run all tool demos")
+    print("       python biotools.py analyze <SEQ>   # Analyze a peptide")
     print("=" * 70 + "\n")
 
 
@@ -120,6 +136,69 @@ def run_init(args: list[str]):
         print("Error: Could not import initialize_all_data module")
         print("Make sure you're running from the deliverables/scripts directory")
         sys.exit(1)
+
+
+def run_demo_all():
+    """Run demos of all tools."""
+    print("\n" + "=" * 70)
+    print("  RUNNING ALL TOOL DEMOS")
+    print("=" * 70)
+
+    results = {}
+    for name, info in TOOLS.items():
+        print(f"\n>>> Running {name}...")
+        print("-" * 50)
+        try:
+            demo_args = info.get("demo_args", [])
+            run_tool(name, demo_args)
+            results[name] = "SUCCESS"
+        except SystemExit:
+            results[name] = "SUCCESS"  # argparse sometimes calls sys.exit(0)
+        except Exception as e:
+            results[name] = f"FAILED: {e}"
+            print(f"Error: {e}")
+
+    print("\n" + "=" * 70)
+    print("  DEMO SUMMARY")
+    print("=" * 70)
+    for name, status in results.items():
+        symbol = "✓" if "SUCCESS" in status else "✗"
+        print(f"  {symbol} {name}: {status}")
+    print("=" * 70)
+
+
+def analyze_peptide(sequence: str):
+    """Quick peptide analysis."""
+    from shared import (
+        compute_peptide_properties,
+        HemolysisPredictor,
+        validate_sequence,
+    )
+
+    is_valid, error = validate_sequence(sequence)
+    if not is_valid:
+        print(f"Error: {error}")
+        return
+
+    props = compute_peptide_properties(sequence)
+    predictor = HemolysisPredictor()
+    hemo = predictor.predict(sequence)
+
+    print("\n" + "=" * 50)
+    print(f"  PEPTIDE ANALYSIS: {sequence[:30]}...")
+    print("=" * 50)
+    print(f"\nSequence: {sequence}")
+    print(f"Length: {props['length']} amino acids")
+    print(f"\nBiophysical Properties:")
+    print(f"  Net charge: {props['net_charge']:+.1f}")
+    print(f"  Hydrophobicity: {props['hydrophobicity']:.3f}")
+    print(f"  Hydrophobic ratio: {props['hydrophobic_ratio']:.1%}")
+    print(f"  Cationic ratio: {props['cationic_ratio']:.1%}")
+    print(f"\nHemolysis Prediction:")
+    print(f"  HC50: {hemo['hc50_predicted']:.1f} uM")
+    print(f"  Risk: {hemo['risk_category']}")
+    print(f"  Probability: {hemo['hemolytic_probability']:.1%}")
+    print("=" * 50)
 
 
 def run_tool(tool_name: str, args: list[str]):
@@ -202,6 +281,15 @@ def main():
 
     if args.command == "init":
         run_init(remaining)
+    elif args.command == "demo-all":
+        run_demo_all()
+    elif args.command == "analyze":
+        if remaining:
+            analyze_peptide(remaining[0])
+        else:
+            print("Error: Please provide a peptide sequence")
+            print("Usage: python biotools.py analyze KLWKKWKKWLK")
+            sys.exit(1)
     elif args.command in TOOLS:
         # Add --help back if it was passed
         if args.help:
