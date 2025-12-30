@@ -374,7 +374,7 @@ def export_results(predictions: list[MutationPrediction], output_dir: Path) -> N
     print(f"  Neutral:       {len(neutral)} ({len(neutral)/len(predictions)*100:.1f}%)")
     print(f"  Stabilizing:   {len(stabilizing)} ({len(stabilizing)/len(predictions)*100:.1f}%)")
 
-    print(f"\n{'Mutation':<10} {'ΔΔG (kcal/mol)':<16} {'Class':<15} {'Confidence':<12}")
+    print(f"\n{'Mutation':<10} {'DDG (kcal/mol)':<16} {'Class':<15} {'Confidence':<12}")
     print("-" * 55)
     for p in sorted(predictions, key=lambda x: x.predicted_ddg, reverse=True)[:15]:
         print(f"{p.mutation:<10} {p.predicted_ddg:<16.2f} {p.classification:<15} {p.confidence:<12.2f}")
