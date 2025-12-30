@@ -243,6 +243,8 @@ def decode_latent_to_sequence(z: np.ndarray, length: int = 20) -> str:
         hydro_score = 1 - abs(props["hydrophobicity"] / 2 - hydro_pref)
         probs[i] = charge_score + hydro_score + 0.1
 
+    # Ensure non-negative probabilities
+    probs = np.clip(probs, 0.01, None)
     probs = probs / probs.sum()
     sequence = "".join(np.random.choice(aa_list, size=length, p=probs))
 

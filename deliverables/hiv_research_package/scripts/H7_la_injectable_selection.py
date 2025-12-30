@@ -329,9 +329,7 @@ def generate_demo_patients(n: int = 5) -> list[PatientData]:
             bmi=np.random.normal(27, 5),
             viral_load=np.random.choice([0, 0, 0, 0, 20, 50, 100, 500]),  # Most suppressed
             cd4_count=np.random.randint(400, 900),
-            prior_regimens=np.random.choice(
-                [["TDF/FTC/DTG"], ["TDF/3TC/EFV"], ["ABC/3TC/DTG"], ["TDF/FTC/EFV", "ABC/3TC/DTG"]],
-            ).tolist(),
+            prior_regimens=[["TDF/FTC/DTG"], ["TDF/3TC/EFV"], ["ABC/3TC/DTG"], ["TDF/FTC/EFV", "ABC/3TC/DTG"]][np.random.randint(0, 4)],
             adherence_history=np.random.choice(
                 ["excellent", "excellent", "good", "good", "moderate", "poor"],
             ),
@@ -366,7 +364,7 @@ def export_results(results: list[LASelectionResult], output_dir: Path) -> None:
         "patients": [
             {
                 "patient_id": r.patient_id,
-                "eligible": r.eligible,
+                "eligible": bool(r.eligible),
                 "success_probability": f"{r.success_probability*100:.1f}%",
                 "recommendation": r.recommendation,
                 "cab_resistance_risk": f"{r.cab_resistance_risk*100:.1f}%",
