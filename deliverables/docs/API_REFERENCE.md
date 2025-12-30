@@ -8,21 +8,47 @@ This document provides comprehensive API documentation for all public interfaces
 
 ## Table of Contents
 
-1. [Shared Services](#shared-services)
-   - [VAEService](#vaeservice)
-   - [Configuration](#configuration)
-   - [Peptide Utilities](#peptide-utilities)
-2. [HIV Research Package](#hiv-research-package)
-   - [TDRScreener](#tdrscreener)
-   - [LASelector](#laselector)
-   - [StanfordHIVdbClient](#stanfordhivdbclient)
-   - [HIVSequenceAligner](#hivsequencealigner)
-   - [ClinicalReportGenerator](#clinicalreportgenerator)
-3. [Arbovirus Package (Alejandra Rojas)](#arbovirus-package)
-   - [NCBIClient](#ncbiclient)
-   - [PrimerDesigner](#primerdesigner)
-4. [AMP Design Package (Carlos Brizuela)](#amp-design-package)
-5. [Protein Stability Package (Jose Colbes)](#protein-stability-package)
+- [API Reference](#api-reference)
+  - [Table of Contents](#table-of-contents)
+  - [Shared Services](#shared-services)
+    - [VAEService](#vaeservice)
+      - [Methods](#methods)
+    - [Configuration](#configuration)
+      - [Properties](#properties)
+    - [Peptide Utilities](#peptide-utilities)
+      - [Properties Returned](#properties-returned)
+  - [HIV Research Package](#hiv-research-package)
+    - [TDRScreener](#tdrscreener)
+      - [TDRResult Attributes](#tdrresult-attributes)
+    - [LASelector](#laselector)
+      - [PatientData Fields](#patientdata-fields)
+      - [LASelectionResult Attributes](#laselectionresult-attributes)
+    - [StanfordHIVdbClient](#stanfordhivdbclient)
+      - [Methods](#methods-1)
+    - [HIVSequenceAligner](#hivsequencealigner)
+      - [AlignmentResult Attributes](#alignmentresult-attributes)
+    - [ClinicalReportGenerator](#clinicalreportgenerator)
+  - [Arbovirus Package](#arbovirus-package)
+    - [NCBIClient](#ncbiclient)
+      - [NCBIClient Constructor](#ncbiclient-constructor)
+      - [ArbovirusDatabase Methods](#arbovirusdatabase-methods)
+    - [PrimerDesigner](#primerdesigner)
+      - [PrimerPair Attributes](#primerpair-attributes)
+      - [PrimerCandidate Attributes](#primercandidate-attributes)
+      - [Cross-Reactivity Analysis](#cross-reactivity-analysis)
+  - [AMP Design Package](#amp-design-package)
+    - [PeptideCandidate](#peptidecandidate)
+    - [NSGA-II Optimizer](#nsga-ii-optimizer)
+  - [Protein Stability Package](#protein-stability-package)
+    - [GeometricPredictor](#geometricpredictor)
+  - [Data Models Summary](#data-models-summary)
+    - [Enums](#enums)
+  - [Constants](#constants)
+    - [HIV Constants](#hiv-constants)
+    - [Arbovirus Constants](#arbovirus-constants)
+    - [Peptide Constants](#peptide-constants)
+  - [Error Handling](#error-handling)
+  - [CLI Usage](#cli-usage)
 
 ---
 
@@ -78,12 +104,12 @@ samples = vae.sample_latent(
 )
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `n_samples` | int | 1 | Number of samples |
-| `target_radius` | float | None | Target radial position |
-| `charge_bias` | float | 0 | Positive = cationic bias |
-| `hydro_bias` | float | 0 | Positive = hydrophobic bias |
+| Parameter       | Type  | Default | Description                 |
+| --------------- | ----- | ------- | --------------------------- |
+| `n_samples`     | int   | 1       | Number of samples           |
+| `target_radius` | float | None    | Target radial position      |
+| `charge_bias`   | float | 0       | Positive = cationic bias    |
+| `hydro_bias`    | float | 0       | Positive = hydrophobic bias |
 
 **`get_radius(z: np.ndarray) -> float`**
 
@@ -127,14 +153,14 @@ hiv_dir = config.get_partner_dir("hiv")
 
 #### Properties
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `project_root` | Path | Root of the project |
-| `deliverables_root` | Path | Deliverables directory |
-| `vae_checkpoint` | str | Path to VAE checkpoint |
-| `has_vae` | bool | Whether valid checkpoint exists |
-| `demo_mode` | bool | Enable demo/mock data |
-| `use_gpu` | bool | Use GPU if available |
+| Property            | Type | Description                     |
+| ------------------- | ---- | ------------------------------- |
+| `project_root`      | Path | Root of the project             |
+| `deliverables_root` | Path | Deliverables directory          |
+| `vae_checkpoint`    | str  | Path to VAE checkpoint          |
+| `has_vae`           | bool | Whether valid checkpoint exists |
+| `demo_mode`         | bool | Enable demo/mock data           |
+| `use_gpu`           | bool | Use GPU if available            |
 
 ---
 
@@ -164,14 +190,14 @@ if not is_valid:
 
 #### Properties Returned
 
-| Key | Type | Description |
-|-----|------|-------------|
-| `length` | int | Sequence length |
-| `net_charge` | float | Net charge at pH 7 |
-| `hydrophobicity` | float | Mean hydrophobicity |
-| `hydrophobic_ratio` | float | Fraction hydrophobic |
-| `cationic_ratio` | float | Fraction cationic (K, R, H) |
-| `aromatic_ratio` | float | Fraction aromatic (F, W, Y) |
+| Key                 | Type  | Description                 |
+| ------------------- | ----- | --------------------------- |
+| `length`            | int   | Sequence length             |
+| `net_charge`        | float | Net charge at pH 7          |
+| `hydrophobicity`    | float | Mean hydrophobicity         |
+| `hydrophobic_ratio` | float | Fraction hydrophobic        |
+| `cationic_ratio`    | float | Fraction cationic (K, R, H) |
+| `aromatic_ratio`    | float | Fraction aromatic (F, W, Y) |
 
 ---
 
@@ -200,14 +226,14 @@ print(f"Recommendation: {result.recommended_regimen}")
 
 #### TDRResult Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `patient_id` | str | Patient identifier |
-| `tdr_positive` | bool | Whether TDR detected |
-| `detected_mutations` | list[dict] | Detected resistance mutations |
-| `recommended_regimen` | str | Recommended first-line regimen |
-| `confidence` | float | Analysis confidence (0-1) |
-| `timestamp` | datetime | Analysis timestamp |
+| Attribute             | Type       | Description                    |
+| --------------------- | ---------- | ------------------------------ |
+| `patient_id`          | str        | Patient identifier             |
+| `tdr_positive`        | bool       | Whether TDR detected           |
+| `detected_mutations`  | list[dict] | Detected resistance mutations  |
+| `recommended_regimen` | str        | Recommended first-line regimen |
+| `confidence`          | float      | Analysis confidence (0-1)      |
+| `timestamp`           | datetime   | Analysis timestamp             |
 
 ---
 
@@ -243,26 +269,26 @@ if result.risk_factors:
 
 #### PatientData Fields
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `patient_id` | str | Yes | Unique identifier |
-| `age` | int | Yes | Age in years |
-| `sex` | str | Yes | "M" or "F" |
-| `bmi` | float | Yes | Body mass index |
-| `viral_load` | int | Yes | Copies/mL (0 = undetectable) |
-| `cd4_count` | int | Yes | Cells/uL |
-| `prior_regimens` | list[str] | No | Previous ART regimens |
-| `adherence_history` | str | No | "excellent", "good", "poor" |
+| Field               | Type      | Required | Description                  |
+| ------------------- | --------- | -------- | ---------------------------- |
+| `patient_id`        | str       | Yes      | Unique identifier            |
+| `age`               | int       | Yes      | Age in years                 |
+| `sex`               | str       | Yes      | "M" or "F"                   |
+| `bmi`               | float     | Yes      | Body mass index              |
+| `viral_load`        | int       | Yes      | Copies/mL (0 = undetectable) |
+| `cd4_count`         | int       | Yes      | Cells/uL                     |
+| `prior_regimens`    | list[str] | No       | Previous ART regimens        |
+| `adherence_history` | str       | No       | "excellent", "good", "poor"  |
 
 #### LASelectionResult Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `eligible` | bool | Eligible for LA therapy |
-| `success_probability` | float | Predicted success rate |
-| `recommendation` | str | Clinical recommendation |
-| `risk_factors` | list[str] | Identified risk factors |
-| `pk_adequacy` | float | Pharmacokinetic adequacy score |
+| Attribute             | Type      | Description                    |
+| --------------------- | --------- | ------------------------------ |
+| `eligible`            | bool      | Eligible for LA therapy        |
+| `success_probability` | float     | Predicted success rate         |
+| `recommendation`      | str       | Clinical recommendation        |
+| `risk_factors`        | list[str] | Identified risk factors        |
+| `pk_adequacy`         | float     | Pharmacokinetic adequacy score |
 
 ---
 
@@ -292,10 +318,10 @@ print(report)
 
 Send sequence to Stanford HIVdb for analysis.
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `sequence` | str | Amino acid sequence |
-| `gene` | str | Gene type: "RT", "PR", or "IN" |
+| Parameter  | Type | Description                    |
+| ---------- | ---- | ------------------------------ |
+| `sequence` | str  | Amino acid sequence            |
+| `gene`     | str  | Gene type: "RT", "PR", or "IN" |
 
 ---
 
@@ -323,17 +349,17 @@ for mut in mutations:
 
 #### AlignmentResult Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `query_sequence` | str | Original query |
-| `aligned_query` | str | Aligned query |
-| `aligned_reference` | str | Aligned reference |
-| `score` | float | Alignment score |
-| `identity` | float | Sequence identity (0-1) |
-| `coverage` | float | Alignment coverage (0-1) |
-| `gaps` | int | Number of gaps |
-| `mutations` | list[dict] | Detected mutations |
-| `gene` | str | Gene aligned to |
+| Attribute           | Type       | Description              |
+| ------------------- | ---------- | ------------------------ |
+| `query_sequence`    | str        | Original query           |
+| `aligned_query`     | str        | Aligned query            |
+| `aligned_reference` | str        | Aligned reference        |
+| `score`             | float      | Alignment score          |
+| `identity`          | float      | Sequence identity (0-1)  |
+| `coverage`          | float      | Alignment coverage (0-1) |
+| `gaps`              | int        | Number of gaps           |
+| `mutations`         | list[dict] | Detected mutations       |
+| `gene`              | str        | Gene aligned to          |
 
 ---
 
@@ -385,20 +411,20 @@ db.export_fasta("ZIKV", Path("zikv_sequences.fasta"))
 
 #### NCBIClient Constructor
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `email` | str | Required | NCBI requires email |
-| `api_key` | str | None | NCBI API key (faster) |
-| `cache_dir` | Path | None | Cache directory |
+| Parameter   | Type | Default  | Description           |
+| ----------- | ---- | -------- | --------------------- |
+| `email`     | str  | Required | NCBI requires email   |
+| `api_key`   | str  | None     | NCBI API key (faster) |
+| `cache_dir` | Path | None     | Cache directory       |
 
 #### ArbovirusDatabase Methods
 
-| Method | Description |
-|--------|-------------|
-| `get_sequences(virus)` | Get list of sequences for virus |
-| `get_consensus(virus)` | Get consensus sequence |
-| `get_viruses()` | List all viruses in database |
-| `export_fasta(virus, path)` | Export sequences to FASTA |
+| Method                      | Description                     |
+| --------------------------- | ------------------------------- |
+| `get_sequences(virus)`      | Get list of sequences for virus |
+| `get_consensus(virus)`      | Get consensus sequence          |
+| `get_viruses()`             | List all viruses in database    |
+| `export_fasta(virus, path)` | Export sequences to FASTA       |
 
 ---
 
@@ -437,29 +463,29 @@ for p in pairs:
 
 #### PrimerPair Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `forward` | PrimerCandidate | Forward primer |
-| `reverse` | PrimerCandidate | Reverse primer |
-| `amplicon_size` | int | Expected amplicon size |
-| `amplicon_start` | int | Start position |
-| `tm_diff` | float | Tm difference between primers |
-| `target_virus` | str | Target virus |
-| `score` | float | Quality score |
-| `cross_reactive_with` | list[str] | Cross-reactive viruses |
-| `conservation_score` | float | Conservation score |
+| Attribute             | Type            | Description                   |
+| --------------------- | --------------- | ----------------------------- |
+| `forward`             | PrimerCandidate | Forward primer                |
+| `reverse`             | PrimerCandidate | Reverse primer                |
+| `amplicon_size`       | int             | Expected amplicon size        |
+| `amplicon_start`      | int             | Start position                |
+| `tm_diff`             | float           | Tm difference between primers |
+| `target_virus`        | str             | Target virus                  |
+| `score`               | float           | Quality score                 |
+| `cross_reactive_with` | list[str]       | Cross-reactive viruses        |
+| `conservation_score`  | float           | Conservation score            |
 
 #### PrimerCandidate Attributes
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| `sequence` | str | Primer sequence (5'→3') |
-| `position` | int | Start position in genome |
-| `length` | int | Primer length |
-| `gc_content` | float | GC content (0-1) |
-| `tm` | float | Melting temperature (°C) |
-| `direction` | str | "forward" or "reverse" |
-| `score` | float | Quality score |
+| Attribute    | Type  | Description              |
+| ------------ | ----- | ------------------------ |
+| `sequence`   | str   | Primer sequence (5'→3')  |
+| `position`   | int   | Start position in genome |
+| `length`     | int   | Primer length            |
+| `gc_content` | float | GC content (0-1)         |
+| `tm`         | float | Melting temperature (°C) |
+| `direction`  | str   | "forward" or "reverse"   |
+| `score`      | float | Quality score            |
 
 #### Cross-Reactivity Analysis
 
@@ -544,6 +570,7 @@ print(f"Classification: {result['classification']}")  # stabilizing/neutral/dest
 ### Enums
 
 **ResistanceLevel** (HIV Package)
+
 ```python
 from partners.hiv_research_package.src import ResistanceLevel
 
@@ -641,5 +668,5 @@ python biotools.py analyze KLWKKWKKWLK
 
 ---
 
-*API Reference v1.0 - December 2025*
-*Ternary VAE Bioinformatics Platform*
+_API Reference v1.0 - December 2025_
+_Ternary VAE Bioinformatics Platform_
