@@ -26,11 +26,19 @@ from __future__ import annotations
 
 import argparse
 import csv
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 
 import numpy as np
+
+# Add project root to path for src imports
+_project_root = Path(__file__).resolve().parents[4]
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+from src.core.padic_math import padic_valuation
 
 try:
     from Bio import SeqIO
@@ -95,18 +103,9 @@ def padic_window_embedding(window: str, p: int = 3) -> np.ndarray:
     if not indices:
         return np.zeros(4)
 
-    # Compute p-adic features
-    def padic_val(n: int) -> int:
-        if n == 0:
-            return 0
-        v = 0
-        while n % p == 0:
-            v += 1
-            n //= p
-        return v
-
+    # Compute p-adic features using src.core.padic_math
     combined = sum(idx * (4 ** i) for i, idx in enumerate(indices[:10]))
-    valuation = padic_val(combined + 1)
+    valuation = padic_valuation(combined + 1, p=p) if combined >= 0 else 0
 
     features = np.array([
         np.mean(indices),

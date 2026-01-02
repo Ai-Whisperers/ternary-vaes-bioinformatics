@@ -25,12 +25,20 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
+
+# Add project root to path for src imports
+_project_root = Path(__file__).resolve().parents[4]
+if str(_project_root) not in sys.path:
+    sys.path.insert(0, str(_project_root))
+
+from src.core.padic_math import padic_valuation
 
 try:
     from Bio import SeqIO
@@ -70,17 +78,6 @@ class ForecastResult:
     confidence: float
     risk_score: float
     time_horizon: str
-
-
-def padic_valuation(n: int, p: int = 3) -> int:
-    """Compute p-adic valuation."""
-    if n == 0:
-        return float("inf")
-    v = 0
-    while n % p == 0:
-        v += 1
-        n //= p
-    return v
 
 
 def codon_to_index(codon: str) -> int:
