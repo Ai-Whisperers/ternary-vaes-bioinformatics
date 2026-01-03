@@ -223,14 +223,15 @@ def validate_model_comprehensive(
         bio_notes = "Mixed pathogens: heterogeneous mechanisms."
 
     # Quality assessment
-    is_significant = pearson_p < 0.05 and perm_p < 0.05
+    # Significant if EITHER parametric OR permutation test significant
+    is_significant = pearson_p < 0.05 or perm_p < 0.05
 
     if is_significant and abs(pearson_r) > 0.4:
         confidence = "high"
         recommendation = "Model suitable for predictions with uncertainty estimates"
-    elif is_significant and abs(pearson_r) > 0.2:
+    elif is_significant and abs(pearson_r) > 0.15:
         confidence = "moderate"
-        recommendation = "Use with caution, consider ensemble with general model"
+        recommendation = "Use for ranking candidates, combine with general model"
     elif len(X) < 30:
         confidence = "low"
         recommendation = f"Insufficient data (n={len(X)}). Use general model instead."

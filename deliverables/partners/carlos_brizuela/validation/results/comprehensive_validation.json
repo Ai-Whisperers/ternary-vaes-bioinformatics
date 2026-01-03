@@ -2,7 +2,7 @@
   "metadata": {
     "validation_type": "comprehensive",
     "n_permutations": 50,
-    "timestamp": "2026-01-03T22:05:17"
+    "timestamp": "2026-01-03T22:24:23"
   },
   "models": [
     {
@@ -12,35 +12,35 @@
       "n_samples": 224,
       "n_unique_sequences": 155,
       "cv_method": "5-fold",
-      "pearson_r": 0.5387274631518584,
-      "pearson_p": 2.92771175665844e-18,
-      "spearman_r": 0.5407853716995883,
-      "spearman_p": 2.0596837846217294e-18,
-      "rmse": 0.4117968004591515,
-      "mae": 0.3257113355266135,
+      "pearson_r": 0.5601779133012088,
+      "pearson_p": 6.635680148165958e-20,
+      "spearman_r": 0.5553325358958383,
+      "spearman_p": 1.5987552368262334e-19,
+      "rmse": 0.40498823943031875,
+      "mae": 0.3174457590730842,
       "permutation_p": 0.0196078431372549,
-      "permutation_score": -0.1696485612049274,
+      "permutation_score": -0.16412917514700154,
       "n_permutations": 50,
       "top_features": [
         {
           "feature": "length",
-          "importance": 0.12397734760769889
+          "importance": 0.11832876672614778
         },
         {
-          "feature": "aac_T",
-          "importance": 0.12250728586065646
+          "feature": "aac_W",
+          "importance": 0.11097741434865437
         },
         {
-          "feature": "aac_S",
-          "importance": 0.1048599653912391
+          "feature": "aac_V",
+          "importance": 0.10425090785855458
         },
         {
           "feature": "charge",
-          "importance": 0.07033877503495432
+          "importance": 0.06600840093100978
         },
         {
-          "feature": "aac_I",
-          "importance": 0.06899993764681904
+          "feature": "aac_L",
+          "importance": 0.05592832357903161
         }
       ],
       "primary_predictor": "length",
@@ -56,42 +56,42 @@
       "n_samples": 72,
       "n_unique_sequences": 70,
       "cv_method": "5-fold",
-      "pearson_r": 0.03612528464178509,
-      "pearson_p": 0.7632110744185511,
-      "spearman_r": 0.036304528166558034,
-      "spearman_p": 0.7620708170193599,
-      "rmse": 0.5038643653865608,
-      "mae": 0.35861454657904607,
-      "permutation_p": 0.17647058823529413,
-      "permutation_score": -0.2549236705202572,
+      "pearson_r": 0.22056105552526753,
+      "pearson_p": 0.0626358727697185,
+      "spearman_r": 0.19072197828675963,
+      "spearman_p": 0.10854334106951642,
+      "rmse": 0.46345059124749444,
+      "mae": 0.3388585041447077,
+      "permutation_p": 0.0392156862745098,
+      "permutation_score": -0.21502128395720654,
       "n_permutations": 50,
       "top_features": [
         {
-          "feature": "aac_T",
-          "importance": 0.2394119780503285
+          "feature": "aac_W",
+          "importance": 0.20020040791082877
         },
         {
           "feature": "polar_fraction",
-          "importance": 0.09129698754892537
-        },
-        {
-          "feature": "aac_I",
-          "importance": 0.08423055771638083
+          "importance": 0.0827963639312021
         },
         {
           "feature": "aac_L",
-          "importance": 0.0546349615414966
+          "importance": 0.07569048729600386
+        },
+        {
+          "feature": "aac_A",
+          "importance": 0.07061103538634383
         },
         {
           "feature": "volume",
-          "importance": 0.052387798162972996
+          "importance": 0.05915330946191308
         }
       ],
-      "primary_predictor": "aac_T",
+      "primary_predictor": "aac_W",
       "biological_notes": "Gram-positive: thick peptidoglycan, no outer membrane. Charge-based features less predictive.",
-      "is_significant": false,
-      "confidence_level": "low",
-      "recommendation": "Model not predictive. Use heuristic or general model."
+      "is_significant": true,
+      "confidence_level": "moderate",
+      "recommendation": "Use for ranking candidates, combine with general model"
     },
     {
       "model_name": "activity_pseudomonas",
@@ -100,35 +100,35 @@
       "n_samples": 27,
       "n_unique_sequences": 27,
       "cv_method": "LOO",
-      "pearson_r": 0.19566995049885932,
-      "pearson_p": 0.3280156212971948,
-      "spearman_r": 0.08486398972441526,
-      "spearman_p": 0.6738566294259829,
-      "rmse": 0.46502089855413703,
-      "mae": 0.36483897121925707,
-      "permutation_p": 0.21568627450980393,
-      "permutation_score": -0.216244436092097,
+      "pearson_r": 0.19027359324162357,
+      "pearson_p": 0.34179196212176527,
+      "spearman_r": 0.02997055399189387,
+      "spearman_p": 0.8820306115042518,
+      "rmse": 0.46196953375383454,
+      "mae": 0.37268771249163457,
+      "permutation_p": 0.17647058823529413,
+      "permutation_score": -0.21341585011673528,
       "n_permutations": 50,
       "top_features": [
         {
           "feature": "charge",
-          "importance": 0.1407971689509623
+          "importance": 0.14763555837145836
+        },
+        {
+          "feature": "hydrophobic_moment",
+          "importance": 0.11742393119344484
         },
         {
           "feature": "length",
-          "importance": 0.105752709235033
+          "importance": 0.11220371992380745
         },
         {
-          "feature": "aac_I",
-          "importance": 0.07610103838732765
-        },
-        {
-          "feature": "aac_H",
-          "importance": 0.07484735408010547
+          "feature": "aac_K",
+          "importance": 0.06316622465934751
         },
         {
           "feature": "positive_fraction",
-          "importance": 0.06474236483086643
+          "importance": 0.05243796222141603
         }
       ],
       "primary_predictor": "charge",
@@ -144,35 +144,35 @@
       "n_samples": 105,
       "n_unique_sequences": 102,
       "cv_method": "5-fold",
-      "pearson_r": 0.46808007787672345,
-      "pearson_p": 4.77706451319376e-07,
-      "spearman_r": 0.45131858675052755,
-      "spearman_p": 1.3516083498716393e-06,
-      "rmse": 0.4327753120695777,
-      "mae": 0.33622686333145907,
+      "pearson_r": 0.42107618946812075,
+      "pearson_p": 7.716957525903075e-06,
+      "spearman_r": 0.4380417848427287,
+      "spearman_p": 2.9646363108741577e-06,
+      "rmse": 0.455156278155082,
+      "mae": 0.34695809078992085,
       "permutation_p": 0.0196078431372549,
-      "permutation_score": -0.18729447073692035,
+      "permutation_score": -0.20716723754398636,
       "n_permutations": 50,
       "top_features": [
         {
           "feature": "charge",
-          "importance": 0.13629525861131112
+          "importance": 0.13187148805831123
         },
         {
           "feature": "length",
-          "importance": 0.10936864671574258
+          "importance": 0.10837148334150333
         },
         {
           "feature": "positive_fraction",
-          "importance": 0.08832084388157467
+          "importance": 0.08200167742926302
         },
         {
-          "feature": "aac_S",
-          "importance": 0.0753917461925684
+          "feature": "aac_V",
+          "importance": 0.06833659051690898
         },
         {
-          "feature": "polar_fraction",
-          "importance": 0.04165076220644145
+          "feature": "aac_A",
+          "importance": 0.042351219390876944
         }
       ],
       "primary_predictor": "charge",
@@ -188,35 +188,35 @@
       "n_samples": 20,
       "n_unique_sequences": 20,
       "cv_method": "LOO",
-      "pearson_r": 0.5930272987988473,
-      "pearson_p": 0.005853336470420623,
-      "spearman_r": 0.47264772115345643,
-      "spearman_p": 0.03533552203615996,
-      "rmse": 0.3104432332352349,
-      "mae": 0.24788465995609102,
+      "pearson_r": 0.5836240723014532,
+      "pearson_p": 0.006902932068260736,
+      "spearman_r": 0.4734276678880331,
+      "spearman_p": 0.034992311621494944,
+      "rmse": 0.311472251546953,
+      "mae": 0.24837837472946242,
       "permutation_p": 0.0196078431372549,
-      "permutation_score": -0.09637500106154648,
+      "permutation_score": -0.09701496348372837,
       "n_permutations": 50,
       "top_features": [
         {
           "feature": "polar_fraction",
-          "importance": 0.2793396597632033
+          "importance": 0.3108131881754002
         },
         {
-          "feature": "aac_I",
-          "importance": 0.17524526683196262
+          "feature": "aac_L",
+          "importance": 0.18171561296684952
         },
         {
-          "feature": "aac_K",
-          "importance": 0.06215078958800647
-        },
-        {
-          "feature": "aac_T",
-          "importance": 0.05627675500417373
+          "feature": "aac_M",
+          "importance": 0.07161699850743085
         },
         {
           "feature": "aromatic_fraction",
-          "importance": 0.054342297247406385
+          "importance": 0.051982836878827904
+        },
+        {
+          "feature": "aac_H",
+          "importance": 0.043106975359250586
         }
       ],
       "primary_predictor": "polar_fraction",
@@ -229,8 +229,8 @@
   "summary": {
     "total_models": 5,
     "high_confidence": 3,
-    "moderate_confidence": 0,
-    "low_confidence": 2,
-    "significant_models": 3
+    "moderate_confidence": 1,
+    "low_confidence": 1,
+    "significant_models": 4
   }
 }
