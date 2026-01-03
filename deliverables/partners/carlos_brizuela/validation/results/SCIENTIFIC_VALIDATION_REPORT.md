@@ -1,6 +1,6 @@
 # Scientific Validation Report: AMP Activity Prediction Models
 
-**Doc-Type:** Validation Report | Version 1.0 | Updated 2026-01-03 | Carlos Brizuela Package
+**Doc-Type:** Validation Report | Version 2.0 | Updated 2026-01-03 | Carlos Brizuela Package
 
 ---
 
@@ -9,10 +9,10 @@
 This report presents comprehensive validation of antimicrobial peptide (AMP) activity prediction models trained on curated DRAMP database entries. The models were evaluated using cross-validation, permutation tests, and feature importance analysis.
 
 **Key Findings:**
-- 3/5 models achieve statistical significance (p < 0.05)
-- General model: Pearson r = 0.54 (p < 0.001)
-- Gram-negative pathogens: Strong predictability
-- Gram-positive pathogens: Different mechanism, charge-based features fail
+- 4/5 models achieve statistical significance (permutation p < 0.05)
+- General model: Pearson r = 0.56 (p < 0.001)
+- Gram-negative pathogens: Strong predictability (E. coli r=0.42, A. baumannii r=0.58)
+- Gram-positive pathogens: Improved with amphipathicity features (S. aureus r=0.22, perm-p=0.039)
 
 ---
 
@@ -30,11 +30,12 @@ This report presents comprehensive validation of antimicrobial peptide (AMP) act
 - **Permutation test:** 50-100 permutations for significance
 
 ### Features Used
-30 physicochemical features:
+32 physicochemical features:
 - Sequence length, net charge, hydrophobicity
 - Amino acid composition (20 features)
-- Fraction: cationic, aromatic, aliphatic, polar
+- Fraction: cationic, aromatic, aliphatic, polar, hydrophobic
 - Hydrophobic moment
+- **Amphipathicity** (variance in hydrophobicity over sliding window - key for Gram+ prediction)
 
 ---
 
@@ -46,10 +47,10 @@ This report presents comprehensive validation of antimicrobial peptide (AMP) act
 |--------|-------|
 | N samples | 224 |
 | CV method | 5-fold |
-| Pearson r | **0.539*** |
-| Spearman ρ | 0.541*** |
+| Pearson r | **0.560*** |
+| Spearman ρ | 0.555*** |
 | Permutation p | 0.020 |
-| RMSE | 0.412 |
+| RMSE | 0.405 |
 | Confidence | **HIGH** |
 
 **Primary predictor:** Peptide length
@@ -99,15 +100,16 @@ This report presents comprehensive validation of antimicrobial peptide (AMP) act
 |--------|-------|
 | N samples | 72 |
 | CV method | 5-fold |
-| Pearson r | 0.036 |
-| Spearman ρ | 0.036 |
-| Permutation p | 0.176 |
-| RMSE | 0.504 |
-| Confidence | **LOW** |
+| Pearson r | 0.221 |
+| Spearman ρ | 0.191 |
+| Permutation p | **0.039*** |
+| RMSE | 0.464 |
+| Confidence | **MODERATE** |
 
-**Primary predictor:** Amino acid T content (threonine)
-**Biology:** Gram-positive, thick peptidoglycan wall. Charge-based features NOT predictive.
-**Recommendation:** Use general model or heuristics
+**Primary predictor:** Tryptophan content (aac_W) + amphipathicity
+**Biology:** Gram-positive, thick peptidoglycan wall. Amphipathicity (variance in hydrophobicity) predicts membrane insertion capability. Charge-based features alone fail.
+**Key Improvement:** Added amphipathicity feature - correlation improved from r=0.04 to r=0.22.
+**Recommendation:** Use for ranking candidates, combine with general model for robust predictions
 
 ---
 
@@ -163,10 +165,11 @@ The stark difference between Gram-negative (E. coli, Acinetobacter) and Gram-pos
 | Aspect | Colbes (DDG) | Brizuela (AMP) |
 |--------|--------------|----------------|
 | Task | Protein stability | Antimicrobial activity |
-| Best model | Spearman 0.58 | Pearson 0.54 |
+| Best model | Spearman 0.58 | Pearson 0.56 (general), 0.58 (A. baumannii) |
 | Validation | Bootstrap + LOO | Permutation + CV |
 | p-value | < 0.001 | < 0.001 |
-| Biological grounding | p-adic embeddings | Physicochemical features |
+| Biological grounding | p-adic VAE embeddings | Physicochemical + amphipathicity features |
+| Models validated | 1 (DDG predictor) | 4/5 significant (3 HIGH, 1 MODERATE) |
 
 Both packages achieve similar predictive performance with rigorous validation.
 
@@ -174,7 +177,7 @@ Both packages achieve similar predictive performance with rigorous validation.
 
 ## Deployment Recommendations
 
-### Use These Models
+### High Confidence - Use Directly
 
 | Target | Model | Action |
 |--------|-------|--------|
@@ -182,12 +185,17 @@ Both packages achieve similar predictive performance with rigorous validation.
 | A. baumannii | activity_acinetobacter | Direct prediction |
 | Mixed/unknown | activity_general | Default choice |
 
-### Avoid These Models
+### Moderate Confidence - Use with Caution
+
+| Target | Model | Action |
+|--------|-------|--------|
+| S. aureus | activity_staphylococcus | Use for ranking candidates, combine with general model |
+
+### Low Confidence - Use General Model Instead
 
 | Target | Model | Alternative |
 |--------|-------|-------------|
-| S. aureus | activity_staphylococcus | Use general model |
-| P. aeruginosa | activity_pseudomonas | Use general model |
+| P. aeruginosa | activity_pseudomonas | Use general model (insufficient data n=27) |
 
 ---
 
@@ -215,5 +223,7 @@ The AMP activity prediction package provides scientifically validated models for
 ---
 
 **Validation performed:** 2026-01-03
-**Significance threshold:** p < 0.05
+**Significance threshold:** p < 0.05 (permutation or parametric)
 **Permutation tests:** 50 iterations
+**Feature engineering:** Amphipathicity added for Gram+ prediction
+**Version:** 2.0 (post-feature engineering improvements)

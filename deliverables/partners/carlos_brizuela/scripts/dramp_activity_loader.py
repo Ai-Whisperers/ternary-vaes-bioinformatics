@@ -93,13 +93,26 @@ class AMPRecord:
         aliphatic = sum(1 for aa in seq if aa in "AILV") / n
         polar = sum(1 for aa in seq if aa in "STNQ") / n
 
-        # Amphipathicity (simplified)
+        # Hydrophobic ratio (important for Pseudomonas)
+        hydrophobic = sum(1 for aa in seq if aa in "AILMFVWY") / n
+
+        # Amphipathicity - variance in hydrophobicity (important for Gram+)
+        # High variance = alternating hydrophobic/hydrophilic = amphipathic
+        h_values = [HYDROPHOBICITY.get(aa, 0) for aa in seq]
+        amphipathicity = 0
+        if n >= 7:
+            window_vars = []
+            for i in range(n - 6):
+                window = h_values[i:i + 7]
+                window_vars.append(np.var(window))
+            amphipathicity = np.mean(window_vars) if window_vars else 0
+
+        # Hydrophobic moment (simplified - sum in window)
         hydro_moment = 0
         if n >= 7:
             for i in range(n - 6):
-                window = seq[i:i + 7]
-                h_values = [HYDROPHOBICITY.get(aa, 0) for aa in window]
-                hydro_moment += abs(sum(h_values))
+                window = h_values[i:i + 7]
+                hydro_moment += abs(sum(window))
             hydro_moment /= (n - 6)
 
         return {
@@ -112,6 +125,8 @@ class AMPRecord:
             "aromatic_fraction": aromatic,
             "aliphatic_fraction": aliphatic,
             "polar_fraction": polar,
+            "hydrophobic_fraction": hydrophobic,  # NEW: for Pseudomonas
+            "amphipathicity": amphipathicity,      # NEW: for Gram+
             "hydrophobic_moment": hydro_moment,
             **{f"aac_{aa}": v for aa, v in aac.items()}
         }
