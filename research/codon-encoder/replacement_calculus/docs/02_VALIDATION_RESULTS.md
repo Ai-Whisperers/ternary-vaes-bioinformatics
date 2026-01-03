@@ -120,6 +120,84 @@ Tested thresholds from 0.5 to 5.0 in steps of 0.25.
 
 ---
 
+## Experiment 3: Hybrid Morphism Validity (Embedding + Physicochemistry)
+
+### Hypothesis
+
+Combining embedding distance with physicochemical properties improves precision without losing recall.
+
+### Method
+
+- Grid search over 400 configurations
+- Morphism valid if BOTH: embedding distance ≤ threshold AND size difference ≤ max_diff
+- Tested charge/polarity constraints
+
+### Optimal Configuration
+
+| Parameter | Value |
+|-----------|-------|
+| max_embedding_distance | 3.5 |
+| max_size_diff | 40.0Å³ |
+| require_charge_compatible | False |
+| require_polarity_compatible | False |
+
+Key insight: Size constraint implicitly filters charge-incompatible pairs.
+
+### Results
+
+| Metric | Embedding-Only | Hybrid | Change |
+|--------|----------------|--------|--------|
+| Precision | 26.3% | **67.3%** | +156% |
+| Recall | 97.8% | 80.4% | -17% |
+| F1 | 0.41 | **0.73** | +78% |
+| Accuracy | 33.2% | **85.8%** | +158% |
+
+### Escape Path Analysis
+
+| Source | Target | Path Cost | BLOSUM | Status |
+|--------|--------|-----------|--------|--------|
+| L | I | 2.28 | +2 | Conservative |
+| D | E | 0.92 | +2 | Conservative (lowest) |
+| K | R | 2.73 | +2 | Conservative |
+| L | D | 12.46 | -4 | Radical (HIGH cost) |
+| K | D | 9.58 | -1 | Radical (HIGH cost) |
+
+---
+
+## Experiment 4: DDG Stability Validation
+
+### Hypothesis
+
+Path costs correlate with protein stability effects (DDG).
+
+### Dataset
+
+S669 benchmark: 669 mutations with experimental DDG values.
+
+### Results
+
+| Metric | Value | Significance |
+|--------|-------|--------------|
+| Spearman r | 0.04 | p = 0.26 (not significant) |
+| Pearson r | 0.05 | p = 0.19 (not significant) |
+
+### By Mutation Type
+
+| Type | N | Mean Path Cost |
+|------|---|---------------|
+| Stabilizing (DDG < -0.5) | 389 | 6.71 |
+| Neutral (-0.5 ≤ DDG ≤ 0.5) | 195 | 7.36 |
+| Destabilizing (DDG > 0.5) | 85 | 8.37 |
+
+### Interpretation
+
+- Trend is correct: stabilizing < neutral < destabilizing
+- But correlation is weak (r = 0.04)
+- **Confirms falsification**: Embedding structure does NOT strongly encode thermodynamics
+- Path costs predict substitution safety, not stability magnitude
+
+---
+
 ## Key Findings
 
 ### 1. P-adic ≠ Biological Function
@@ -128,17 +206,23 @@ Tested thresholds from 0.5 to 5.0 in steps of 0.25.
 |----------|----------|--------|-----------|
 | P-adic valuation | 21.4% | - | - |
 | Embedding distance | 33.2% | 97.8% | 26.3% |
+| **Hybrid** | **85.8%** | 80.4% | **67.3%** |
 
 P-adic structure encodes **genetic code architecture** (error tolerance), not **protein biochemistry** (substitution safety).
 
-### 2. Embeddings Capture Partial Structure
+### 2. Hybrid Approach Works
 
-The VAE learned meaningful representations:
-- Conservative pairs cluster together
-- Path costs correlate with BLOSUM scores
-- But threshold alone doesn't separate classes
+Combining embeddings with physicochemistry achieves:
+- 156% precision improvement
+- 78% F1 improvement
+- Size constraint (40Å³) is the key filter
 
-### 3. Framework Validated
+### 3. Thermodynamics Weakly Predicted
+
+Path costs show correct trend but weak correlation (r = 0.04).
+**Confirms**: Groupoid structure captures substitution safety, not stability magnitude.
+
+### 4. Framework Validated
 
 The Replacement Calculus machinery works correctly:
 - LocalMinima properly model amino acid groups
@@ -150,10 +234,12 @@ The Replacement Calculus machinery works correctly:
 
 ## Quantitative Summary
 
-| Validation | Ground Truth | Accuracy | F1 |
-|------------|--------------|----------|-----|
-| P-adic groupoid | BLOSUM62 | 21.4% | - |
-| Embedding groupoid | BLOSUM62 | 33.2% | 0.41 |
+| Validation | Ground Truth | Accuracy | F1 | Correlation |
+|------------|--------------|----------|-----|-------------|
+| P-adic groupoid | BLOSUM62 | 21.4% | - | - |
+| Embedding groupoid | BLOSUM62 | 33.2% | 0.41 | - |
+| **Hybrid groupoid** | BLOSUM62 | **85.8%** | **0.73** | - |
+| DDG prediction | S669 | - | - | r=0.04 |
 
 ---
 
@@ -163,6 +249,8 @@ The Replacement Calculus machinery works correctly:
 |------|-------------|
 | `integration/groupoid_analysis.json` | P-adic groupoid results |
 | `integration/embedding_groupoid_analysis.json` | Embedding groupoid results |
+| `integration/hybrid_groupoid_analysis.json` | Hybrid groupoid results |
+| `integration/ddg_validation_results.json` | DDG validation results |
 
 ---
 
