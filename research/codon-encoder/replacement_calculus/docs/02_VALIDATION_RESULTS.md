@@ -164,7 +164,50 @@ Key insight: Size constraint implicitly filters charge-incompatible pairs.
 
 ---
 
-## Experiment 4: DDG Stability Validation
+## Experiment 4: Gene Ontology Functional Validation (V5)
+
+### Hypothesis
+
+Amino acids with similar functional roles (GO-derived profiles) should have low-cost morphisms.
+
+### Method
+
+- Built 24-dimensional functional profile for each amino acid
+- Includes: hydrophobicity, charge, EC enrichments, catalytic propensity, structural roles
+- Tested 4 hypotheses against hybrid groupoid
+
+### Results
+
+| Hypothesis | Metric | Value | Target | Status |
+|------------|--------|-------|--------|--------|
+| H1: Similarity→Morphism | ROC-AUC | **0.787** | >0.7 | EXCEEDS |
+| H2: Cost→Distance | Spearman r | **0.569** | >0.4 | EXCEEDS |
+| H3: Cluster Match | ARI | **0.445** | >0.4 | EXCEEDS |
+| H4: Annotation Transfer | ROC-AUC | **0.618** | >0.6 | EXCEEDS |
+
+### Enzyme Class Analysis
+
+| EC Class | Separation | Interpretation |
+|----------|------------|----------------|
+| EC6 Ligase | **+4.18** | Strongly encoded (K, E, D, Q, R cluster) |
+| EC2 Transferase | +3.06 | Well encoded (E, S, D, T, G cluster) |
+| EC3 Hydrolase | +2.75 | Well encoded (catalytic triad) |
+| EC5 Isomerase | +1.51 | Moderately encoded |
+| EC4 Lyase | +0.47 | Weakly encoded |
+| EC1 Oxidoreductase | -1.70 | **Not encoded** (diverse mechanisms) |
+
+### Key Insights
+
+- **D-E has lowest path cost (0.92)** - correctly identified as most functionally similar
+- **L-V also low cost (1.48)** - hydrophobic core residues interchangeable
+- **E-W has highest cost (17.05)** - charged vs aromatic, maximally different
+- **5/6 enzyme classes encoded** in groupoid structure
+
+See `V5_VALIDATION_RESULTS.md` for detailed analysis.
+
+---
+
+## Experiment 5: DDG Stability Validation
 
 ### Hypothesis
 
@@ -217,12 +260,21 @@ Combining embeddings with physicochemistry achieves:
 - 78% F1 improvement
 - Size constraint (40Å³) is the key filter
 
-### 3. Thermodynamics Weakly Predicted
+### 3. Functional Relationships Strongly Encoded (V5)
+
+The hybrid groupoid structure **does encode biological function**:
+- ROC-AUC 0.787 for functional similarity → morphism existence
+- Spearman r = 0.569 for path cost → functional distance
+- 5 of 6 enzyme classes show within-class proximity
+
+**Key insight**: The genetic code evolved for **functional robustness**, not thermodynamic optimization.
+
+### 4. Thermodynamics Weakly Predicted
 
 Path costs show correct trend but weak correlation (r = 0.04).
 **Confirms**: Groupoid structure captures substitution safety, not stability magnitude.
 
-### 4. Framework Validated
+### 5. Framework Validated
 
 The Replacement Calculus machinery works correctly:
 - LocalMinima properly model amino acid groups
@@ -234,12 +286,14 @@ The Replacement Calculus machinery works correctly:
 
 ## Quantitative Summary
 
-| Validation | Ground Truth | Accuracy | F1 | Correlation |
-|------------|--------------|----------|-----|-------------|
-| P-adic groupoid | BLOSUM62 | 21.4% | - | - |
-| Embedding groupoid | BLOSUM62 | 33.2% | 0.41 | - |
-| **Hybrid groupoid** | BLOSUM62 | **85.8%** | **0.73** | - |
-| DDG prediction | S669 | - | - | r=0.04 |
+| Validation | Ground Truth | Key Metric | Value | Status |
+|------------|--------------|------------|-------|--------|
+| V1: P-adic groupoid | BLOSUM62 | Accuracy | 21.4% | WEAK |
+| V2: Embedding groupoid | BLOSUM62 | F1 | 0.41 | MODERATE |
+| V3: BLOSUM62 | Substitution matrix | Recall | 97.8% | HIGH |
+| **V4: Hybrid groupoid** | BLOSUM62 | **F1** | **0.73** | **STRONG** |
+| **V5: GO Functional** | EC Classes | **AUC** | **0.787** | **STRONG** |
+| V7: DDG prediction | S669 | Correlation | r=0.04 | WEAK |
 
 ---
 
@@ -251,9 +305,11 @@ The Replacement Calculus machinery works correctly:
 | `integration/embedding_groupoid_analysis.json` | Embedding groupoid results |
 | `integration/hybrid_groupoid_analysis.json` | Hybrid groupoid results |
 | `integration/ddg_validation_results.json` | DDG validation results |
+| `go_validation/functional_validation_results.json` | V5 GO functional results |
+| `docs/V5_VALIDATION_RESULTS.md` | V5 detailed findings |
 
 ---
 
 ## Next Steps
 
-See `03_PENDING_VALIDATIONS.md` for remaining experiments.
+See `03_PENDING_VALIDATIONS.md` for remaining experiments (V6, V8, V9).
