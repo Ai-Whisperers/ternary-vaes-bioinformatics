@@ -17,14 +17,18 @@ This document tracks remaining validation experiments for the Replacement Calcul
 | V1 | P-adic valuation-based groupoid | 21.4% accuracy | COMPLETE |
 | V2 | Embedding distance-based groupoid | 33.2% accuracy, F1=0.41 | COMPLETE |
 | V3 | BLOSUM62 substitution matrix validation | 97.8% recall, 26.3% precision | COMPLETE |
+| V4 | Hybrid morphism validity | **85.8% accuracy, F1=0.73** | COMPLETE |
+| V7 | DDG stability validation (S669) | r=0.04 (weak, confirms falsification) | COMPLETE |
 
 ---
 
 ## Pending Validations
 
-### V4: Hybrid Morphism Validity
+### ~~V4: Hybrid Morphism Validity~~ COMPLETED
 
-**Priority**: HIGH
+**Status**: COMPLETE - See `02_VALIDATION_RESULTS.md`
+
+**Results**: 85.8% accuracy, 67.3% precision, 80.4% recall, F1=0.73
 
 **Hypothesis**: Combining embedding distance with physicochemical properties improves precision without sacrificing recall.
 
