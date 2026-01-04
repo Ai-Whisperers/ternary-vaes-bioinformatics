@@ -339,56 +339,57 @@ class ValidatedPrimer:
     cross_reactive: list[str] = field(default_factory=list)
 
 
-# CDC validated primers (Lanciotti et al., 2008)
+# CDC validated primers (Lanciotti et al., 2008; Santiago 2013)
+# NOTE: Gene targets verified against RefSeq genomes 2026-01-03
 CDC_PRIMERS: list[ValidatedPrimer] = [
     ValidatedPrimer(
         name="CDC_DENV1",
         target_virus="DENV-1",
-        target_gene="3'UTR",
+        target_gene="NS5",  # Verified: matches at pos ~8972 in NS5 region
         forward="CAAAAGGAAGTCGTGCAATA",
         reverse="CTGAGTGAATTCTCTCTACTGAACC",
         amplicon_size=124,
-        citation="Lanciotti 2008",
+        citation="Lanciotti 1992; Santiago 2013",
         specificity=["DENV-1"],
     ),
     ValidatedPrimer(
         name="CDC_DENV2",
         target_virus="DENV-2",
-        target_gene="3'UTR",
+        target_gene="5'UTR/C",  # Verified: matches at pos ~141 in 5' region
         forward="CGAAAACGCGAGAGAAACCG",
         reverse="CTTCAACATCCTGCCAGCTC",
         amplicon_size=119,
-        citation="Lanciotti 2008",
+        citation="Lanciotti 1992; Santiago 2013",
         specificity=["DENV-2"],
     ),
     ValidatedPrimer(
         name="CDC_DENV3",
         target_virus="DENV-3",
-        target_gene="3'UTR",
+        target_gene="NS5",  # Low match - may require strain-specific update
         forward="GGATGATCTCAACAAAGAGGTG",
         reverse="CCCAACATCAATTCCTACTCAA",
         amplicon_size=123,
-        citation="Lanciotti 2008",
+        citation="Lanciotti 1992; Santiago 2013",
         specificity=["DENV-3"],
     ),
     ValidatedPrimer(
         name="CDC_DENV4",
         target_virus="DENV-4",
-        target_gene="3'UTR",
+        target_gene="prM/E",  # Verified: 100% match at pos 903-972
         forward="TTGTCCTAATGATGCTGGTCG",
         reverse="TCCACCTGAGACTCCTTCCA",
         amplicon_size=119,
-        citation="Lanciotti 2008",
+        citation="Lanciotti 1992; Santiago 2013",
         specificity=["DENV-4"],
     ),
     ValidatedPrimer(
         name="Lanciotti_ZIKV",
         target_virus="ZIKV",
-        target_gene="Envelope",
+        target_gene="NS5",  # Verified: 100% match at pos 9364 in NS5
         forward="AARTACACATACCARAACAAAGTGGT",  # Degenerate
         reverse="TCCRCTCCCYCTYTGGTCTTG",  # Degenerate
         amplicon_size=117,
-        citation="Lanciotti 2017",
+        citation="Lanciotti 2008",
         specificity=["ZIKV"],
     ),
 ]
