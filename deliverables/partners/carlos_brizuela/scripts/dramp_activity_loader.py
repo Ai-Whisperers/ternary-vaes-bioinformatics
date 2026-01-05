@@ -115,6 +115,10 @@ class AMPRecord:
                 hydro_moment += abs(sum(window))
             hydro_moment /= (n - 6)
 
+        # P-adic valuation features (from padic_aa_validation findings)
+        # Key discovery: val_product is more informative than individual valuations
+        padic_features = self._compute_padic_features(seq)
+
         return {
             "length": n,
             "charge": charge,
@@ -128,7 +132,78 @@ class AMPRecord:
             "hydrophobic_fraction": hydrophobic,  # NEW: for Pseudomonas
             "amphipathicity": amphipathicity,      # NEW: for Gram+
             "hydrophobic_moment": hydro_moment,
+            **padic_features,  # P-adic features (5 new)
             **{f"aac_{aa}": v for aa, v in aac.items()}
+        }
+
+    def _compute_padic_features(self, seq: str) -> dict:
+        """Compute p-adic valuation features for peptide.
+
+        Based on validation from research/codon-encoder/padic_aa_validation/:
+        - Amino acids ordered by hydrophobicity (most hydrophobic = index 0)
+        - P-adic valuation with p=5 creates meaningful hierarchy
+        - Key finding: val_product (wt_val * mt_val) is more informative
+
+        Returns:
+            Dict with 5 p-adic features:
+            - mean_valuation: Average p-adic valuation across sequence
+            - max_valuation: Maximum valuation (highest hierarchy level)
+            - valuation_variance: Variance in valuations
+            - sum_val_product: Mean pairwise valuation product (KEY feature)
+            - valuation_gradient: N→C trend in valuation
+        """
+        # Hydrophobicity ordering (from padic_aa_validation)
+        HYDRO_ORDER = ['I', 'F', 'V', 'L', 'W', 'M', 'A', 'C', 'G', 'T',
+                       'S', 'P', 'Y', 'H', 'N', 'Q', 'E', 'D', 'K', 'R']
+        aa_to_idx = {aa: i for i, aa in enumerate(HYDRO_ORDER)}
+
+        def valuation(idx: int, p: int = 5) -> int:
+            """P-adic valuation: highest power of p dividing idx."""
+            if idx == 0:
+                return p  # Convention for 0
+            v = 0
+            while idx % p == 0:
+                idx //= p
+                v += 1
+            return v
+
+        # Compute valuation for each position
+        valuations = []
+        for aa in seq:
+            idx = aa_to_idx.get(aa, 10)  # Default to middle if unknown
+            valuations.append(valuation(idx))
+
+        if not valuations:
+            return {
+                "padic_mean_val": 0,
+                "padic_max_val": 0,
+                "padic_var_val": 0,
+                "padic_val_product": 0,
+                "padic_val_gradient": 0,
+            }
+
+        n = len(valuations)
+
+        # Mean pairwise val_product (KEY DISCOVERY from validation)
+        val_products = []
+        for i in range(n - 1):
+            val_products.append(valuations[i] * valuations[i + 1])
+        mean_val_product = np.mean(val_products) if val_products else 0
+
+        # Valuation gradient (N-terminal vs C-terminal)
+        if n >= 10:
+            n_term_mean = np.mean(valuations[:5])
+            c_term_mean = np.mean(valuations[-5:])
+            gradient = c_term_mean - n_term_mean
+        else:
+            gradient = 0
+
+        return {
+            "padic_mean_val": np.mean(valuations),
+            "padic_max_val": max(valuations),
+            "padic_var_val": np.var(valuations),
+            "padic_val_product": mean_val_product,  # KEY feature
+            "padic_val_gradient": gradient,
         }
 
 
@@ -152,6 +227,139 @@ class AMPDatabase:
         """Filter records with MIC below threshold."""
         return [r for r in self.records
                 if r.mic_value is not None and r.mic_value <= max_mic]
+
+    def deduplicate(self) -> "AMPDatabase":
+        """Remove duplicate sequence-target pairs, keeping first occurrence.
+
+        Returns:
+            New AMPDatabase with duplicates removed.
+        """
+        seen = set()
+        unique_records = []
+
+        for record in self.records:
+            if record.mic_value is None or record.mic_value <= 0:
+                continue
+            key = (record.sequence.upper(), record.target_organism.lower() if record.target_organism else "")
+            if key not in seen:
+                seen.add(key)
+                unique_records.append(record)
+
+        return AMPDatabase(
+            records=unique_records,
+            metadata={**self.metadata, "deduplicated": True, "original_count": len(self.records)}
+        )
+
+    def get_pathogen_labels(self) -> list[int]:
+        """Get numeric labels for pathogens (for stratified splitting).
+
+        Returns:
+            List of integers: 0=E.coli, 1=P.aeruginosa, 2=S.aureus, 3=A.baumannii
+        """
+        labels = []
+        for r in self.records:
+            if r.target_organism is None:
+                labels.append(-1)
+            elif "escherichia" in r.target_organism.lower():
+                labels.append(0)
+            elif "pseudomonas" in r.target_organism.lower():
+                labels.append(1)
+            elif "staphylococcus" in r.target_organism.lower():
+                labels.append(2)
+            elif "acinetobacter" in r.target_organism.lower():
+                labels.append(3)
+            else:
+                labels.append(-1)
+        return labels
+
+    def get_stratified_splits(self, n_folds: int = 5, random_state: int = 42) -> list[tuple]:
+        """Get stratified k-fold split indices (pathogen-balanced).
+
+        Args:
+            n_folds: Number of folds
+            random_state: Random seed for reproducibility
+
+        Returns:
+            List of (train_indices, val_indices) tuples
+        """
+        from sklearn.model_selection import StratifiedKFold
+
+        # Filter to valid records
+        valid_indices = [i for i, r in enumerate(self.records)
+                        if r.mic_value is not None and r.mic_value > 0]
+        pathogen_labels = self.get_pathogen_labels()
+        valid_labels = [pathogen_labels[i] for i in valid_indices]
+
+        # Stratified split
+        skf = StratifiedKFold(n_splits=n_folds, shuffle=True, random_state=random_state)
+        splits = []
+
+        for train_idx, val_idx in skf.split(valid_indices, valid_labels):
+            train_indices = [valid_indices[i] for i in train_idx]
+            val_indices = [valid_indices[i] for i in val_idx]
+            splits.append((train_indices, val_indices))
+
+        return splits
+
+    def get_training_data_split(
+        self,
+        fold_idx: int,
+        n_folds: int = 5,
+        random_state: int = 42,
+        target: str = None,
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+        """Get train/val split for a specific fold.
+
+        Args:
+            fold_idx: Which fold to use as validation (0 to n_folds-1)
+            n_folds: Total number of folds
+            random_state: Random seed
+            target: Optional target organism filter
+
+        Returns:
+            X_train, y_train, X_val, y_val
+        """
+        splits = self.get_stratified_splits(n_folds, random_state)
+        train_indices, val_indices = splits[fold_idx]
+
+        # Filter by target if specified
+        if target:
+            target_lower = target.lower()
+            train_indices = [i for i in train_indices
+                           if self.records[i].target_organism and
+                           target_lower in self.records[i].target_organism.lower()]
+            val_indices = [i for i in val_indices
+                         if self.records[i].target_organism and
+                         target_lower in self.records[i].target_organism.lower()]
+
+        # Extract features and labels
+        def extract(indices):
+            features, labels = [], []
+            for i in indices:
+                record = self.records[i]
+                feat = record.compute_features()
+                if feat:
+                    features.append(list(feat.values()))
+                    labels.append(np.log10(record.mic_value))
+            return np.array(features), np.array(labels)
+
+        X_train, y_train = extract(train_indices)
+        X_val, y_val = extract(val_indices)
+
+        return X_train, y_train, X_val, y_val
+
+    def get_feature_names(self) -> list[str]:
+        """Get ordered list of feature names for ML training."""
+        return [
+            "length", "charge", "hydrophobicity", "volume",
+            "positive_fraction", "negative_fraction", "aromatic_fraction",
+            "aliphatic_fraction", "polar_fraction", "hydrophobic_fraction",
+            "amphipathicity", "hydrophobic_moment",
+            "aac_A", "aac_C", "aac_D", "aac_E", "aac_F",
+            "aac_G", "aac_H", "aac_I", "aac_K", "aac_L",
+            "aac_M", "aac_N", "aac_P", "aac_Q", "aac_R",
+            "aac_S", "aac_T", "aac_V", "aac_W", "aac_Y"
+        ]
 
     def get_training_data(self, target: str = None) -> tuple[np.ndarray, np.ndarray]:
         """Get features and labels for ML training.
@@ -553,6 +761,313 @@ class DRAMPLoader:
         ("IsCT", "ILGKIWEGIKSLF", "Escherichia coli", 8.0),
         ("IsCT2", "IFGAIWNGIKSLF", "Escherichia coli", 4.0),
         ("Pandinin-2", "FWGALAKGALKLIPSLFSSFSKKD", "Staphylococcus aureus", 4.0),
+
+        # ========== EXPANDED A. BAUMANNII (Literature-Curated 2020-2025) ==========
+        # Sources: Nature Sci Rep 2025, npj Biofilms 2024, Antibiotics 2023, PMC reviews
+        # All MIC values in μg/mL against A. baumannii (various strains including MDR)
+
+        # LL-37 derivatives (Johansson et al., Wang et al., Feng et al. 2013)
+        ("FK-16", "FKRIVQRIKDFLRNLV", "Acinetobacter baumannii", 8.0),
+        ("GF-17", "GFKRIVQRIKDFLRNLV", "Acinetobacter baumannii", 8.0),
+        ("KS-30", "KSKEKIGKEFKRIVQRIKDFLRNLVPRTES", "Acinetobacter baumannii", 12.0),
+        ("KR-20", "KRIVQRIKDFLRNLVPRTES", "Acinetobacter baumannii", 32.0),
+        ("IG-24", "IGKEFKRIVQRIKDFLRNLVPRTES", "Acinetobacter baumannii", 8.0),
+
+        # Brevinin-2 related peptides (Conlon et al. 2009, PMC 2019)
+        ("B2RP", "GIWDTIKSMGKVFAGKILQNL", "Acinetobacter baumannii", 16.0),
+        ("B2RP-Lys4", "GIWKTIKSMGKVFAGKILQNL", "Acinetobacter baumannii", 6.0),
+        ("Brevinin-2GUb", "GVIIDTLKGAAKTVAAELLRKAHCKLTNSC", "Acinetobacter baumannii", 8.0),
+
+        # Beta-hairpin peptides (Protegrin, Arenicin - Panteleev et al. 2016)
+        ("Protegrin-1", "RGGRLCYCRRRFCVCVGR", "Acinetobacter baumannii", 4.0),
+        ("Arenicin-1", "RWCVYAYVRVRGVLVRYRRCW", "Acinetobacter baumannii", 4.0),
+        ("Arenicin-3", "GFCWYVCVYRNGVRVCYRRCN", "Acinetobacter baumannii", 2.0),
+        ("Tachyplesin-I", "KWCFRVCYRGICYRRCR", "Acinetobacter baumannii", 4.0),
+        ("Polyphemusin-I", "RRWCFRVCYRGFCYRKCR", "Acinetobacter baumannii", 2.0),
+
+        # Amphibian AMPs (Conlon lab, multiple studies)
+        ("Esculentin-1a", "GIFSKLAGKKIKNLLISGLKNVGKEVGMDVVRTGIDIAGCKIKGEC", "Acinetobacter baumannii", 2.0),
+        ("Temporin-1Ta", "FLPLIGRVLSGIL", "Acinetobacter baumannii", 16.0),
+        ("Temporin-1Tb", "LLPIVGNLLKSLL", "Acinetobacter baumannii", 8.0),
+        ("Dermaseptin-S1", "ALWKTMLKKLGTMALHAGKAALGAAADTISQGTQ", "Acinetobacter baumannii", 4.0),
+        ("Phylloseptin-1", "FLSLIPHAINAVSAIAKHN", "Acinetobacter baumannii", 16.0),
+
+        # Designed/synthetic AMPs (Various 2020-2024 studies)
+        ("D-LAK120-AP13", "KKVVFWVKFKRR", "Acinetobacter baumannii", 4.0),
+        ("WLBU2-variant", "RRWVRRVRRWVRRVVRVVRRWVRR", "Acinetobacter baumannii", 2.0),
+        ("LK-peptide", "LKKLLKLLKKLLKLLK", "Acinetobacter baumannii", 4.0),
+        ("K5L7", "KLKLKLKLKLKL", "Acinetobacter baumannii", 8.0),
+        ("P18", "KWKLFKKIPKFLHLAKKF", "Acinetobacter baumannii", 4.0),
+        ("Novispirin-G10", "KNLRRIIRKIIHIIKKYG", "Acinetobacter baumannii", 4.0),
+        ("Novicidin", "KNLRRIIRKGIHIIKKYF", "Acinetobacter baumannii", 4.0),
+
+        # Marine/fish AMPs (Shai lab, various)
+        ("Pleurocidin", "GWGSFFKKAAHVGKHVGKAALTHYL", "Acinetobacter baumannii", 4.0),
+        ("Piscidin-1", "FFHHIFRGIVHVGKTIHRLVTG", "Acinetobacter baumannii", 8.0),
+        ("Piscidin-3", "FIHHIFRGIVHAGRSIGRFLTG", "Acinetobacter baumannii", 4.0),
+        ("Chrysophsin-1", "FFGWLIKGAIHAGKAIHGLIHRRRH", "Acinetobacter baumannii", 2.0),
+        ("Epinecidin-1", "GFIFHIIKGLFHAGKMIHGLV", "Acinetobacter baumannii", 4.0),
+
+        # Insect AMPs (Hancock lab, various)
+        ("Mastoparan-X", "INWKGIAAMAKKLL", "Acinetobacter baumannii", 8.0),
+        ("Cupiennin-1a", "GFGALFKFLAKKVAKTVAKQAAKQGAKYVVNKQME", "Acinetobacter baumannii", 2.0),
+        ("Lycotoxin-I", "IWLTALKFLGKHAAKHLAKQQLSKL", "Acinetobacter baumannii", 8.0),
+        ("Ponericin-W1", "WLGSALKIGAKLLPSVVGLFKKKKQ", "Acinetobacter baumannii", 4.0),
+
+        # Clinical candidates (Phase I/II peptides)
+        ("Omiganan-variant", "ILRWPWWPWRRK", "Acinetobacter baumannii", 8.0),
+        ("Iseganan-IB", "RGGLCYCRGRFCVCVGR", "Acinetobacter baumannii", 4.0),
+
+        # COG1410 apolipoprotein E mimetic (Frontiers Microbiol 2022)
+        ("COG1410", "LRVRLASHLRKLRKRLL", "Acinetobacter baumannii", 16.0),
+
+        # BMAP cathelicidins
+        ("BMAP-27", "GRFKRFRKKFKKLFKKLSPVIPLLHL", "Acinetobacter baumannii", 2.0),
+        ("BMAP-28", "GGLRSLGRKILRAWKKYGPIIVPIIRI", "Acinetobacter baumannii", 4.0),
+        ("BMAP-18", "GRFKRFRKKFKKLFKKLS", "Acinetobacter baumannii", 4.0),
+
+        # Cathelicidins from other species
+        ("Fowlicidin-1", "RVKRVWPLVIRTVIAGYNLYRAIKKK", "Acinetobacter baumannii", 2.0),
+        ("Fowlicidin-2", "LVQRGRFGRFLRKIRRFRPKVTITIQGSARF", "Acinetobacter baumannii", 4.0),
+        ("SMAP-29", "RGLRRLGRKIAHGVKKYGPTVLRIIRIAG", "Acinetobacter baumannii", 2.0),
+
+        # Additional validated entries from DBAASP/APD3
+        ("Magainin-2", "GIGKFLHSAKKFGKAFVGEIMNS", "Acinetobacter baumannii", 32.0),
+        ("Buforin-II", "TRSSRAGLQFPVGRVHRLLRK", "Acinetobacter baumannii", 16.0),
+        ("Lactoferricin-B", "FKCRRWQWRMKKLGAPSITCVRRAF", "Acinetobacter baumannii", 8.0),
+        ("Tritrpticin", "VRRFPWWWPFLRR", "Acinetobacter baumannii", 8.0),
+        ("Bactenecin", "RLCRIVVIRVCR", "Acinetobacter baumannii", 8.0),
+
+        # ========== LONG HYDROPHILIC AMPs - EXPANDED PATHOGEN COVERAGE ==========
+        # Source: PMC6211872, PMC7354229, PMC7084556, Nature Scientific Reports
+        # BMAP-27 (27 AA) - Bovine cathelicidin, validated against ESKAPE pathogens
+        ("BMAP-27", "GRFKRFRKKFKKLFKKLSPVIPLLHL", "Escherichia coli", 2.0),
+        ("BMAP-27", "GRFKRFRKKFKKLFKKLSPVIPLLHL", "Pseudomonas aeruginosa", 2.0),
+        ("BMAP-27", "GRFKRFRKKFKKLFKKLSPVIPLLHL", "Staphylococcus aureus", 4.0),
+
+        # BMAP-28 (27 AA) - Bovine cathelicidin, kills PDR A. baumannii
+        ("BMAP-28", "GGLRSLGRKILRAWKKYGPIIVPIIRI", "Escherichia coli", 4.0),
+        ("BMAP-28", "GGLRSLGRKILRAWKKYGPIIVPIIRI", "Pseudomonas aeruginosa", 4.0),
+        ("BMAP-28", "GGLRSLGRKILRAWKKYGPIIVPIIRI", "Staphylococcus aureus", 8.0),
+
+        # Cecropin A (37 AA) - validated MIC against S. aureus and A. baumannii
+        # Source: PMC7824259, DBAASP
+        ("Cecropin A", "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK", "Staphylococcus aureus", 16.0),
+        ("Cecropin A", "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK", "Acinetobacter baumannii", 4.0),
+
+        # Human beta-defensin 2 (41 AA) - validated against Gram-negatives
+        # Source: PMC356847, PubMed 20600430
+        ("Human beta-defensin 2", "GIGDPVTCLKSGAICHPVFCPRRYKQIGTCGLPGTKCCKKP", "Escherichia coli", 8.0),
+        ("Human beta-defensin 2", "GIGDPVTCLKSGAICHPVFCPRRYKQIGTCGLPGTKCCKKP", "Pseudomonas aeruginosa", 12.0),
+        ("Human beta-defensin 2", "GIGDPVTCLKSGAICHPVFCPRRYKQIGTCGLPGTKCCKKP", "Acinetobacter baumannii", 4.0),
+
+        # Human beta-defensin 3 (45 AA) - broad spectrum
+        # Source: PMC182640, AAC 47/9/2804
+        ("Human beta-defensin 3", "GIINTLQKYYCRVRGGRCAVLSCLPKEEQIGKCSTRGRKCCRRKK", "Pseudomonas aeruginosa", 4.0),
+        ("Human beta-defensin 3", "GIINTLQKYYCRVRGGRCAVLSCLPKEEQIGKCSTRGRKCCRRKK", "Acinetobacter baumannii", 8.0),
+
+        # CRAMP (33 AA) - Mouse cathelicidin, validated against Gram-positives
+        # Source: PMC7084556
+        ("CRAMP", "GLLRKGGEKIGEKLKKIGQKIKNFFQKLVPQPE", "Staphylococcus aureus", 8.0),
+        ("CRAMP", "GLLRKGGEKIGEKLKKIGQKIKNFFQKLVPQPE", "Acinetobacter baumannii", 4.0),
+        ("CRAMP", "GLLRKGGEKIGEKLKKIGQKIKNFFQKLVPQPE", "Pseudomonas aeruginosa", 4.0),
+
+        # SMAP-29 (29 AA) - Sheep cathelicidin
+        # Source: DBAASP, PMC7084556
+        ("SMAP-29", "RGLRRLGRKIAHGVKKYGPTVLRIIRIAG", "Staphylococcus aureus", 4.0),
+
+        # Cecropin B (35 AA) - additional pathogens
+        ("Cecropin B", "KWKVFKKIEKMGRNIRNGIVKAGPAIAVLGEAKAL", "Pseudomonas aeruginosa", 4.0),
+        ("Cecropin B", "KWKVFKKIEKMGRNIRNGIVKAGPAIAVLGEAKAL", "Staphylococcus aureus", 16.0),
+        ("Cecropin B", "KWKVFKKIEKMGRNIRNGIVKAGPAIAVLGEAKAL", "Acinetobacter baumannii", 8.0),
+
+        # Defensin HNP-1 (30 AA) - Gram-negative activity
+        # Source: Microbiol Spectr. 2024
+        ("Defensin HNP-1", "ACYCRIPACIAGERRYGTCIYQGRLWAFCC", "Escherichia coli", 50.0),
+        ("Defensin HNP-1", "ACYCRIPACIAGERRYGTCIYQGRLWAFCC", "Pseudomonas aeruginosa", 100.0),
+        ("Defensin HNP-1", "ACYCRIPACIAGERRYGTCIYQGRLWAFCC", "Acinetobacter baumannii", 50.0),
+
+        # Human beta-defensin 1 (36 AA) - additional pathogens
+        ("Human beta-defensin 1", "DHYNCVSSGGQCLYSACPIFTKIQGTCYRGKAKCCK", "Pseudomonas aeruginosa", 100.0),
+        ("Human beta-defensin 1", "DHYNCVSSGGQCLYSACPIFTKIQGTCYRGKAKCCK", "Staphylococcus aureus", 100.0),
+        ("Human beta-defensin 1", "DHYNCVSSGGQCLYSACPIFTKIQGTCYRGKAKCCK", "Acinetobacter baumannii", 50.0),
+
+        # Esculentin-1 (46 AA) - Frog AMP, broad spectrum
+        # Source: APD3
+        ("Esculentin-1", "GIFSKLGRKKIKNLLISGLKNVGKEVGMDVVRTGIDIAGCKIKGEC", "Pseudomonas aeruginosa", 4.0),
+        ("Esculentin-1", "GIFSKLGRKKIKNLLISGLKNVGKEVGMDVVRTGIDIAGCKIKGEC", "Staphylococcus aureus", 8.0),
+        ("Esculentin-1", "GIFSKLGRKKIKNLLISGLKNVGKEVGMDVVRTGIDIAGCKIKGEC", "Acinetobacter baumannii", 4.0),
+
+        # Melittin (26 AA) - Add A. baumannii
+        # Source: DBAASP
+        ("Melittin", "GIGAVLKVLTTGLPALISWIKRKRQQ", "Acinetobacter baumannii", 4.0),
+
+        # ========== SHORT HYDROPHOBIC AMPs (≤15 AA, hydro > 0.5) ==========
+        # Critical for filling the Short+Hydrophobic data gap
+        # Source: PMC1222958, PMC10230607, PMC9828137, Nature Sci Rep
+
+        # Aurein 1.2 (13 AA) - Australian bell frog, amphipathic
+        # Source: AAC 50/2/666, PMC9952496
+        ("Aurein 1.2", "GLFDIIKKIAESF", "Staphylococcus aureus", 8.0),
+        ("Aurein 1.2", "GLFDIIKKIAESF", "Escherichia coli", 256.0),
+        ("Aurein 1.2", "GLFDIIKKIAESF", "Pseudomonas aeruginosa", 256.0),
+
+        # Temporin L (13 AA) - European red frog, hydrophobic α-helix
+        # Source: PMC1222958, Biochem J 368:91
+        ("Temporin L", "FVQWFSKFLGRIL", "Escherichia coli", 10.0),
+        ("Temporin L", "FVQWFSKFLGRIL", "Staphylococcus aureus", 5.0),
+        ("Temporin L", "FVQWFSKFLGRIL", "Pseudomonas aeruginosa", 20.0),
+        ("Temporin L", "FVQWFSKFLGRIL", "Acinetobacter baumannii", 10.0),
+
+        # Temporin-1Ta (13 AA) - Frog, mainly Gram-positive active
+        # Source: PLoS One, PMC7088259
+        ("Temporin-1Ta", "FLPLIGRVLSGIL", "Staphylococcus aureus", 4.0),
+        ("Temporin-1Ta", "FLPLIGRVLSGIL", "Escherichia coli", 50.0),
+
+        # Temporin-1CEb (12 AA) - Chinese brown frog, highly hydrophobic
+        # Source: Chem Biol Drug Des 79:560
+        ("Temporin-1CEb", "ILPILSLIGGLL", "Staphylococcus aureus", 32.0),
+        ("Temporin-1CEb", "ILPILSLIGGLL", "Escherichia coli", 64.0),
+
+        # Anoplin (10 AA) - Japanese spider wasp, short α-helix
+        # Source: Front Chem 8:519, PMC7358703
+        ("Anoplin", "GLLKRIKTLL", "Staphylococcus aureus", 50.0),
+        ("Anoplin", "GLLKRIKTLL", "Escherichia coli", 25.0),
+        ("Anoplin", "GLLKRIKTLL", "Pseudomonas aeruginosa", 50.0),
+
+        # Mastoparan (14 AA) - Wasp venom, α-helical
+        # Source: PMC6001651, PMC9332802
+        ("Mastoparan", "INLKALAALAKKIL", "Staphylococcus aureus", 8.0),
+        ("Mastoparan", "INLKALAALAKKIL", "Escherichia coli", 32.0),
+
+        # Mastoparan-X (14 AA) - Wasp venom variant
+        # Source: Transl Med Commun 8:1, Front Cell Infect Microbiol
+        ("Mastoparan-X", "INWKGIAAMAKKLL", "Escherichia coli", 32.0),
+        ("Mastoparan-X", "INWKGIAAMAKKLL", "Staphylococcus aureus", 32.0),
+
+        # Gramicidin S (10 AA) - Cyclic, Bacillus brevis
+        # Source: Sci Rep 9:17542, PMC2916356
+        # Note: Linear representation of cyclic peptide
+        ("Gramicidin S", "VOLFPVOLFP", "Escherichia coli", 8.0),
+        ("Gramicidin S", "VOLFPVOLFP", "Staphylococcus aureus", 2.0),
+
+        # Temporin B (13 AA) - Frog, moderately hydrophobic
+        # Source: Sci Rep 9:3892
+        ("Temporin B", "LLPIVGNLLKSLL", "Staphylococcus aureus", 8.0),
+        ("Temporin B", "LLPIVGNLLKSLL", "Escherichia coli", 32.0),
+
+        # Citropin 1.1 (16 AA) - Just over limit but important reference
+        # Excluded: length > 15
+
+        # Peptide 1018 (12 AA) - Synthetic anti-biofilm
+        # Source: PMC4994992
+        ("Peptide 1018", "VRLIVAVRIWRR", "Escherichia coli", 16.0),
+        ("Peptide 1018", "VRLIVAVRIWRR", "Staphylococcus aureus", 16.0),
+        ("Peptide 1018", "VRLIVAVRIWRR", "Pseudomonas aeruginosa", 16.0),
+        ("Peptide 1018", "VRLIVAVRIWRR", "Acinetobacter baumannii", 8.0),
+
+        # ========== LONG HYDROPHOBIC AMPs (>25 AA, hydro > 0.5) ==========
+        # Critical for filling the Long+Hydrophobic data gap
+        # Sources: PMC127478, PMC1366882, PMC6213043, PMC9015854
+
+        # Dermaseptin S4 (28 AA) - Phyllomedusa sauvagii (frog), hydrophobic core
+        # Hydrophobicity index: ~0.67 (calculated)
+        # Source: AAC 46/3/689, JBC 275/14/10228
+        ("Dermaseptin S4", "ALWMTLLKKVLKAAAKAALNAVLVGANA", "Escherichia coli", 64.0),
+        ("Dermaseptin S4", "ALWMTLLKKVLKAAAKAALNAVLVGANA", "Staphylococcus aureus", 32.0),
+        ("Dermaseptin S4", "ALWMTLLKKVLKAAAKAALNAVLVGANA", "Pseudomonas aeruginosa", 64.0),
+
+        # K4K20-S4 (28 AA) - Optimized dermaseptin derivative, potent antibacterial
+        # Substitutions: M4K, N20K - reduced hemolysis, increased activity
+        # Source: PMC127478, AAC 46/3/689
+        ("K4K20-S4", "ALWKTLLKKVLKAAAKAALKAVLVGANA", "Escherichia coli", 2.0),
+        ("K4K20-S4", "ALWKTLLKKVLKAAAKAALKAVLVGANA", "Staphylococcus aureus", 2.0),
+        ("K4K20-S4", "ALWKTLLKKVLKAAAKAALKAVLVGANA", "Pseudomonas aeruginosa", 4.0),
+        ("K4K20-S4", "ALWKTLLKKVLKAAAKAALKAVLVGANA", "Acinetobacter baumannii", 4.0),
+
+        # Melittin (26 AA) - Bee venom, pore-forming, additional pathogens
+        # Hydrophobicity: ~0.58
+        # Source: PMC9235364, Sci Rep, J Antimicrob Chemother
+        ("Melittin", "GIGAVLKVLTTGLPALISWIKRKRQQ", "Escherichia coli", 15.0),
+        ("Melittin", "GIGAVLKVLTTGLPALISWIKRKRQQ", "Staphylococcus aureus", 5.0),
+        ("Melittin", "GIGAVLKVLTTGLPALISWIKRKRQQ", "Pseudomonas aeruginosa", 15.0),
+
+        # Caerin 1.1 (25 AA) - Australian green tree frog, α-helix
+        # Hydrophobicity: ~1.06 (highly hydrophobic)
+        # Source: PMC9015854, Eur J Biochem 247/2/545
+        ("Caerin 1.1", "GLLSVLGSVAKHVLPHVVPVIAEHL", "Escherichia coli", 100.0),
+        ("Caerin 1.1", "GLLSVLGSVAKHVLPHVVPVIAEHL", "Staphylococcus aureus", 25.0),
+        ("Caerin 1.1", "GLLSVLGSVAKHVLPHVVPVIAEHL", "Acinetobacter baumannii", 50.0),
+
+        # Caerin 1.9 (25 AA) - Australian tree frog, anti-MRSA
+        # Source: PMC10714828, Microbiol Spectrum
+        ("Caerin 1.9", "GLFGVLGSIAKHVLPHVVPVIAEKL", "Staphylococcus aureus", 16.0),
+        ("Caerin 1.9", "GLFGVLGSIAKHVLPHVVPVIAEKL", "Escherichia coli", 64.0),
+        ("Caerin 1.9", "GLFGVLGSIAKHVLPHVVPVIAEKL", "Acinetobacter baumannii", 32.0),
+
+        # Pardaxin (33 AA) - Red Sea sole fish, pore-forming
+        # Hydrophobicity: ~0.56
+        # Source: PMC3957904, Mol Pharmacol
+        ("Pardaxin", "GFFALIPKIISSPLFKTLLSAVGSALSSSGEQE", "Escherichia coli", 48.0),
+        ("Pardaxin", "GFFALIPKIISSPLFKTLLSAVGSALSSSGEQE", "Staphylococcus aureus", 24.0),
+        ("Pardaxin", "GFFALIPKIISSPLFKTLLSAVGSALSSSGEQE", "Pseudomonas aeruginosa", 48.0),
+
+        # LL-37 (37 AA) - Human cathelicidin, amphipathic helix
+        # Long peptide, moderate hydrophobicity
+        # Source: PMC1168709, Sci Rep
+        ("LL-37", "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES", "Escherichia coli", 16.0),
+        ("LL-37", "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES", "Staphylococcus aureus", 16.0),
+        ("LL-37", "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES", "Pseudomonas aeruginosa", 32.0),
+        ("LL-37", "LLGDFFRKSKEKIGKEFKRIVQRIKDFLRNLVPRTES", "Acinetobacter baumannii", 16.0),
+
+        # Piscidin 1 (22 AA) - Striped bass, broad spectrum
+        # Near boundary but important reference
+        # Source: PMC3320733, Biochemistry 46/11/3078
+        ("Piscidin 1", "FFHHIFRGIVHVGKTIHRLVTG", "Escherichia coli", 4.0),
+        ("Piscidin 1", "FFHHIFRGIVHVGKTIHRLVTG", "Staphylococcus aureus", 4.0),
+        ("Piscidin 1", "FFHHIFRGIVHVGKTIHRLVTG", "Pseudomonas aeruginosa", 4.0),
+        ("Piscidin 1", "FFHHIFRGIVHVGKTIHRLVTG", "Acinetobacter baumannii", 4.0),
+
+        # Magainin 2 (23 AA) - African clawed frog, membrane disruptor
+        # Source: PMC6213043, Proteopedia
+        ("Magainin 2", "GIGKFLHSAKKFGKAFVGEIMNS", "Escherichia coli", 16.0),
+        ("Magainin 2", "GIGKFLHSAKKFGKAFVGEIMNS", "Staphylococcus aureus", 32.0),
+        ("Magainin 2", "GIGKFLHSAKKFGKAFVGEIMNS", "Pseudomonas aeruginosa", 16.0),
+        ("Magainin 2", "GIGKFLHSAKKFGKAFVGEIMNS", "Acinetobacter baumannii", 8.0),
+
+        # Lactoferricin B (25 AA) - Bovine lactoferrin, beta-sheet
+        # Source: PMC6155255, PMC7779732
+        ("Lactoferricin B", "FKCRRWQWRMKKLGAPSITCVRRAF", "Escherichia coli", 8.0),
+        ("Lactoferricin B", "FKCRRWQWRMKKLGAPSITCVRRAF", "Staphylococcus aureus", 4.0),
+        ("Lactoferricin B", "FKCRRWQWRMKKLGAPSITCVRRAF", "Pseudomonas aeruginosa", 16.0),
+        ("Lactoferricin B", "FKCRRWQWRMKKLGAPSITCVRRAF", "Acinetobacter baumannii", 8.0),
+
+        # Citropin 1.1 (16 AA) - Australian frog, amphipathic
+        # Source: PMC6213307
+        ("Citropin 1.1", "GLFDVIKKVASVIGGL", "Staphylococcus aureus", 8.0),
+        ("Citropin 1.1", "GLFDVIKKVASVIGGL", "Escherichia coli", 64.0),
+        ("Citropin 1.1", "GLFDVIKKVASVIGGL", "Pseudomonas aeruginosa", 32.0),
+
+        # Pleurocidin (25 AA) - Winter flounder, α-helix
+        # Source: FEBS Lett, Mar Drugs
+        ("Pleurocidin", "GWGSFFKKAAHVGKHVGKAALTHYL", "Escherichia coli", 4.0),
+        ("Pleurocidin", "GWGSFFKKAAHVGKHVGKAALTHYL", "Staphylococcus aureus", 8.0),
+        ("Pleurocidin", "GWGSFFKKAAHVGKHVGKAALTHYL", "Pseudomonas aeruginosa", 8.0),
+        ("Pleurocidin", "GWGSFFKKAAHVGKHVGKAALTHYL", "Acinetobacter baumannii", 4.0),
+
+        # Protegrin-1 (18 AA) - Porcine, β-hairpin
+        # Shorter but highly active reference
+        # Source: J Biol Chem
+        ("Protegrin-1", "RGGRLCYCRRRFCVCVGR", "Escherichia coli", 1.0),
+        ("Protegrin-1", "RGGRLCYCRRRFCVCVGR", "Staphylococcus aureus", 2.0),
+        ("Protegrin-1", "RGGRLCYCRRRFCVCVGR", "Pseudomonas aeruginosa", 2.0),
+        ("Protegrin-1", "RGGRLCYCRRRFCVCVGR", "Acinetobacter baumannii", 2.0),
+
+        # Tachyplesin I (17 AA) - Horseshoe crab, β-sheet
+        # Source: Biochem Biophys Res Commun
+        ("Tachyplesin I", "KWCFRVCYRGICYRRCR", "Escherichia coli", 2.0),
+        ("Tachyplesin I", "KWCFRVCYRGICYRRCR", "Staphylococcus aureus", 4.0),
+        ("Tachyplesin I", "KWCFRVCYRGICYRRCR", "Pseudomonas aeruginosa", 4.0),
     ]
 
     def __init__(self):
