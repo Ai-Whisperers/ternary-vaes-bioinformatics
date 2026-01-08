@@ -12,7 +12,7 @@
 
 | Package | Delivery Status | Model Validated | Inference Tested | Last Verified |
 |---------|:---------------:|:---------------:|:----------------:|---------------|
-| jose_colbes | 95% | PASS (LOO ρ=0.585) | PENDING | 2026-01-08 |
+| jose_colbes | 95% | PASS (LOO ρ=0.585) | PASS | 2026-01-08 |
 | alejandra_rojas | 85% | PENDING | PENDING | - |
 | carlos_brizuela | 70% | PENDING | PENDING | - |
 | hiv_research_package | Complete | N/A (API) | PENDING | - |
@@ -55,10 +55,10 @@ python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 ```
 
 ### Last Inference Test
-- **Date:** PENDING RUNTIME VERIFICATION
-- **Command:** PENDING
-- **Output:** PENDING
-- **Status:** Documentation verified, inference test pending
+- **Date:** 2026-01-08
+- **Command:** `ValidatedDDGPredictor().predict('A', 'V')`
+- **Output:** `DDGPrediction(ddg=0.472, classification='neutral', confidence=0.95)`
+- **Status:** PASS - Model loads, embeddings load, predictions run
 
 ---
 
@@ -185,6 +185,7 @@ python deliverables/partners/hiv_research_package/scripts/H6_tdr_screening.py --
 
 | Date | Package | Action | Result |
 |------|---------|--------|--------|
+| 2026-01-08 | jose_colbes | Inference test: ValidatedDDGPredictor | PASS - A->V returns ddg=0.472 |
 | 2026-01-08 | jose_colbes | Verified validation artifacts | PASS - metrics match documentation |
 | 2026-01-08 | ALL | Initial draft created | PENDING verification |
 
