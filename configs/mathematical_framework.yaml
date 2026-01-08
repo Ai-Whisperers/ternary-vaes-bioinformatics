@@ -1,0 +1,199 @@
+# Mathematical Framework Configuration: Core Ternary VAE Training
+#
+# This configuration provides the essential mathematical substrate for
+# training Variational Autoencoders on 3-adic (p-adic) ternary structures
+# over the complete space of 19,683 ternary operations (3^9).
+#
+# Core Features:
+# 1. Dual-encoder system (VAE-A: coverage, VAE-B: hierarchy)
+# 2. Hyperbolic Poincaré ball embedding geometry
+# 3. P-adic geodesic loss for structure learning
+# 4. Homeostatic freeze/unfreeze control
+# 5. Mathematical correctness validation
+#
+# Excludes: All bioinformatics applications and domain-specific optimizations
+
+# Device Configuration
+device:
+  name: "mathematical_framework"
+  cuda_device: 0
+  use_amp: false
+  pin_memory: true
+  num_workers: 4
+
+# Model Architecture - Core Mathematical VAE
+model:
+  name: TernaryVAEV5_11_PartialFreeze
+  latent_dim: 16
+  hidden_dim: 64
+  max_radius: 0.95
+  curvature: 1.0
+
+  # Mathematical structure learning
+  use_controller: true
+  use_dual_projection: true
+  learnable_curvature: true
+  manifold_aware: true
+
+  # Architecture improvements
+  projection_layers: 2
+  projection_dropout: 0.1
+
+  # Improved components for numerical stability
+  encoder_type: improved
+  decoder_type: improved
+  encoder_dropout: 0.1
+  decoder_dropout: 0.1
+  logvar_min: -10.0
+  logvar_max: 2.0
+
+# Partial Freeze Strategy (preserve coverage, learn hierarchy)
+option_c:
+  enabled: true
+  encoder_b_lr_scale: 0.1  # Slower hierarchy learning
+  encoder_a_lr_scale: 0.05 # Very slow coverage updates
+
+# Frozen Checkpoint Loading (for coverage preservation)
+frozen_checkpoint:
+  path: sandbox-training/checkpoints/v5_5/latest.pt
+  encoder_to_load: both
+  decoder_to_load: decoder_A
+
+# Homeostatic Control - Mathematical Structure Management
+homeostasis:
+  enabled: true
+  coverage_freeze_threshold: 0.995
+  coverage_unfreeze_threshold: 1.0
+  coverage_floor: 0.95
+  warmup_epochs: 5
+  hysteresis_epochs: 2
+  enable_annealing: true
+  annealing_step: 0.003
+  hierarchy_plateau_threshold: 0.001
+  hierarchy_plateau_patience: 5
+  hierarchy_patience_ceiling: 15
+  controller_grad_threshold: 0.01
+  controller_grad_patience: 3
+
+# Loss Configuration - Pure Mathematical Objectives
+loss:
+  # PRIMARY: Hierarchical structure learning
+  rich_hierarchy:
+    enabled: true
+    hierarchy_weight: 5.0      # P-adic valuation ordering
+    coverage_weight: 1.0       # Complete operation space coverage
+    richness_weight: 2.0       # Geometric diversity preservation
+    separation_weight: 3.0     # Valuation level separation
+    min_richness_ratio: 0.5    # Prevent collapse to trivial shells
+
+  # AUXILIARY: Radial stratification
+  radial:
+    enabled: true
+    inner_radius: 0.08         # v=9 target (high valuation)
+    outer_radius: 0.90         # v=0 target (low valuation)
+    radial_weight: 1.0
+    margin_weight: 0.5
+
+  # P-adic geodesic alignment (Phase 2)
+  geodesic:
+    enabled: true
+    phase_start_epoch: 30
+    curvature: 1.0
+    max_target_distance: 3.0
+    n_pairs: 2000
+    use_smooth_l1: true
+    weight: 0.3
+
+  # Global ranking preservation
+  rank:
+    enabled: true
+    weight: 0.5
+    temperature: 0.1
+    n_pairs: 2000
+
+  # Zero-structure mathematical properties
+  zero_structure:
+    enabled: true
+    valuation_weight: 0.5
+    sparsity_weight: 0.3
+
+# Riemannian Optimization for Hyperbolic Geometry
+riemannian:
+  enabled: true
+  optimizer: adam
+
+# Training Configuration - Mathematical Convergence Focus
+training:
+  epochs: 100
+  batch_size: 512
+  lr: 1.0e-3
+  weight_decay: 1.0e-4
+  max_grad_norm: 1.0
+
+  # Stratified sampling for mathematical completeness
+  use_stratified: true
+  high_v_budget_ratio: 0.25    # Ensure high-valuation representation
+
+  # Adaptive stopping based on mathematical criteria
+  use_adaptive: true
+  hierarchy_threshold: -0.75   # Minimum acceptable hierarchy correlation
+  patience: 20
+  min_epochs: 40
+
+  # Learning rate scheduling
+  scheduler:
+    type: cosine_warmup_restart
+    T_0: 20
+    T_mult: 2
+
+  # Evaluation frequency
+  eval_every: 2
+  save_every: 10
+  print_every: 2
+
+# Data Configuration - Complete Ternary Operation Space
+data:
+  use_full_dataset: true
+  n_operations: 19683          # 3^9 complete ternary operation space
+
+# Logging - Mathematical Framework Focus
+logging:
+  tensorboard: true
+  log_dir: runs/mathematical_framework
+  print_every: 2
+
+# Checkpoints - Framework Model Storage
+checkpoints:
+  save_dir: sandbox-training/checkpoints/mathematical_framework
+  save_best: true
+  best_metric: composite_score
+  checkpoint_name: mathematical_framework
+
+# Mathematical Success Criteria
+targets:
+  coverage: 1.0                # 100% ternary operation reconstruction
+  hierarchy_B: -0.82           # Strong negative correlation (v0→edge, v9→center)
+  richness: 0.006              # Geometric diversity preservation
+  r_v9: 0.15                  # High-valuation samples near center
+  distance_correlation: 0.65   # P-adic distance preservation
+  Q_target: 1.8               # Structure quality metric
+
+# Memory Optimization
+memory:
+  gradient_checkpointing: false
+  empty_cache_freq: 10
+  cudnn_benchmark: true
+
+# Version Information
+version:
+  framework: "mathematical_substrate_v1.0"
+  model: "5.12.4_mathematical"
+  config: "1.0"
+  date: "2026-01-08"
+  description: "Pure mathematical framework for 3-adic VAE training"
+  changes:
+    - "Removed all bioinformatics-specific configurations"
+    - "Focus on mathematical structure learning only"
+    - "Complete 19,683 ternary operation space coverage"
+    - "P-adic geometry and hyperbolic embedding optimization"
+    - "Dual-encoder system with homeostatic control"
