@@ -674,6 +674,12 @@ class SequenceNSGA2:
 
         # Main evolution loop
         for gen in range(self.generations):
+            # Assign crowding distance before tournament selection
+            # (required for selTournamentDCD)
+            fronts = deap.tools.sortNondominated(population, len(population))
+            for front in fronts:
+                deap.tools.emo.assignCrowdingDist(front)
+
             # Select next generation
             offspring = deap.tools.selTournamentDCD(population, len(population))
             offspring = [self.toolbox.clone(ind) for ind in offspring]
