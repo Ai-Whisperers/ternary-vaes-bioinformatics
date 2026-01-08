@@ -1,6 +1,6 @@
 # Ternary VAE Project - Claude Context
 
-**Doc-Type:** Project Configuration · Version 2.0 · Updated 2026-01-03 · AI Whisperers
+**Doc-Type:** Project Configuration · Version 2.4 · Updated 2026-01-08 · AI Whisperers
 
 ---
 
@@ -480,14 +480,23 @@ These 190+ usages are intentionally Euclidean:
 
 ## Partner Packages (deliverables/partners/)
 
-Consolidated structure for CONACYT and stakeholder deliverables:
+Consolidated structure for CONACYT and stakeholder deliverables.
 
-| Partner | Focus | Scripts | Results | src.core Integration |
-|---------|-------|---------|---------|---------------------|
-| **jose_colbes** | Protein stability (DDG, Rosetta-blind) | C1-C4 | validation/, rosetta_blind/ | padic_math ✓ |
-| **carlos_brizuela** | AMP design (NSGA-II optimization) | B1, B8, B10 | pareto, microbiome, pathogen | VAE interface |
-| **alejandra_rojas** | Arbovirus (DENV, ZIKV primers) | A2, trajectory, scanner | pan_arbovirus_primers/ | padic_math ✓ |
-| **hiv_research_package** | Drug resistance, LA selection | H6, H7 | tdr_screening/, la_selection/ | Stanford HIVdb |
+**Detailed status tracking:** See `deliverables/partners/CLAUDE.md` for per-package validation status.
+
+| Partner | Focus | Delivery Status | Key Validation |
+|---------|-------|:---------------:|----------------|
+| **jose_colbes** | Protein stability (DDG) | 95% | LOO CV ρ=0.585, p<0.001 |
+| **alejandra_rojas** | Arbovirus primers | 85% | Pan-arbovirus + clade-specific designed |
+| **carlos_brizuela** | AMP optimization | 70% | MIC ML-based (r=0.74), toxicity heuristic |
+| **hiv_research_package** | Drug resistance | Complete | Stanford HIVdb integration |
+
+| Partner | Scripts | Results | src.core Integration |
+|---------|---------|---------|---------------------|
+| jose_colbes | C1-C4 | validation/, rosetta_blind/ | padic_math ✓ |
+| carlos_brizuela | B1, B8, B10 | pareto, microbiome, pathogen | PeptideVAE ✓ |
+| alejandra_rojas | A2, trajectory, scanner | pan_arbovirus_primers/ | padic_math ✓ |
+| hiv_research_package | H6, H7 | tdr_screening/, la_selection/ | Stanford HIVdb |
 
 ---
 
@@ -548,51 +557,38 @@ research/codon-encoder/replacement_calculus/
 
 ---
 
-## Foundation Encoder Research Roadmap
+## Future Research: Foundation Encoder (DEFERRED)
+
+**Status:** DEFERRED - Requires reproducible metrics from trained models, not exploration scripts.
 
 **Goal:** Unified encoder with multi-task heads for DDG, AMP fitness, clade classification, and resistance prediction.
 
-**Hardware Constraints:** 3-4GB VRAM, 8-10GB RAM (all training must fit within these limits)
+**Why Deferred:** Current "readiness" percentages were based on exploration scripts and dataset availability, NOT on validated model outputs. Each partner package must first demonstrate reproducible inference with trained checkpoints before integration into a unified encoder.
 
-### Data Inventory: Have vs Need
+### Prerequisites Before Foundation Encoder
 
-| Category | Data We HAVE (Validated) | Data We NEED (Collect/Falsify) |
-|----------|--------------------------|--------------------------------|
-| DDG/Stability | S669 n=52 (ρ=0.60), ProTherm 219 | ProteinGym DMS (~10K), S2648 |
-| AMP Fitness | 272 MIC samples, 5 models (r=0.56) | PeptideVAE checkpoint (1hr training) |
-| Position Context | SS-inferred RSA, 5 zones | AlphaFold RSA, pLDDT |
-| Arbovirus Phylogeny | 270 genomes, 5 clades, entropy | In silico PCR, primer pairs |
-| HIV Resistance | WHO SDRM (50+ mutations) | Stanford validation, real sequences |
-| Enzyme Classes | EC propensities (6 classes) | Active site annotations |
+| Partner | Required Before Integration |
+|---------|----------------------------|
+| jose_colbes | DDG predictor inference validated (checkpoint exists, needs verification) |
+| carlos_brizuela | PeptideMICPredictor inference producing consistent outputs |
+| alejandra_rojas | Primer design producing validated candidates (in-silico PCR complete) |
+| hiv_research_package | Stanford HIVdb API integration verified |
 
-### Partner Readiness for Foundation Encoder
+### Data Inventory (Reference Only)
 
-| Partner | Readiness | Blocking Item | Use Now? |
-|---------|:---------:|---------------|:--------:|
-| jose_colbes | 7/10 | Large-scale validation | YES (ensemble) |
-| carlos_brizuela | 88% | PeptideVAE training (~1hr) | YES (after training) |
-| alejandra_rojas | 6.5/10 | Primer validation | PARTIAL (features only) |
-| hiv_research_package | 30% | Stanford + real sequences | NO (reference only) |
+| Category | Have | Need |
+|----------|------|------|
+| DDG/Stability | S669 n=52 (ρ=0.60) | Large-scale validation (ProteinGym) |
+| AMP Fitness | PeptideVAE (r=0.74) | Extended DRAMP validation |
+| Arbovirus | 270 genomes, primers designed | Wet-lab validation |
+| HIV Resistance | WHO SDRM reference | Real patient sequences (500+) |
 
-### Training Sequence
+### When to Revisit
 
-```
-IMMEDIATE: Train PeptideVAE checkpoint (~1hr, <4GB VRAM)
-    ↓
-PHASE 1: Train DDG + Clade heads on ready data
-    ↓
-PHASE 2: Expand validation, integrate AMP head
-    ↓
-PHASE 3: Future - Resistance head (needs real sequences)
-```
-
-### Deferred to Future Versions
-
-| Component | Reason | Prerequisites |
-|-----------|--------|---------------|
-| Primer prediction | 0 validated primers | In silico PCR, wet-lab |
-| Clinical resistance | 0 real patient sequences | 500+ HIV sequences |
-| Multi-mutation epistasis | Single-mutation only | 500+ double mutants |
+Foundation Encoder should be revisited when:
+1. All 4 packages have validated model inference (not just scripts)
+2. Each package has reproducible benchmark metrics from the model itself
+3. Hardware constraints (3-4GB VRAM) are verified for multi-head architecture
 
 **Full Roadmap:** `research/codon-encoder/docs/FOUNDATION_ENCODER_ROADMAP.md`
 
@@ -645,6 +641,7 @@ PHASE 3: Future - Resistance head (needs real sequences)
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-08 | 2.4 | Partner packages: added delivery status, moved Foundation Encoder to DEFERRED |
 | 2026-01-05 | 2.3 | Foundation Encoder Research Roadmap - partner readiness assessment, data inventory |
 | 2026-01-03 | 2.2 | Added SwissProt CIF dataset (38GB) future research directions |
 | 2026-01-03 | 2.1 | V5 Arrow Flip Validation complete - confidence matrix, position-aware thresholds |
