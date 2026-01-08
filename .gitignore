@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 big-data/
+rojas.md
 
 # Cache directories
 .mypy_cache/

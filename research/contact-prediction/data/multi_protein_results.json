@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Insulin B-chain (Human)",
+    "length": 30,
+    "n_contacts": 6,
+    "n_pairs": 351,
+    "auc": 0.5845410628019323,
+    "cohens_d": -0.2467054573513153,
+    "mean_contact_dist": 0.7864637772242228,
+    "mean_noncontact_dist": 0.9219372885382694
+  },
+  {
+    "name": "Lysozyme (Chicken)",
+    "length": 126,
+    "n_contacts": 185,
+    "n_pairs": 7503,
+    "auc": 0.538798815213136,
+    "cohens_d": -0.13219503133371757,
+    "mean_contact_dist": 0.8540895300539764,
+    "mean_noncontact_dist": 0.9409546054824351
+  },
+  {
+    "name": "Ubiquitin (Human)",
+    "length": 75,
+    "n_contacts": 75,
+    "n_pairs": 2556,
+    "auc": 0.5043262125487035,
+    "cohens_d": -0.019269125468755657,
+    "mean_contact_dist": 0.8411096209287643,
+    "mean_noncontact_dist": 0.8517687260017478
+  },
+  {
+    "name": "Myoglobin (Sperm whale)",
+    "length": 151,
+    "n_contacts": 32,
+    "n_pairs": 10878,
+    "auc": 0.48296030794763056,
+    "cohens_d": 0.10653835934392356,
+    "mean_contact_dist": 0.9909964306280017,
+    "mean_noncontact_dist": 0.921510774786487
+  },
+  {
+    "name": "Cytochrome c (Horse)",
+    "length": 103,
+    "n_contacts": 14,
+    "n_pairs": 4950,
+    "auc": 0.42597389442000466,
+    "cohens_d": 0.23662305285668578,
+    "mean_contact_dist": 1.0834656613213676,
+    "mean_noncontact_dist": 0.9600168063669092
+  }
+]

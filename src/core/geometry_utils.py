@@ -62,6 +62,16 @@ References:
 
 from __future__ import annotations
 
+import warnings
+
+warnings.warn(
+    "src.core.geometry_utils is DEPRECATED since V5.12.2. "
+    "Use src.geometry instead for geoopt-backed implementations:\n"
+    "  from src.geometry import poincare_distance, exp_map_zero, log_map_zero",
+    DeprecationWarning,
+    stacklevel=2
+)
+
 from typing import Optional, Tuple
 
 import torch

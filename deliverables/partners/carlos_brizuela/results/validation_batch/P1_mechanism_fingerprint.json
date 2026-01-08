@@ -1,0 +1,396 @@
+{
+  "profiles": {
+    "1": {
+      "n_total": 45,
+      "n_pathogens": 3,
+      "pathogen_stats": {
+        "A_baumannii": {
+          "n": 10,
+          "mean_mic": -0.0261,
+          "std_mic": 0.021071497336449536,
+          "median_mic": -0.02895,
+          "gram": "negative",
+          "lps": 0.85,
+          "membrane_charge": -0.6,
+          "effectiveness_rank": 3
+        },
+        "P_aeruginosa": {
+          "n": 29,
+          "mean_mic": -0.027427586206896552,
+          "std_mic": 0.020284271068842785,
+          "median_mic": -0.0256,
+          "gram": "negative",
+          "lps": 0.9,
+          "membrane_charge": -0.7,
+          "effectiveness_rank": 2
+        },
+        "Enterobacteriaceae": {
+          "n": 6,
+          "mean_mic": -0.034499999999999996,
+          "std_mic": 0.020839145855816647,
+          "median_mic": -0.0389,
+          "gram": "negative",
+          "lps": 0.88,
+          "membrane_charge": -0.55,
+          "effectiveness_rank": 1
+        }
+      },
+      "ranking": [
+        "Enterobacteriaceae",
+        "P_aeruginosa",
+        "A_baumannii"
+      ]
+    },
+    "3": {
+      "n_total": 118,
+      "n_pathogens": 5,
+      "pathogen_stats": {
+        "A_baumannii": {
+          "n": 7,
+          "mean_mic": -0.07247142857142856,
+          "std_mic": 0.01331494480281615,
+          "median_mic": -0.077,
+          "gram": "negative",
+          "lps": 0.85,
+          "membrane_charge": -0.6,
+          "effectiveness_rank": 4
+        },
+        "P_aeruginosa": {
+          "n": 6,
+          "mean_mic": -0.09103333333333334,
+          "std_mic": 0.0025662337297205737,
+          "median_mic": -0.0921,
+          "gram": "negative",
+          "lps": 0.9,
+          "membrane_charge": -0.7,
+          "effectiveness_rank": 1
+        },
+        "Enterobacteriaceae": {
+          "n": 15,
+          "mean_mic": -0.06298,
+          "std_mic": 0.01802328863812965,
+          "median_mic": -0.0659,
+          "gram": "negative",
+          "lps": 0.88,
+          "membrane_charge": -0.55,
+          "effectiveness_rank": 5
+        },
+        "S_aureus": {
+          "n": 42,
+          "mean_mic": -0.0768952380952381,
+          "std_mic": 0.015059057587362534,
+          "median_mic": -0.0793,
+          "gram": "positive",
+          "lps": 0.0,
+          "membrane_charge": -0.3,
+          "effectiveness_rank": 2
+        },
+        "H_pylori": {
+          "n": 48,
+          "mean_mic": -0.07668333333333334,
+          "std_mic": 0.014870108906423278,
+          "median_mic": -0.08235,
+          "gram": "negative",
+          "lps": 0.75,
+          "membrane_charge": -0.4,
+          "effectiveness_rank": 3
+        }
+      },
+      "ranking": [
+        "P_aeruginosa",
+        "S_aureus",
+        "H_pylori",
+        "A_baumannii",
+        "Enterobacteriaceae"
+      ]
+    },
+    "4": {
+      "n_total": 85,
+      "n_pathogens": 5,
+      "pathogen_stats": {
+        "A_baumannii": {
+          "n": 32,
+          "mean_mic": -0.06120625,
+          "std_mic": 0.022578127378892608,
+          "median_mic": -0.06755,
+          "gram": "negative",
+          "lps": 0.85,
+          "membrane_charge": -0.6,
+          "effectiveness_rank": 2
+        },
+        "P_aeruginosa": {
+          "n": 14,
+          "mean_mic": -0.07002857142857143,
+          "std_mic": 0.01695731736581285,
+          "median_mic": -0.07235,
+          "gram": "negative",
+          "lps": 0.9,
+          "membrane_charge": -0.7,
+          "effectiveness_rank": 1
+        },
+        "Enterobacteriaceae": {
+          "n": 27,
+          "mean_mic": -0.04625925925925925,
+          "std_mic": 0.021844607085286804,
+          "median_mic": -0.0405,
+          "gram": "negative",
+          "lps": 0.88,
+          "membrane_charge": -0.55,
+          "effectiveness_rank": 5
+        },
+        "S_aureus": {
+          "n": 5,
+          "mean_mic": -0.06054,
+          "std_mic": 0.016800071428419584,
+          "median_mic": -0.0536,
+          "gram": "positive",
+          "lps": 0.0,
+          "membrane_charge": -0.3,
+          "effectiveness_rank": 3
+        },
+        "H_pylori": {
+          "n": 7,
+          "mean_mic": -0.06041428571428572,
+          "std_mic": 0.002051082342450004,
+          "median_mic": -0.0592,
+          "gram": "negative",
+          "lps": 0.75,
+          "membrane_charge": -0.4,
+          "effectiveness_rank": 4
+        }
+      },
+      "ranking": [
+        "P_aeruginosa",
+        "A_baumannii",
+        "S_aureus",
+        "H_pylori",
+        "Enterobacteriaceae"
+      ]
+    }
+  },
+  "gram_correlation": {
+    "3": {
+      "gram_neg_mean": -0.07472368421052632,
+      "gram_pos_mean": -0.0768952380952381,
+      "difference": 0.0021715538847117827,
+      "p_value": 1.0089934263884161e-15,
+      "gram_effect": "Gram+ easier",
+      "significant": "True"
+    },
+    "4": {
+      "gram_neg_mean": -0.057636249999999986,
+      "gram_pos_mean": -0.06054,
+      "difference": 0.0029037500000000105,
+      "p_value": 0.5634374248263518,
+      "gram_effect": "Gram+ easier",
+      "significant": "False"
+    }
+  },
+  "mechanism_inference": {
+    "0": {
+      "avg_length": 13.2,
+      "avg_hydrophobicity": -0.86,
+      "avg_charge": 0.2,
+      "mechanism_scores": {
+        "barrel_stave": 0,
+        "carpet": 2,
+        "toroidal": 0,
+        "detergent": 1
+      },
+      "likely_mechanism": "carpet",
+      "mechanism_description": "Covers membrane surface, high charge density matters",
+      "confidence": 0.6666666666666666
+    },
+    "1": {
+      "avg_length": 22.6,
+      "avg_hydrophobicity": 0.01,
+      "avg_charge": 3.6,
+      "mechanism_scores": {
+        "barrel_stave": 3,
+        "carpet": 1,
+        "toroidal": 3,
+        "detergent": 2
+      },
+      "likely_mechanism": "barrel_stave",
+      "mechanism_description": "Forms transmembrane pores, needs length for bilayer spanning",
+      "confidence": 1.0
+    },
+    "2": {
+      "avg_length": 13.1,
+      "avg_hydrophobicity": -0.22,
+      "avg_charge": 1.0,
+      "mechanism_scores": {
+        "barrel_stave": 1,
+        "carpet": 2,
+        "toroidal": 0,
+        "detergent": 3
+      },
+      "likely_mechanism": "detergent",
+      "mechanism_description": "Micelle-like disruption, short peptides",
+      "confidence": 1.0
+    },
+    "3": {
+      "avg_length": 13.9,
+      "avg_hydrophobicity": 0.29,
+      "avg_charge": 1.6,
+      "mechanism_scores": {
+        "barrel_stave": 1,
+        "carpet": 1,
+        "toroidal": 1,
+        "detergent": 3
+      },
+      "likely_mechanism": "detergent",
+      "mechanism_description": "Micelle-like disruption, short peptides",
+      "confidence": 1.0
+    },
+    "4": {
+      "avg_length": 18.3,
+      "avg_hydrophobicity": 0.07,
+      "avg_charge": 2.4,
+      "mechanism_scores": {
+        "barrel_stave": 3,
+        "carpet": 1,
+        "toroidal": 2,
+        "detergent": 2
+      },
+      "likely_mechanism": "barrel_stave",
+      "mechanism_description": "Forms transmembrane pores, needs length for bilayer spanning",
+      "confidence": 1.0
+    }
+  },
+  "motif_analysis": {
+    "1": {
+      "A_baumannii": {
+        "n_peptides": 10,
+        "cationic_fraction": 0.16,
+        "hydrophobic_fraction": 0.324,
+        "polar_fraction": 0.311,
+        "n_term_cationic_avg": 0.5,
+        "gram": "negative"
+      },
+      "P_aeruginosa": {
+        "n_peptides": 29,
+        "cationic_fraction": 0.194,
+        "hydrophobic_fraction": 0.336,
+        "polar_fraction": 0.402,
+        "n_term_cationic_avg": 1.0,
+        "gram": "negative"
+      },
+      "Enterobacteriaceae": {
+        "n_peptides": 6,
+        "cationic_fraction": 0.139,
+        "hydrophobic_fraction": 0.314,
+        "polar_fraction": 0.409,
+        "n_term_cationic_avg": 0.83,
+        "gram": "negative"
+      }
+    },
+    "3": {
+      "A_baumannii": {
+        "n_peptides": 7,
+        "cationic_fraction": 0.156,
+        "hydrophobic_fraction": 0.24,
+        "polar_fraction": 0.302,
+        "n_term_cationic_avg": 0.43,
+        "gram": "negative"
+      },
+      "P_aeruginosa": {
+        "n_peptides": 6,
+        "cationic_fraction": 0.179,
+        "hydrophobic_fraction": 0.238,
+        "polar_fraction": 0.5,
+        "n_term_cationic_avg": 1.0,
+        "gram": "negative"
+      },
+      "Enterobacteriaceae": {
+        "n_peptides": 15,
+        "cationic_fraction": 0.152,
+        "hydrophobic_fraction": 0.295,
+        "polar_fraction": 0.338,
+        "n_term_cationic_avg": 1.2,
+        "gram": "negative"
+      },
+      "S_aureus": {
+        "n_peptides": 42,
+        "cationic_fraction": 0.157,
+        "hydrophobic_fraction": 0.271,
+        "polar_fraction": 0.36,
+        "n_term_cationic_avg": 0.95,
+        "gram": "positive"
+      },
+      "H_pylori": {
+        "n_peptides": 48,
+        "cationic_fraction": 0.151,
+        "hydrophobic_fraction": 0.335,
+        "polar_fraction": 0.476,
+        "n_term_cationic_avg": 1.0,
+        "gram": "negative"
+      }
+    },
+    "4": {
+      "A_baumannii": {
+        "n_peptides": 32,
+        "cationic_fraction": 0.17,
+        "hydrophobic_fraction": 0.269,
+        "polar_fraction": 0.287,
+        "n_term_cationic_avg": 0.5,
+        "gram": "negative"
+      },
+      "P_aeruginosa": {
+        "n_peptides": 14,
+        "cationic_fraction": 0.182,
+        "hydrophobic_fraction": 0.277,
+        "polar_fraction": 0.455,
+        "n_term_cationic_avg": 1.07,
+        "gram": "negative"
+      },
+      "Enterobacteriaceae": {
+        "n_peptides": 27,
+        "cationic_fraction": 0.144,
+        "hydrophobic_fraction": 0.333,
+        "polar_fraction": 0.393,
+        "n_term_cationic_avg": 1.48,
+        "gram": "negative"
+      },
+      "S_aureus": {
+        "n_peptides": 5,
+        "cationic_fraction": 0.14,
+        "hydrophobic_fraction": 0.323,
+        "polar_fraction": 0.376,
+        "n_term_cationic_avg": 0.8,
+        "gram": "positive"
+      },
+      "H_pylori": {
+        "n_peptides": 7,
+        "cationic_fraction": 0.158,
+        "hydrophobic_fraction": 0.398,
+        "polar_fraction": 0.429,
+        "n_term_cationic_avg": 1.0,
+        "gram": "negative"
+      }
+    }
+  },
+  "design_implications": {
+    "key_findings": [
+      "Cluster 3: Gram+ easier (diff=0.002, p=0.0000)"
+    ],
+    "design_rules": [
+      "Short peptides (13-14 AA) are MORE effective against Gram+ bacteria"
+    ],
+    "mechanism_to_pathogen_map": {
+      "barrel_stave": {
+        "cluster": "4",
+        "best_against": "P_aeruginosa",
+        "worst_against": "Enterobacteriaceae",
+        "confidence": 1.0
+      },
+      "detergent": {
+        "cluster": "3",
+        "best_against": "P_aeruginosa",
+        "worst_against": "Enterobacteriaceae",
+        "confidence": 1.0
+      }
+    },
+    "optimization_strategy": "gram_type_routing"
+  }
+}

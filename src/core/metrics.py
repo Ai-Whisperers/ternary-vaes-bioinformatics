@@ -30,7 +30,7 @@ import torch
 from scipy.stats import spearmanr
 
 # Use geoopt-backed geometry module
-from src.geometry import poincare_distance, project_to_poincare
+from ..geometry import poincare_distance, project_to_poincare
 
 
 def compute_3adic_valuation(diff: torch.Tensor, max_depth: int = 10) -> torch.Tensor:
@@ -159,8 +159,8 @@ def compute_comprehensive_metrics(
     Returns:
         ComprehensiveMetrics dataclass with all metrics
     """
-    from src.core import TERNARY
-    from src.data.generation import generate_all_ternary_operations
+    from . import TERNARY
+    from ..data.generation import generate_all_ternary_operations
 
     was_training = model.training
     model.eval()

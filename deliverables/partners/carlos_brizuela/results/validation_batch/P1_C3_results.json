@@ -1,0 +1,131 @@
+{
+  "conjecture": "C3: Pathogen specificity is SEQUENCE-CONDITIONAL, not global",
+  "n_clusters": 5,
+  "verdict": "PARTIAL_SIGNAL",
+  "interpretation": "3/5 clusters show pathogen separation. Specificity may be sequence-conditional.",
+  "r3_classification": "Deployable (cluster membership computable for novel peptides)",
+  "cluster_results": {
+    "cluster_0": {
+      "n": 45,
+      "n_pathogens": 3,
+      "pathogens": {
+        "A_baumannii": 10,
+        "P_aeruginosa": 29,
+        "Enterobacteriaceae": 6
+      },
+      "kruskal_h": 0.7762589998916525,
+      "kruskal_p": 0.6783244945907256,
+      "between_std": 0.0036869367290720072,
+      "within_std": 0.020731638087036323,
+      "effect_ratio": 0.1778410713901803,
+      "cluster_profile": {
+        "length": "22.6 +/- 1.8",
+        "charge": "3.6 +/- 0.7",
+        "hydrophobicity": "0.01 +/- 0.18"
+      },
+      "conclusion": "no_separation"
+    },
+    "cluster_1": {
+      "n": 87,
+      "n_pathogens": 5,
+      "pathogens": {
+        "A_baumannii": 20,
+        "S_aureus": 21,
+        "P_aeruginosa": 14,
+        "Enterobacteriaceae": 16,
+        "H_pylori": 16
+      },
+      "kruskal_h": 19.976714772735175,
+      "kruskal_p": 0.0005047127544885247,
+      "between_std": 0.002539920215081489,
+      "within_std": 0.004701561240653543,
+      "effect_ratio": 0.5402291037111804,
+      "cluster_profile": {
+        "length": "13.1 +/- 1.8",
+        "charge": "1.0 +/- 0.6",
+        "hydrophobicity": "-0.22 +/- 0.18"
+      },
+      "conclusion": "signal_found"
+    },
+    "cluster_2": {
+      "n": 89,
+      "n_pathogens": 5,
+      "pathogens": {
+        "A_baumannii": 32,
+        "S_aureus": 6,
+        "P_aeruginosa": 14,
+        "Enterobacteriaceae": 27,
+        "H_pylori": 10
+      },
+      "kruskal_h": 12.91440057439178,
+      "kruskal_p": 0.011701710631512617,
+      "between_std": 0.007600378291855828,
+      "within_std": 0.01592759203175059,
+      "effect_ratio": 0.4771831345695559,
+      "cluster_profile": {
+        "length": "18.3 +/- 1.6",
+        "charge": "2.3 +/- 0.6",
+        "hydrophobicity": "0.09 +/- 0.25"
+      },
+      "conclusion": "statistical_only"
+    },
+    "cluster_3": {
+      "n": 64,
+      "n_pathogens": 5,
+      "pathogens": {
+        "A_baumannii": 11,
+        "S_aureus": 12,
+        "P_aeruginosa": 17,
+        "Enterobacteriaceae": 16,
+        "H_pylori": 8
+      },
+      "kruskal_h": 16.959419886404348,
+      "kruskal_p": 0.001968356744610657,
+      "between_std": 0.0012857133974640913,
+      "within_std": 0.0016596639171146757,
+      "effect_ratio": 0.7746829850342851,
+      "cluster_profile": {
+        "length": "13.2 +/- 2.0",
+        "charge": "0.2 +/- 0.7",
+        "hydrophobicity": "-0.86 +/- 0.23"
+      },
+      "conclusion": "signal_found"
+    },
+    "cluster_4": {
+      "n": 114,
+      "n_pathogens": 5,
+      "pathogens": {
+        "A_baumannii": 7,
+        "S_aureus": 41,
+        "P_aeruginosa": 6,
+        "Enterobacteriaceae": 15,
+        "H_pylori": 45
+      },
+      "kruskal_h": 23.947210888874974,
+      "kruskal_p": 8.184457784527565e-05,
+      "between_std": 0.009094913880860001,
+      "within_std": 0.012603771816868743,
+      "effect_ratio": 0.7216025498563433,
+      "cluster_profile": {
+        "length": "13.8 +/- 1.5",
+        "charge": "1.6 +/- 0.4",
+        "hydrophobicity": "0.28 +/- 0.15"
+      },
+      "conclusion": "signal_found"
+    }
+  },
+  "summary": {
+    "signal_clusters": [
+      "cluster_1",
+      "cluster_3",
+      "cluster_4"
+    ],
+    "no_signal_clusters": [
+      "cluster_0",
+      "cluster_2"
+    ],
+    "inconclusive_clusters": [],
+    "verdict": "PARTIAL_SIGNAL",
+    "interpretation": "3/5 clusters show pathogen separation. Specificity may be sequence-conditional."
+  }
+}

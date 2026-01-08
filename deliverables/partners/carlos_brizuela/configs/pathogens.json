@@ -1,0 +1,130 @@
+{
+  "_metadata": {
+    "description": "WHO Priority Pathogens for AMP Design",
+    "version": "1.0",
+    "source": "WHO priority pathogens list + membrane composition literature",
+    "updated": "2026-01-05"
+  },
+  "pathogens": {
+    "A_baumannii": {
+      "full_name": "Acinetobacter baumannii",
+      "gram": "negative",
+      "priority": "critical",
+      "resistance": "Carbapenem-resistant",
+      "membrane_features": {
+        "LPS_abundance": 0.85,
+        "phosphatidylethanolamine": 0.70,
+        "phosphatidylglycerol": 0.20,
+        "cardiolipin": 0.05,
+        "net_charge": -0.6
+      },
+      "optimal_amp_features": {
+        "net_charge": [4, 8],
+        "hydrophobicity": [0.3, 0.5],
+        "cationic_ratio": [0.25, 0.40],
+        "length": [15, 30]
+      },
+      "seed_sequences": [
+        "GIGKFLHSAKKFGKAFVGEIMNS",
+        "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",
+        "RLARIVVIRVAR"
+      ]
+    },
+    "P_aeruginosa": {
+      "full_name": "Pseudomonas aeruginosa",
+      "gram": "negative",
+      "priority": "critical",
+      "resistance": "MDR",
+      "membrane_features": {
+        "LPS_abundance": 0.90,
+        "phosphatidylethanolamine": 0.65,
+        "phosphatidylglycerol": 0.25,
+        "cardiolipin": 0.08,
+        "net_charge": -0.7
+      },
+      "optimal_amp_features": {
+        "net_charge": [5, 9],
+        "hydrophobicity": [0.35, 0.55],
+        "cationic_ratio": [0.30, 0.45],
+        "length": [18, 35]
+      },
+      "seed_sequences": [
+        "ILPWKWPWWPWRR",
+        "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",
+        "RLKKTFFKIVKTVKW"
+      ]
+    },
+    "Enterobacteriaceae": {
+      "full_name": "Enterobacteriaceae (E. coli, Klebsiella)",
+      "gram": "negative",
+      "priority": "critical",
+      "resistance": "Carbapenem-resistant",
+      "membrane_features": {
+        "LPS_abundance": 0.88,
+        "phosphatidylethanolamine": 0.72,
+        "phosphatidylglycerol": 0.18,
+        "cardiolipin": 0.06,
+        "net_charge": -0.55
+      },
+      "optimal_amp_features": {
+        "net_charge": [3, 7],
+        "hydrophobicity": [0.25, 0.45],
+        "cationic_ratio": [0.20, 0.35],
+        "length": [12, 25]
+      },
+      "seed_sequences": [
+        "KLAKLAKKLAKLAK",
+        "GIGKFLHSAKKFGKAFVGEIMNS",
+        "KRFRIRVRV"
+      ]
+    },
+    "S_aureus": {
+      "full_name": "Staphylococcus aureus (MRSA)",
+      "gram": "positive",
+      "priority": "high",
+      "resistance": "Methicillin-resistant",
+      "membrane_features": {
+        "teichoic_acid": 0.40,
+        "phosphatidylglycerol": 0.55,
+        "lysyl_PG": 0.30,
+        "cardiolipin": 0.10,
+        "net_charge": -0.3
+      },
+      "optimal_amp_features": {
+        "net_charge": [2, 6],
+        "hydrophobicity": [0.4, 0.6],
+        "cationic_ratio": [0.20, 0.35],
+        "length": [10, 22]
+      },
+      "seed_sequences": [
+        "KLAKLAKKLAKLAK",
+        "KLWKKLKKALK",
+        "FKCRRWQWRMKKLGAPS"
+      ]
+    },
+    "H_pylori": {
+      "full_name": "Helicobacter pylori",
+      "gram": "negative",
+      "priority": "high",
+      "resistance": "Clarithromycin-resistant",
+      "membrane_features": {
+        "LPS_abundance": 0.75,
+        "phosphatidylethanolamine": 0.60,
+        "phosphatidylglycerol": 0.30,
+        "cholesterol_glucosides": 0.15,
+        "net_charge": -0.4
+      },
+      "optimal_amp_features": {
+        "net_charge": [2, 5],
+        "hydrophobicity": [0.35, 0.50],
+        "cationic_ratio": [0.18, 0.30],
+        "length": [12, 20]
+      },
+      "seed_sequences": [
+        "KLWKKLKKALK",
+        "KLAKLAKKLAKLAK",
+        "RLKKTFFKIV"
+      ]
+    }
+  }
+}

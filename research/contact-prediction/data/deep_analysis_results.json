@@ -1,0 +1,152 @@
+[
+  {
+    "id": "trp_cage",
+    "name": "Trp-cage TC5b",
+    "length": 20,
+    "fold_type": "alpha",
+    "constraint": "designed",
+    "folding_rate": 12.4,
+    "n_contacts": 36,
+    "n_pairs": 136,
+    "auc_overall": 0.6244444444444445,
+    "cohens_d": -0.5445479166741839,
+    "auc_by_range": {
+      "local": 0.5606617647058824,
+      "medium": 0.6510416666666667
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.5316091954022988,
+      "charged": 0.6217948717948718,
+      "polar": 0.6827852998065763
+    }
+  },
+  {
+    "id": "src_sh3",
+    "name": "Src SH3 Domain",
+    "length": 57,
+    "fold_type": "beta",
+    "constraint": "hydrophobic",
+    "folding_rate": 8.5,
+    "n_contacts": 18,
+    "n_pairs": 1431,
+    "auc_overall": 0.6114649681528663,
+    "cohens_d": -0.42684465055356074,
+    "auc_by_range": {
+      "local": 0.7908415841584158,
+      "medium": 0.4622905027932961,
+      "long": 0.6358440797186401
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.5857338820301783,
+      "charged": 0.5553370786516855,
+      "polar": 0.710691823899371
+    }
+  },
+  {
+    "id": "gb1",
+    "name": "Protein G B1",
+    "length": 56,
+    "fold_type": "alpha/beta",
+    "constraint": "hydrophobic",
+    "folding_rate": 7.6,
+    "n_contacts": 55,
+    "n_pairs": 1378,
+    "auc_overall": 0.5780251494537209,
+    "cohens_d": -0.276024211369064,
+    "auc_by_range": {
+      "local": 0.5950525664811379
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.6295,
+      "charged": 0.5144923076923077,
+      "polar": 0.599894291754757
+    }
+  },
+  {
+    "id": "ubiquitin",
+    "name": "Ubiquitin",
+    "length": 76,
+    "fold_type": "alpha/beta",
+    "constraint": "hydrophobic",
+    "folding_rate": 5.5,
+    "n_contacts": 75,
+    "n_pairs": 2628,
+    "auc_overall": 0.5041676459067763,
+    "cohens_d": -0.017583073619183178,
+    "auc_by_range": {
+      "local": 0.484609962406015,
+      "medium": 0.691304347826087,
+      "long": 0.47386242537441703
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.4670112496199453,
+      "charged": 0.47875496051629457,
+      "polar": 0.5641462306993643
+    }
+  },
+  {
+    "id": "insulin_b",
+    "name": "Insulin B-chain",
+    "length": 30,
+    "fold_type": "alpha",
+    "constraint": "disulfide",
+    "folding_rate": 3.0,
+    "n_contacts": 6,
+    "n_pairs": 351,
+    "auc_overall": 0.5845410628019323,
+    "cohens_d": -0.2467054573513153,
+    "auc_by_range": {
+      "local": 0.7433510638297872,
+      "medium": 0.24828767123287673
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.8303571428571429,
+      "charged": 0.42607526881720426,
+      "polar": 0.6824817518248175
+    }
+  },
+  {
+    "id": "crambin",
+    "name": "Crambin",
+    "length": 46,
+    "fold_type": "alpha/beta",
+    "constraint": "disulfide",
+    "folding_rate": 2.5,
+    "n_contacts": 47,
+    "n_pairs": 903,
+    "auc_overall": 0.46228126864187713,
+    "cohens_d": 0.11493265398169705,
+    "auc_by_range": {
+      "local": 0.5164811643835616,
+      "medium": 0.7118959107806692,
+      "long": 0.3605914588057445
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.5192535545023697,
+      "charged": 0.4699149771092217,
+      "polar": 0.4652738565782044
+    }
+  },
+  {
+    "id": "bpti",
+    "name": "BPTI",
+    "length": 58,
+    "fold_type": "alpha/beta",
+    "constraint": "disulfide",
+    "folding_rate": 2.0,
+    "n_contacts": 37,
+    "n_pairs": 1485,
+    "auc_overall": 0.5187957294310885,
+    "cohens_d": -0.05299028187875693,
+    "auc_by_range": {
+      "local": 0.4320388349514563,
+      "medium": 0.6008831521739131,
+      "long": 0.5075751597885267
+    },
+    "auc_by_type": {
+      "hydrophobic": 0.47115839243498814,
+      "charged": 0.5016835016835016,
+      "polar": 0.44805194805194803
+    }
+  }
+]

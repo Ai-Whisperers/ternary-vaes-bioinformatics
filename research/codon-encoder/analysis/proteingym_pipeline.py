@@ -1,12 +1,25 @@
 #!/usr/bin/env python3
 """
-ProteinGym Data Pipeline + Embedding Space Analysis
+ProteinGym Data Pipeline + Embedding Space Analysis (OPTIONAL)
 
-Downloads ProteinGym substitution benchmark data and analyzes which
+**STATUS:** ProteinGym download is OPTIONAL. The S669 dataset (43 MB) is
+sufficient for current DDG validation (LOO Spearman 0.61).
+
+Downloads ProteinGym substitution benchmark data (~500 MB) and analyzes which
 dimensions of the p-adic embedding space encode physical invariants.
 
 Goal: Find the geometric invariants that connect p-adic structure
 to 3D dynamics prediction.
+
+**When to use:**
+- Extending validation beyond S669's 17 proteins
+- Benchmarking across diverse protein families
+- Mega-scale mutational analysis
+
+**Current recommendation:** Use S669 dataset (already available) unless you
+specifically need the extended coverage of ProteinGym.
+
+See: research/codon-encoder/data/proteingym/README.md for details
 
 Author: Research Team
 Date: December 2025

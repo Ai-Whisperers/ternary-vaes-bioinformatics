@@ -1,0 +1,151 @@
+{
+  "conjecture": "C2: Pathogen specificity lives in FAILURE MODES, not mean MIC",
+  "r1_thresholds": {
+    "susceptible": 0.0,
+    "intermediate": 0.5,
+    "resistant": 1.0
+  },
+  "r1_note": "Thresholds defined a priori, not tuned",
+  "verdict": "FALSIFIED",
+  "interpretation": "No significant difference in failure rates across pathogens. Pathogen specificity does NOT live in failure modes.",
+  "r1_compliance": {
+    "signal_at": [],
+    "no_signal_at": [
+      "susceptible"
+    ],
+    "no_variance_at": [
+      "intermediate",
+      "resistant"
+    ],
+    "n_testable": 1,
+    "r1_status": "PASS_NO_SIGNAL",
+    "r1_interpretation": "No signal at 1 testable thresholds. Conjecture falsified."
+  },
+  "r3_classification": "Research-Only (no failure mode signal)",
+  "threshold_results": {
+    "susceptible": {
+      "threshold": 0.0,
+      "counts": {
+        "A_baumannii": {
+          "above": 1,
+          "below": 79
+        },
+        "S_aureus": {
+          "above": 0,
+          "below": 80
+        },
+        "P_aeruginosa": {
+          "above": 4,
+          "below": 76
+        },
+        "Enterobacteriaceae": {
+          "above": 1,
+          "below": 79
+        },
+        "H_pylori": {
+          "above": 0,
+          "below": 79
+        }
+      },
+      "failure_rates": {
+        "A_baumannii": 0.0125,
+        "S_aureus": 0.0,
+        "P_aeruginosa": 0.05,
+        "Enterobacteriaceae": 0.0125,
+        "H_pylori": 0.0
+      },
+      "no_variance": false,
+      "chi2": 9.099332061068703,
+      "p_value": 0.05866404393498588,
+      "dof": 4,
+      "rate_range": 0.05,
+      "rate_std": 0.018371173070873836,
+      "practical_significance": false,
+      "threshold_name": "susceptible"
+    },
+    "intermediate": {
+      "threshold": 0.5,
+      "counts": {
+        "A_baumannii": {
+          "above": 0,
+          "below": 80
+        },
+        "S_aureus": {
+          "above": 0,
+          "below": 80
+        },
+        "P_aeruginosa": {
+          "above": 0,
+          "below": 80
+        },
+        "Enterobacteriaceae": {
+          "above": 0,
+          "below": 80
+        },
+        "H_pylori": {
+          "above": 0,
+          "below": 79
+        }
+      },
+      "failure_rates": {
+        "A_baumannii": 0.0,
+        "S_aureus": 0.0,
+        "P_aeruginosa": 0.0,
+        "Enterobacteriaceae": 0.0,
+        "H_pylori": 0.0
+      },
+      "no_variance": true,
+      "all_class": "below",
+      "chi2": 0,
+      "p_value": 1.0,
+      "dof": 0,
+      "rate_range": 0,
+      "rate_std": 0,
+      "practical_significance": false,
+      "note": "All 399 samples below threshold. Cannot test separation.",
+      "threshold_name": "intermediate"
+    },
+    "resistant": {
+      "threshold": 1.0,
+      "counts": {
+        "A_baumannii": {
+          "above": 0,
+          "below": 80
+        },
+        "S_aureus": {
+          "above": 0,
+          "below": 80
+        },
+        "P_aeruginosa": {
+          "above": 0,
+          "below": 80
+        },
+        "Enterobacteriaceae": {
+          "above": 0,
+          "below": 80
+        },
+        "H_pylori": {
+          "above": 0,
+          "below": 79
+        }
+      },
+      "failure_rates": {
+        "A_baumannii": 0.0,
+        "S_aureus": 0.0,
+        "P_aeruginosa": 0.0,
+        "Enterobacteriaceae": 0.0,
+        "H_pylori": 0.0
+      },
+      "no_variance": true,
+      "all_class": "below",
+      "chi2": 0,
+      "p_value": 1.0,
+      "dof": 0,
+      "rate_range": 0,
+      "rate_std": 0,
+      "practical_significance": false,
+      "note": "All 399 samples below threshold. Cannot test separation.",
+      "threshold_name": "resistant"
+    }
+  }
+}

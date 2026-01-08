@@ -1,0 +1,126 @@
+{
+  "test": "C3 Seed Artifact Falsification",
+  "verdict": "SURVIVES",
+  "interpretation": "Pathogen separation exists WITHIN same seed origin (3 seeds). This cannot be explained by seed differences. C3 signal appears real.",
+  "r3_classification": "Deployable (cluster-conditional models with real signal)",
+  "seed_vs_pathogen": {
+    "chi2_pathogen": 160.1784180044154,
+    "p_pathogen": 7.576249635209245e-26,
+    "cramers_v_pathogen": 0.31680027982310816,
+    "chi2_seed": 111.452662959848,
+    "p_seed": 6.5361293154498056e-12,
+    "cramers_v_seed": 0.2642583879252978,
+    "n_unique_pathogens": 5,
+    "n_unique_seeds": 8,
+    "n_clusters": 5
+  },
+  "within_seed_tests": {
+    "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK": {
+      "n": 23,
+      "n_pathogens": 4,
+      "pathogens": [
+        "A_baumannii",
+        "S_aureus",
+        "P_aeruginosa",
+        "Enterobacteriaceae"
+      ],
+      "kruskal_h": 2.2222112047595455,
+      "p_value": 0.5275867173246682,
+      "effect_ratio": 1.2726901980182728,
+      "has_signal": "False",
+      "conclusion": "no_signal"
+    },
+    "GIGKFLHSAKKFGKAFVGEIMNS": {
+      "n": 123,
+      "n_pathogens": 4,
+      "pathogens": [
+        "A_baumannii",
+        "S_aureus",
+        "P_aeruginosa",
+        "Enterobacteriaceae"
+      ],
+      "kruskal_h": 16.760806815966127,
+      "p_value": 0.0007914738110690416,
+      "effect_ratio": 0.558867921815736,
+      "has_signal": "True",
+      "conclusion": "signal"
+    },
+    "KLAKLAKKLAKLAK": {
+      "n": 19,
+      "n_pathogens": 3,
+      "pathogens": [
+        "A_baumannii",
+        "S_aureus",
+        "Enterobacteriaceae"
+      ],
+      "kruskal_h": 0.7536945812807881,
+      "p_value": 0.38530901953212493,
+      "effect_ratio": 0.8776573103084679,
+      "has_signal": "False",
+      "conclusion": "no_signal"
+    },
+    "RLKKTFFKIVKTVKW": {
+      "n": 124,
+      "n_pathogens": 5,
+      "pathogens": [
+        "A_baumannii",
+        "S_aureus",
+        "P_aeruginosa",
+        "Enterobacteriaceae",
+        "H_pylori"
+      ],
+      "kruskal_h": 23.807686179423904,
+      "p_value": 8.728622395436072e-05,
+      "effect_ratio": 0.63144644325677,
+      "has_signal": "True",
+      "conclusion": "signal"
+    },
+    "RLARIVVIRVAR": {
+      "n": 5,
+      "conclusion": "insufficient_data"
+    },
+    "FKCRRWQWRMKKLGAPS": {
+      "n": 27,
+      "n_pathogens": 3,
+      "pathogens": [
+        "A_baumannii",
+        "S_aureus",
+        "Enterobacteriaceae"
+      ],
+      "kruskal_h": 1.0736739826246133,
+      "p_value": 0.3001170523030809,
+      "effect_ratio": 0.7514457849666586,
+      "has_signal": "False",
+      "conclusion": "no_signal"
+    },
+    "RLKKTFFKIV": {
+      "n": 76,
+      "n_pathogens": 4,
+      "pathogens": [
+        "S_aureus",
+        "P_aeruginosa",
+        "Enterobacteriaceae",
+        "H_pylori"
+      ],
+      "kruskal_h": 17.305671109054135,
+      "p_value": 0.0006114598347515123,
+      "effect_ratio": 0.8465568174728005,
+      "has_signal": "True",
+      "conclusion": "signal"
+    },
+    "KRFRIRVRV": {
+      "n": 2,
+      "conclusion": "insufficient_data"
+    }
+  },
+  "signal_within_seeds": [
+    "GIGKFLHSAKKFGKAFVGEIMNS",
+    "RLKKTFFKIVKTVKW",
+    "RLKKTFFKIV"
+  ],
+  "no_signal_within_seeds": [
+    "KWKLFKKIEKVGQNIRDGIIKAGPAVAVVGQATQIAK",
+    "KLAKLAKKLAKLAK",
+    "FKCRRWQWRMKKLGAPS"
+  ]
+}

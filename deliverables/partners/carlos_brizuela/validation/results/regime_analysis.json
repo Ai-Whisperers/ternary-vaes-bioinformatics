@@ -1,0 +1,215 @@
+{
+  "model_name": "fold_0_best",
+  "timestamp": "2026-01-04T03:33:33.249287",
+  "n_total": 310,
+  "overall_spearman": 0.5919948014922689,
+  "overall_pearson": 0.5948412500223406,
+  "length_regimes": [
+    {
+      "name": "Short (\u226415)",
+      "n_samples": 84,
+      "spearman_r": 0.6633865220296853,
+      "spearman_ci_low": 0.5127485351011489,
+      "spearman_ci_high": 0.7819016854245264,
+      "pearson_r": 0.7369051784249213,
+      "mae": 0.2526218206399963,
+      "target_mean": 0.7999830842018127,
+      "target_std": 0.4497227668762207,
+      "pred_mean": 0.7915845417550632,
+      "pred_std": 0.22815389642072592
+    },
+    {
+      "name": "Medium (16-25)",
+      "n_samples": 143,
+      "spearman_r": 0.6054959059885318,
+      "spearman_ci_low": 0.494840893234271,
+      "spearman_ci_high": 0.7155327434854564,
+      "pearson_r": 0.6319676897865988,
+      "mae": 0.24816625997736738,
+      "target_mean": 0.5940667986869812,
+      "target_std": 0.39903751015663147,
+      "pred_mean": 0.6174178429833659,
+      "pred_std": 0.17909757930048192
+    },
+    {
+      "name": "Long (>25)",
+      "n_samples": 83,
+      "spearman_r": 0.14485757646554376,
+      "spearman_ci_low": -0.11511992634719388,
+      "spearman_ci_high": 0.3738021554318787,
+      "pearson_r": 0.1529343132644891,
+      "mae": 0.3199206096939294,
+      "target_mean": 0.5443635582923889,
+      "target_std": 0.4341293275356293,
+      "pred_mean": 0.5420313540352396,
+      "pred_std": 0.12704573203652456
+    }
+  ],
+  "hydrophobicity_regimes": [
+    {
+      "name": "Hydrophilic (<0.2)",
+      "n_samples": 182,
+      "spearman_r": 0.6763952631894312,
+      "spearman_ci_low": 0.5789808197879325,
+      "spearman_ci_high": 0.7625162744425605,
+      "pearson_r": 0.6722113081392707,
+      "mae": 0.2657718457854711,
+      "target_mean": 0.709639310836792,
+      "target_std": 0.4582735002040863,
+      "pred_mean": 0.7059609907177778,
+      "pred_std": 0.22581908806034362
+    },
+    {
+      "name": "Balanced (0.2-0.5)",
+      "n_samples": 54,
+      "spearman_r": 0.4149543306965696,
+      "spearman_ci_low": 0.17595468419374388,
+      "spearman_ci_high": 0.6143988910646688,
+      "pearson_r": 0.37960243108863073,
+      "mae": 0.2634048644039366,
+      "target_mean": 0.5346454381942749,
+      "target_std": 0.36766257882118225,
+      "pred_mean": 0.5740312547595413,
+      "pred_std": 0.1373633338376318
+    },
+    {
+      "name": "Hydrophobic (>0.5)",
+      "n_samples": 74,
+      "spearman_r": 0.15006655440229721,
+      "spearman_ci_low": -0.11380396513839404,
+      "spearman_ci_high": 0.42603811695390637,
+      "pearson_r": 0.23210131122069597,
+      "mae": 0.2792848662750141,
+      "target_mean": 0.5311773419380188,
+      "target_std": 0.38082826137542725,
+      "pred_mean": 0.5444576671800098,
+      "pred_std": 0.1217303706970407
+    }
+  ],
+  "gram_regimes": [
+    {
+      "name": "Gram-negative",
+      "n_samples": 240,
+      "spearman_r": 0.5950555368930841,
+      "spearman_ci_low": 0.49837908732989084,
+      "spearman_ci_high": 0.6916225426892415,
+      "pearson_r": 0.5909598308833488,
+      "mae": 0.26286370661109687,
+      "target_mean": 0.5936084985733032,
+      "target_std": 0.4213161766529083,
+      "pred_mean": 0.6306852571045359,
+      "pred_std": 0.19773070840756116
+    },
+    {
+      "name": "Gram-positive",
+      "n_samples": 70,
+      "spearman_r": 0.5512570418833047,
+      "spearman_ci_low": 0.30696032886748786,
+      "spearman_ci_high": 0.7244236664935124,
+      "pearson_r": 0.5747586701140197,
+      "mae": 0.2882018446922302,
+      "target_mean": 0.783804178237915,
+      "target_std": 0.44796183705329895,
+      "pred_mean": 0.6915427676268986,
+      "pred_std": 0.22388126186870166
+    }
+  ],
+  "pathogen_regimes": [
+    {
+      "name": "E. coli",
+      "n_samples": 102,
+      "spearman_r": 0.5429070878446476,
+      "spearman_ci_low": 0.3776804115062986,
+      "spearman_ci_high": 0.6763345372643819,
+      "pearson_r": 0.49518421112343597,
+      "mae": 0.33228548061029584,
+      "target_mean": 0.5236980319023132,
+      "target_std": 0.4829670190811157,
+      "pred_mean": 0.6144611018837667,
+      "pred_std": 0.2089263032672887
+    },
+    {
+      "name": "P. aeruginosa",
+      "n_samples": 72,
+      "spearman_r": 0.6736606747701408,
+      "spearman_ci_low": 0.5193634010999761,
+      "spearman_ci_high": 0.7961983863453653,
+      "pearson_r": 0.7169375998402511,
+      "mae": 0.20585898278901973,
+      "target_mean": 0.6423807144165039,
+      "target_std": 0.35600367188453674,
+      "pred_mean": 0.6509442450478673,
+      "pred_std": 0.19232385305939742
+    },
+    {
+      "name": "S. aureus",
+      "n_samples": 70,
+      "spearman_r": 0.5540863685164064,
+      "spearman_ci_low": 0.328221434834139,
+      "spearman_ci_high": 0.7208828281218665,
+      "pearson_r": 0.5747586701140197,
+      "mae": 0.2882018446922302,
+      "target_mean": 0.783804178237915,
+      "target_std": 0.44796183705329895,
+      "pred_mean": 0.6915427676268986,
+      "pred_std": 0.22388126186870166
+    },
+    {
+      "name": "A. baumannii",
+      "n_samples": 66,
+      "spearman_r": 0.6563850406263046,
+      "spearman_ci_low": 0.5208183402927439,
+      "spearman_ci_high": 0.7771499068505372,
+      "pearson_r": 0.67657729949217,
+      "mae": 0.21776248187278258,
+      "target_mean": 0.648445725440979,
+      "target_std": 0.36548176407814026,
+      "pred_mean": 0.6336582374166359,
+      "pred_std": 0.18302637828346102
+    }
+  ],
+  "length_comparisons": [
+    {
+      "regime_a": "Short (\u226415)",
+      "regime_b": "Long (>25)",
+      "r_diff": 0.5268187966706732,
+      "r_diff_ci_low": 0.2607733806641487,
+      "r_diff_ci_high": 0.7955655187092633,
+      "p_value": 0.001996007984031936,
+      "effect_size": -0.268163505699309,
+      "significant": 1
+    }
+  ],
+  "hydrophobicity_comparisons": [
+    {
+      "regime_a": "Hydrophilic",
+      "regime_b": "Hydrophobic",
+      "r_diff": 0.5421405503918983,
+      "r_diff_ci_low": 0.25258151734981366,
+      "r_diff_ci_high": 0.8268094835897186,
+      "p_value": 0.001996007984031936,
+      "effect_size": -0.05796038429934149,
+      "significant": 1
+    }
+  ],
+  "gram_comparisons": [
+    {
+      "regime_a": "Gram-negative",
+      "regime_b": "Gram-positive",
+      "r_diff": 0.05026739722487927,
+      "r_diff_ci_low": -0.1461061813079312,
+      "r_diff_ci_high": 0.2767381256842709,
+      "p_value": 0.6067864271457086,
+      "effect_size": -0.10991423398151184,
+      "significant": 0
+    }
+  ],
+  "key_findings": [
+    "LENGTH REGIME CONFIRMED: Short peptides outperform long by \u0394r=0.53 (p=0.0020)",
+    "HYDROPHOBICITY REGIME CONFIRMED: Hydrophilic outperform hydrophobic by \u0394r=0.54 (p=0.0020)",
+    "BEST REGIME: Hydrophilic (<0.2) (r=0.676, N=182)",
+    "WORST REGIME: Long (>25) (r=0.145, N=83)",
+    "REGIME GAP: 0.53 correlation difference"
+  ],
+  "regime_hypothesis_confirmed": 1
+}

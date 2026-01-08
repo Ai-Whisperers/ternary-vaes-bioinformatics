@@ -1,6 +1,6 @@
 # Ternary VAE Project - Claude Context
 
-**Doc-Type:** Project Configuration · Version 2.0 · Updated 2026-01-03 · AI Whisperers
+**Doc-Type:** Project Configuration · Version 2.5 · Updated 2026-01-07 · AI Whisperers
 
 ---
 
@@ -482,12 +482,67 @@ These 190+ usages are intentionally Euclidean:
 
 Consolidated structure for CONACYT and stakeholder deliverables:
 
-| Partner | Focus | Scripts | Results | src.core Integration |
-|---------|-------|---------|---------|---------------------|
-| **jose_colbes** | Protein stability (DDG, Rosetta-blind) | C1-C4 | validation/, rosetta_blind/ | padic_math ✓ |
-| **carlos_brizuela** | AMP design (NSGA-II optimization) | B1, B8, B10 | pareto, microbiome, pathogen | VAE interface |
-| **alejandra_rojas** | Arbovirus (DENV, ZIKV primers) | A2, trajectory, scanner | pan_arbovirus_primers/ | padic_math ✓ |
-| **hiv_research_package** | Drug resistance, LA selection | H6, H7 | tdr_screening/, la_selection/ | Stanford HIVdb |
+| Partner | Focus | Scripts | Results | src.core Integration | P1 Status |
+|---------|-------|---------|---------|---------------------|-----------|
+| **jose_colbes** | Protein stability (DDG, Rosetta-blind) | C1-C4 | validation/, rosetta_blind/ | padic_math ✓ | Arrow Flip |
+| **carlos_brizuela** | AMP design (NSGA-II optimization) | B1, B8, B10 | pareto, microbiome, pathogen | VAE interface | **C3 THEOREM** |
+| **alejandra_rojas** | Arbovirus (DENV, ZIKV primers) | A2, trajectory, scanner | pan_arbovirus_primers/ | padic_math ✓ | Cryptic Div |
+| **hiv_research_package** | Drug resistance, LA selection | H6, H7 | tdr_screening/, la_selection/ | Stanford HIVdb | - |
+
+---
+
+## P1 C3 Theorem: Regime-Conditional Pathogen Specificity (2026-01-07)
+
+**Finding:** Pathogen-specific MIC signal exists within peptide submanifolds, not globally.
+
+### C3 Statement
+
+For PeptideVAE predictions, pathogen separation exists within KMeans clusters (k=5) defined by (length, net_charge, hydrophobicity), specifically clusters 1, 3, 4 (short peptides, 13-14 AA), with effect ratios >0.5 and p<0.01, verified against seed-artifact confound.
+
+### Key Metrics
+
+| Cluster | Profile | Effect Ratio | p-value | Verdict |
+|:-------:|---------|:------------:|---------|:-------:|
+| 1 | 13 AA, low charge | 0.54 | 0.0005 | SIGNAL |
+| 3 | 13 AA, hydrophobic | 0.77 | 0.002 | SIGNAL |
+| 4 | 14 AA, moderate | 0.72 | <0.0001 | SIGNAL |
+
+### Arrow-Flip Thresholds (Cross-Domain Enhancement)
+
+Applied Colbes methodology to detect regime routing thresholds:
+
+| Feature | Threshold | Improvement | Significant? |
+|---------|:---------:|:-----------:|:------------:|
+| **hydrophobicity** | **0.107** | **+23.8%** | **YES** |
+| length | 12.0 AA | +22.5% | YES |
+| net_charge | 0.50 | +16.1% | YES |
+| charge_density | 0.115 | +11.0% | YES |
+
+**Regime Router:**
+```python
+def route_peptide(hydrophobicity: float) -> str:
+    if hydrophobicity > 0.107:
+        return "CLUSTER_CONDITIONAL"  # Separation = 0.284
+    else:
+        return "GLOBAL_MODEL"          # Separation = 0.150
+```
+
+### Cross-Domain Pattern (Regime-Conditional Inference)
+
+| Domain | Finding | Implication |
+|--------|---------|-------------|
+| AMP (Brizuela) | Cluster 1,3,4 signal + hydro threshold | Cluster-conditional predictors |
+| DENV-4 (Rojas) | Cryptic diversity (low hyp var, high entropy) | Clade-specific primers |
+| DDG (Colbes) | Buried ≠ surface (hydro_diff=3.5) | Position-conditional prediction |
+
+**Unified principle:** Biological signal lives in LOCAL structure, not global averages. All three domains exhibit signal that vanishes under global averaging but emerges within properly defined regimes.
+
+### Files
+
+- Theorem: `deliverables/partners/carlos_brizuela/docs/P1_C3_THEOREM_FORMALIZATION.md`
+- Theory: `docs/content/theory/regime_conditional_inference.md`
+- Enhanced: `deliverables/partners/carlos_brizuela/results/validation_batch/P1_C3_enhanced_results.json`
+- Script: `deliverables/partners/carlos_brizuela/scripts/P1_C3_enhanced_clustering.py`
 
 ---
 
@@ -645,6 +700,8 @@ PHASE 3: Future - Resistance head (needs real sequences)
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-07 | 2.5 | C3 arrow-flip thresholds validated (hydro=0.107, +23.8% improvement) - cross-domain enhancement complete |
+| 2026-01-07 | 2.4 | P1 C3 Theorem documented - regime-conditional inference across partners |
 | 2026-01-05 | 2.3 | Foundation Encoder Research Roadmap - partner readiness assessment, data inventory |
 | 2026-01-03 | 2.2 | Added SwissProt CIF dataset (38GB) future research directions |
 | 2026-01-03 | 2.1 | V5 Arrow Flip Validation complete - confidence matrix, position-aware thresholds |

@@ -1,0 +1,901 @@
+{
+  "test_name": "Test 2: ALS Gene Codon Bias Analysis",
+  "date_executed": "2026-01-03",
+  "pre_registered": true,
+  "genome_v0_baseline": 0.33,
+  "success_criteria": {
+    "min_significant_genes": 2,
+    "alpha": 0.05,
+    "min_enrichment": 1.2
+  },
+  "genes": {
+    "TARDBP": {
+      "status": "ANALYZED",
+      "refseq": "NM_007375.4",
+      "name": "TDP-43",
+      "total_codons": 415,
+      "v0_count": 271,
+      "v0_fraction": 0.653012048192771,
+      "genome_baseline": 0.33,
+      "fold_enrichment": 1.9788243884629424,
+      "p_value": 3.6961583289671425e-41,
+      "significant": true,
+      "codon_details": {
+        "ATG": {
+          "count": 18,
+          "valuation": 0,
+          "index": 14
+        },
+        "TCT": {
+          "count": 12,
+          "valuation": 0,
+          "index": 55
+        },
+        "GAA": {
+          "count": 11,
+          "valuation": 0,
+          "index": 32
+        },
+        "TAT": {
+          "count": 6,
+          "valuation": 1,
+          "index": 51
+        },
+        "ATT": {
+          "count": 7,
+          "valuation": 1,
+          "index": 15
+        },
+        "CGG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 26
+        },
+        "GTA": {
+          "count": 3,
+          "valuation": 0,
+          "index": 44
+        },
+        "ACC": {
+          "count": 3,
+          "valuation": 0,
+          "index": 5
+        },
+        "GAT": {
+          "count": 17,
+          "valuation": 0,
+          "index": 35
+        },
+        "GAG": {
+          "count": 11,
+          "valuation": 0,
+          "index": 34
+        },
+        "AAC": {
+          "count": 11,
+          "valuation": 0,
+          "index": 1
+        },
+        "CCC": {
+          "count": 2,
+          "valuation": 1,
+          "index": 21
+        },
+        "ATA": {
+          "count": 4,
+          "valuation": 1,
+          "index": 12
+        },
+        "CCA": {
+          "count": 11,
+          "valuation": 0,
+          "index": 20
+        },
+        "TCG": {
+          "count": 3,
+          "valuation": 3,
+          "index": 54
+        },
+        "GAC": {
+          "count": 5,
+          "valuation": 1,
+          "index": 33
+        },
+        "GGG": {
+          "count": 10,
+          "valuation": 1,
+          "index": 42
+        },
+        "ACG": {
+          "count": 3,
+          "valuation": 1,
+          "index": 6
+        },
+        "GTG": {
+          "count": 11,
+          "valuation": 0,
+          "index": 46
+        },
+        "CTG": {
+          "count": 6,
+          "valuation": 1,
+          "index": 30
+        },
+        "CTC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 29
+        },
+        "TCC": {
+          "count": 4,
+          "valuation": 0,
+          "index": 53
+        },
+        "GTT": {
+          "count": 6,
+          "valuation": 0,
+          "index": 47
+        },
+        "ACA": {
+          "count": 7,
+          "valuation": 0,
+          "index": 4
+        },
+        "GCC": {
+          "count": 10,
+          "valuation": 0,
+          "index": 37
+        },
+        "CAG": {
+          "count": 18,
+          "valuation": 2,
+          "index": 18
+        },
+        "TTT": {
+          "count": 16,
+          "valuation": 2,
+          "index": 63
+        },
+        "GCG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 38
+        },
+        "TGT": {
+          "count": 5,
+          "valuation": 0,
+          "index": 59
+        },
+        "CTT": {
+          "count": 5,
+          "valuation": 0,
+          "index": 31
+        },
+        "CGC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 25
+        },
+        "TAC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 49
+        },
+        "AGG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 10
+        },
+        "AAT": {
+          "count": 17,
+          "valuation": 1,
+          "index": 3
+        },
+        "AGA": {
+          "count": 9,
+          "valuation": 0,
+          "index": 8
+        },
+        "GGT": {
+          "count": 20,
+          "valuation": 0,
+          "index": 43
+        },
+        "GTC": {
+          "count": 5,
+          "valuation": 2,
+          "index": 45
+        },
+        "GGA": {
+          "count": 14,
+          "valuation": 0,
+          "index": 40
+        },
+        "CAT": {
+          "count": 4,
+          "valuation": 0,
+          "index": 19
+        },
+        "GCT": {
+          "count": 4,
+          "valuation": 1,
+          "index": 39
+        },
+        "GGC": {
+          "count": 11,
+          "valuation": 0,
+          "index": 41
+        },
+        "TGG": {
+          "count": 6,
+          "valuation": 0,
+          "index": 58
+        },
+        "AAA": {
+          "count": 13,
+          "valuation": null,
+          "index": 0
+        },
+        "TCA": {
+          "count": 7,
+          "valuation": 0,
+          "index": 52
+        },
+        "GCA": {
+          "count": 9,
+          "valuation": 2,
+          "index": 36
+        },
+        "TTA": {
+          "count": 3,
+          "valuation": 1,
+          "index": 60
+        },
+        "TTG": {
+          "count": 4,
+          "valuation": 0,
+          "index": 62
+        },
+        "AGT": {
+          "count": 6,
+          "valuation": 0,
+          "index": 11
+        },
+        "AAG": {
+          "count": 7,
+          "valuation": 0,
+          "index": 2
+        },
+        "ACT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 7
+        },
+        "CGT": {
+          "count": 1,
+          "valuation": 3,
+          "index": 27
+        },
+        "CAA": {
+          "count": 6,
+          "valuation": 0,
+          "index": 16
+        },
+        "CGA": {
+          "count": 2,
+          "valuation": 1,
+          "index": 24
+        },
+        "TGC": {
+          "count": 1,
+          "valuation": 1,
+          "index": 57
+        },
+        "CCT": {
+          "count": 3,
+          "valuation": 0,
+          "index": 23
+        },
+        "AGC": {
+          "count": 9,
+          "valuation": 2,
+          "index": 9
+        },
+        "TTC": {
+          "count": 6,
+          "valuation": 0,
+          "index": 61
+        },
+        "ATC": {
+          "count": 3,
+          "valuation": 0,
+          "index": 13
+        },
+        "CAC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 17
+        },
+        "CTA": {
+          "count": 1,
+          "valuation": 0,
+          "index": 28
+        },
+        "TAG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 50
+        }
+      }
+    },
+    "SOD1": {
+      "status": "ANALYZED",
+      "refseq": "NM_000454.5",
+      "name": "Superoxide dismutase 1",
+      "total_codons": 155,
+      "v0_count": 112,
+      "v0_fraction": 0.7225806451612903,
+      "genome_baseline": 0.33,
+      "fold_enrichment": 2.1896383186705766,
+      "p_value": 1.9402066981667723e-23,
+      "significant": true,
+      "codon_details": {
+        "ATG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 14
+        },
+        "GCG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 38
+        },
+        "ACG": {
+          "count": 1,
+          "valuation": 1,
+          "index": 6
+        },
+        "AAG": {
+          "count": 6,
+          "valuation": 0,
+          "index": 2
+        },
+        "GCC": {
+          "count": 3,
+          "valuation": 0,
+          "index": 37
+        },
+        "GTG": {
+          "count": 10,
+          "valuation": 0,
+          "index": 46
+        },
+        "TGC": {
+          "count": 2,
+          "valuation": 1,
+          "index": 57
+        },
+        "CTG": {
+          "count": 4,
+          "valuation": 1,
+          "index": 30
+        },
+        "GGC": {
+          "count": 8,
+          "valuation": 0,
+          "index": 41
+        },
+        "GAC": {
+          "count": 5,
+          "valuation": 1,
+          "index": 33
+        },
+        "CCA": {
+          "count": 3,
+          "valuation": 0,
+          "index": 20
+        },
+        "CAG": {
+          "count": 2,
+          "valuation": 2,
+          "index": 18
+        },
+        "ATC": {
+          "count": 5,
+          "valuation": 0,
+          "index": 13
+        },
+        "AAT": {
+          "count": 6,
+          "valuation": 1,
+          "index": 3
+        },
+        "TTC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 61
+        },
+        "GAG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 34
+        },
+        "GAA": {
+          "count": 7,
+          "valuation": 0,
+          "index": 32
+        },
+        "AGT": {
+          "count": 4,
+          "valuation": 0,
+          "index": 11
+        },
+        "GGA": {
+          "count": 10,
+          "valuation": 0,
+          "index": 40
+        },
+        "TGG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 58
+        },
+        "AGC": {
+          "count": 1,
+          "valuation": 2,
+          "index": 9
+        },
+        "ATT": {
+          "count": 4,
+          "valuation": 1,
+          "index": 15
+        },
+        "AAA": {
+          "count": 5,
+          "valuation": null,
+          "index": 0
+        },
+        "ACT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 7
+        },
+        "CAT": {
+          "count": 6,
+          "valuation": 0,
+          "index": 19
+        },
+        "GTT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 47
+        },
+        "TTT": {
+          "count": 2,
+          "valuation": 2,
+          "index": 63
+        },
+        "GAT": {
+          "count": 6,
+          "valuation": 0,
+          "index": 35
+        },
+        "ACA": {
+          "count": 4,
+          "valuation": 0,
+          "index": 4
+        },
+        "GCA": {
+          "count": 3,
+          "valuation": 2,
+          "index": 36
+        },
+        "TGT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 59
+        },
+        "ACC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 5
+        },
+        "GGT": {
+          "count": 5,
+          "valuation": 0,
+          "index": 43
+        },
+        "CCT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 23
+        },
+        "CAC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 17
+        },
+        "CTA": {
+          "count": 1,
+          "valuation": 0,
+          "index": 28
+        },
+        "TCC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 53
+        },
+        "AGA": {
+          "count": 1,
+          "valuation": 0,
+          "index": 8
+        },
+        "GGG": {
+          "count": 2,
+          "valuation": 1,
+          "index": 42
+        },
+        "AGG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 10
+        },
+        "TTG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 62
+        },
+        "GCT": {
+          "count": 3,
+          "valuation": 1,
+          "index": 39
+        },
+        "TCT": {
+          "count": 2,
+          "valuation": 0,
+          "index": 55
+        },
+        "TCA": {
+          "count": 2,
+          "valuation": 0,
+          "index": 52
+        },
+        "CTC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 29
+        },
+        "CGC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 25
+        },
+        "GTC": {
+          "count": 1,
+          "valuation": 2,
+          "index": 45
+        },
+        "AAC": {
+          "count": 1,
+          "valuation": 0,
+          "index": 1
+        },
+        "CGT": {
+          "count": 1,
+          "valuation": 3,
+          "index": 27
+        },
+        "GTA": {
+          "count": 1,
+          "valuation": 0,
+          "index": 44
+        },
+        "CAA": {
+          "count": 1,
+          "valuation": 0,
+          "index": 16
+        },
+        "TAA": {
+          "count": 1,
+          "valuation": 1,
+          "index": 48
+        }
+      }
+    },
+    "FUS": {
+      "status": "ANALYZED",
+      "refseq": "NM_004960.4",
+      "name": "Fused in sarcoma",
+      "total_codons": 527,
+      "v0_count": 333,
+      "v0_fraction": 0.6318785578747628,
+      "genome_baseline": 0.33,
+      "fold_enrichment": 1.9147835087114022,
+      "p_value": 1.631705392549754e-45,
+      "significant": true,
+      "codon_details": {
+        "ATG": {
+          "count": 8,
+          "valuation": 0,
+          "index": 14
+        },
+        "GCC": {
+          "count": 3,
+          "valuation": 0,
+          "index": 37
+        },
+        "TCA": {
+          "count": 7,
+          "valuation": 0,
+          "index": 52
+        },
+        "AAC": {
+          "count": 12,
+          "valuation": 0,
+          "index": 1
+        },
+        "GAT": {
+          "count": 12,
+          "valuation": 0,
+          "index": 35
+        },
+        "TAT": {
+          "count": 23,
+          "valuation": 1,
+          "index": 51
+        },
+        "ACC": {
+          "count": 6,
+          "valuation": 0,
+          "index": 5
+        },
+        "CAA": {
+          "count": 11,
+          "valuation": 0,
+          "index": 16
+        },
+        "GCA": {
+          "count": 4,
+          "valuation": 2,
+          "index": 36
+        },
+        "AGC": {
+          "count": 23,
+          "valuation": 2,
+          "index": 9
+        },
+        "GGG": {
+          "count": 12,
+          "valuation": 1,
+          "index": 42
+        },
+        "TAC": {
+          "count": 13,
+          "valuation": 0,
+          "index": 49
+        },
+        "CCC": {
+          "count": 12,
+          "valuation": 1,
+          "index": 21
+        },
+        "CAG": {
+          "count": 41,
+          "valuation": 2,
+          "index": 18
+        },
+        "GGC": {
+          "count": 56,
+          "valuation": 0,
+          "index": 41
+        },
+        "TCC": {
+          "count": 10,
+          "valuation": 0,
+          "index": 53
+        },
+        "AGT": {
+          "count": 17,
+          "valuation": 0,
+          "index": 11
+        },
+        "GGA": {
+          "count": 35,
+          "valuation": 0,
+          "index": 40
+        },
+        "GGT": {
+          "count": 49,
+          "valuation": 0,
+          "index": 43
+        },
+        "ACG": {
+          "count": 3,
+          "valuation": 1,
+          "index": 6
+        },
+        "GAC": {
+          "count": 14,
+          "valuation": 1,
+          "index": 33
+        },
+        "ACT": {
+          "count": 6,
+          "valuation": 0,
+          "index": 7
+        },
+        "TCT": {
+          "count": 8,
+          "valuation": 0,
+          "index": 55
+        },
+        "ACA": {
+          "count": 4,
+          "valuation": 0,
+          "index": 4
+        },
+        "TCG": {
+          "count": 3,
+          "valuation": 3,
+          "index": 54
+        },
+        "CCT": {
+          "count": 9,
+          "valuation": 0,
+          "index": 23
+        },
+        "CCA": {
+          "count": 5,
+          "valuation": 0,
+          "index": 20
+        },
+        "GCT": {
+          "count": 6,
+          "valuation": 1,
+          "index": 39
+        },
+        "AAT": {
+          "count": 12,
+          "valuation": 1,
+          "index": 3
+        },
+        "CGT": {
+          "count": 10,
+          "valuation": 3,
+          "index": 27
+        },
+        "CGC": {
+          "count": 5,
+          "valuation": 0,
+          "index": 25
+        },
+        "AGG": {
+          "count": 6,
+          "valuation": 0,
+          "index": 10
+        },
+        "GAA": {
+          "count": 5,
+          "valuation": 0,
+          "index": 32
+        },
+        "AGA": {
+          "count": 5,
+          "valuation": 0,
+          "index": 8
+        },
+        "TTC": {
+          "count": 5,
+          "valuation": 0,
+          "index": 61
+        },
+        "AAA": {
+          "count": 5,
+          "valuation": null,
+          "index": 0
+        },
+        "TTT": {
+          "count": 8,
+          "valuation": 2,
+          "index": 63
+        },
+        "CGG": {
+          "count": 5,
+          "valuation": 0,
+          "index": 26
+        },
+        "CAT": {
+          "count": 1,
+          "valuation": 0,
+          "index": 19
+        },
+        "ATC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 13
+        },
+        "GTG": {
+          "count": 2,
+          "valuation": 0,
+          "index": 46
+        },
+        "CTG": {
+          "count": 2,
+          "valuation": 1,
+          "index": 30
+        },
+        "GAG": {
+          "count": 6,
+          "valuation": 0,
+          "index": 34
+        },
+        "GTT": {
+          "count": 1,
+          "valuation": 0,
+          "index": 47
+        },
+        "ATT": {
+          "count": 6,
+          "valuation": 1,
+          "index": 15
+        },
+        "AAG": {
+          "count": 9,
+          "valuation": 0,
+          "index": 2
+        },
+        "TTG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 62
+        },
+        "GTC": {
+          "count": 2,
+          "valuation": 2,
+          "index": 45
+        },
+        "TGG": {
+          "count": 3,
+          "valuation": 0,
+          "index": 58
+        },
+        "CGA": {
+          "count": 6,
+          "valuation": 1,
+          "index": 24
+        },
+        "TGT": {
+          "count": 3,
+          "valuation": 0,
+          "index": 59
+        },
+        "TGC": {
+          "count": 1,
+          "valuation": 1,
+          "index": 57
+        },
+        "CAC": {
+          "count": 2,
+          "valuation": 0,
+          "index": 17
+        },
+        "CCG": {
+          "count": 1,
+          "valuation": 0,
+          "index": 22
+        },
+        "TAA": {
+          "count": 1,
+          "valuation": 1,
+          "index": 48
+        }
+      }
+    }
+  },
+  "summary": {
+    "n_genes_total": 3,
+    "n_genes_analyzed": 3,
+    "n_significant": 3,
+    "decision": "REJECT_NULL"
+  }
+}

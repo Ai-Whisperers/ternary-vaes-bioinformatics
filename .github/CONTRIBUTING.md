@@ -106,6 +106,22 @@ Open an issue describing:
 - Contribute bioinformatics datasets
 - Write analysis notebooks
 
+### Commercial Development
+
+**For engineers building applications:**
+
+- **API Integration**: Contribute SDK improvements and wrapper libraries
+- **Industry Benchmarks**: Validate performance on domain-specific datasets
+- **Optimization**: Improve inference speed and memory efficiency
+- **Deployment**: Docker containers, cloud deployment templates
+- **Validation Tools**: Regulatory compliance and quality assurance frameworks
+
+**Commercial Licensing**: While research contributions remain open-source, commercial applications require a separate license. Contact `support@aiwhisperers.com` for:
+- Production deployment licensing
+- Custom model training
+- Enterprise support and consulting
+- Joint development partnerships
+
 ## Pull Request Process
 
 1. **Title**: Use conventional commit format

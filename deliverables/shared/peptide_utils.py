@@ -114,26 +114,67 @@ def compute_amino_acid_composition(sequence: str) -> np.ndarray:
 def compute_ml_features(sequence: str) -> np.ndarray:
     """Compute features for ML model prediction.
 
-    Generates a 25-dimensional feature vector suitable for
-    trained activity/property prediction models.
+    Generates a 32-dimensional feature vector matching the DRAMP-trained
+    activity prediction models. Features are in this exact order:
+    [length, charge, hydrophobicity, volume, positive_fraction,
+     negative_fraction, aromatic_fraction, aliphatic_fraction,
+     polar_fraction, hydrophobic_fraction, amphipathicity,
+     hydrophobic_moment, aac_A..aac_Y (20 AA composition)]
 
     Args:
         sequence: Amino acid sequence
 
     Returns:
-        Feature array: [length, charge, hydro, hydro_ratio, cationic_ratio, aa_comp[20]]
+        Feature array of shape (32,)
     """
-    props = compute_peptide_properties(sequence)
-    aa_comp = compute_amino_acid_composition(sequence)
+    seq = sequence.upper()
+    n = len(seq)
 
-    # Combine features: [length, charge, hydro, hydro_ratio, cationic_ratio, aa_comp...]
+    if n == 0:
+        return np.zeros(32)
+
+    # Basic properties
+    charge = sum(CHARGES.get(aa, 0) for aa in seq)
+    hydro = sum(HYDROPHOBICITY.get(aa, 0) for aa in seq) / n
+    volume = sum(VOLUMES.get(aa, 100) for aa in seq)
+
+    # Compositional fractions
+    positive_fraction = sum(1 for aa in seq if aa in "KRH") / n
+    negative_fraction = sum(1 for aa in seq if aa in "DE") / n
+    aromatic_fraction = sum(1 for aa in seq if aa in "FWY") / n
+    aliphatic_fraction = sum(1 for aa in seq if aa in "AILV") / n
+    polar_fraction = sum(1 for aa in seq if aa in "STNQ") / n
+    hydrophobic_fraction = sum(1 for aa in seq if aa in "AILMFVWY") / n
+
+    # Amphipathicity - variance in hydrophobicity over sliding window
+    h_values = [HYDROPHOBICITY.get(aa, 0) for aa in seq]
+    amphipathicity = 0.0
+    if n >= 7:
+        window_vars = []
+        for i in range(n - 6):
+            window = h_values[i:i + 7]
+            window_vars.append(np.var(window))
+        amphipathicity = np.mean(window_vars) if window_vars else 0.0
+
+    # Hydrophobic moment (simplified)
+    hydrophobic_moment = 0.0
+    if n >= 7:
+        for i in range(n - 6):
+            window = h_values[i:i + 7]
+            hydrophobic_moment += abs(sum(window))
+        hydrophobic_moment /= (n - 6)
+
+    # Amino acid composition (alphabetical order)
+    aa_order = "ACDEFGHIKLMNPQRSTVWY"
+    aa_comp = np.array([seq.count(aa) / n for aa in aa_order])
+
+    # Combine features in DRAMP model order (32 features total)
     features = np.concatenate([
         np.array([
-            props["length"],
-            props["net_charge"],
-            props["hydrophobicity"],
-            props["hydrophobic_ratio"],
-            props["cationic_ratio"],
+            n, charge, hydro, volume, positive_fraction,
+            negative_fraction, aromatic_fraction, aliphatic_fraction,
+            polar_fraction, hydrophobic_fraction, amphipathicity,
+            hydrophobic_moment,
         ]),
         aa_comp,
     ])

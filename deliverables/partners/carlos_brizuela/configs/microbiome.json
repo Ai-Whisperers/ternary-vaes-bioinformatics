@@ -1,0 +1,112 @@
+{
+  "_metadata": {
+    "description": "Microbiome Context Definitions for Selective AMP Design",
+    "version": "1.0",
+    "source": "Human Microbiome Project + clinical literature",
+    "updated": "2026-01-05"
+  },
+  "contexts": {
+    "skin": {
+      "description": "Skin microbiome context - spare beneficial skin bacteria",
+      "pathogens": {
+        "S_aureus": {
+          "full_name": "Staphylococcus aureus",
+          "gram": "positive",
+          "target_mic": 4.0,
+          "membrane_charge": -0.3
+        },
+        "MRSA": {
+          "full_name": "Methicillin-resistant S. aureus",
+          "gram": "positive",
+          "target_mic": 8.0,
+          "membrane_charge": -0.25
+        },
+        "P_acnes_pathogenic": {
+          "full_name": "Cutibacterium acnes (pathogenic)",
+          "gram": "positive",
+          "target_mic": 8.0,
+          "membrane_charge": -0.35
+        }
+      },
+      "commensals": {
+        "S_epidermidis": {
+          "full_name": "Staphylococcus epidermidis",
+          "gram": "positive",
+          "min_mic": 64.0,
+          "membrane_charge": -0.15,
+          "importance": "skin_barrier"
+        },
+        "C_acnes": {
+          "full_name": "Cutibacterium acnes (commensal)",
+          "gram": "positive",
+          "min_mic": 64.0,
+          "membrane_charge": -0.20,
+          "importance": "lipid_metabolism"
+        },
+        "Corynebacterium": {
+          "full_name": "Corynebacterium spp.",
+          "gram": "positive",
+          "min_mic": 32.0,
+          "membrane_charge": -0.10,
+          "importance": "moisture_regulation"
+        }
+      },
+      "seed_sequences": [
+        "KLAKLAKKLAKLAK",
+        "KLWKKLKKALK",
+        "FKCRRWQWRMKKLGAPS"
+      ]
+    },
+    "gut": {
+      "description": "Gut microbiome context - preserve beneficial gut flora",
+      "pathogens": {
+        "C_difficile": {
+          "full_name": "Clostridioides difficile",
+          "gram": "positive",
+          "target_mic": 4.0,
+          "membrane_charge": -0.4
+        },
+        "E_coli_pathogenic": {
+          "full_name": "E. coli (pathogenic strains)",
+          "gram": "negative",
+          "target_mic": 8.0,
+          "membrane_charge": -0.55
+        },
+        "Salmonella": {
+          "full_name": "Salmonella spp.",
+          "gram": "negative",
+          "target_mic": 8.0,
+          "membrane_charge": -0.50
+        }
+      },
+      "commensals": {
+        "Lactobacillus": {
+          "full_name": "Lactobacillus spp.",
+          "gram": "positive",
+          "min_mic": 128.0,
+          "membrane_charge": -0.05,
+          "importance": "immune_modulation"
+        },
+        "Bifidobacterium": {
+          "full_name": "Bifidobacterium spp.",
+          "gram": "positive",
+          "min_mic": 128.0,
+          "membrane_charge": -0.08,
+          "importance": "nutrient_absorption"
+        },
+        "Bacteroides": {
+          "full_name": "Bacteroides spp.",
+          "gram": "negative",
+          "min_mic": 64.0,
+          "membrane_charge": -0.35,
+          "importance": "fiber_digestion"
+        }
+      },
+      "seed_sequences": [
+        "GIGKFLHSAKKFGKAFVGEIMNS",
+        "KLAKLAKKLAKLAK",
+        "RLKKTFFKIVKTVKW"
+      ]
+    }
+  }
+}

@@ -1,0 +1,80 @@
+{
+  "timestamp": "2026-01-04",
+  "analysis_type": "deep_regime_analysis",
+  "key_findings": {
+    "independent_effects_confirmed": true,
+    "length_independent_effect": {
+      "evidence": "Within hydrophilic peptides alone, r drops from 0.751 (medium) to 0.259 (long)",
+      "interpretation": "Length affects prediction quality even when hydrophobicity is controlled"
+    },
+    "hydrophobicity_independent_effect": {
+      "evidence": "Within medium-length peptides, r drops from 0.751 (hydrophilic) to 0.262 (hydrophobic)",
+      "interpretation": "Hydrophobicity affects prediction quality even when length is controlled"
+    }
+  },
+  "cross_analysis_matrix": {
+    "hydrophilic": {
+      "short_lte15": {"n": 74, "r": 0.649},
+      "medium_16_25": {"n": 73, "r": 0.751},
+      "long_gt25": {"n": 35, "r": 0.259}
+    },
+    "balanced": {
+      "short_lte15": {"n": 10, "r": -0.136},
+      "medium_16_25": {"n": 29, "r": 0.536},
+      "long_gt25": {"n": 15, "r": 0.090}
+    },
+    "hydrophobic": {
+      "short_lte15": {"n": 0, "r": null},
+      "medium_16_25": {"n": 41, "r": 0.262},
+      "long_gt25": {"n": 33, "r": -0.117}
+    }
+  },
+  "data_gaps": {
+    "critical": [
+      {"cell": "Short + Hydrophobic", "n": 0, "priority": "HIGHEST"},
+      {"cell": "Short + Balanced", "n": 10, "priority": "MEDIUM"}
+    ],
+    "total_needed_for_balance": 66,
+    "target_per_cell": 30
+  },
+  "feature_correlations_with_error": {
+    "hydro_variance": {"r": -0.133, "p": 0.0195, "significant": true},
+    "hydrophobic_ratio": {"r": -0.124, "p": 0.0295, "significant": true},
+    "length": {"r": 0.089, "p": 0.1198, "significant": false},
+    "hydrophobicity": {"r": -0.021, "p": 0.7064, "significant": false}
+  },
+  "amphipathicity_effect": {
+    "working_regime": {
+      "amphipathic": {"n": 85, "r": 0.650},
+      "non_amphipathic": {"n": 101, "r": 0.739}
+    },
+    "failing_regime": {
+      "amphipathic": {"n": 69, "r": 0.280},
+      "non_amphipathic": {"n": 55, "r": 0.222}
+    }
+  },
+  "pathogen_in_failing_regime": [
+    {"pathogen": "E. coli", "n": 49, "r": 0.106, "avg_length": 33.3, "avg_hydro": 0.54},
+    {"pathogen": "P. aeruginosa", "n": 25, "r": 0.003, "avg_length": 26.7, "avg_hydro": 0.74},
+    {"pathogen": "S. aureus", "n": 26, "r": 0.325, "avg_length": 31.2, "avg_hydro": 0.50},
+    {"pathogen": "A. baumannii", "n": 24, "r": 0.556, "avg_length": 26.5, "avg_hydro": 1.05}
+  ],
+  "recommendations": {
+    "data_collection": [
+      "PRIORITY 1: Find 30+ short (≤15 AA) hydrophobic AMPs with validated MIC",
+      "PRIORITY 2: Add 15+ long (>25 AA) hydrophilic AMPs for robust statistics",
+      "PRIORITY 3: Expand balanced hydrophobicity samples across all lengths"
+    ],
+    "model_improvements": [
+      "Add explicit amphipathic moment features (helix wheel)",
+      "Consider segment-based encoding for long peptides",
+      "Add helix propensity features for hydrophobic peptides",
+      "Explore length-aware attention mechanisms"
+    ],
+    "architectural_options": [
+      "Option A: Length-stratified models (separate for short vs long)",
+      "Option B: Length as explicit feature with interaction terms",
+      "Option C: Multi-head attention with length-aware positional encoding"
+    ]
+  }
+}
