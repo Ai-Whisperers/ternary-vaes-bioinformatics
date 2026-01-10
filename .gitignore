@@ -114,7 +114,29 @@ engine/build/
 # Large AlphaFold prediction archives (keep locally, not in repo)
 **/alphafold3_predictions/*.zip
 **/alphafold_jobs/*.zip
+**/folds_*.zip
 research/alphafold3/repo/
+
+# Large research datasets (keep locally, never commit)
+**/*proteome*.tsv
+**/*proteome*.csv
+**/msas/*.a3m
+**/msas/*.msa
+**/*.hdf5
+**/*.h5
+research/bioinformatics/hiv/glycan_shield/
+research/bioinformatics/codon_encoder_research/
+
+# Large data files and archives (keep locally)
+**/*.zip
+**/*.tar
+**/*.tar.gz
+**/*.tgz
+**/*.rar
+**/*.7z
+**/large_data/
+**/datasets/
+**/data/large/
 
 # CONFIDENTIAL - Internal IP Protection (NEVER COMMIT)
 **/pitch_tier3_INTERNAL/
