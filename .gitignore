@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 big-data/
+local/
 
 # Cache directories
 .mypy_cache/
@@ -168,3 +169,4 @@ scripts/eval/
 scripts/validation/
 src/observability/
 src/metrics/
+research/big_data/

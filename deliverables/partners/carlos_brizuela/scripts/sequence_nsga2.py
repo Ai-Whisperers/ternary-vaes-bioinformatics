@@ -521,6 +521,25 @@ class SequenceNSGA2:
     - Stability (synthesis feasibility)
     """
 
+    @staticmethod
+    def _validate_population_size(population_size: int) -> int:
+        """Ensure population size is divisible by 4 for selTournamentDCD.
+
+        DEAP's selTournamentDCD requires population size to be divisible by 4.
+        If not, we round up to the next multiple of 4.
+
+        Args:
+            population_size: Requested population size
+
+        Returns:
+            Validated population size (divisible by 4)
+        """
+        if population_size % 4 != 0:
+            adjusted = ((population_size // 4) + 1) * 4
+            print(f"⚠️  DEAP Fix: Adjusted population from {population_size} to {adjusted} (must be divisible by 4)")
+            return adjusted
+        return population_size
+
     def __init__(
         self,
         seed_sequences: Optional[List[str]] = None,
@@ -546,7 +565,8 @@ class SequenceNSGA2:
         """
         _lazy_import()
 
-        self.population_size = population_size
+        # FIX: Validate population size for DEAP selTournamentDCD compatibility
+        self.population_size = self._validate_population_size(population_size)
         self.generations = generations
         self.crossover_prob = crossover_prob
         self.mutation_prob = mutation_prob
