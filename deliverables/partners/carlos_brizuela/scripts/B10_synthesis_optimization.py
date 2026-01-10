@@ -39,17 +39,18 @@ import random
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
 import sys
 
 import numpy as np
 
-# Add parent directories to path
-_script_dir = Path(__file__).parent
-_package_dir = _script_dir.parent
-_deliverables_dir = _package_dir.parent.parent
-sys.path.insert(0, str(_package_dir))
-sys.path.insert(0, str(_deliverables_dir))
+# Add paths - Standardized setup (Issue #3 fix)
+SCRIPT_DIR = Path(__file__).resolve().parent
+PACKAGE_DIR = SCRIPT_DIR.parent
+PROJECT_ROOT = PACKAGE_DIR.parent.parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "deliverables"))
+sys.path.insert(0, str(PACKAGE_DIR))
 
 # Import base sequence optimizer
 from scripts.sequence_nsga2 import (
@@ -358,8 +359,15 @@ class SynthesisObjectives(ObjectiveFunctions):
         Returns:
             Tuple of (mic, difficulty, neg_coupling, cost) - all to minimize
         """
-        # Get MIC prediction
-        mic = self.mic_prediction(sequence)
+        # Get MIC prediction (same logic as parent class)
+        if self.predictor is not None:
+            try:
+                result = self.predictor.predict(sequence)
+                mic = result.log10_mic
+            except Exception:
+                mic = self._heuristic_activity(sequence)
+        else:
+            mic = self._heuristic_activity(sequence)
 
         # Get synthesis metrics
         synth = predict_synthesis_difficulty(sequence)
@@ -386,13 +394,17 @@ class SynthesisMutationOperators(MutationOperators):
         min_length: int = 10,
         max_length: int = 35,
     ):
+        # Fix parameter names to match parent class
         super().__init__(
-            p_substitution=p_substitution,
-            p_insertion=p_insertion,
-            p_deletion=p_deletion,
-            min_length=min_length,
-            max_length=max_length,
+            substitution_rate=p_substitution,
+            insertion_rate=p_insertion,
+            deletion_rate=p_deletion,
+            conservative_bias=0.7,  # Use default synthesis-friendly bias
         )
+
+        # Store length constraints for synthesis-aware mutations
+        self.min_length = min_length
+        self.max_length = max_length
 
         # Build weighted AA list favoring synthesis-friendly residues
         self.weighted_aa = []
@@ -519,20 +531,21 @@ class SynthesisNSGA2(SequenceNSGA2):
             max_length=max_length,
         )
 
+        # Fix: Only pass parameters that parent class accepts
         super().__init__(
             seed_sequences=seed_sequences,
             population_size=population_size,
             generations=generations,
-            n_objectives=4,  # MIC, difficulty, coupling, cost
             crossover_prob=crossover_prob,
             mutation_prob=mutation_prob,
-            min_length=min_length,
-            max_length=max_length,
             checkpoint_path=checkpoint_path,
-            device=device,
             verbose=verbose,
             random_seed=random_seed,
         )
+
+        # Store synthesis-specific parameters
+        self.min_length = min_length
+        self.max_length = max_length
 
         # Override mutation operators with synthesis-aware version
         self.mutation_ops = mutation_ops
@@ -550,8 +563,31 @@ class SynthesisNSGA2(SequenceNSGA2):
             print(f"Length range: {min_length}-{max_length} AA")
             print("=" * 70)
 
-    def _evaluate_individual(self, sequence: str) -> tuple:
-        """Evaluate all 4 synthesis objectives for a sequence."""
+    def _setup_deap(self) -> None:
+        """Configure DEAP for 4-objective synthesis optimization."""
+        import deap.base
+        import deap.creator
+        import deap.tools
+
+        # Create fitness class for 4 objectives (minimize all: MIC, difficulty, neg_coupling, cost)
+        if not hasattr(deap.creator, "FitnessMulti"):
+            deap.creator.create("FitnessMulti", deap.base.Fitness, weights=(-1.0, -1.0, -1.0, -1.0))
+        if not hasattr(deap.creator, "Individual"):
+            deap.creator.create("Individual", list, fitness=deap.creator.FitnessMulti)
+
+        self.toolbox = deap.base.Toolbox()
+
+        # Register operators
+        self.toolbox.register("individual", self._create_individual)
+        self.toolbox.register("population", deap.tools.initRepeat, list, self.toolbox.individual)
+        self.toolbox.register("mate", self._crossover)
+        self.toolbox.register("mutate", self._mutate)
+        self.toolbox.register("select", deap.tools.selNSGA2)
+        self.toolbox.register("evaluate", self._evaluate_individual)
+
+    def _evaluate_individual(self, individual: List[str]) -> tuple:
+        """Evaluate all 4 synthesis objectives for an individual."""
+        sequence = individual[0]  # Extract sequence from Individual
         return self.objectives.evaluate_all(sequence)
 
     def _create_candidate(
@@ -607,16 +643,67 @@ class SynthesisNSGA2(SequenceNSGA2):
 
     def run(self) -> list[SynthesisCandidate]:
         """Run NSGA-II optimization and return synthesis candidates."""
-        result = super().run()
+        # Run base NSGA-II optimization but handle results manually
+        # since we have 4 objectives instead of 3
+        import deap.tools
+        import random
 
-        # Convert Pareto front to SynthesisCandidate objects
+        population = self.toolbox.population(n=self.population_size)
+
+        # Evaluate initial population
+        fitnesses = list(map(self.toolbox.evaluate, population))
+        for ind, fit in zip(population, fitnesses):
+            ind.fitness.values = fit
+
+        # Evolution loop
+        for gen in range(self.generations):
+            # Assign crowding distance for tournament selection
+            fronts = deap.tools.sortNondominated(population, len(population))
+            for front in fronts:
+                deap.tools.emo.assignCrowdingDist(front)
+
+            # Select and create offspring
+            offspring = deap.tools.selTournamentDCD(population, len(population))
+            offspring = [self.toolbox.clone(ind) for ind in offspring]
+
+            # Apply crossover and mutation
+            for child1, child2 in zip(offspring[::2], offspring[1::2]):
+                if random.random() < self.crossover_prob:
+                    self.toolbox.mate(child1, child2)
+                    del child1.fitness.values
+                    del child2.fitness.values
+
+            for mutant in offspring:
+                if random.random() < self.mutation_prob:
+                    self.toolbox.mutate(mutant)
+                    del mutant.fitness.values
+
+            # Evaluate offspring
+            invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+            fitnesses = list(map(self.toolbox.evaluate, invalid_ind))
+            for ind, fit in zip(invalid_ind, fitnesses):
+                ind.fitness.values = fit
+
+            # Select next generation
+            population = deap.tools.selNSGA2(population + offspring, self.population_size)
+
+        # Get final Pareto front
+        fronts = deap.tools.sortNondominated(population, len(population))
+        final_pareto = fronts[0] if fronts else []
+
+        if self.verbose:
+            print(f"\nOptimization complete: {len(final_pareto)} Pareto-optimal peptides found")
+
+        # Convert to SynthesisCandidate objects
         candidates = []
-        for peptide in result.pareto_front:
+        for rank, ind in enumerate(final_pareto):
+            # Extract 4 fitness values: (mic, difficulty, neg_coupling, cost)
+            fitness_values = ind.fitness.values
             candidate = self._create_candidate(
-                sequence=peptide.sequence,
-                fitness=peptide.fitness,
-                rank=peptide.rank,
-                crowding=peptide.crowding_distance,
+                sequence=ind[0],
+                fitness=fitness_values,
+                rank=rank,
+                crowding=getattr(ind.fitness, 'crowding_dist', 0.0),
             )
             candidates.append(candidate)
 

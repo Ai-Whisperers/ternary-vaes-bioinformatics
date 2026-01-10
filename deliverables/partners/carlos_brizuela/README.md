@@ -25,28 +25,40 @@ This package provides a comprehensive toolkit for antimicrobial peptide (AMP) de
 Design antimicrobial peptides optimized for specific WHO priority pathogens.
 
 ```bash
+# Single pathogen optimization
 python scripts/B1_pathogen_specific_design.py \
-    --pathogen "Acinetobacter_baumannii" \
-    --output_dir results/pathogen_specific/
+    --pathogen A_baumannii \
+    --output results/pathogen_specific/
+
+# All WHO priority pathogens
+python scripts/B1_pathogen_specific_design.py \
+    --all-pathogens \
+    --output results/pathogen_specific/
 ```
 
 **Target Pathogens Supported:**
-| Pathogen | Priority | Resistance Pattern |
-|----------|----------|-------------------|
-| *Acinetobacter baumannii* | Critical | Carbapenem-resistant |
-| *Pseudomonas aeruginosa* | Critical | Carbapenem-resistant |
-| *Klebsiella pneumoniae* | Critical | Carbapenem-resistant |
-| *Staphylococcus aureus* | High | Methicillin/Vancomycin-resistant |
+| CLI Name | Full Name | Priority | Resistance Pattern |
+|----------|-----------|----------|-------------------|
+| `A_baumannii` | *Acinetobacter baumannii* | Critical | Carbapenem-resistant |
+| `P_aeruginosa` | *Pseudomonas aeruginosa* | Critical | Carbapenem-resistant |
+| `Enterobacteriaceae` | *Enterobacteriaceae* (group) | Critical | Carbapenem-resistant |
+| `S_aureus` | *Staphylococcus aureus* | High | Methicillin/Vancomycin-resistant |
+| `H_pylori` | *Helicobacter pylori* | High | Clarithromycin-resistant |
 
 ### B8: Microbiome-Safe AMPs
 
 Design peptides with selectivity for pathogens over beneficial commensals.
 
 ```bash
+# Skin microbiome optimization
 python scripts/B8_microbiome_safe_amps.py \
-    --target_pathogens "S_aureus,MRSA" \
-    --protect_commensals "S_epidermidis,C_acnes" \
-    --output_dir results/microbiome_safe/
+    --context skin \
+    --output results/microbiome_safe/
+
+# Gut microbiome optimization
+python scripts/B8_microbiome_safe_amps.py \
+    --context gut \
+    --output results/microbiome_safe/
 ```
 
 **Key Metric - Selectivity Index (SI):**
@@ -61,10 +73,19 @@ SI > 4 = Clinically relevant selectivity (target)
 Optimize peptides for both activity AND ease of synthesis.
 
 ```bash
+# Standard synthesis optimization
 python scripts/B10_synthesis_optimization.py \
-    --activity_weight 0.6 \
-    --synthesis_weight 0.4 \
-    --output_dir results/synthesis_optimized/
+    --output results/synthesis_optimized/
+
+# Shorter peptides (easier to synthesize)
+python scripts/B10_synthesis_optimization.py \
+    --max-length 20 \
+    --output results/synthesis_optimized/
+
+# Dry run (without VAE model)
+python scripts/B10_synthesis_optimization.py \
+    --dry-run \
+    --output results/synthesis_optimized/
 ```
 
 **Synthesis Metrics Optimized:**

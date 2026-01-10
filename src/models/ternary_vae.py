@@ -80,9 +80,12 @@ import logging
 from pathlib import Path
 from typing import Dict
 
+import numpy as np
 import torch
 import torch.nn as nn
+from scipy.stats import spearmanr
 
+from src.core import TERNARY
 from src.geometry.poincare import poincare_distance
 from src.utils.checkpoint import load_checkpoint_compat
 
@@ -369,11 +372,35 @@ class TernaryVAEV5_11(nn.Module):
             geo_loss_placeholder = torch.tensor(0.0, device=x.device)
             rad_loss_placeholder = torch.tensor(0.0, device=x.device)
 
+            # Calculate actual hierarchy values (not placeholders)
+            # Convert ternary operations to indices for valuation calculation
+            batch_indices = TERNARY.from_ternary(x)  # (batch,) indices
+            batch_valuations = TERNARY.valuation(batch_indices).cpu().numpy()  # (batch,) valuations
+
+            # Get radii for hierarchy calculation
+            radii_A_batch = poincare_distance(z_A_hyp, origin, c=curvature).detach().cpu().numpy()
+            radii_B_batch = poincare_distance(z_B_hyp, origin, c=curvature).detach().cpu().numpy()
+
+            # Calculate hierarchy as Spearman correlation for current batch
+            if len(batch_valuations) > 1 and len(np.unique(batch_valuations)) > 1:
+                hierarchy_A = spearmanr(batch_valuations, radii_A_batch)[0]
+                hierarchy_B = spearmanr(batch_valuations, radii_B_batch)[0]
+
+                # Handle NaN values from spearmanr
+                if np.isnan(hierarchy_A):
+                    hierarchy_A = 0.0
+                if np.isnan(hierarchy_B):
+                    hierarchy_B = 0.0
+            else:
+                # Fallback for small batches or uniform valuations
+                hierarchy_A = 0.0
+                hierarchy_B = 0.0
+
             batch_stats = torch.stack([
                 radius_A,
                 radius_B,
-                torch.tensor(1.0, device=x.device),  # H_A placeholder
-                torch.tensor(1.0, device=x.device),  # H_B placeholder
+                torch.tensor(hierarchy_A, device=x.device, dtype=torch.float32),  # Real H_A
+                torch.tensor(hierarchy_B, device=x.device, dtype=torch.float32),  # Real H_B
                 kl_A,
                 kl_B,
                 geo_loss_placeholder,
