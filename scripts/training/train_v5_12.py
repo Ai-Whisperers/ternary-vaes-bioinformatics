@@ -478,8 +478,15 @@ def main():
 
     # Load frozen checkpoint
     frozen_cfg = config.get('frozen_checkpoint', {})
-    frozen_path = PROJECT_ROOT / frozen_cfg.get('path', 'sandbox-training/checkpoints/v5_5/latest.pt')
-    if frozen_path.exists():
+    checkpoint_path = frozen_cfg.get('path', 'sandbox-training/checkpoints/v5_5/latest.pt')
+
+    if checkpoint_path is None or checkpoint_path == "null":
+        print("Training from scratch (no checkpoint specified)")
+        frozen_path = None
+    else:
+        frozen_path = PROJECT_ROOT / checkpoint_path
+
+    if frozen_path is not None and frozen_path.exists():
         print(f"Loading frozen checkpoint: {frozen_path}")
         ckpt = load_checkpoint_compat(frozen_path, map_location=device)
         model_state = get_model_state_dict(ckpt)
