@@ -200,6 +200,22 @@ class HyperbolicProjection(nn.Module):
         c = self.manifold.c
         return c.item() if hasattr(c, "item") else float(c)
 
+    def get_curvature_tensor(self) -> torch.Tensor:
+        """Get curvature as tensor for graph-friendly operations.
+
+        This avoids .item() calls that break torch.compile graphs.
+        """
+        c = self.manifold.c
+        if hasattr(c, "item"):
+            # Already a tensor, just ensure it's 0-dim
+            return c.view(())
+        else:
+            # For float curvature, return a constant tensor that won't break graphs
+            # Use a cached tensor to avoid creating new ones during forward pass
+            if not hasattr(self, '_curvature_tensor'):
+                self._curvature_tensor = torch.tensor(float(c), dtype=torch.float32)
+            return self._curvature_tensor
+
     def forward_with_components(self, z_euclidean: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         """Project with explicit direction/radius outputs.
 
@@ -322,6 +338,13 @@ class DualHyperbolicProjection(nn.Module):
     def get_curvature(self) -> float:
         """Get current curvature value (may be learnable)."""
         return self.proj_A.get_curvature()
+
+    def get_curvature_tensor(self) -> torch.Tensor:
+        """Get curvature as tensor for graph-friendly operations.
+
+        This avoids .item() calls that break torch.compile graphs.
+        """
+        return self.proj_A.get_curvature_tensor()
 
 
 __all__ = ["HyperbolicProjection", "DualHyperbolicProjection"]
