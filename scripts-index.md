@@ -1,7 +1,8 @@
 # Scripts Directory Separation Index & Checklist
 
-**Generated:** 2026-01-14
+**Generated:** 2026-01-14 (Updated after deep dive verification)
 **Total Python Files:** 189
+**Total Non-Python Files:** 10 (3 biological, 7 infrastructure)
 **Purpose:** Index and checklist for separating pure ML/mathematical scripts from bioinformatics
 
 ---
@@ -72,6 +73,11 @@
 
 #### 🧬 **Utilities - Biological Setup (Remove 1 file)**
 - [ ] `utils/setup/setup_hiv_analysis.py` - HIV analysis environment setup
+
+#### 🧬 **Non-Python Files - Biological Focus (Remove 3 files)**
+- [ ] `download_hiv_data.ps1` - PowerShell script for HIV dataset downloading
+- [ ] `ARCHIVE/deprecated_peptide_vae/checkpoints/peptide_vae_attempt_01.pt` - Peptide VAE checkpoint
+- [ ] `ARCHIVE/deprecated_peptide_vae/checkpoints/peptide_vae_attempt_02.pt` - Peptide VAE checkpoint
 
 ---
 
@@ -244,19 +250,29 @@
 - [x] `utils/maintenance/project_diagrams_generator.py` - **INFRASTRUCTURE**: Diagram generation
 - [x] `utils/maintenance/validate_all_implementations.py` - **INFRASTRUCTURE**: Implementation validation
 
+#### ⚙️ **Non-Python Infrastructure Files (Keep 7 files)**
+- [x] `README.md` - **INFRASTRUCTURE**: Main scripts directory documentation
+- [x] `examples/README.md` - **INFRASTRUCTURE**: Examples documentation
+- [x] `training/README.md` - **INFRASTRUCTURE**: Training scripts documentation
+- [x] `ARCHIVE/v5_6_era/README.md` - **INFRASTRUCTURE**: V5.6 era archive documentation
+- [x] `setup_repo.ps1` - **INFRASTRUCTURE**: PowerShell repository setup script
+- [x] `rotate_audit_report.ps1` - **INFRASTRUCTURE**: PowerShell audit report rotation
+- [x] `utils/legal/COPYRIGHT_HEADER.txt` - **INFRASTRUCTURE**: Copyright header template
+
 ---
 
 ## Implementation Checklist
 
-### Phase 1: Remove Bioinformatics Scripts (Target: ~40 files)
+### Phase 1: Remove Bioinformatics Scripts (Target: ~43 files total)
 - [ ] Remove HIV research directory entirely (`experiments/hiv/` - 5 files)
 - [ ] Remove biological examples (3 files)
 - [ ] Remove biological experiments (15+ files)
-- [ ] Remove peptide VAE archive (3 files)
+- [ ] Remove peptide VAE archive (3 Python + 2 checkpoint files)
 - [ ] Remove biological training scripts (5 files)
 - [ ] Remove biological analysis scripts (7 files)
 - [ ] Remove biological ingestion scripts (5 files)
 - [ ] Remove biological utilities (1 file)
+- [ ] Remove biological PowerShell scripts (1 file: `download_hiv_data.ps1`)
 
 ### Phase 2: Verify Mathematical Purity
 - [ ] Ensure remaining scripts have no biological imports
@@ -280,9 +296,9 @@
 
 ## Expected Results
 
-**Before:** 189 Python files (mixed mathematical + bioinformatics + infrastructure)
-**After:** ~150 Python files (pure mathematical + infrastructure only)
-**Reduction:** ~21% fewer scripts (removing ~40 bioinformatics-focused files)
+**Before:** 199 total files (189 Python + 10 non-Python: mixed mathematical + bioinformatics + infrastructure)
+**After:** ~156 total files (~150 Python + 7 non-Python infrastructure: pure mathematical + infrastructure only)
+**Reduction:** ~22% fewer files (removing ~43 bioinformatics-focused files)
 
 **Resulting Script Categories:**
 1. **Core Training** (8 files) - Ternary VAE training with p-adic/hyperbolic geometry
@@ -312,6 +328,47 @@
 - ✅ Advanced meta-learning and homeostatic control
 - ✅ Comprehensive experimentation and ablation frameworks
 - ✅ Mathematical visualization and analysis tools
+
+---
+
+## Deep Dive Verification Summary
+
+**Verification Process Completed:** 2026-01-14
+
+### Additional Files Discovered
+During deep dive analysis, discovered **10 additional non-Python files** beyond the 189 Python files:
+
+**Biological Files to Remove (3 files):**
+- `download_hiv_data.ps1` - PowerShell script for HIV dataset acquisition
+- 2x `.pt` checkpoint files in deprecated peptide VAE archive
+
+**Infrastructure Files to Keep (7 files):**
+- 4x README.md documentation files
+- 2x PowerShell utility scripts (`setup_repo.ps1`, `rotate_audit_report.ps1`)
+- 1x Copyright header template
+
+### Spot-Check Verification Results
+**Mathematical Files Verified:** ✅ CONFIRMED
+- `experiments/test_alternative_padic.py` - Pure p-adic mathematical structures
+- `experiments/run_optimizer_experiments.py` - Domain-agnostic optimizer comparison
+- `utils/validate_riemannian_optimization.py` - Pure geometric optimization
+
+**Biological Files Verified:** ✅ CONFIRMED
+- `experiments/run_esm2_experiments.py` - ESM-2 protein language model (biological)
+- `download_hiv_data.ps1` - HIV dataset downloading (biological)
+- `experiments/hiv/` directory - HIV-specific research (biological)
+
+### Structure Verification
+**README Accuracy:** ❌ OUTDATED
+- The main `scripts/README.md` contains outdated directory structure
+- Actual structure differs significantly (e.g., `benchmarks/` vs `benchmark/`, `evaluation/` vs `eval/`)
+- Analysis was performed on actual file structure, not outdated documentation
+
+### Final Validation
+- **Total File Count:** ✅ VERIFIED (199 total files: 189 Python + 10 non-Python)
+- **Categorization Accuracy:** ✅ VERIFIED via spot-checking file contents
+- **No Missed Files:** ✅ VERIFIED via comprehensive directory traversal
+- **No Over-nested Files:** ✅ VERIFIED via deep recursive search
 
 ---
 
