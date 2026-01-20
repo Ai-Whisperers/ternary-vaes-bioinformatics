@@ -8,6 +8,23 @@
 
 ---
 
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [Package Structure](#package-structure)
+- [NEW: A2 Pan-Arbovirus Primer Library Tool](#new-a2-pan-arbovirus-primer-library-tool)
+- [Overview](#overview)
+- [What's Included](#whats-included)
+- [Quick Start](#quick-start)
+- [Technical Details](#technical-details)
+- [Output Formats](#output-formats)
+- [Using with Real NCBI Data](#using-with-real-ncbi-data)
+- [Integration with IICS-UNA Surveillance](#integration-with-iics-una-surveillance)
+- [Key Innovation](#key-innovation)
+- [Validation Checklist](#validation-checklist)
+- [Expected Findings with Real Data](#expected-findings-with-real-data)
+
+---
+
 ## Executive Summary
 
 This package provides a complete toolkit for arbovirus molecular diagnostics and surveillance in Paraguay. It includes:
@@ -15,6 +32,30 @@ This package provides a complete toolkit for arbovirus molecular diagnostics and
 1. **A2: Pan-Arbovirus Primer Library** - Design RT-PCR primers for 7 arboviruses
 2. **Hyperbolic Trajectory Forecasting** - Predict serotype dominance
 3. **Primer Stability Scanner** - Identify mutation-resistant primer targets
+
+---
+
+## Package Structure
+
+```
+alejandra_rojas/
+├── README.md                      # Main documentation
+├── scripts/                       # Core executable scripts
+│   ├── A2_pan_arbovirus_primers.py
+│   ├── arbovirus_hyperbolic_trajectory.py
+│   └── primer_stability_scanner.py
+├── notebooks/                     # Interactive analysis
+│   └── rojas_serotype_forecast.ipynb
+├── results/                       # Analysis outputs
+│   ├── dengue_forecast.json
+│   └── primer_candidates.csv
+├── docs/                          # Detailed guides
+│   ├── A2_USER_GUIDE.md
+│   └── IMPLEMENTATION_GUIDE.md
+├── src/                           # Shared library code
+├── tests/                         # Unit tests
+└── validation/                    # Validation reports
+```
 
 ---
 

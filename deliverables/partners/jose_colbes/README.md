@@ -9,6 +9,23 @@
 
 ---
 
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [Quick Start](#quick-start)
+- [Package Structure](#package-structure)
+- [Validated Results](#validated-results)
+- [Core Tools](#core-tools)
+- [Validated Discoveries](#validated-discoveries)
+- [Model Architecture](#model-architecture)
+- [Recommended Use Cases](#recommended-use-cases)
+- [Reproducibility](#reproducibility)
+- [Dependencies](#dependencies)
+- [Technical Files](#technical-files)
+- [References](#references)
+- [Contact](#contact)
+
+---
+
 ## Executive Summary
 
 This package provides a **scientifically validated** toolkit for protein stability prediction using p-adic geometric methods. Our TrainableCodonEncoder-based DDG predictor achieves:

@@ -8,6 +8,21 @@
 
 ---
 
+## Table of Contents
+- [Executive Summary](#executive-summary)
+- [Package Structure](#package-structure)
+- [NEW: Easy Implementation Tools](#new-easy-implementation-tools)
+- [Demo Results Summary](#demo-results-summary)
+- [What's Included](#whats-included)
+- [Quick Start](#quick-start)
+- [Technical Details](#technical-details)
+- [Output Formats](#output-formats)
+- [Integration with VAE](#integration-with-vae)
+- [Validation Checklist](#validation-checklist)
+- [Scientific Background](#scientific-background)
+
+---
+
 ## Executive Summary
 
 This package provides a comprehensive toolkit for antimicrobial peptide (AMP) design using NSGA-II multi-objective optimization in the VAE latent space. It includes three specialized tools:
@@ -15,6 +30,34 @@ This package provides a comprehensive toolkit for antimicrobial peptide (AMP) de
 1. **B1: Pathogen-Specific AMP Design** - Design AMPs targeting specific pathogens (e.g., *A. baumannii*)
 2. **B8: Microbiome-Safe AMPs** - Design selective peptides that kill pathogens while sparing commensals
 3. **B10: Synthesis Optimization** - Balance antimicrobial activity with synthesis feasibility
+
+---
+
+## Package Structure
+
+```
+carlos_brizuela/
+├── README.md                      # Main documentation
+├── scripts/                       # Optimization tools
+│   ├── B1_pathogen_specific_design.py
+│   ├── B8_microbiome_safe_amps.py
+│   ├── B10_synthesis_optimization.py
+│   └── latent_nsga2.py
+├── notebooks/                     # Interactive navigator
+│   └── brizuela_amp_navigator.ipynb
+├── results/                       # Generated peptides
+│   ├── pathogen_specific/
+│   ├── microbiome_safe/
+│   └── synthesis_optimized/
+├── checkpoints_definitive/        # Model checkpoints
+├── docs/                          # User guides
+│   ├── B1_USER_GUIDE.md
+│   ├── B8_USER_GUIDE.md
+│   └── B10_USER_GUIDE.md
+├── src/                           # Shared library code
+├── training/                      # Training scripts
+└── validation/                    # Validation scripts
+```
 
 ---
 
