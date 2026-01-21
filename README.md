@@ -353,6 +353,11 @@ See [`docs/audits/v5.12.2-hyperbolic/`](docs/audits/v5.12.2-hyperbolic/) for ful
 
 ## 🛠️ Installation & Development
 
+### Development Standards
+
+- **Virtual Environment**: Always use an isolated virtual environment (`.venv`) for development to prevent dependency conflicts.
+- **Cache Management**: Machine learning caches (HuggingFace, PyTorch, etc.) must be stored within the project directory (e.g., `.cache/` or `local/cache`), **never** in the system root or global user directories. This ensures project portability and prevents system drive bloat.
+
 ### Requirements
 
 | Component | Minimum | Recommended |

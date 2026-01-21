@@ -26,6 +26,7 @@ local/
 .mypy_cache/
 .pytest_cache/
 .ruff_cache/
+.cache/
 
 # Generated binary data files (can be regenerated)
 *.npy
@@ -43,6 +44,7 @@ htmlcov/
 venv/
 ENV/
 env/
+.venv/
 
 # Environment variables
 .env
