@@ -356,24 +356,29 @@ def main():
     }, model_path)
     print(f"Model saved to: {model_path}")
 
-    # Comparison
+    # Comparison - WITH HONEST CAVEATS
     print("\n" + "=" * 70)
     print("COMPARISON WITH LITERATURE")
     print("=" * 70)
 
-    print("\n| Method | Spearman r | Notes |")
-    print("|--------|------------|-------|")
-    print(f"| Rosetta ddg_monomer | 0.69 | Structure-based |")
-    print(f"| FoldX | 0.48 | Structure-based |")
-    print(f"| ELASPIC-2 (2024) | 0.50 | Sequence-based |")
-    print(f"| Baseline (p-adic) | 0.30 | Sequence-based |")
-    print(f"| **This work (12-dim)** | **{ddg_results['loo_spearman_r']:.2f}** | Trained codon encoder |")
+    print("\n⚠️  IMPORTANT: Literature methods benchmarked on N=669.")
+    print("    Our N=52 result is NOT directly comparable.")
+    print("    On N=669, our method achieves ρ=0.37-0.40.\n")
+
+    print("| Method | Spearman r | Dataset | Notes |")
+    print("|--------|------------|---------|-------|")
+    print(f"| Rosetta ddg_monomer | 0.69 | N=669 | Structure-based |")
+    print(f"| **This work (N=52)** | **{ddg_results['loo_spearman_r']:.2f}** | N=52 | Trained codon encoder |")
+    print(f"| This work (N=669) | 0.37-0.40 | N=669 | Same method, full data |")
+    print(f"| Mutate Everything | 0.56 | N=669 | Sequence-based |")
+    print(f"| ESM-1v | 0.51 | N=669 | Sequence-based |")
+    print(f"| ELASPIC-2 (2024) | 0.50 | N=669 | Sequence-based |")
+    print(f"| FoldX | 0.48 | N=669 | Structure-based |")
+    print(f"| Baseline (p-adic) | 0.30 | N=52 | No ML |")
 
     improvement = (ddg_results['loo_spearman_r'] - 0.30) / 0.30 * 100
-    if improvement > 0:
-        print(f"\nImprovement over baseline: +{improvement:.1f}%")
-    else:
-        print(f"\nChange from baseline: {improvement:.1f}%")
+    print(f"\nImprovement over baseline (N=52): +{improvement:.1f}%")
+    print("NOTE: Does NOT outperform ESM-1v on comparable N=669 data.")
 
     return 0
 

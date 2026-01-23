@@ -295,14 +295,23 @@ Under the null hypothesis of no correlation, we permuted experimental DDG values
 
 ## Comparison with Published Methods
 
-| Method | Spearman ρ | Type | Our Advantage |
-|--------|------------|------|---------------|
-| Rosetta ddg_monomer | 0.69 | Structure | Requires 3D structure |
-| **TrainableCodonEncoder** | **{results['loo_cv']['overall']['spearman']}** | **Sequence** | **No structure needed** |
-| Mutate Everything | 0.56 | Sequence | Outperformed |
-| ESM-1v | 0.51 | Sequence | Outperformed |
-| ELASPIC-2 | 0.50 | Sequence | Outperformed |
-| FoldX | 0.48 | Structure | Outperformed |
+⚠️ **IMPORTANT CAVEAT:** Direct comparison is NOT scientifically valid.
+Literature methods are benchmarked on N=669 (full S669 dataset).
+Our validation uses N=52 (curated subset of small proteins).
+On N=669, our method achieves ρ=0.37-0.40, which does NOT outperform these methods.
+
+| Method | Spearman ρ | Dataset | Type |
+|--------|------------|---------|------|
+| Rosetta ddg_monomer | 0.69 | N=669 | Structure |
+| **Our Method (this validation)** | **{results['loo_cv']['overall']['spearman']}** | **N=52** | **Sequence** |
+| Our Method (full S669) | 0.37-0.40 | N=669 | Sequence |
+| Mutate Everything | 0.56 | N=669 | Sequence |
+| ESM-1v | 0.51 | N=669 | Sequence |
+| ELASPIC-2 | 0.50 | N=669 | Sequence |
+| FoldX | 0.48 | N=669 | Structure |
+
+**Honest Assessment:** On comparable data (N=669), our sequence-only method
+achieves ρ=0.37-0.40, which is competitive but does not outperform ESM-1v.
 
 ---
 

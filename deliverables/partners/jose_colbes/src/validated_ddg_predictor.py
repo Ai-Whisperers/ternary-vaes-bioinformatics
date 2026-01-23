@@ -353,27 +353,38 @@ def predict_mutation_ddg(wt_aa: str, mut_aa: str) -> dict:
 def get_performance_metrics() -> dict:
     """Return validated performance metrics.
 
-    These metrics were computed using Leave-One-Out cross-validation
-    on the S669 benchmark dataset (52 mutations).
+    IMPORTANT: These metrics were computed on N=52 (curated subset).
+    Literature methods are benchmarked on N=669. Direct comparison is NOT valid.
+    On N=669, our method achieves ρ=0.37-0.40.
 
     Returns:
         dict with validation metrics
     """
     return {
-        "dataset": "S669 (52 mutations)",
+        "dataset": "S669 curated subset (N=52)",
         "validation": "Leave-One-Out CV",
-        "loo_spearman": 0.60,
-        "loo_pearson": 0.62,
-        "loo_mae": 0.89,
+        "loo_spearman": 0.58,
+        "loo_pearson": 0.60,
+        "loo_mae": 0.91,
         "loo_rmse": 1.17,
         "overfitting_ratio": 1.27,
-        "comparison": {
+        "n52_vs_n669_caveat": (
+            "IMPORTANT: Literature benchmarks use N=669. "
+            "Our N=52 result (0.58) is NOT directly comparable. "
+            "On N=669, our method achieves ρ=0.37-0.40."
+        ),
+        "comparison_n52": {
+            "note": "N=52 curated subset - NOT comparable to N=669 benchmarks",
+            "TrainableCodonEncoder (N=52)": 0.58,
+        },
+        "comparison_n669": {
+            "note": "N=669 full dataset - FAIR comparison",
             "Rosetta ddg_monomer": 0.69,
-            "TrainableCodonEncoder (this)": 0.60,
             "Mutate Everything": 0.56,
             "ESM-1v": 0.51,
             "ELASPIC-2": 0.50,
             "FoldX": 0.48,
+            "TrainableCodonEncoder (N=669)": 0.38,  # Our method on comparable data
         },
         "note": "Sequence-only predictor; no structure required",
     }

@@ -12,10 +12,14 @@
 
 | Package | Delivery Status | Model Validated | Inference Tested | Last Verified |
 |---------|:---------------:|:---------------:|:----------------:|---------------|
-| jose_colbes | **100%** | PASS (LOO ρ=0.585) | PASS (5/5) | 2026-01-23 |
-| alejandra_rojas | 85% | PENDING | PENDING | - |
-| carlos_brizuela | 70% | PENDING | PENDING | - |
+| jose_colbes | **95%** | PASS (LOO ρ=0.58, N=52) | PASS (5/5) | 2026-01-23 |
+| alejandra_rojas | **90%** | PASS (skeptical validation) | PASS | 2026-01-23 |
+| carlos_brizuela | **30%** | ❌ FAIL (broken) | ❌ FAIL | 2026-01-23 |
 | hiv_research_package | Complete | N/A (API) | PENDING | - |
+
+**⚠️ CRITICAL NOTES:**
+- Jose Colbes: N=52 results NOT comparable to N=669 literature benchmarks
+- Carlos Brizuela: Validation scripts crash (feature dimension mismatch)
 
 **Legend:**
 - PENDING: Not yet verified this session
@@ -29,15 +33,21 @@
 
 ### Claimed Status: 95% Ready
 
+### ⚠️ CRITICAL CAVEAT
+**Literature methods (ESM-1v 0.51, FoldX 0.48, etc.) are benchmarked on N=669.**
+**Our N=52 result is NOT directly comparable.**
+**On N=669, our method achieves ρ=0.37-0.40, which does NOT outperform these methods.**
+
 ### Validation Evidence (VERIFIED FROM FILES)
 | Metric | Claimed | Verified | Source |
 |--------|---------|----------|--------|
-| LOO CV Spearman | 0.585 | 0.5854 | `validation/results/scientific_metrics.json` |
-| p-value | <0.001 | 5.16e-06 | `validation/results/scientific_metrics.json` |
-| 95% CI | [0.341, 0.770] | [0.341, 0.770] | bootstrap n=1000 |
+| LOO CV Spearman | 0.58 | 0.581 | `validation/bootstrap_test.py` execution |
+| p-value | <0.001 | 6.30e-06 | bootstrap_test.py execution |
+| 95% CI | [0.34, 0.77] | [0.337, 0.768] | bootstrap n=1000 |
 | Permutation p | <0.001 | 0.0000 | 1000 permutations |
-| N mutations | 52 | 52 | S669 curated subset |
+| N mutations | 52 | 52 | S669 curated subset (NOT full N=669) |
 | MAE | 0.91 kcal/mol | 0.91 | LOO validation |
+| **N=669 performance** | **0.37-0.40** | **Documented** | ValidatedDDGPredictor.py |
 
 ### Statistical Validation Artifacts (EXIST)
 - `validation/results/scientific_metrics.json` - Complete bootstrap results

@@ -205,25 +205,28 @@ def main():
     else:
         print("✗ Permutation test p >= 0.05: NOT confirmed")
 
-    # Comparison
+    # Comparison - WITH HONEST CAVEATS
     print(f"\n{'=' * 60}")
     print("COMPARISON WITH PUBLISHED METHODS")
     print("=" * 60)
-    print(f"| Method                    | Spearman | Status     |")
-    print(f"|---------------------------|----------|------------|")
-    print(f"| Rosetta ddg_monomer       | 0.69     | Structure  |")
-    print(f"| **Our Method (LOO)**      | **{observed_rho:.2f}**   | **Sequence** |")
-    print(f"| Mutate Everything         | 0.56     | Sequence   |")
-    print(f"| ESM-1v                    | 0.51     | Sequence   |")
-    print(f"| ELASPIC-2                 | 0.50     | Sequence   |")
-    print(f"| FoldX                     | 0.48     | Structure  |")
-
-    if observed_rho > 0.56:
-        print(f"\n✓ Our method OUTPERFORMS Mutate Everything (0.56)")
-    if observed_rho > 0.51:
-        print(f"✓ Our method OUTPERFORMS ESM-1v (0.51)")
-    if observed_rho > 0.50:
-        print(f"✓ Our method OUTPERFORMS ELASPIC-2 (0.50)")
+    print()
+    print("⚠️  IMPORTANT: Direct comparison is NOT valid!")
+    print("    Literature methods benchmarked on N=669 (full S669)")
+    print("    Our results are on N=52 (curated subset)")
+    print("    On N=669, our method achieves ρ=0.37-0.40")
+    print()
+    print(f"| Method                    | Spearman | Dataset    | Type       |")
+    print(f"|---------------------------|----------|------------|------------|")
+    print(f"| Rosetta ddg_monomer       | 0.69     | N=669      | Structure  |")
+    print(f"| **Our Method (N=52)**     | **{observed_rho:.2f}**   | N=52       | Sequence   |")
+    print(f"| Our Method (N=669)        | 0.37-0.40| N=669      | Sequence   |")
+    print(f"| Mutate Everything         | 0.56     | N=669      | Sequence   |")
+    print(f"| ESM-1v                    | 0.51     | N=669      | Sequence   |")
+    print(f"| ELASPIC-2                 | 0.50     | N=669      | Sequence   |")
+    print(f"| FoldX                     | 0.48     | N=669      | Structure  |")
+    print()
+    print("NOTE: On comparable N=669 data, our method does NOT outperform")
+    print("      ESM-1v or other sequence-based methods.")
 
 
 if __name__ == "__main__":
