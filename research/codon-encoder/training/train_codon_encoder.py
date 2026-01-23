@@ -34,6 +34,12 @@ from pathlib import Path
 import numpy as np
 import torch
 
+# Set random seeds for reproducibility (Fix H3: Scientific Rigor Audit)
+np.random.seed(42)
+torch.manual_seed(42)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed(42)
+
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(PROJECT_ROOT))

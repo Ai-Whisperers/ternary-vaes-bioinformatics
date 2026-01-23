@@ -74,8 +74,18 @@ def load_curated_data():
 
 def bootstrap_correlation(y_true: np.ndarray, y_pred: np.ndarray,
                           n_bootstrap: int = 1000,
-                          confidence: float = 0.95) -> dict:
-    """Compute bootstrap confidence intervals for correlation."""
+                          confidence: float = 0.95,
+                          random_state: int = 42) -> dict:
+    """Compute bootstrap confidence intervals for correlation.
+
+    Args:
+        y_true: True values
+        y_pred: Predicted values
+        n_bootstrap: Number of bootstrap samples
+        confidence: Confidence level (default 0.95)
+        random_state: Random seed for reproducibility
+    """
+    np.random.seed(random_state)  # Fix H1: Reproducibility
     n = len(y_true)
     correlations = []
     rmses = []
@@ -153,13 +163,19 @@ def validate_model(model_path: Path, target: str = None,
     # Bootstrap confidence intervals
     bootstrap = bootstrap_correlation(y, y_pred_cv, n_bootstrap)
 
-    # Random baseline (permutation test)
-    random_rs = []
-    for _ in range(100):
+    # Random baseline (proper permutation test) - Fix H2
+    np.random.seed(42)  # Reproducibility
+    n_permutations = 1000  # Increased from 100 for statistical power
+    perm_rs = []
+    observed_r = abs(pearson_r)
+    for _ in range(n_permutations):
         y_shuffled = np.random.permutation(y)
-        r, _ = pearsonr(y, y_shuffled)
-        random_rs.append(abs(r))
-    random_baseline = np.mean(random_rs)
+        r, _ = pearsonr(y_shuffled, y_pred_cv)  # Compare shuffled y vs predictions
+        perm_rs.append(r)  # Keep sign, don't take abs (was inflating baseline)
+
+    # Proper permutation p-value: proportion of permutations >= observed
+    perm_p_value = np.mean(np.abs(perm_rs) >= observed_r)
+    random_baseline = np.mean(np.abs(perm_rs))  # Report mean |r| under null
 
     result = BootstrapResult(
         model_name=model_path.stem,
