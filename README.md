@@ -242,6 +242,26 @@ pip install -e ".[all]"  # Full installation with all extras
 
 ---
 
+## Related Work
+
+### P-adic and Ultrametric Neural Networks
+
+- **v-PuNNs: van der Put Neural Networks for Transparent Ultrametric Representation Learning**
+  N'guessan, G. L. R. (2025). [arXiv:2508.01010](https://arxiv.org/abs/2508.01010)
+  *Ultrametric neural network architectures using van der Put basis for hierarchical learning.*
+
+- **Geometry of Information Integration**
+  Amari, S. (2017). [arXiv:1709.02050](https://arxiv.org/abs/1709.02050)
+  *Information geometry foundations for neural information integration.*
+
+### Bioinformatics Applications
+
+- **A Simple yet Effective DDG Predictor is An Unsupervised Antibody Optimizer and Explainer**
+  (2025). [arXiv:2502.06913v1](https://arxiv.org/abs/2502.06913v1)
+  *DDG prediction methods for antibody optimization, relevant to our protein stability work.*
+
+---
+
 ## License
 
 ### Software (Code)
