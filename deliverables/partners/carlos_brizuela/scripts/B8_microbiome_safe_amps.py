@@ -67,8 +67,8 @@ try:
 except ImportError:
     HAS_PREDICTOR = False
 
-# Import shared utilities (AFTER scripts.* imports to avoid module clobbering)
-from shared.constants import AMINO_ACIDS, CHARGES, HYDROPHOBICITY
+# Import from local src (self-contained)
+from src.constants import AMINO_ACIDS, CHARGES, HYDROPHOBICITY
 
 
 # =============================================================================

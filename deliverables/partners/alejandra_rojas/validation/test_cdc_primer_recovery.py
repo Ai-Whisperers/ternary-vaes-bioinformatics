@@ -38,19 +38,19 @@ from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Optional
 
-# Add project paths
-project_root = Path(__file__).parent.parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "deliverables"))
+# Add package root to path for local imports
+_package_root = Path(__file__).resolve().parents[1]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 
-from deliverables.partners.alejandra_rojas.src.constants import (
+from src.constants import (
     REFSEQ_ACCESSIONS,
     CDC_PRIMERS,
     PANFLAVIVIRUS_PRIMERS,
     ARBOVIRUS_TARGETS,
     ValidatedPrimer,
 )
-from deliverables.partners.alejandra_rojas.src.reference_data import (
+from src.reference_data import (
     compute_sequence_identity,
 )
 

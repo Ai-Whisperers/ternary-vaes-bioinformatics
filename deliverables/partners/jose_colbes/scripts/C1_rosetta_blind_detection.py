@@ -27,7 +27,7 @@ Usage:
         --output results/rosetta_blind/
 
 Dependencies:
-    - src.core.padic_math: P-adic valuation functions
+    - core.padic_math: P-adic valuation functions (local to package)
 """
 
 from __future__ import annotations
@@ -41,12 +41,12 @@ from typing import Optional
 
 import numpy as np
 
-# Add project root to path for src imports
-_project_root = Path(__file__).resolve().parents[4]
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
+# Add package root to path for local imports
+_package_root = Path(__file__).resolve().parents[1]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 
-from src.core.padic_math import padic_valuation
+from core.padic_math import padic_valuation
 
 
 @dataclass
@@ -90,7 +90,7 @@ def compute_geometric_score(chi_angles: list[float]) -> float:
     """Compute geometric instability score from chi angles.
 
     Uses hyperbolic distance to standard rotamer centroids combined with
-    3-adic valuation from src.core.padic_math.
+    3-adic valuation from core.padic_math.
 
     Higher score = more unstable (further from common rotamers).
 
@@ -120,7 +120,7 @@ def compute_geometric_score(chi_angles: list[float]) -> float:
     indices = [int((normalize_angle(c) + np.pi) / (2 * np.pi) * bins) for c in valid_chi]
     combined = sum(idx * (bins ** i) for i, idx in enumerate(indices[:4]))
 
-    # Use src.core.padic_math.padic_valuation (3-adic)
+    # Use core.padic_math.padic_valuation (3-adic)
     v_p = padic_valuation(combined + 1, p=3) if combined >= 0 else 0
 
     # Combined geometric score

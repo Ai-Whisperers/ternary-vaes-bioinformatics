@@ -26,13 +26,14 @@ from typing import Optional
 from dataclasses import dataclass, field, asdict
 import numpy as np
 
-# Add project paths
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "deliverables"))
+# Add package root to path for local imports
+PACKAGE_DIR = Path(__file__).parent.parent
+PROJECT_ROOT = PACKAGE_DIR.parent.parent.parent
+sys.path.insert(0, str(PACKAGE_DIR))  # For local src imports
+sys.path.insert(0, str(PROJECT_ROOT))  # For ML model imports
 
-from shared.config import get_config
-from shared.constants import HYDROPHOBICITY, CHARGES, VOLUMES, WHO_CRITICAL_PATHOGENS
+# Import from local src (self-contained)
+from src.constants import HYDROPHOBICITY, CHARGES, VOLUMES, WHO_CRITICAL_PATHOGENS
 
 # Try to import requests for downloading
 try:
@@ -1071,10 +1072,10 @@ class DRAMPLoader:
     ]
 
     def __init__(self):
-        self.config = get_config()
-        self.cache_dir = self.config.get_partner_dir("carlos") / "data"
+        # Use local paths (self-contained)
+        self.cache_dir = PACKAGE_DIR / "data"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.models_dir = self.config.get_partner_dir("carlos") / "models"
+        self.models_dir = PACKAGE_DIR / "models"
         self.models_dir.mkdir(parents=True, exist_ok=True)
 
     def download_dramp(self, dataset: str = "general") -> Optional[str]:
@@ -1401,8 +1402,8 @@ class DRAMPLoader:
         model = model_data["model"]
         scaler = model_data["scaler"]
 
-        # Import uncertainty utilities
-        from shared.uncertainty import UncertaintyPredictor
+        # Import uncertainty utilities (local to package)
+        from src.uncertainty import UncertaintyPredictor
 
         # Create uncertainty predictor
         uncertainty_predictor = UncertaintyPredictor(
@@ -1455,7 +1456,7 @@ class DRAMPLoader:
         Returns:
             Feature array compatible with trained models
         """
-        from shared.peptide_utils import compute_ml_features
+        from src.peptide_utils import compute_ml_features
         return compute_ml_features(sequence)
 
 

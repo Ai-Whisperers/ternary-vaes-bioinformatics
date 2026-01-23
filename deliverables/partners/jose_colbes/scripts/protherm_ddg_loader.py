@@ -24,15 +24,12 @@ from typing import Optional
 from dataclasses import dataclass, field, asdict
 import numpy as np
 
-# Add project paths
-# Path: scripts/ -> jose_colbes/ -> partners/ -> deliverables/ -> PROJECT_ROOT
-PROJECT_ROOT = Path(__file__).resolve().parents[4]
+# Add package root to path for local imports
+# Path: scripts/ -> jose_colbes/
 COLBES_ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "deliverables"))
+sys.path.insert(0, str(COLBES_ROOT))
 
-from shared.config import get_config
-from shared.constants import HYDROPHOBICITY, CHARGES, VOLUMES, FLEXIBILITY
+from core.constants import HYDROPHOBICITY, CHARGES, VOLUMES, FLEXIBILITY
 
 # Try to import sklearn for training
 try:
@@ -482,10 +479,10 @@ class ProThermLoader:
     ]
 
     def __init__(self):
-        self.config = get_config()
-        self.cache_dir = self.config.get_partner_dir("jose") / "data"
+        # Use local paths (self-contained)
+        self.cache_dir = COLBES_ROOT / "data"
         self.cache_dir.mkdir(parents=True, exist_ok=True)
-        self.models_dir = self.config.get_partner_dir("jose") / "models"
+        self.models_dir = COLBES_ROOT / "models"
         self.models_dir.mkdir(parents=True, exist_ok=True)
 
     def generate_curated_database(self) -> StabilityDatabase:

@@ -61,15 +61,15 @@ from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
 
-# Add project root to path
+# Add package root to path for local imports
 SCRIPT_DIR = Path(__file__).parent
 PACKAGE_DIR = SCRIPT_DIR.parent
 PROJECT_ROOT = PACKAGE_DIR.parent.parent.parent
-sys.path.insert(0, str(PROJECT_ROOT))
-sys.path.insert(0, str(PROJECT_ROOT / "deliverables"))
+sys.path.insert(0, str(PACKAGE_DIR))  # For local src imports
+sys.path.insert(0, str(PROJECT_ROOT))  # For ML model imports
 
-# Import shared constants
-from shared.constants import (
+# Import from local src (self-contained)
+from src.constants import (
     AMINO_ACIDS,
     CHARGES,
     HYDROPHOBICITY,

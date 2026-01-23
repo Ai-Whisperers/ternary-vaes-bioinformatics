@@ -42,9 +42,9 @@ Usage:
     python scripts/C4_mutation_effect_predictor.py --use-heuristic --mutations mutations.csv
 
 Dependencies:
-    - src.core.padic_math: P-adic valuation functions
-    - src.encoders.trainable_codon_encoder: TrainableCodonEncoder
-    - deliverables.partners.jose_colbes.src.validated_ddg_predictor: ValidatedDDGPredictor
+    - core.padic_math: P-adic valuation functions (local to package)
+    - src.encoders.trainable_codon_encoder: TrainableCodonEncoder (main project)
+    - src.validated_ddg_predictor: ValidatedDDGPredictor (local to package)
 """
 
 from __future__ import annotations
@@ -58,14 +58,17 @@ from typing import Optional
 
 import numpy as np
 
-# Add project root to path for src imports
+# Add package root and project root to path
+_package_root = Path(__file__).resolve().parents[1]
 _project_root = Path(__file__).resolve().parents[4]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 if str(_project_root) not in sys.path:
     sys.path.insert(0, str(_project_root))
 
-# Optional: import p-adic math for extended features
+# Import p-adic math from local core
 try:
-    from src.core.padic_math import padic_valuation
+    from core.padic_math import padic_valuation
     HAS_PADIC = True
 except ImportError:
     HAS_PADIC = False
@@ -78,7 +81,7 @@ except ImportError:
 
 # Import validated DDG predictor (TrainableCodonEncoder-based)
 try:
-    from deliverables.partners.jose_colbes.src.validated_ddg_predictor import (
+    from src.validated_ddg_predictor import (
         ValidatedDDGPredictor,
     )
     HAS_VALIDATED_PREDICTOR = True

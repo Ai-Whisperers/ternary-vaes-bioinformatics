@@ -33,12 +33,12 @@ from pathlib import Path
 
 import numpy as np
 
-# Add project root to path for src imports
-_project_root = Path(__file__).resolve().parents[4]
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
+# Add package root to path for local imports
+_package_root = Path(__file__).resolve().parents[1]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 
-from src.core.padic_math import padic_valuation
+from src.padic_math import padic_valuation
 
 try:
     from Bio import SeqIO

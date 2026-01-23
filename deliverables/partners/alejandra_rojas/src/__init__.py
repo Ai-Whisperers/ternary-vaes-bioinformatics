@@ -37,6 +37,16 @@ from .constants import (
     ARBOVIRUS_TARGETS,
     PRIMER_CONSTRAINTS,
     CONSERVED_REGIONS,
+    ARBOVIRUS_TAXIDS,
+)
+from .padic_math import padic_valuation, padic_norm, padic_distance
+from .codons import (
+    GENETIC_CODE,
+    AMINO_ACID_TO_CODONS,
+    CODON_TO_INDEX,
+    INDEX_TO_CODON,
+    codon_index_to_triplet,
+    translate_sequence,
 )
 
 __all__ = [
@@ -52,8 +62,20 @@ __all__ = [
     "CrossReactivityResult",
     # Constants
     "ARBOVIRUS_TARGETS",
+    "ARBOVIRUS_TAXIDS",
     "PRIMER_CONSTRAINTS",
     "CONSERVED_REGIONS",
+    # P-adic Math
+    "padic_valuation",
+    "padic_norm",
+    "padic_distance",
+    # Codons
+    "GENETIC_CODE",
+    "AMINO_ACID_TO_CODONS",
+    "CODON_TO_INDEX",
+    "INDEX_TO_CODON",
+    "codon_index_to_triplet",
+    "translate_sequence",
 ]
 
 __version__ = "1.0.0"

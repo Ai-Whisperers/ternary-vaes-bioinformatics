@@ -43,19 +43,19 @@ from typing import Optional
 
 import numpy as np
 
-# Add project paths for shared infrastructure
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "deliverables"))
+# Add package root to path for local imports
+_package_root = Path(__file__).resolve().parents[1]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 
 # Import centralized constants (single source of truth)
-from deliverables.partners.alejandra_rojas.src.constants import (
+from src.constants import (
     ARBOVIRUS_TARGETS,
     PRIMER_CONSTRAINTS,
 )
 
 # Import NCBI client for phylogenetic sequence generation
-from deliverables.partners.alejandra_rojas.src.ncbi_client import NCBIClient
+from src.ncbi_client import NCBIClient
 
 # Import from existing primer scanner
 try:

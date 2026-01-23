@@ -65,8 +65,8 @@ from scripts.sequence_nsga2 import (
 # Import MIC predictor
 from scripts.predict_mic import PeptideMICPredictor, PredictionResult
 
-# Shared utilities
-from shared.peptide_utils import AA_PROPERTIES, compute_peptide_properties
+# Import from local src (self-contained)
+from src.peptide_utils import AA_PROPERTIES, compute_peptide_properties
 
 
 # =============================================================================

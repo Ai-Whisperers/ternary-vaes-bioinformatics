@@ -22,7 +22,7 @@ The predictor uses:
 3. Ridge regression with optimal regularization
 
 Usage:
-    from deliverables.partners.jose_colbes.src.validated_ddg_predictor import (
+    from src.validated_ddg_predictor import (
         ValidatedDDGPredictor,
         predict_mutation_ddg,
     )

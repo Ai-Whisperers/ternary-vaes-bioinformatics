@@ -6,10 +6,10 @@
 """Geometric scoring functions for protein stability analysis.
 
 This module provides geometric stability scoring using hyperbolic geometry
-and p-adic valuation from the core src.core.padic_math module.
+and p-adic valuation from the local core module.
 
 Dependencies:
-    - src.core.padic_math: P-adic valuation functions
+    - core.padic_math: P-adic valuation functions (local to package)
 """
 
 import sys
@@ -17,19 +17,19 @@ from pathlib import Path
 
 import numpy as np
 
-# Add project root to path for src imports
-_project_root = Path(__file__).resolve().parents[4]
-if str(_project_root) not in sys.path:
-    sys.path.insert(0, str(_project_root))
+# Add package root to path for local imports
+_package_root = Path(__file__).resolve().parents[1]
+if str(_package_root) not in sys.path:
+    sys.path.insert(0, str(_package_root))
 
-from src.core.padic_math import padic_valuation as core_padic_valuation
+from core.padic_math import padic_valuation as core_padic_valuation
 
 
 class GeometricScorer:
     """Computes geometric stability scores for rotamers.
 
     Uses hyperbolic distance in Poincare ball combined with
-    3-adic valuation from src.core.padic_math.
+    3-adic valuation from core.padic_math.
     """
 
     def __init__(self, rare_threshold: float = 0.8, p: int = 3):
@@ -66,7 +66,7 @@ class GeometricScorer:
     def padic_valuation(self, chi_angles: list[float]) -> int:
         """Compute p-adic valuation of the angle configuration.
 
-        Uses src.core.padic_math.padic_valuation for computation.
+        Uses core.padic_math.padic_valuation for computation.
 
         Args:
             chi_angles: List of chi dihedral angles in radians

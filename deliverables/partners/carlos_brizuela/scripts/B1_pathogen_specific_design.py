@@ -67,8 +67,8 @@ from scripts.sequence_nsga2 import (
     MAX_PEPTIDE_LENGTH,
 )
 
-# Import shared utilities (after scripts to avoid module clobbering)
-from shared.constants import AMINO_ACIDS, CHARGES, HYDROPHOBICITY
+# Import from local src (self-contained)
+from src.constants import AMINO_ACIDS, CHARGES, HYDROPHOBICITY
 
 # Try to import predictor
 try:
