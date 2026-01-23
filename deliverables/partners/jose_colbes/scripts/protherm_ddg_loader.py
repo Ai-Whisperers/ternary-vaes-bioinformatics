@@ -25,9 +25,11 @@ from dataclasses import dataclass, field, asdict
 import numpy as np
 
 # Add project paths
-project_root = Path(__file__).parent.parent.parent.parent
-sys.path.insert(0, str(project_root))
-sys.path.insert(0, str(project_root / "deliverables"))
+# Path: scripts/ -> jose_colbes/ -> partners/ -> deliverables/ -> PROJECT_ROOT
+PROJECT_ROOT = Path(__file__).resolve().parents[4]
+COLBES_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "deliverables"))
 
 from shared.config import get_config
 from shared.constants import HYDROPHOBICITY, CHARGES, VOLUMES, FLEXIBILITY
