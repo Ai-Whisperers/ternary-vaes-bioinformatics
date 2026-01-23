@@ -73,8 +73,8 @@ model.eval()
 
 The VAE service searches for checkpoints in the following order:
 
-1. `sandbox-training/checkpoints/homeostatic_rich/best.pt`
-2. `sandbox-training/checkpoints/v5_11_homeostasis/best.pt`
+1. `checkpoints/homeostatic_rich/best.pt`
+2. `checkpoints/v5_11_homeostasis/best.pt`
 3. `checkpoints/pretrained_final.pt`
 
 ## Git LFS

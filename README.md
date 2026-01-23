@@ -106,10 +106,10 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
 # Train with validated config
-python scripts/training/train_v5_12.py --config configs/v5_12_4_fixed_checkpoint.yaml --epochs 100
+python src/scripts/training/train_v5_12.py --config src/configs/v5_12_4_fixed_checkpoint.yaml --epochs 100
 
 # Quick validation (5 epochs)
-python scripts/training/train_v5_12.py --config configs/v5_12_4_fixed_checkpoint.yaml --epochs 5
+python src/scripts/training/train_v5_12.py --config src/configs/v5_12_4_fixed_checkpoint.yaml --epochs 5
 ```
 
 ### Using the Trained Model
@@ -124,7 +124,7 @@ model = TernaryVAEV5_11_PartialFreeze(
     latent_dim=16, hidden_dim=64, max_radius=0.99,
     curvature=1.0, use_controller=True
 )
-ckpt = torch.load('sandbox-training/checkpoints/homeostatic_rich/best.pt')
+ckpt = torch.load('checkpoints/homeostatic_rich/best.pt')
 model.load_state_dict(ckpt['model_state_dict'])
 model.eval()
 
@@ -148,10 +148,11 @@ ternary-vaes-bioinformatics/
 │   ├── geometry/          # Hyperbolic geometry (Poincaré ball)
 │   ├── models/            # VAE architectures
 │   ├── training/          # Training infrastructure
-│   └── losses/            # Loss functions
+│   ├── losses/            # Loss functions
+│   ├── configs/           # Training configurations (YAML)
+│   └── scripts/           # Training and analysis scripts
 │
-├── configs/               # Training configurations
-├── sandbox-training/      # Checkpoints and training artifacts
+├── checkpoints/           # Model checkpoints
 │
 ├── deliverables/          # TIER 2: Bioinformatics applications
 │   └── partners/          # Partner-specific packages

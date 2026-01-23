@@ -21,12 +21,12 @@ The Pathogen-Specific AMP Design tool uses NSGA-II multi-objective optimization 
 
 ### Demo Mode
 ```bash
-python scripts/B1_pathogen_specific_design.py
+python src/scripts/B1_pathogen_specific_design.py
 ```
 
 ### Custom Pathogen
 ```bash
-python scripts/B1_pathogen_specific_design.py \
+python src/scripts/B1_pathogen_specific_design.py \
     --pathogen "Pseudomonas_aeruginosa" \
     --population 200 \
     --generations 100 \

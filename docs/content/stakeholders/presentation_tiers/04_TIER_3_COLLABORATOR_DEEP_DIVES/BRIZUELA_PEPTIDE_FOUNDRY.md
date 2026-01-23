@@ -54,4 +54,4 @@ To actuate this:
 
 1.  Load `checkpoints/ternary_vae.pt`.
 2.  Wrap `ToxinPred2` command line tool in Python.
-3.  Run `scripts/latent_nsga2.py --generations 500`.
+3.  Run `src/scripts/latent_nsga2.py --generations 500`.

@@ -74,7 +74,7 @@ def train_run(
     """Train a Ternary VAE model.
 
     Example:
-        ternary-vae train run --config configs/ternary.yaml
+        ternary-vae train run --config src/configs/ternary.yaml
         ternary-vae train run --epochs 200 --lr 5e-4
     """
     import torch
@@ -182,14 +182,14 @@ def train_hiv(
         ternary-vae train hiv --epochs 200
     """
     console.print("[bold blue]HIV Codon VAE Training[/bold blue]")
-    console.print("This command wraps scripts/train_codon_vae_hiv.py")
+    console.print("This command wraps src/scripts/train_codon_vae_hiv.py")
 
     import subprocess
     import sys
 
     cmd = [
         sys.executable,
-        "scripts/train_codon_vae_hiv.py",
+        "src/scripts/train_codon_vae_hiv.py",
         "--epochs", str(epochs),
         "--save_dir", str(save_dir),
     ]

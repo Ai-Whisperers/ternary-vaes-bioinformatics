@@ -33,13 +33,13 @@ Features:
 
 Usage:
     # Default: ValidatedDDGPredictor (recommended, LOO Spearman 0.60)
-    python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
+    python src/scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 
     # Legacy: ProTherm-trained model
-    python scripts/C4_mutation_effect_predictor.py --use-protherm --mutations mutations.csv
+    python src/scripts/C4_mutation_effect_predictor.py --use-protherm --mutations mutations.csv
 
     # Heuristic fallback (no ML)
-    python scripts/C4_mutation_effect_predictor.py --use-heuristic --mutations mutations.csv
+    python src/scripts/C4_mutation_effect_predictor.py --use-heuristic --mutations mutations.csv
 
 Dependencies:
     - src.core.padic_math: P-adic valuation functions

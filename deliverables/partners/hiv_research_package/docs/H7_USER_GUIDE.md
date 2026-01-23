@@ -21,12 +21,12 @@ The LA Injectable Selection tool assesses patient eligibility for long-acting ca
 
 ### Demo Mode
 ```bash
-python scripts/H7_la_injectable_selection.py
+python src/scripts/H7_la_injectable_selection.py
 ```
 
 ### With Patient Data
 ```bash
-python scripts/H7_la_injectable_selection.py \
+python src/scripts/H7_la_injectable_selection.py \
     --patient_file data/clinic_patients.json \
     --output_dir results/la_assessment/
 ```
@@ -225,7 +225,7 @@ WHO now allows direct switch, but consider oral lead-in:
 
 ### Clinic-Wide Assessment
 ```bash
-python scripts/H7_la_injectable_selection.py \
+python src/scripts/H7_la_injectable_selection.py \
     --patient_file data/all_suppressed_patients.json \
     --output_dir results/clinic_assessment/ \
     --format csv

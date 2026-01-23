@@ -20,7 +20,7 @@ pip install -r requirements.txt
 pytest tests/
 
 # Train a model
-python scripts/train/train.py --config configs/ternary.yaml
+python src/scripts/train/train.py --config src/configs/ternary.yaml
 ```
 
 ---
@@ -46,9 +46,9 @@ src/
 
 | Script | Purpose |
 |:-------|:--------|
-| `scripts/train/train.py` | Main training |
-| `scripts/analyze_all_datasets.py` | Dataset analysis |
-| `scripts/clinical_applications.py` | Clinical outputs |
+| `src/scripts/train/train.py` | Main training |
+| `src/scripts/analyze_all_datasets.py` | Dataset analysis |
+| `src/scripts/clinical_applications.py` | Clinical outputs |
 
 ---
 

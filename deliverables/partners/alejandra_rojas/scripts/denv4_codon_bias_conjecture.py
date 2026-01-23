@@ -35,7 +35,7 @@ If confirmed: The p-adic encoder learned CODON USAGE PATTERNS,
 providing a novel metric for viral evolution distinct from sequence identity.
 
 Usage:
-    python scripts/denv4_codon_bias_conjecture.py
+    python src/scripts/denv4_codon_bias_conjecture.py
 """
 
 from __future__ import annotations

@@ -104,7 +104,7 @@ Bypass latent-space optimization entirely. Use PeptideVAE only for scoring.
 ```
 
 **Files to Create:**
-- `scripts/sequence_nsga2.py` - Sequence-space optimizer
+- `src/scripts/sequence_nsga2.py` - Sequence-space optimizer
 - `src/mutators.py` - Peptide mutation operators
 
 ### Option B: PeptideVAE Latent Optimization
@@ -165,9 +165,9 @@ Given the validation findings, Option A (Sequence-Space Evolution) is recommende
 
 | Task | File | Effort | Output |
 |------|------|--------|--------|
-| Create prediction script | `scripts/predict_mic.py` | 30 min | CLI tool |
-| Create batch evaluator | `scripts/evaluate_candidates.py` | 1 hr | CSV results |
-| Update DRAMP loader | `scripts/dramp_activity_loader.py` | 30 min | PeptideVAE integration |
+| Create prediction script | `src/scripts/predict_mic.py` | 30 min | CLI tool |
+| Create batch evaluator | `src/scripts/evaluate_candidates.py` | 1 hr | CSV results |
+| Update DRAMP loader | `src/scripts/dramp_activity_loader.py` | 30 min | PeptideVAE integration |
 
 **Deliverable:** Working MIC prediction for any peptide sequence
 
@@ -176,10 +176,10 @@ Given the validation findings, Option A (Sequence-Space Evolution) is recommende
 | Task | File | Effort | Output |
 |------|------|--------|--------|
 | Create mutation operators | `src/mutators.py` | 2 hr | AA substitution/insertion/deletion |
-| Create sequence NSGA-II | `scripts/sequence_nsga2.py` | 3 hr | Pareto-optimal peptides |
-| Update B1 tool | `scripts/B1_pathogen_specific_design.py` | 2 hr | Fixed tool |
-| Update B8 tool | `scripts/B8_microbiome_safe_amps.py` | 1 hr | Fixed tool |
-| Update B10 tool | `scripts/B10_synthesis_optimization.py` | 1 hr | Fixed tool |
+| Create sequence NSGA-II | `src/scripts/sequence_nsga2.py` | 3 hr | Pareto-optimal peptides |
+| Update B1 tool | `src/scripts/B1_pathogen_specific_design.py` | 2 hr | Fixed tool |
+| Update B8 tool | `src/scripts/B8_microbiome_safe_amps.py` | 1 hr | Fixed tool |
+| Update B10 tool | `src/scripts/B10_synthesis_optimization.py` | 1 hr | Fixed tool |
 
 **Deliverable:** Working NSGA-II optimization producing real AMPs
 
@@ -216,7 +216,7 @@ class PeptideVAEService:
         self.model = self._load_model()
 
     def _load_model(self):
-        checkpoint = torch.load('../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt')
+        checkpoint = torch.load('checkpoints_definitive/best_production.pt')
         config = checkpoint['config']
         model = PeptideVAE(
             latent_dim=config['latent_dim'],
@@ -249,7 +249,7 @@ class PeptideVAEService:
 **Current:**
 ```python
 fallback_checkpoints: list[str] = field(default_factory=lambda: [
-    "sandbox-training/checkpoints/homeostatic_rich/best.pt",
+    "checkpoints/homeostatic_rich/best.pt",
     ...
 ])
 ```
@@ -257,10 +257,10 @@ fallback_checkpoints: list[str] = field(default_factory=lambda: [
 **Updated:**
 ```python
 # Ternary VAE (for p-adic structure)
-ternary_vae_checkpoint: str = "sandbox-training/checkpoints/homeostatic_rich/best.pt"
+ternary_vae_checkpoint: str = "checkpoints/homeostatic_rich/best.pt"
 
 # PeptideVAE (for AMP activity prediction)
-peptide_vae_checkpoint: str = "../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt"
+peptide_vae_checkpoint: str = "checkpoints_definitive/best_production.pt"
 ```
 
 ---
@@ -285,7 +285,7 @@ import torch
 from src.encoders.peptide_encoder import PeptideVAE
 
 def load_model():
-    ckpt = torch.load('../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt', map_location='cpu')
+    ckpt = torch.load('checkpoints_definitive/best_production.pt', map_location='cpu')
     config = ckpt['config']
     model = PeptideVAE(
         latent_dim=config['latent_dim'],
@@ -368,7 +368,7 @@ class SequenceNSGA2:
     def __init__(
         self,
         seed_sequences: List[str],
-        model_path: str = "../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt",
+        model_path: str = "checkpoints_definitive/best_production.pt",
         population_size: int = 100,
         generations: int = 50,
     ):

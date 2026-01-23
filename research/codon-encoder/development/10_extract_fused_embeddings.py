@@ -28,8 +28,8 @@ from src.core import TERNARY
 from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11_PartialFreeze
 
-# Use sandbox-training checkpoints directory
-CHECKPOINTS_DIR = PROJECT_ROOT / "sandbox-training" / "checkpoints"
+# Use checkpoints directory
+CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"
 
 
 # =============================================================================
@@ -51,6 +51,12 @@ def poincare_distance(x, y, c=1.0, eps=1e-10):
 
     dist = (1 / np.sqrt(c)) * torch.acosh(arg)
     return dist.squeeze(-1)
+
+
+def hyperbolic_radii_torch(embeddings: torch.Tensor, c: float = 1.0) -> torch.Tensor:
+    """V5.12.2: Compute hyperbolic distance from origin for Poincare ball embeddings."""
+    origin = torch.zeros_like(embeddings)
+    return poincare_distance(embeddings, origin, c=c)
 
 
 # =============================================================================
@@ -148,8 +154,9 @@ def extract_embeddings(model, device="cpu"):
     z_A_euc = outputs["z_A_euc"].cpu()
     z_B_euc = outputs["z_B_euc"].cpu()
 
-    radii_A = torch.norm(z_A_hyp, dim=1)
-    radii_B = torch.norm(z_B_hyp, dim=1)
+    # V5.12.2: Use hyperbolic distance from origin, not Euclidean norm
+    radii_A = hyperbolic_radii_torch(z_A_hyp)
+    radii_B = hyperbolic_radii_torch(z_B_hyp)
 
     # Compute hierarchy correlation
     vals = valuations.cpu().numpy()

@@ -304,7 +304,7 @@ def main():
     parser.add_argument(
         "--checkpoint", "-c",
         type=str,
-        default="sandbox-training/checkpoints/v5_12_3/best_Q.pt",
+        default="checkpoints/v5_12_3/best_Q.pt",
         help="Path to VAE checkpoint"
     )
     parser.add_argument(

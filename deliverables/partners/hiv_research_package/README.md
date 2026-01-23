@@ -23,7 +23,7 @@ This package provides clinical decision support tools for HIV treatment optimiza
 Screen treatment-naive patients for transmitted drug resistance mutations.
 
 ```bash
-python scripts/H6_tdr_screening.py \
+python src/scripts/H6_tdr_screening.py \
     --sequences data/patient_sequences.fasta \
     --output_dir results/tdr_screening/
 ```
@@ -39,7 +39,7 @@ python scripts/H6_tdr_screening.py \
 Assess patient eligibility for cabotegravir/rilpivirine (CAB/RPV-LA) therapy.
 
 ```bash
-python scripts/H7_la_injectable_selection.py \
+python src/scripts/H7_la_injectable_selection.py \
     --patient_data data/patients.json \
     --output_dir results/la_selection/
 ```
@@ -94,9 +94,9 @@ python scripts/H7_la_injectable_selection.py \
 
 | File | Description | Lines |
 |------|-------------|-------|
-| `scripts/H6_tdr_screening.py` | TDR mutation screening | ~400 |
-| `scripts/H7_la_injectable_selection.py` | LA eligibility assessment | ~450 |
-| `scripts/run_complete_analysis.py` | Main analysis pipeline | 500 |
+| `src/scripts/H6_tdr_screening.py` | TDR mutation screening | ~400 |
+| `src/scripts/H7_la_injectable_selection.py` | LA eligibility assessment | ~450 |
+| `src/scripts/run_complete_analysis.py` | Main analysis pipeline | 500 |
 
 ### 2. Results
 
@@ -127,10 +127,10 @@ pip install numpy pandas biopython
 
 ```bash
 # H6: TDR Screening
-python scripts/H6_tdr_screening.py
+python src/scripts/H6_tdr_screening.py
 
 # H7: LA Injectable Selection
-python scripts/H7_la_injectable_selection.py
+python src/scripts/H7_la_injectable_selection.py
 ```
 
 ### Step 3: Review Results

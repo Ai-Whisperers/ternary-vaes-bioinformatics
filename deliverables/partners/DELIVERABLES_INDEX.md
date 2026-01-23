@@ -42,8 +42,8 @@
 | Bootstrap results | `validation/results/scientific_metrics.json` | EXISTS |
 | Scientific report | `validation/results/SCIENTIFIC_VALIDATION_REPORT.md` | EXISTS |
 | AlphaFold validation | `validation/results/alphafold_validation_report.json` | EXISTS |
-| C1 script | `scripts/C1_rosetta_blind_detection.py` | EXISTS |
-| C4 script | `scripts/C4_mutation_effect_predictor.py` | EXISTS |
+| C1 script | `src/scripts/C1_rosetta_blind_detection.py` | EXISTS |
+| C4 script | `src/scripts/C4_mutation_effect_predictor.py` | EXISTS |
 
 ### Literature Comparison (verified from metrics)
 
@@ -107,8 +107,8 @@ From `results/padic_integration/padic_integration_results.json`:
 
 | Artifact | Path | Status |
 |----------|------|:------:|
-| A2 primer script | `scripts/A2_pan_arbovirus_primers.py` | EXISTS |
-| Trajectory script | `scripts/arbovirus_hyperbolic_trajectory.py` | EXISTS |
+| A2 primer script | `src/scripts/A2_pan_arbovirus_primers.py` | EXISTS |
+| Trajectory script | `src/scripts/arbovirus_hyperbolic_trajectory.py` | EXISTS |
 | Primer CSVs | `results/pan_arbovirus_primers/*.csv` | EXISTS |
 | Primer FASTAs | `results/pan_arbovirus_primers/*.fasta` | EXISTS |
 | P-adic integration | `results/padic_integration/padic_integration_results.json` | EXISTS |
@@ -164,10 +164,10 @@ From `results/padic_integration/padic_integration_results.json`:
 
 | Artifact | Path | Status |
 |----------|------|:------:|
-| B1 script | `scripts/B1_pathogen_specific_design.py` | EXISTS |
-| B8 script | `scripts/B8_microbiome_safe_amps.py` | EXISTS |
-| B10 script | `scripts/B10_synthesis_optimization.py` | EXISTS |
-| predict_mic script | `scripts/predict_mic.py` | EXISTS |
+| B1 script | `src/scripts/B1_pathogen_specific_design.py` | EXISTS |
+| B8 script | `src/scripts/B8_microbiome_safe_amps.py` | EXISTS |
+| B10 script | `src/scripts/B10_synthesis_optimization.py` | EXISTS |
+| predict_mic script | `src/scripts/predict_mic.py` | EXISTS |
 | Pathogen models | `models/activity_*.joblib` | EXISTS (5) |
 | Pareto results | `results/pareto_peptides.csv` | EXISTS |
 | Validation batch | `results/validation_batch/` | EXISTS |
@@ -285,7 +285,7 @@ carlos_brizuela/
 | Jose Colbes | sklearn (joblib) | `models/ddg_predictor.joblib` | **EXISTS** |
 | Alejandra Rojas | PyTorch | `research/codon-encoder/.../trained_codon_encoder.pt` | **EXISTS** (retrained 2026-01-23) |
 | Carlos Brizuela | sklearn (joblib) | `models/activity_*.joblib` (5 files) | **EXISTS** |
-| Carlos Brizuela | PeptideVAE | `sandbox-training/checkpoints/peptide_vae_v1/best_production.pt` | **EXISTS** (retrained 2026-01-23) |
+| Carlos Brizuela | PeptideVAE | `checkpoints/peptide_vae_v1/best_production.pt` | **EXISTS** (retrained 2026-01-23) |
 
 ### Jose Colbes - Models
 
@@ -326,12 +326,12 @@ carlos_brizuela/
 
 | File | Path | Size | Status |
 |------|------|:----:|:------:|
-| best_production.pt | `sandbox-training/checkpoints/peptide_vae_v1/best_production.pt` | 1.2MB | **EXISTS** |
-| fold_0_definitive.pt | `sandbox-training/checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
-| fold_1_definitive.pt | `sandbox-training/checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
-| fold_2_definitive.pt | `sandbox-training/checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
-| fold_3_definitive.pt | `sandbox-training/checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
-| fold_4_definitive.pt | `sandbox-training/checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
+| best_production.pt | `checkpoints/peptide_vae_v1/best_production.pt` | 1.2MB | **EXISTS** |
+| fold_0_definitive.pt | `checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
+| fold_1_definitive.pt | `checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
+| fold_2_definitive.pt | `checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
+| fold_3_definitive.pt | `checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
+| fold_4_definitive.pt | `checkpoints/peptide_vae_v1/` | 1.2MB | **EXISTS** |
 
 **Training Results (2026-01-23):**
 - Mean Spearman: **0.6329** (+/- 0.0938)
@@ -343,7 +343,7 @@ carlos_brizuela/
 
 ### Shared TernaryVAE Checkpoints (Repository-Level)
 
-Located in `sandbox-training/checkpoints/`:
+Located in `checkpoints/`:
 
 | Checkpoint | Path | Size | Hierarchy | Status |
 |------------|------|:----:|:---------:|:------:|
@@ -362,7 +362,7 @@ Located in `sandbox-training/checkpoints/`:
 ### Carlos Brizuela PeptideVAE - FIXED
 
 ```
-Path: sandbox-training/checkpoints/peptide_vae_v1/best_production.pt
+Path: checkpoints/peptide_vae_v1/best_production.pt
 Size: 1.2MB
 Status: EXISTS (retrained 2026-01-23)
 ```
@@ -400,7 +400,7 @@ python3 -c "import joblib; m=joblib.load('deliverables/partners/jose_colbes/mode
 python3 -c "import joblib; joblib.load('deliverables/partners/carlos_brizuela/models/activity_general.joblib'); print('OK')"
 
 # Carlos Brizuela - PeptideVAE checkpoint (NOW EXISTS)
-ls -la sandbox-training/checkpoints/peptide_vae_v1/best_production.pt
+ls -la checkpoints/peptide_vae_v1/best_production.pt
 
 # Alejandra Rojas - TrainableCodonEncoder (NOW EXISTS)
 ls -la research/codon-encoder/training/results/trained_codon_encoder.pt
@@ -410,10 +410,10 @@ ls -la research/codon-encoder/training/results/trained_codon_encoder.pt
 
 ```bash
 # These should all exist
-ls -la sandbox-training/checkpoints/homeostatic_rich/best.pt
-ls -la sandbox-training/checkpoints/v5_11_homeostasis/best.pt
-ls -la sandbox-training/checkpoints/v5_11_structural/best.pt
-ls -la sandbox-training/checkpoints/v5_12_4/best_Q.pt
+ls -la checkpoints/homeostatic_rich/best.pt
+ls -la checkpoints/v5_11_homeostasis/best.pt
+ls -la checkpoints/v5_11_structural/best.pt
+ls -la checkpoints/v5_12_4/best_Q.pt
 ```
 
 ### Verify Validation Results
@@ -538,12 +538,12 @@ python -c "import json; d=json.load(open('deliverables/partners/jose_colbes/vali
 
 | Checkpoint | Path (from project root) | Size | Required |
 |------------|--------------------------|:----:|:--------:|
-| **PeptideVAE** | `sandbox-training/checkpoints/peptide_vae_v1/best_production.pt` | 1.2MB | **YES** |
-| CV fold 0 | `sandbox-training/checkpoints/peptide_vae_v1/fold_0_definitive.pt` | 1.2MB | NO |
-| CV fold 1 | `sandbox-training/checkpoints/peptide_vae_v1/fold_1_definitive.pt` | 1.2MB | NO |
-| CV fold 2 | `sandbox-training/checkpoints/peptide_vae_v1/fold_2_definitive.pt` | 1.2MB | NO |
-| CV fold 3 | `sandbox-training/checkpoints/peptide_vae_v1/fold_3_definitive.pt` | 1.2MB | NO |
-| CV fold 4 | `sandbox-training/checkpoints/peptide_vae_v1/fold_4_definitive.pt` | 1.2MB | NO |
+| **PeptideVAE** | `checkpoints/peptide_vae_v1/best_production.pt` | 1.2MB | **YES** |
+| CV fold 0 | `checkpoints/peptide_vae_v1/fold_0_definitive.pt` | 1.2MB | NO |
+| CV fold 1 | `checkpoints/peptide_vae_v1/fold_1_definitive.pt` | 1.2MB | NO |
+| CV fold 2 | `checkpoints/peptide_vae_v1/fold_2_definitive.pt` | 1.2MB | NO |
+| CV fold 3 | `checkpoints/peptide_vae_v1/fold_3_definitive.pt` | 1.2MB | NO |
+| CV fold 4 | `checkpoints/peptide_vae_v1/fold_4_definitive.pt` | 1.2MB | NO |
 
 #### sklearn Baseline Models (Optional)
 

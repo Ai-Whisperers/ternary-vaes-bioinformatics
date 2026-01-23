@@ -15,14 +15,14 @@ This module provides:
 from src.config import load_config, save_config
 
 # Load from YAML file
-config = load_config("configs/training.yaml")
+config = load_config("src/configs/training.yaml")
 
 # Access configuration
 print(config.training.epochs)
 print(config.geometry.curvature)
 
 # Save configuration
-save_config(config, "configs/output.yaml")
+save_config(config, "src/configs/output.yaml")
 ```
 
 ## Configuration Schema

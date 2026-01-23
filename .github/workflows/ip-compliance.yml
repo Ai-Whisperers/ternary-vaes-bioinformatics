@@ -21,7 +21,7 @@ jobs:
 
       - name: Check copyright headers
         run: |
-          python scripts/legal/add_copyright_headers.py --check
+          python src/scripts/legal/add_copyright_headers.py --check
         continue-on-error: false
 
       - name: Check SPDX headers in documentation
@@ -36,7 +36,7 @@ jobs:
           done
           if [ $MISSING -gt 0 ]; then
             echo "ERROR: $MISSING files missing SPDX headers"
-            echo "Run: python scripts/docs/add_spdx_frontmatter.py"
+            echo "Run: python src/scripts/docs/add_spdx_frontmatter.py"
             exit 1
           fi
           echo "All documentation files have SPDX headers"
@@ -61,7 +61,7 @@ jobs:
         run: |
           echo "Scanning for potential secrets..."
           # Check for common secret patterns
-          if grep -rE "(api[_-]?key|secret[_-]?key|password|token)\s*[:=]\s*['\"][^'\"]+['\"]" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" src/ scripts/ 2>/dev/null; then
+          if grep -rE "(api[_-]?key|secret[_-]?key|password|token)\s*[:=]\s*['\"][^'\"]+['\"]" --include="*.py" --include="*.yaml" --include="*.yml" --include="*.json" src/ 2>/dev/null; then
             echo "WARNING: Potential secrets found in code"
             exit 1
           fi

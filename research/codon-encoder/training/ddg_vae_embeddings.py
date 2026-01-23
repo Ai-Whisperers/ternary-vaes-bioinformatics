@@ -195,7 +195,7 @@ def extract_features(
 
 def main():
     script_dir = Path(__file__).parent
-    checkpoint_path = PROJECT_ROOT / "sandbox-training/checkpoints/v5_12_3/best_Q.pt"
+    checkpoint_path = PROJECT_ROOT / "checkpoints/v5_12_3/best_Q.pt"
     data_path = PROJECT_ROOT / "deliverables/partners/jose_colbes/reproducibility/data/s669.csv"
     output_path = script_dir / "results/ddg_vae_results.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)

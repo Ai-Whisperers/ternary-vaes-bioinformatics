@@ -95,10 +95,10 @@ coverage = (correct == 1.0).sum().item() / len(x)
 
 | Script | Purpose | Architecture | Checkpoint Dependency |
 |--------|---------|--------------|----------------------|
-| `scripts/train.py` | Canonical V5.11 training | TernaryVAEV5_11 | **REQUIRES v5.5** |
-| `scripts/quick_train.py` | Validation/testing | TernaryVAEV5_11_PartialFreeze | **EXPECTS v5.5** |
-| `scripts/training/train_v5_12.py` | Production V5.12 | Enhanced components | **EXPECTS checkpoint** |
-| `scripts/train_v5_12_4_grokking.py` | Extended grokking | Enhanced + detection | **EXPECTS checkpoint** |
+| `src/scripts/train.py` | Canonical V5.11 training | TernaryVAEV5_11 | **REQUIRES v5.5** |
+| `src/scripts/quick_train.py` | Validation/testing | TernaryVAEV5_11_PartialFreeze | **EXPECTS v5.5** |
+| `src/scripts/training/train_v5_12.py` | Production V5.12 | Enhanced components | **EXPECTS checkpoint** |
+| `src/scripts/train_v5_12_4_grokking.py` | Extended grokking | Enhanced + detection | **EXPECTS checkpoint** |
 
 ### 2. **Checkpoint Loading Behavior**
 
@@ -150,7 +150,7 @@ frozen_checkpoint:
 **Option A: Use Existing Checkpoint**
 ```yaml
 frozen_checkpoint:
-  path: sandbox-training/checkpoints/v5_12_4/best_Q.pt
+  path: checkpoints/v5_12_4/best_Q.pt
   encoder_to_load: both
   decoder_to_load: decoder_A
 ```
@@ -193,7 +193,7 @@ frozen_checkpoint:
 
 ### 1. **Checkpoint Inventory**
 ```
-sandbox-training/checkpoints/
+checkpoints/
 ├── v5_12_4/best_Q.pt           # Current production (1.0MB)
 ├── homeostatic_rich/best.pt    # Hierarchy-richness balance (421KB)
 ├── v5_11_structural/best.pt    # Structural baseline (6.9MB)
@@ -213,7 +213,7 @@ sandbox-training/checkpoints/
 ```yaml
 # Option 1: Use existing v5_11 checkpoint
 frozen_checkpoint:
-  path: sandbox-training/checkpoints/v5_11_homeostasis/best.pt
+  path: checkpoints/v5_11_homeostasis/best.pt
   encoder_to_load: both
   decoder_to_load: decoder_A
 ```

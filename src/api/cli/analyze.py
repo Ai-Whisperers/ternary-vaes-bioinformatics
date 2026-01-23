@@ -275,7 +275,7 @@ def analyze_all(
     # Run the comprehensive analysis script
     cmd = [
         sys.executable,
-        "scripts/analyze_all_datasets.py",
+        "src/scripts/analyze_all_datasets.py",
         "--output_dir", str(output_dir),
     ]
 

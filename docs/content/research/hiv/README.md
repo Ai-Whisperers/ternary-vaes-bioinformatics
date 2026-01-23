@@ -75,13 +75,13 @@ for drug, data in results["drug_resistance"].items():
 
 ```bash
 # Run full validation
-python scripts/experiments/run_full_validation.py
+python src/scripts/experiments/run_full_validation.py
 
 # Run attention analysis
-python scripts/experiments/run_attention_analysis.py
+python src/scripts/experiments/run_attention_analysis.py
 
 # Test cross-resistance
-python scripts/experiments/run_cross_resistance_test.py
+python src/scripts/experiments/run_cross_resistance_test.py
 ```
 
 ---

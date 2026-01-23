@@ -15,7 +15,7 @@ Key Objectives:
 3. Maximize Antimicrobial Activity (Efficacy)
 
 Usage:
-    python scripts/optimization/latent_nsga2.py \
+    python src/scripts/optimization/latent_nsga2.py \
         --vae_checkpoint models/ternary_vae.pt \
         --toxicity_model models/toxicity_regressor.pt \
         --output results/pareto_peptides.csv \

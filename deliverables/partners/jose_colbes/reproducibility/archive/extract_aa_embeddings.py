@@ -343,9 +343,9 @@ def main():
     else:
         # Auto-detect from project checkpoints
         candidates = [
-            PROJECT_ROOT / "sandbox-training/checkpoints/v5_12_4/best_Q.pt",
-            PROJECT_ROOT / "sandbox-training/checkpoints/homeostatic_rich/best.pt",
-            PROJECT_ROOT / "sandbox-training/checkpoints/v5_11_structural/best.pt",
+            PROJECT_ROOT / "checkpoints/v5_12_4/best_Q.pt",
+            PROJECT_ROOT / "checkpoints/homeostatic_rich/best.pt",
+            PROJECT_ROOT / "checkpoints/v5_11_structural/best.pt",
         ]
         checkpoint_path = None
         for c in candidates:

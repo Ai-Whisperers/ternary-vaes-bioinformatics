@@ -4,7 +4,7 @@ This guide lists all freely available HIV datasets for the p-adic hyperbolic cod
 
 **Note:** Run the automated script when network is available:
 ```bash
-python scripts/download_hiv_datasets.py --all
+python src/scripts/download_hiv_datasets.py --all
 ```
 
 ---
@@ -252,5 +252,5 @@ curl -I https://github.com
 
 Once network is restored:
 ```bash
-python scripts/download_hiv_datasets.py --all
+python src/scripts/download_hiv_datasets.py --all
 ```

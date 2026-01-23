@@ -26,8 +26,8 @@ Key Features:
 5. Skin/gut microbiome context
 
 Usage:
-    python scripts/B8_microbiome_safe_amps.py --context skin
-    python scripts/B8_microbiome_safe_amps.py --context gut --generations 100
+    python src/scripts/B8_microbiome_safe_amps.py --context skin
+    python src/scripts/B8_microbiome_safe_amps.py --context gut --generations 100
 """
 
 from __future__ import annotations

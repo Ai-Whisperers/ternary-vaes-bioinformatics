@@ -15,8 +15,8 @@ Key insight: For p close to 3 (e.g., 3.01-3.5), the existing architecture
 has sufficient capacity. We just need to expand the operation space gradually.
 
 Usage:
-    python scripts/epsilon_vae/incremental_padic.py --target_p 3.1
-    python scripts/epsilon_vae/incremental_padic.py --target_p 3.5 --steps 10
+    python src/scripts/epsilon_vae/incremental_padic.py --target_p 3.1
+    python src/scripts/epsilon_vae/incremental_padic.py --target_p 3.5 --steps 10
 """
 
 import argparse

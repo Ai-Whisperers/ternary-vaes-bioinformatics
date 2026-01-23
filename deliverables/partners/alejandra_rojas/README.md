@@ -64,7 +64,7 @@ alejandra_rojas/
 ### Quick Start
 ```bash
 # Run the comprehensive primer design tool
-python scripts/A2_pan_arbovirus_primers.py --output_dir results/pan_arbovirus/
+python src/scripts/A2_pan_arbovirus_primers.py --output_dir results/pan_arbovirus/
 ```
 
 ### Supported Viruses
@@ -108,9 +108,9 @@ This package contains all materials for validating the **Hyperbolic Trajectory F
 
 | File | Description |
 |------|-------------|
-| `scripts/ingest_arboviruses.py` | NCBI virus genome download (398 lines) |
-| `scripts/arbovirus_hyperbolic_trajectory.py` | Serotype trajectory analysis (434 lines) |
-| `scripts/primer_stability_scanner.py` | Stable primer identification (391 lines) |
+| `src/scripts/ingest_arboviruses.py` | NCBI virus genome download (398 lines) |
+| `src/scripts/arbovirus_hyperbolic_trajectory.py` | Serotype trajectory analysis (434 lines) |
+| `src/scripts/primer_stability_scanner.py` | Stable primer identification (391 lines) |
 
 ### 2. Interactive Notebook
 

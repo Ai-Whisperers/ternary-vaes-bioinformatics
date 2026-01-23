@@ -52,4 +52,4 @@ Viral evolution is treelike, not linear. Euclidean vectors cannot accurately pre
 To actuate this:
 
 1.  Configure `NCBIFetcher` with API Key.
-2.  Run `scripts/arbovirus_hyperbolic_trajectory.py` on the new data stream.
+2.  Run `src/scripts/arbovirus_hyperbolic_trajectory.py` on the new data stream.

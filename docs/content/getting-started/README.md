@@ -25,20 +25,20 @@ pip install -r requirements.txt
 
 ```bash
 # Run training with default config
-python scripts/train/train.py --config configs/ternary.yaml
+python src/scripts/train/train.py --config src/configs/ternary.yaml
 
 # Quick test run (fewer epochs)
-python scripts/train/train.py --config configs/ternary_fast_test.yaml
+python src/scripts/train/train.py --config src/configs/ternary_fast_test.yaml
 ```
 
 ### Analyze HIV Data
 
 ```bash
 # Run comprehensive HIV analysis
-python scripts/analyze_all_datasets.py
+python src/scripts/analyze_all_datasets.py
 
 # Generate clinical decision support
-python scripts/clinical_applications.py
+python src/scripts/clinical_applications.py
 ```
 
 ---

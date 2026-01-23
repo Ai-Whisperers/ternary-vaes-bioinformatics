@@ -42,9 +42,9 @@ This repository contains **108 PyTorch checkpoint files** across three main loca
 
 | Location | Count | Size | Purpose |
 |----------|-------|------|---------|
-| `sandbox-training/checkpoints/` | 102 | ~116 MB | Main training runs across versions v5.5-v5.12 |
+| `checkpoints/` | 102 | ~116 MB | Main training runs across versions v5.5-v5.12 |
 | `research/codon-encoder/training/results/` | 1 | 51 KB | TrainableCodonEncoder for DDG prediction |
-| `deliverables/sandbox-training/checkpoints/` | 5 | 6 MB | Partner deliverable copies (PeptideVAE) |
+| `deliverables/checkpoints/` | 5 | 6 MB | Partner deliverable copies (PeptideVAE) |
 
 ---
 
@@ -68,7 +68,7 @@ These checkpoints have achieved 100% coverage and stable hierarchy metrics.
 
 #### v5_5 (TOPOLOGICAL FOUNDATION)
 
-**Path:** `sandbox-training/checkpoints/v5_5/best.pt`
+**Path:** `checkpoints/v5_5/best.pt`
 
 - **Role:** Provides the geometric substrate ("continuum mesh") for the entire Ternary VAE system
 - **Architecture:** 9→256→128→64→16 (pure Euclidean, no hyperbolic components)
@@ -78,31 +78,31 @@ These checkpoints have achieved 100% coverage and stable hierarchy metrics.
   - Hamming-Euclidean correlation ρ=0.55 (structure preservation)
   - 89% neighbor valuation consistency (continuum mesh)
 - **Usage:** Frozen in later versions (v5.11+, v5.12.4) to preserve topology while training hierarchy
-- **Documentation:** `sandbox-training/checkpoints/v5_5/V5_5_ANALYSIS.md`
+- **Documentation:** `checkpoints/v5_5/V5_5_ANALYSIS.md`
 
 #### v5_12_4_fixed (CURRENT PRODUCTION)
 
-**Path:** `sandbox-training/checkpoints/v5_12_4_fixed/best_Q.pt`
+**Path:** `checkpoints/v5_12_4_fixed/best_Q.pt`
 
 - **Architecture:** TernaryVAEV5_11_PartialFreeze with ImprovedEncoder/Decoder
 - **Features:** SiLU activation, LayerNorm, Dropout (0.1), logvar clamping [-10, 2]
 - **Training:** Mixed precision (FP16), Homeostasis controller, Option-C per-parameter LR
 - **Frozen from:** v5.5 encoder for coverage preservation
-- **Config:** `configs/v5_12_4_fixed_checkpoint.yaml`
+- **Config:** `src/configs/v5_12_4_fixed_checkpoint.yaml`
 
 #### homeostatic_rich (RECOMMENDED FOR MOST TASKS)
 
-**Path:** `sandbox-training/checkpoints/homeostatic_rich/best.pt`
+**Path:** `checkpoints/homeostatic_rich/best.pt`
 
 - **Unique achievement:** Reaches hierarchy ceiling (-0.8321) WITH high richness (0.00662)
 - **Significance:** Proves hierarchy and richness are NOT mutually exclusive
 - **Richness:** 5.8x more than v5_11.8, 28x more than max_hierarchy
-- **Training:** `scripts/epsilon_vae/train_homeostatic_rich.py`
+- **Training:** `src/scripts/epsilon_vae/train_homeostatic_rich.py`
 - **Loss weights:** hierarchy=5.0, coverage=1.0, richness=2.0, separation=3.0
 
 #### v5_11_structural (CONTACT PREDICTION)
 
-**Path:** `sandbox-training/checkpoints/v5_11_structural/best.pt`
+**Path:** `checkpoints/v5_11_structural/best.pt`
 
 - **Special property:** Low richness (~0.003) enables consistent AA-level distances
 - **Validated:** AUC-ROC = 0.6737 on Insulin B-chain contact prediction
@@ -141,7 +141,7 @@ These checkpoints have achieved 100% coverage and stable hierarchy metrics.
 
 #### PeptideVAE (AMP Prediction)
 
-**Path:** `sandbox-training/checkpoints/peptide_vae_v1/`
+**Path:** `checkpoints/peptide_vae_v1/`
 
 | File | Size | Fold |
 |------|------|------|
@@ -228,7 +228,7 @@ These models have been thoroughly validated with documented metrics and are read
 
 **Status:** PRODUCTION-READY
 
-**Path:** `sandbox-training/checkpoints/homeostatic_rich/best.pt`
+**Path:** `checkpoints/homeostatic_rich/best.pt`
 **Size:** 421 KB
 
 **Metrics:**
@@ -252,7 +252,7 @@ model = TernaryVAEV5_11_PartialFreeze(
     latent_dim=16, hidden_dim=64, max_radius=0.95,
     curvature=1.0, use_controller=True, use_dual_projection=True
 )
-ckpt = torch.load('sandbox-training/checkpoints/homeostatic_rich/best.pt')
+ckpt = torch.load('checkpoints/homeostatic_rich/best.pt')
 model.load_state_dict(ckpt['model_state_dict'])
 ```
 
@@ -262,7 +262,7 @@ model.load_state_dict(ckpt['model_state_dict'])
 
 **Status:** PRODUCTION-READY (CURRENT)
 
-**Path:** `sandbox-training/checkpoints/v5_12_4_fixed/best_Q.pt`
+**Path:** `checkpoints/v5_12_4_fixed/best_Q.pt`
 **Size:** 931 KB
 
 **Metrics:**
@@ -292,7 +292,7 @@ model = TernaryVAEV5_11_PartialFreeze(
     curvature=1.0, use_controller=True, use_dual_projection=True,
     encoder_type='improved', decoder_type='improved'
 )
-ckpt = torch.load('sandbox-training/checkpoints/v5_12_4_fixed/best_Q.pt')
+ckpt = torch.load('checkpoints/v5_12_4_fixed/best_Q.pt')
 model.load_state_dict(ckpt['model_state_dict'])
 ```
 
@@ -302,7 +302,7 @@ model.load_state_dict(ckpt['model_state_dict'])
 
 **Status:** PRODUCTION-READY
 
-**Path:** `sandbox-training/checkpoints/v5_11_structural/best.pt`
+**Path:** `checkpoints/v5_11_structural/best.pt`
 **Size:** 1.4 MB
 
 **Metrics:**
@@ -369,7 +369,7 @@ dist = encoder.compute_aa_distance('A', 'V')
 
 **Status:** PRODUCTION-READY
 
-**Path:** `sandbox-training/checkpoints/peptide_vae_v1/best_production.pt`
+**Path:** `checkpoints/peptide_vae_v1/best_production.pt`
 **Size:** 1.2 MB
 
 **5-Fold CV Metrics:**
@@ -392,7 +392,7 @@ dist = encoder.compute_aa_distance('A', 'V')
 
 **Status:** PRODUCTION-READY (Foundation Model)
 
-**Path:** `sandbox-training/checkpoints/v5_5/best.pt`
+**Path:** `checkpoints/v5_5/best.pt`
 **Size:** 2.0 MB
 
 **Metrics:**
@@ -414,7 +414,7 @@ dist = encoder.compute_aa_distance('A', 'V')
 - Intrinsic dimension: 8 (effective: 4)
 - Forms the frozen base for v5.11+ and v5.12.4
 
-**Documentation:** `sandbox-training/checkpoints/v5_5/V5_5_ANALYSIS.md`
+**Documentation:** `checkpoints/v5_5/V5_5_ANALYSIS.md`
 
 ---
 
@@ -424,9 +424,9 @@ These checkpoints are production-stable but may be superseded by Tier 1 models.
 
 | Checkpoint | Path | Size | Coverage | Hier_B | Use Case |
 |------------|------|------|----------|--------|----------|
-| v5_11/best.pt | `sandbox-training/checkpoints/v5_11/` | 845 KB | 100% | -0.8302 | Legacy baseline |
-| v5_11_homeostasis/best.pt | `sandbox-training/checkpoints/v5_11_homeostasis/` | 845 KB | 99.9% | -0.8318 | Dynamic controller |
-| v5_11_progressive/best.pt | `sandbox-training/checkpoints/v5_11_progressive/` | 1.2 MB | 99.9% | +0.78* | Frequency-optimal |
+| v5_11/best.pt | `checkpoints/v5_11/` | 845 KB | 100% | -0.8302 | Legacy baseline |
+| v5_11_homeostasis/best.pt | `checkpoints/v5_11_homeostasis/` | 845 KB | 99.9% | -0.8318 | Dynamic controller |
+| v5_11_progressive/best.pt | `checkpoints/v5_11_progressive/` | 1.2 MB | 99.9% | +0.78* | Frequency-optimal |
 
 *Note: v5_11_progressive has positive hierarchy, representing a valid frequency-optimal (Shannon) manifold organization rather than p-adic ordering.
 

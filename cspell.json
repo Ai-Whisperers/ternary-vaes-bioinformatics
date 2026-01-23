@@ -35,7 +35,7 @@
     "dictionaryDefinitions": [
         {
             "name": "project-words",
-            "path": "./configs/project-words.txt",
+            "path": "./src/configs/project-words.txt",
             "addWords": true
         }
     ],

@@ -72,7 +72,7 @@ PROJECT_ROOT = _find_project_root()
 # CONFIGURATION DIRECTORIES
 # =============================================================================
 
-CONFIG_DIR = Path(os.environ.get("TERNARY_CONFIG_DIR", PROJECT_ROOT / "configs"))
+CONFIG_DIR = Path(os.environ.get("TERNARY_CONFIG_DIR", PROJECT_ROOT / "src" / "configs"))
 
 # =============================================================================
 # DATA DIRECTORIES
@@ -94,7 +94,7 @@ OUTPUT_DIR = Path(os.environ.get("TERNARY_OUTPUT_DIR", PROJECT_ROOT / "outputs")
 
 # Output subdirectories
 RESULTS_DIR = OUTPUT_DIR / "results"
-CHECKPOINTS_DIR = OUTPUT_DIR / "models"
+CHECKPOINTS_DIR = PROJECT_ROOT / "checkpoints"  # Main checkpoint storage
 RUNS_DIR = OUTPUT_DIR / "runs"
 REPORTS_DIR = OUTPUT_DIR / "reports"
 VIZ_DIR = OUTPUT_DIR / "visualizations"
@@ -110,8 +110,7 @@ LOGS_DIR = OUTPUT_DIR / "logs"
 LEGACY_RESULTS_DIR = PROJECT_ROOT / "results"
 LEGACY_RUNS_DIR = PROJECT_ROOT / "runs"
 LEGACY_REPORTS_DIR = PROJECT_ROOT / "reports"
-LEGACY_SANDBOX_DIR = PROJECT_ROOT / "sandbox-training"
-LEGACY_CHECKPOINTS_DIR = LEGACY_SANDBOX_DIR / "checkpoints"
+# Note: LEGACY_CHECKPOINTS_DIR removed - CHECKPOINTS_DIR now points to checkpoints/
 
 # =============================================================================
 # DOCUMENTATION DIRECTORIES
@@ -126,7 +125,7 @@ DOCUMENTATION_DIR = PROJECT_ROOT / "DOCUMENTATION"  # Legacy
 
 SRC_DIR = PROJECT_ROOT / "src"
 TESTS_DIR = PROJECT_ROOT / "tests"
-SCRIPTS_DIR = PROJECT_ROOT / "scripts"
+SCRIPTS_DIR = SRC_DIR / "scripts"
 NOTEBOOKS_DIR = PROJECT_ROOT / "notebooks"
 RESEARCH_DIR = PROJECT_ROOT / "research"
 
@@ -277,8 +276,7 @@ def resolve_legacy_path(path: str | Path) -> Path:
     # Map legacy paths to new structure
     mappings = {
         "results/": str(RESULTS_DIR) + "/",
-        "sandbox-training/checkpoints/": str(CHECKPOINTS_DIR) + "/",
-        "sandbox-training/": str(OUTPUT_DIR / "training") + "/",
+        "checkpoints/": str(CHECKPOINTS_DIR) + "/",
         "runs/": str(RUNS_DIR) + "/",
         "reports/": str(REPORTS_DIR) + "/",
         "outputs/viz/": str(VIZ_DIR) + "/",
@@ -344,8 +342,6 @@ __all__ = [
     "LEGACY_RESULTS_DIR",
     "LEGACY_RUNS_DIR",
     "LEGACY_REPORTS_DIR",
-    "LEGACY_SANDBOX_DIR",
-    "LEGACY_CHECKPOINTS_DIR",
     # Docs
     "DOCS_DIR",
     "DOCUMENTATION_DIR",

@@ -166,7 +166,7 @@ def _download_kaggle(dataset: Optional[str], output_dir: Path):
 def _download_zenodo(dataset: Optional[str], output_dir: Path):
     """Download from Zenodo."""
     console.print("[yellow]Zenodo download implementation pending[/yellow]")
-    console.print("Use scripts/hiv/download_hiv_datasets.py for Zenodo data")
+    console.print("Use src/scripts/hiv/download_hiv_datasets.py for Zenodo data")
 
 
 def _download_github(dataset: Optional[str], output_dir: Path):

@@ -124,9 +124,9 @@ Two prediction attempts to train a PeptideVAE based on validated findings:
 
 | File | Purpose |
 |------|---------|
-| `scripts/peptide_vae/prediction_attempt_01.py` | Baseline training |
-| `scripts/peptide_vae/prediction_attempt_02.py` | Fixed training (RECOMMENDED) |
-| `scripts/peptide_vae/validate_ddg_phase4.py` | DDG validation |
+| `src/scripts/peptide_vae/prediction_attempt_01.py` | Baseline training |
+| `src/scripts/peptide_vae/prediction_attempt_02.py` | Fixed training (RECOMMENDED) |
+| `src/scripts/peptide_vae/validate_ddg_phase4.py` | DDG validation |
 | `checkpoints/peptide_vae_attempt_02.pt` | Trained model |
 | `results/peptide_vae_attempt_02.json` | Training results |
 | `results/peptide_vae_ddg_validation.json` | DDG validation results |

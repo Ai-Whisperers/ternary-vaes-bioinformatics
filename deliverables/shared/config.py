@@ -31,8 +31,8 @@ class Config:
     # VAE checkpoints
     vae_checkpoint: Optional[str] = None
     fallback_checkpoints: list[str] = field(default_factory=lambda: [
-        "sandbox-training/checkpoints/homeostatic_rich/best.pt",
-        "sandbox-training/checkpoints/v5_11_homeostasis/best.pt",
+        "checkpoints/homeostatic_rich/best.pt",
+        "checkpoints/v5_11_homeostasis/best.pt",
         "checkpoints/pretrained_final.pt",
     ])
 

@@ -13,8 +13,8 @@ Analyzes ~3,647 V3 loop sequences for CCR5/CXCR4 tropism:
 - ML tropism predictor using hyperbolic features
 
 Usage:
-    python scripts/hiv/analysis/analyze_tropism_switching.py
-    python scripts/hiv/analysis/analyze_tropism_switching.py --output results/tropism
+    python src/scripts/hiv/analysis/analyze_tropism_switching.py
+    python src/scripts/hiv/analysis/analyze_tropism_switching.py --output results/tropism
 """
 
 from __future__ import annotations

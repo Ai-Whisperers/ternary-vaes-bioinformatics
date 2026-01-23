@@ -505,7 +505,7 @@ class AdaptiveRichHierarchyLoss:
 
 #### 5.1 Updated Training Script
 
-**Location:** `scripts/training/train_v5_12_5.py`
+**Location:** `src/scripts/training/train_v5_12_5.py`
 
 **Features:**
 - Encoder selection via config
@@ -530,7 +530,7 @@ optimizer = RiemannianAdam([
 
 #### 5.2 Configuration Schema
 
-**Location:** `configs/v5_12_5.yaml`
+**Location:** `src/configs/v5_12_5.yaml`
 
 ```yaml
 model:
@@ -653,8 +653,8 @@ Week 3 (Integration):
 | File | Purpose | Phase |
 |------|---------|-------|
 | `src/models/attention_encoder.py` | Attention-based ternary encoder | 2 |
-| `scripts/training/train_v5_12_5.py` | Unified training script | 4 |
-| `configs/v5_12_5.yaml` | v5.12.5 configuration | 4 |
+| `src/scripts/training/train_v5_12_5.py` | Unified training script | 4 |
+| `src/configs/v5_12_5.yaml` | v5.12.5 configuration | 4 |
 
 ### Modified Files (Critical Path)
 | File | Changes | Phase |
@@ -1173,7 +1173,7 @@ import torch
 from src.models import TernaryVAEV5_11_PartialFreeze
 
 # Load checkpoint
-checkpoint = torch.load('sandbox-training/checkpoints/homeostatic_rich/best.pt')
+checkpoint = torch.load('checkpoints/homeostatic_rich/best.pt')
 
 # Create model with matching architecture
 model = TernaryVAEV5_11_PartialFreeze(
@@ -1196,7 +1196,7 @@ model.eval()
 
 ### Strategy 1: Homeostatic Rich (Recommended)
 
-**Script:** `scripts/epsilon_vae/train_homeostatic_rich.py`
+**Script:** `src/scripts/epsilon_vae/train_homeostatic_rich.py`
 
 **Philosophy:** Balance hierarchy and richness through adaptive weighting
 
@@ -1228,7 +1228,7 @@ homeostasis:
 
 ### Strategy 2: Hierarchy Focused
 
-**Script:** `scripts/epsilon_vae/train_hierarchy_focused.py`
+**Script:** `src/scripts/epsilon_vae/train_hierarchy_focused.py`
 
 **Philosophy:** Maximize hierarchy at cost of richness
 
@@ -1665,7 +1665,7 @@ deliverables/partners/
 ```
 # Understanding current state
 .claude/CLAUDE.md                    # Project context
-sandbox-training/checkpoints/        # Available checkpoints
+checkpoints/        # Available checkpoints
 src/models/ternary_vae.py           # Core model
 src/models/homeostasis.py           # Controller logic
 
@@ -1685,10 +1685,10 @@ src/losses/radial.py                # New (U4)
 python -m pytest tests/unit/core/
 
 # Check current checkpoint metrics
-python scripts/epsilon_vae/analyze_all_checkpoints.py
+python src/scripts/epsilon_vae/analyze_all_checkpoints.py
 
 # Run training (when ready)
-python scripts/training/train_v5_12_5.py --config configs/v5_12_5.yaml
+python src/scripts/training/train_v5_12_5.py --config src/configs/v5_12_5.yaml
 ```
 
 ---

@@ -59,8 +59,10 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 # Add project root to path
+# Path: scripts/ -> carlos_brizuela/ -> partners/ -> deliverables/ -> PROJECT_ROOT
 SCRIPT_DIR = Path(__file__).parent
-PACKAGE_DIR = SCRIPT_DIR.parent
+PACKAGE_DIR = SCRIPT_DIR.parent  # carlos_brizuela/
+BRIZUELA_ROOT = PACKAGE_DIR  # Alias for consistency
 PROJECT_ROOT = PACKAGE_DIR.parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -87,7 +89,8 @@ VALID_AMINO_ACIDS = set("ACDEFGHIKLMNPQRSTVWY")
 MIN_PEPTIDE_LENGTH = 5
 MAX_PEPTIDE_LENGTH = 50
 
-DEFAULT_CHECKPOINT = PACKAGE_DIR / "../../../sandbox-training/checkpoints/peptide_vae_v1" / "best_production.pt"
+# Local checkpoint for MIC prediction
+DEFAULT_CHECKPOINT = BRIZUELA_ROOT / "checkpoints_definitive" / "best_production.pt"
 
 # Model configuration (from cv_results_definitive.json)
 MODEL_CONFIG = {

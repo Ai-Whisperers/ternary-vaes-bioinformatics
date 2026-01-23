@@ -13,9 +13,9 @@ Analyzes 2,116 CTL epitopes using p-adic hyperbolic geometry:
 - Boundary-crossing frequency by HLA
 
 Usage:
-    python scripts/hiv/analysis/analyze_ctl_escape_expanded.py
-    python scripts/hiv/analysis/analyze_ctl_escape_expanded.py --protein Gag
-    python scripts/hiv/analysis/analyze_ctl_escape_expanded.py --hla "A*02:01"
+    python src/scripts/hiv/analysis/analyze_ctl_escape_expanded.py
+    python src/scripts/hiv/analysis/analyze_ctl_escape_expanded.py --protein Gag
+    python src/scripts/hiv/analysis/analyze_ctl_escape_expanded.py --hla "A*02:01"
 """
 
 from __future__ import annotations

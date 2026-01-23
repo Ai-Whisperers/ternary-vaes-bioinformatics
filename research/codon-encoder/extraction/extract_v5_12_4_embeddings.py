@@ -352,7 +352,7 @@ def main():
     parser.add_argument(
         '--checkpoint',
         type=str,
-        default='sandbox-training/checkpoints/v5_12_4/best_Q.pt',
+        default='checkpoints/v5_12_4/best_Q.pt',
         help='Path to v5.12.4 checkpoint',
     )
     parser.add_argument(

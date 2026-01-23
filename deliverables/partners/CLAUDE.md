@@ -61,7 +61,7 @@
 
 ### Inference Command
 ```bash
-python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
+python src/scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 ```
 
 ### Last Inference Test
@@ -87,7 +87,7 @@ python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 ### Model Checkpoint
 - **Path:** Uses src.core.padic_math (no ML model)
 - **Type:** Algorithmic primer design
-- **Inference command:** `python scripts/A2_pan_arbovirus_primers.py`
+- **Inference command:** `python src/scripts/A2_pan_arbovirus_primers.py`
 
 ### Last Inference Test
 - **Date:** PENDING
@@ -112,7 +112,7 @@ python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 ### Model Checkpoint
 - **Path:** `checkpoints_definitive/best_production.pt`
 - **Type:** PeptideVAE (PeptideMICPredictor)
-- **Inference command:** `python scripts/predict_mic.py --sequence "KLWKKLKKALK"`
+- **Inference command:** `python src/scripts/predict_mic.py --sequence "KLWKKLKKALK"`
 
 ### Last Inference Test
 - **Date:** PENDING
@@ -136,7 +136,7 @@ python scripts/C4_mutation_effect_predictor.py --mutations mutations.csv
 ### Model Checkpoint
 - **Path:** N/A (uses Stanford HIVdb API)
 - **Type:** API integration
-- **Inference command:** `python scripts/H6_tdr_screening.py`
+- **Inference command:** `python src/scripts/H6_tdr_screening.py`
 
 ### Last Inference Test
 - **Date:** PENDING

@@ -31,6 +31,14 @@ from src.data.generation import generate_all_ternary_operations
 from src.models.ternary_vae import TernaryVAEV5_11_PartialFreeze
 
 
+def hyperbolic_radii_torch(embeddings: torch.Tensor, c: float = 1.0) -> torch.Tensor:
+    """V5.12.2: Compute hyperbolic distance from origin for Poincare ball embeddings."""
+    sqrt_c = c ** 0.5
+    euclidean_norms = torch.norm(embeddings, dim=1)
+    clamped = torch.clamp(euclidean_norms * sqrt_c, max=0.999)
+    return 2.0 * torch.arctanh(clamped) / sqrt_c
+
+
 def load_v5_11_3_model(device="cpu"):
     """Load the V5.11.3 model with proper architecture settings.
 
@@ -132,9 +140,9 @@ def extract_embeddings(model, device="cpu"):
     z_A_euc = outputs["z_A_euc"].cpu()
     z_B_euc = outputs["z_B_euc"].cpu()
 
-    # Compute radii
-    radii_A = torch.norm(z_A_hyp, dim=1)
-    radii_B = torch.norm(z_B_hyp, dim=1)
+    # Compute radii - V5.12.2: Use hyperbolic distance from origin
+    radii_A = hyperbolic_radii_torch(z_A_hyp)
+    radii_B = hyperbolic_radii_torch(z_B_hyp)
 
     print(f"  z_A_hyp shape: {z_A_hyp.shape}")
     print(f"  z_B_hyp shape: {z_B_hyp.shape}")

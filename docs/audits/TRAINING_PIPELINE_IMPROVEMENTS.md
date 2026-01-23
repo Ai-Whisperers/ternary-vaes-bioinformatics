@@ -48,8 +48,8 @@ frozen_checkpoint:
 ### 1. Fixed Configurations
 
 **Files Fixed**:
-- `configs/v5_12_4_extended_grokking.yaml` - Updated to use proper checkpoint
-- `configs/v5_12_4_fixed_checkpoint.yaml` - New reference configuration
+- `src/configs/v5_12_4_extended_grokking.yaml` - Updated to use proper checkpoint
+- `src/configs/v5_12_4_fixed_checkpoint.yaml` - New reference configuration
 
 **Before vs After**:
 ```yaml
@@ -59,7 +59,7 @@ frozen_checkpoint:
 
 # AFTER (fixed)
 frozen_checkpoint:
-  path: sandbox-training/checkpoints/v5_12_4/best_Q.pt
+  path: checkpoints/v5_12_4/best_Q.pt
   encoder_to_load: both
   decoder_to_load: decoder_A
 ```
@@ -98,7 +98,7 @@ if not is_valid:
 
 ### 3. Enhanced Training Script
 
-**New Script**: `scripts/train_validated.py`
+**New Script**: `src/scripts/train_validated.py`
 
 **Key Features**:
 - Pre-training configuration validation
@@ -109,13 +109,13 @@ if not is_valid:
 **Usage Examples**:
 ```bash
 # Validate configuration only
-python scripts/train_validated.py --config configs/v5_12_4.yaml --validate-only
+python src/scripts/train_validated.py --config src/configs/v5_12_4.yaml --validate-only
 
 # Auto-fix broken configurations
-python scripts/train_validated.py --config configs/v5_12_4.yaml --auto-fix
+python src/scripts/train_validated.py --config src/configs/v5_12_4.yaml --auto-fix
 
 # Run with full validation
-python scripts/train_validated.py --config configs/v5_12_4.yaml
+python src/scripts/train_validated.py --config src/configs/v5_12_4.yaml
 ```
 
 **Validation Flow**:
@@ -219,7 +219,7 @@ model:
   decoder_type: improved
 
 frozen_checkpoint:
-  path: sandbox-training/checkpoints/v5_12_4/best_Q.pt
+  path: checkpoints/v5_12_4/best_Q.pt
   encoder_to_load: both
   decoder_to_load: decoder_A
 
@@ -268,7 +268,7 @@ print('✅ Valid' if is_valid else f'❌ Errors: {errors}')
 
 **Coverage Test**:
 ```bash
-python scripts/train_validated.py --config configs/v5_12_4_fixed_checkpoint.yaml --validate-only
+python src/scripts/train_validated.py --config src/configs/v5_12_4_fixed_checkpoint.yaml --validate-only
 ```
 
 ### Manual Verification
@@ -334,12 +334,12 @@ python scripts/train_validated.py --config configs/v5_12_4_fixed_checkpoint.yaml
 
 ### New Files
 - `src/utils/checkpoint_validator.py` - Checkpoint validation system
-- `scripts/train_validated.py` - Enhanced training script with validation
-- `configs/v5_12_4_fixed_checkpoint.yaml` - Reference fixed configuration
+- `src/scripts/train_validated.py` - Enhanced training script with validation
+- `src/configs/v5_12_4_fixed_checkpoint.yaml` - Reference fixed configuration
 - `docs/audits/TRAINING_PIPELINE_IMPROVEMENTS.md` - This document
 
 ### Modified Files
-- `configs/v5_12_4_extended_grokking.yaml` - Fixed null checkpoint path
+- `src/configs/v5_12_4_extended_grokking.yaml` - Fixed null checkpoint path
 - `docs/audits/CODEBASE_ARCHITECTURE_AUDIT.md` - Updated with solutions
 
 ### Dependencies

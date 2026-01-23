@@ -9,7 +9,7 @@ All notable changes to the Ternary VAE Bioinformatics project.
 ### Added
 - **TernaryVAE v5.12.4 Training** - Improved architecture with FrozenEncoder from v5.5
   - Coverage: 100%, Hierarchy_B: -0.82, Q: 1.96
-  - Checkpoint: `sandbox-training/checkpoints/v5_12_4/best_Q.pt`
+  - Checkpoint: `checkpoints/v5_12_4/best_Q.pt`
 
 - **Amino Acid Embedding Extraction** - 16-dim hyperbolic embeddings
   - Script: `extract_embeddings_simple.py`
@@ -67,7 +67,7 @@ All notable changes to the Ternary VAE Bioinformatics project.
 
 ### Added
 - **Hyperbolic Audit Initiative** - Identified Euclidean/hyperbolic geometry misuse
-  - AST scanner script: `scripts/audit_hyperbolic_norms.py`
+  - AST scanner script: `src/scripts/audit_hyperbolic_norms.py`
   - Initial audit of 278 `.norm()` calls across codebase
 
 ### Fixed
@@ -171,10 +171,10 @@ Major release: All 10 modules from `src/_future/` are now production-ready with 
   - 27 documents organized into 6 sections (Overview, Findings, Methodology, Reference, Implementation, Supplementary)
   - Added README files for each section
 - **Scripts Organization** - Created subdirectories for loose scripts
-  - `scripts/hiv/` - HIV analysis pipelines
-  - `scripts/clinical/` - Clinical decision support tools
-  - `scripts/literature/` - Literature implementation scripts
-  - `scripts/maintenance/` - Codebase maintenance utilities
+  - `src/scripts/hiv/` - HIV analysis pipelines
+  - `src/scripts/clinical/` - Clinical decision support tools
+  - `src/scripts/literature/` - Literature implementation scripts
+  - `src/scripts/maintenance/` - Codebase maintenance utilities
 - **Results Organization** - Reorganized into categories
   - `results/clinical/` - Clinical outputs
   - `results/research/` - Research outputs
@@ -193,11 +193,11 @@ Major release: All 10 modules from `src/_future/` are now production-ready with 
   - Moved `IMPLEMENTATION_SUMMARY.md` to `DOCUMENTATION/02_PROJECT_MANAGEMENT/`
 
 ### Added (2025-12-26)
-- **Clinical Decision Support System** (`scripts/clinical_applications.py`)
+- **Clinical Decision Support System** (`src/scripts/clinical_applications.py`)
   - Top vaccine candidate identification (TPQDLNTML, priority: 0.970)
   - MDR risk screening (2,489 high-risk sequences, 34.8%)
   - Host-directed therapy targets (247 Tat-interacting proteins)
-- **Research Discoveries Pipeline** (`scripts/research_discoveries.py`)
+- **Research Discoveries Pipeline** (`src/scripts/research_discoveries.py`)
   - 387 vaccine targets ranked by evolutionary stability
   - P-adic geometry validation (Spearman r = 0.8339 vs Hamming)
   - 1,032 MDR-enriched mutations identified
@@ -215,8 +215,8 @@ Major release: All 10 modules from `src/_future/` are now production-ready with 
   - `src/training/data.py`: TernaryDataset, StratifiedBatchSampler
   - HyperbolicVAETrainer with Riemannian gradient updates
   - Environment validation and pre-training checks
-- **Comprehensive Dataset Analysis** (`scripts/analyze_all_datasets.py`)
-- **HIV Codon VAE Training** (`scripts/train_codon_vae_hiv.py`)
+- **Comprehensive Dataset Analysis** (`src/scripts/analyze_all_datasets.py`)
+- **HIV Codon VAE Training** (`src/scripts/train_codon_vae_hiv.py`)
 - **Test Coverage**
   - `tests/unit/training/test_hyperbolic_trainer.py`
   - `tests/unit/training/test_monitor.py`

@@ -39,8 +39,8 @@ result = evaluate_valuation_optimal(radii, valuations)
 
 ### 3. Training Configurations
 **Files**:
-- `configs/manifold_types/valuation_optimal.yaml`
-- `configs/manifold_types/frequency_optimal.yaml`
+- `src/configs/manifold_types/valuation_optimal.yaml`
+- `src/configs/manifold_types/frequency_optimal.yaml`
 
 **Features**:
 - Explicit manifold type selection
@@ -58,7 +58,7 @@ result = evaluate_valuation_optimal(radii, valuations)
 - `create_manifold_loss()`: Factory function for easy instantiation
 
 ### 5. Demonstration Script
-**File**: `scripts/examples/manifold_type_comparison.py`
+**File**: `src/scripts/examples/manifold_type_comparison.py`
 
 **Features**:
 - Loads and analyzes different checkpoint types
@@ -159,10 +159,10 @@ if intended_type == "frequency_optimal" and hierarchy_score > 0.6:
 1. **Choose Manifold Type**:
 ```python
 # For semantic reasoning
-config = "configs/manifold_types/valuation_optimal.yaml"
+config = "src/configs/manifold_types/valuation_optimal.yaml"
 
 # For compression/retrieval
-config = "configs/manifold_types/frequency_optimal.yaml"
+config = "src/configs/manifold_types/frequency_optimal.yaml"
 ```
 
 2. **Train with Type-Specific Loss**:
@@ -326,9 +326,9 @@ The framework is ready for integration into the main codebase and can immediatel
 
 1. `DOCUMENTATION/02_THEORETICAL_FRAMEWORKS/DUAL_MANIFOLD_ORGANIZATION_FRAMEWORK.md` (7,200+ lines)
 2. `src/evaluation/manifold_organization.py` (400+ lines)
-3. `configs/manifold_types/valuation_optimal.yaml` (75 lines)
-4. `configs/manifold_types/frequency_optimal.yaml` (80 lines)
-5. `scripts/examples/manifold_type_comparison.py` (350+ lines)
+3. `src/configs/manifold_types/valuation_optimal.yaml` (75 lines)
+4. `src/configs/manifold_types/frequency_optimal.yaml` (80 lines)
+5. `src/scripts/examples/manifold_type_comparison.py` (350+ lines)
 6. `src/losses/manifold_organization.py` (400+ lines)
 7. `DUAL_MANIFOLD_FRAMEWORK_SUMMARY.md` (this file, 300+ lines)
 

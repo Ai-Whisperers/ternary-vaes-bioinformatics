@@ -1,10 +1,10 @@
 {
   "summary": {
     "total_mutations": 3,
-    "destabilizing": 2,
-    "neutral": 1,
+    "destabilizing": 3,
+    "neutral": 0,
     "stabilizing": 0,
-    "mean_ddg": 2.404876999160051
+    "mean_ddg": 5.707347828497885
   },
   "predictions": [
     {
@@ -12,9 +12,9 @@
       "position": 45,
       "wt_aa": "G",
       "mut_aa": "A",
-      "predicted_ddg": 0.08,
-      "classification": "neutral",
-      "confidence": 0.95,
+      "predicted_ddg": 3.16,
+      "classification": "destabilizing",
+      "confidence": 0.81,
       "delta_volume": 28.5,
       "delta_hydrophobicity": 0.14,
       "delta_charge": 0,
@@ -25,9 +25,9 @@
       "position": 156,
       "wt_aa": "D",
       "mut_aa": "K",
-      "predicted_ddg": 4.24,
+      "predicted_ddg": 7.81,
       "classification": "destabilizing",
-      "confidence": 0.75,
+      "confidence": 0.7,
       "delta_volume": 57.5,
       "delta_hydrophobicity": -0.6,
       "delta_charge": 2,
@@ -38,9 +38,9 @@
       "position": 78,
       "wt_aa": "V",
       "mut_aa": "I",
-      "predicted_ddg": 2.89,
+      "predicted_ddg": 6.15,
       "classification": "destabilizing",
-      "confidence": 0.83,
+      "confidence": 0.7,
       "delta_volume": 26.7,
       "delta_hydrophobicity": 0.3,
       "delta_charge": 0,

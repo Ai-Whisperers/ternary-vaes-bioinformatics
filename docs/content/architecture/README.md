@@ -113,14 +113,14 @@ src/
 ```
 ternary-vaes-bioinformatics/
 ├── src/                    # Core Python library
-├── scripts/                # Entry points
-│   ├── train/              # Training scripts
-│   ├── analysis/           # Analysis tools
-│   └── visualization/      # Visualization
+│   ├── configs/            # YAML configurations
+│   └── scripts/            # Entry points
+│       ├── training/       # Training scripts
+│       ├── analysis/       # Analysis tools
+│       └── visualization/  # Visualization
 ├── tests/                  # Test suite (231 tests)
 │   ├── unit/               # Unit tests
 │   └── integration/        # Integration tests
-├── configs/                # YAML configurations
 ├── data/                   # Research datasets
 ├── research/               # Research experiments
 ├── results/                # Generated outputs
@@ -243,10 +243,10 @@ pytest tests/ --cov=src --cov-report=html
 
 | Location | Purpose | Format |
 |----------|---------|--------|
-| `configs/` | Runtime parameters | YAML/JSON |
+| `src/configs/` | Runtime parameters | YAML/JSON |
 | `src/config/` | Configuration classes | Python |
 
-### Example Config (`configs/ternary.yaml`)
+### Example Config (`src/configs/ternary.yaml`)
 
 ```yaml
 model:

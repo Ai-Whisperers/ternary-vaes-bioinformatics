@@ -25,19 +25,19 @@
 
 | Script | Architecture Focus | Target Use Case | Estimated Runtime |
 |--------|-------------------|-----------------|-------------------|
-| **`scripts/train.py`** | V5.11 canonical implementation | Production training with full features | 4-6 hours (100 epochs) |
-| **`scripts/training/train_v5_12.py`** | V5.12 production with two-phase strategy | High-quality training for research | 6-8 hours (200 epochs) |
-| **`scripts/training/train_v5_12_1.py`** | V5.12.1 variant | Experimental improvements | 5-7 hours |
-| **`scripts/quick_train.py`** | GPU verification and smoke testing | Infrastructure validation | 2-5 minutes (5 epochs) |
+| **`src/scripts/train.py`** | V5.11 canonical implementation | Production training with full features | 4-6 hours (100 epochs) |
+| **`src/scripts/training/train_v5_12.py`** | V5.12 production with two-phase strategy | High-quality training for research | 6-8 hours (200 epochs) |
+| **`src/scripts/training/train_v5_12_1.py`** | V5.12.1 variant | Experimental improvements | 5-7 hours |
+| **`src/scripts/quick_train.py`** | GPU verification and smoke testing | Infrastructure validation | 2-5 minutes (5 epochs) |
 
 ### Specialized Training Scripts
 
 | Script | Purpose | Training Features | Best for |
 |--------|---------|------------------|----------|
-| **`scripts/experiments/epsilon_vae/train_homeostatic_rich.py`** | Hierarchy-richness balance | RichHierarchyLoss + homeostasis | Balanced metrics |
-| **`scripts/experiments/epsilon_vae/train_hierarchy_focused.py`** | Maximum hierarchy achievement | Hierarchy-first training | Pure hierarchy optimization |
-| **`scripts/experiments/epsilon_vae/train_radial_target.py`** | Radial stratification | Target radius enforcement | Specific radial patterns |
-| **`scripts/training/train_v5_11_11_homeostatic.py`** | V5.11.11 homeostasis | Advanced homeostatic control | Stable long-term training |
+| **`src/scripts/experiments/epsilon_vae/train_homeostatic_rich.py`** | Hierarchy-richness balance | RichHierarchyLoss + homeostasis | Balanced metrics |
+| **`src/scripts/experiments/epsilon_vae/train_hierarchy_focused.py`** | Maximum hierarchy achievement | Hierarchy-first training | Pure hierarchy optimization |
+| **`src/scripts/experiments/epsilon_vae/train_radial_target.py`** | Radial stratification | Target radius enforcement | Specific radial patterns |
+| **`src/scripts/training/train_v5_11_11_homeostatic.py`** | V5.11.11 homeostasis | Advanced homeostatic control | Stable long-term training |
 
 ### Architecture Capabilities
 
@@ -56,7 +56,7 @@
 
 ## CONFIGURATION SYSTEM ANALYSIS
 
-### V5.12.4 Configuration (`configs/v5_12_4.yaml`)
+### V5.12.4 Configuration (`src/configs/v5_12_4.yaml`)
 
 **Architecture Configuration**:
 ```yaml
@@ -147,11 +147,11 @@ training:
 
 | Checkpoint | Location | Size | Purpose | Quality |
 |------------|----------|------|---------|---------|
-| **`v5_12_4/best_Q.pt`** | `sandbox-training/checkpoints/` | 1.0MB | Best Q-metric (structure) | ✅ Current production |
-| **`v5_12_4/best.pt`** | `sandbox-training/checkpoints/` | 1.0MB | Best composite score | ✅ Current production |
-| **`v5_12_4/latest.pt`** | `sandbox-training/checkpoints/` | 630KB | Latest training state | ✅ Resume capability |
-| **`homeostatic_rich/best.pt`** | `sandbox-training/checkpoints/` | 840KB | Proven hierarchy-richness balance | ✅ Reference implementation |
-| **`v5_5/latest.pt`** | `sandbox-training/checkpoints/` | Available | 100% coverage baseline | ✅ Frozen initialization |
+| **`v5_12_4/best_Q.pt`** | `checkpoints/` | 1.0MB | Best Q-metric (structure) | ✅ Current production |
+| **`v5_12_4/best.pt`** | `checkpoints/` | 1.0MB | Best composite score | ✅ Current production |
+| **`v5_12_4/latest.pt`** | `checkpoints/` | 630KB | Latest training state | ✅ Resume capability |
+| **`homeostatic_rich/best.pt`** | `checkpoints/` | 840KB | Proven hierarchy-richness balance | ✅ Reference implementation |
+| **`v5_5/latest.pt`** | `checkpoints/` | Available | 100% coverage baseline | ✅ Frozen initialization |
 
 ### Checkpoint Quality Metrics
 
@@ -242,14 +242,14 @@ advanced_scheduler:
 
 ### Phase 1: Infrastructure Validation (5 minutes)
 ```bash
-python scripts/quick_train.py --full --epochs 10 --save
+python src/scripts/quick_train.py --full --epochs 10 --save
 ```
 **Purpose**: Verify GPU, dependencies, and basic training pipeline
 
 ### Phase 2: Baseline Training (30-60 minutes)
 ```bash
-python scripts/training/train_v5_12.py \
-  --config configs/v5_12_4.yaml \
+python src/scripts/training/train_v5_12.py \
+  --config src/configs/v5_12_4.yaml \
   --epochs 150 \
   --lr 1e-3
 ```
@@ -257,8 +257,8 @@ python scripts/training/train_v5_12.py \
 
 ### Phase 3: Extended Grokking Search (2-4 hours)
 ```bash
-python scripts/training/train_v5_12.py \
-  --config configs/v5_12_4_extended.yaml \
+python src/scripts/training/train_v5_12.py \
+  --config src/configs/v5_12_4_extended.yaml \
   --epochs 500 \
   --lr 5e-4 \
   --device cuda

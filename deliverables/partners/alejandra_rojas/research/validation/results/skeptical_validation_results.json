@@ -2,37 +2,37 @@
   "_metadata": {
     "analysis_type": "skeptical_validation",
     "description": "Rigorous validation of Rojas package core claims",
-    "created": "2026-01-05T22:09:22.969890+00:00",
+    "created": "2026-01-23T19:56:08.759821+00:00",
     "n_sequences": 270
   },
   "claims": {
     "orthogonality": {
       "raw": {
         "spearman_rho": -0.11212419198307058,
-        "spearman_p": 2.5396654292729048e-30,
-        "pearson_r": -0.20999992337212264,
-        "pearson_p": 1.5706717965665912e-103,
+        "spearman_p": 2.5396654292728953e-30,
+        "pearson_r": -0.20999992337212256,
+        "pearson_p": 1.5706717965675336e-103,
         "n_positions": 10353
       },
       "windowed": {
         "1": {
           "spearman_rho": -0.11212419198307058,
-          "p_value": 2.5396654292729048e-30,
+          "p_value": 2.5396654292728953e-30,
           "n_samples": 10353
         },
         "25": {
           "spearman_rho": -0.3761582257853964,
-          "p_value": 2.1489470209281853e-30,
+          "p_value": 2.1489470209282007e-30,
           "n_samples": 863
         },
         "75": {
           "spearman_rho": -0.47586467028551743,
-          "p_value": 3.140527918872325e-17,
+          "p_value": 3.140527918872264e-17,
           "n_samples": 280
         },
         "150": {
           "spearman_rho": -0.5020286876089189,
-          "p_value": 3.049187012015608e-10,
+          "p_value": 3.0491870120156314e-10,
           "n_samples": 139
         }
       },

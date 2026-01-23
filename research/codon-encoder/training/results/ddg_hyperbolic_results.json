@@ -1,7 +1,7 @@
 {
   "metadata": {
     "version": "v3_hyperbolic_padic",
-    "checkpoint": "C:\\Users\\Gestalt\\Desktop\\ternary\\repos\\ternary-vaes\\sandbox-training\\checkpoints\\v5_12_3\\best_Q.pt",
+    "checkpoint": "C:\\Users\\Gestalt\\Desktop\\ternary\\repos\\ternary-vaes\\checkpoints\\v5_12_3\\best_Q.pt",
     "data": "C:\\Users\\Gestalt\\Desktop\\ternary\\repos\\ternary-vaes\\research\\codon-encoder\\training\\..\\..\\..\\deliverables\\partners\\jose_colbes\\reproducibility\\data\\s669.csv",
     "timestamp": "2026-01-03T12:57:47.269529"
   },

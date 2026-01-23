@@ -26,7 +26,7 @@ If confirmed, design primers targeting regions with:
 2. Conserved codon pair patterns (translation constraint)
 
 Usage:
-    python scripts/denv4_codon_pair_conjecture.py
+    python src/scripts/denv4_codon_pair_conjecture.py
 """
 
 from __future__ import annotations

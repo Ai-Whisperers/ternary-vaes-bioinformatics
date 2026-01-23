@@ -55,7 +55,7 @@ See [VALIDATION_SUMMARY.md](VALIDATION_SUMMARY.md) for complete validation detai
 
 ```bash
 # Predict DDG for mutations
-python scripts/C4_mutation_effect_predictor.py \
+python src/scripts/C4_mutation_effect_predictor.py \
     --mutations "G45A,D156K,V78I" \
     --output results/predictions.json
 ```
@@ -169,7 +169,7 @@ jose_colbes/
 Identify residues that Rosetta scores as stable but are geometrically unstable.
 
 ```bash
-python scripts/C1_rosetta_blind_detection.py \
+python src/scripts/C1_rosetta_blind_detection.py \
     --input data/protein_structures.pt \
     --output_dir results/rosetta_blind/
 ```
@@ -181,7 +181,7 @@ python scripts/C1_rosetta_blind_detection.py \
 Predict stability change (ΔΔG) for point mutations.
 
 ```bash
-python scripts/C4_mutation_effect_predictor.py \
+python src/scripts/C4_mutation_effect_predictor.py \
     --mutations "G45A,D156K,V78I" \
     --output results/predictions.json
 ```
@@ -300,7 +300,7 @@ pip install numpy torch scipy scikit-learn biopython matplotlib seaborn
 | `src/validated_ddg_predictor.py` | Main predictor class |
 | `validation/bootstrap_test.py` | Statistical validation |
 | `validation/alphafold_validation_pipeline.py` | Structural validation |
-| `scripts/C4_mutation_effect_predictor.py` | CLI interface |
+| `src/scripts/C4_mutation_effect_predictor.py` | CLI interface |
 
 ---
 

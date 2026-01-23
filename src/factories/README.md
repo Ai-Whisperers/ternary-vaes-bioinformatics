@@ -70,7 +70,7 @@ from src.config import load_config
 from src.factories import TernaryModelFactory
 
 # Load config from YAML
-config = load_config("configs/ternary.yaml")
+config = load_config("src/configs/ternary.yaml")
 
 # Create model from config
 model = TernaryModelFactory.create_model(config.model)

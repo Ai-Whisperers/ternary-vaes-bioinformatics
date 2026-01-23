@@ -703,10 +703,10 @@ ONCOLOGY (1):    Cancer (EGFR, BRAF, KRAS, ALK)
 
 | Script | Purpose |
 |--------|---------|
-| `scripts/experiments/run_esm2_experiments.py` | ESM-2 benchmark |
-| `scripts/experiments/run_hybrid_esm2_transfer.py` | Hybrid approach |
-| `scripts/experiments/run_esm2_large_experiments.py` | Model size comparison |
-| `scripts/api_integration/test_all_apis.py` | API testing |
+| `src/scripts/experiments/run_esm2_experiments.py` | ESM-2 benchmark |
+| `src/scripts/experiments/run_hybrid_esm2_transfer.py` | Hybrid approach |
+| `src/scripts/experiments/run_esm2_large_experiments.py` | Model size comparison |
+| `src/scripts/api_integration/test_all_apis.py` | API testing |
 | `research/.../kinetics_benchmark.py` | Kinetics vs thermodynamics |
 | `research/.../ddg_predictor_training.py` | ΔΔG ML benchmark (Jonathan) |
 | `research/.../deep_physics_benchmark.py` | 6-level physics hierarchy (Jonathan) |

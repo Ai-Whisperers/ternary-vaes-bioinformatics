@@ -17,7 +17,7 @@ This repository implements a Variational Autoencoder for learning 3-adic (p-adic
 
 **Status:** Audit complete. All core files fixed.
 
-**Issue:** Many files in `src/`, `configs/`, and `scripts/` incorrectly use Euclidean `.norm()` on hyperbolic Poincaré ball embeddings instead of `poincare_distance()`. This causes:
+**Issue:** Many files in `src/`, `src/configs/`, and `src/scripts/` incorrectly use Euclidean `.norm()` on hyperbolic Poincaré ball embeddings instead of `poincare_distance()`. This causes:
 - Incorrect radial hierarchy computation (coverage stuck at ~20%)
 - Metric correlations computed in wrong geometry
 - Training scripts producing misleading results
@@ -80,7 +80,7 @@ The TernaryVAEV5_11 architecture uses two complementary encoders:
 - Triggers: Based on coverage thresholds and hierarchy plateau detection
 - Q-metric: `Q = dist_corr + 1.5 × |hierarchy|`
 
-**V5.12.4 Improved Encoder/Decoder** - The `ImprovedEncoder` and `ImprovedDecoder` classes (`src/models/improved_components.py`) replace ReLU with SiLU activation for smoother gradients, add LayerNorm for stable training, include Dropout (default 0.1) for regularization, and clamp logvar to [-10, 2] to prevent KL collapse/explosion. These components can load v5.5 checkpoint weights (Linear layers only) with fresh LayerNorm initialization, enabling backwards-compatible upgrades. Enable via `encoder_type: improved` and `decoder_type: improved` in config, or see `configs/v5_12_4.yaml` for full example.
+**V5.12.4 Improved Encoder/Decoder** - The `ImprovedEncoder` and `ImprovedDecoder` classes (`src/models/improved_components.py`) replace ReLU with SiLU activation for smoother gradients, add LayerNorm for stable training, include Dropout (default 0.1) for regularization, and clamp logvar to [-10, 2] to prevent KL collapse/explosion. These components can load v5.5 checkpoint weights (Linear layers only) with fresh LayerNorm initialization, enabling backwards-compatible upgrades. Enable via `encoder_type: improved` and `decoder_type: improved` in config, or see `src/configs/v5_12_4.yaml` for full example.
 
 ---
 
@@ -107,7 +107,7 @@ The TernaryVAEV5_11 architecture uses two complementary encoders:
 
 ### 🔧 Technical Implementation Details
 
-**torch.compile Integration** (`scripts/training/train_v5_12.py`):
+**torch.compile Integration** (`src/scripts/training/train_v5_12.py`):
 ```python
 if compile_config.get('enabled', False):
     compiled_model = torch.compile(model, backend=backend, mode=mode)
@@ -142,25 +142,25 @@ grok_analysis = grok_detector.update(EpochMetrics(
 ### 📁 Default Pipeline Paths
 
 **Input Configurations**:
-- Main config: `configs/v5_12_4_fixed_checkpoint.yaml`
-- Frozen checkpoint: `sandbox-training/checkpoints/v5_12_4/best_Q.pt`
-- Training script: `scripts/training/train_v5_12.py`
+- Main config: `src/configs/v5_12_4_fixed_checkpoint.yaml`
+- Frozen checkpoint: `checkpoints/v5_12_4/best_Q.pt`
+- Training script: `src/scripts/training/train_v5_12.py`
 
 **Output Locations**:
-- Model checkpoints: `sandbox-training/checkpoints/v5_12_4_fixed/`
+- Model checkpoints: `checkpoints/v5_12_4_fixed/`
 - TensorBoard logs: `outputs/runs/v5_12_production_*/`
 - Training metrics: Embedded in checkpoint files as `metrics` and `train_metrics`
 
 **Pipeline Usage**:
 ```bash
 # Standard training with all optimizations
-python scripts/training/train_v5_12.py --config configs/v5_12_4_fixed_checkpoint.yaml --epochs 100
+python src/scripts/training/train_v5_12.py --config src/configs/v5_12_4_fixed_checkpoint.yaml --epochs 100
 
 # Quick validation run
-python scripts/training/train_v5_12.py --config configs/v5_12_4_fixed_checkpoint.yaml --epochs 5
+python src/scripts/training/train_v5_12.py --config src/configs/v5_12_4_fixed_checkpoint.yaml --epochs 5
 ```
 
-**Configuration Flags** (`configs/v5_12_4_fixed_checkpoint.yaml`):
+**Configuration Flags** (`src/configs/v5_12_4_fixed_checkpoint.yaml`):
 ```yaml
 torch_compile:
   enabled: true
@@ -285,7 +285,7 @@ research/contact-prediction/
 
 ### V5.5 - Topological Foundation (Continuum Mesh)
 
-**Path:** `sandbox-training/checkpoints/v5_5/best.pt` | **Size:** 2.0 MB | **Docs:** `sandbox-training/checkpoints/v5_5/V5_5_ANALYSIS.md`
+**Path:** `checkpoints/v5_5/best.pt` | **Size:** 2.0 MB | **Docs:** `checkpoints/v5_5/V5_5_ANALYSIS.md`
 
 V5.5 provides the **geometric substrate** for the entire Ternary VAE system. Despite pure Euclidean training (no hyperbolic components), it spontaneously develops p-adic-like geometry:
 
@@ -316,7 +316,7 @@ Despite appearing to have good metrics (100% coverage, -0.83 hierarchy), this ch
 - Architecture: ImprovedEncoder/Decoder with SiLU, LayerNorm, Dropout
 - FrozenEncoder from v5.5 for coverage preservation
 - Metrics: Coverage=100%, Hierarchy_B=-0.82, Q=1.96
-- Checkpoint: `sandbox-training/checkpoints/v5_12_4/best_Q.pt`
+- Checkpoint: `checkpoints/v5_12_4/best_Q.pt`
 - DDG Predictor: Spearman 0.58, Pearson 0.79, MAE 0.73
 
 **v5.11.3 (v5_11_structural)**
@@ -333,7 +333,7 @@ Despite appearing to have good metrics (100% coverage, -0.83 hierarchy), this ch
 - Best radial separation (v0→v9 spread)
 
 **homeostatic_rich (RECOMMENDED)**
-- Training script: `scripts/epsilon_vae/train_homeostatic_rich.py`
+- Training script: `src/scripts/epsilon_vae/train_homeostatic_rich.py`
 - Loss weights: hierarchy=5.0, coverage=1.0, richness=2.0, separation=3.0
 - Achieved: -0.8321 hierarchy (ceiling) with 5.8x more richness than v5.11.8
 - Proves hierarchy and richness are NOT mutually exclusive
@@ -391,16 +391,16 @@ NOT mutually exclusive. homeostatic_rich proved:
 ## File Locations
 
 **Training Scripts**
-- `scripts/epsilon_vae/train_homeostatic_rich.py` - Best balance approach
-- `scripts/epsilon_vae/train_hierarchy_focused.py` - Hierarchy-first approach
-- `scripts/epsilon_vae/analyze_all_checkpoints.py` - Checkpoint comparison tool
+- `src/scripts/epsilon_vae/train_homeostatic_rich.py` - Best balance approach
+- `src/scripts/epsilon_vae/train_hierarchy_focused.py` - Hierarchy-first approach
+- `src/scripts/epsilon_vae/analyze_all_checkpoints.py` - Checkpoint comparison tool
 
 **Model Definitions**
 - `src/models/ternary_vae.py` - TernaryVAEV5_11_PartialFreeze
 - `src/models/homeostasis.py` - HomeostasisController, compute_Q
 
 **Checkpoints**
-- `sandbox-training/checkpoints/` - All training runs
+- `checkpoints/` - All training runs
 - Production: Use `homeostatic_rich/best.pt` or `v5_11_homeostasis/best.pt`
 
 ---
@@ -614,7 +614,7 @@ These 190+ usages are intentionally Euclidean:
 **Audit Documents:**
 - `V5.12.2_ALL_278_CALLS.md` - Complete listing
 - `V5.12.2_CATEGORIZED_REVIEW.md` - Detailed categorization
-- `scripts/audit_hyperbolic_norms.py` - AST scanner
+- `src/scripts/audit_hyperbolic_norms.py` - AST scanner
 
 ---
 
@@ -652,13 +652,13 @@ Consolidated structure for CONACYT and stakeholder deliverables.
 After thorough investigation correcting previous incomplete assessments, this package contains a sophisticated **dual-layer architecture**:
 
 **Layer 1: Production Tools (Laboratory-Ready)**
-- `scripts/A2_pan_arbovirus_primers.py` - Practical primer design with `--use-ncbi` option for real data
+- `src/scripts/A2_pan_arbovirus_primers.py` - Practical primer design with `--use-ncbi` option for real data
 - Uses basic sequence features (GC, Tm, diversity) but terminology "p-adic embedding" is misleading
 - **Assessment**: ⭐⭐⭐ **PRODUCTION-ADEQUATE** - Methods biochemically sound despite terminology issues
 - **Results**: 70 primer candidates across 7 arboviruses, 0% specificity (likely biological reality)
 
 **Layer 2: Research Analysis (Scientific Excellence)**
-- `scripts/denv4_padic_integration.py` - **Genuine TernaryVAE integration** via `TrainableCodonEncoder`
+- `src/scripts/denv4_padic_integration.py` - **Genuine TernaryVAE integration** via `TrainableCodonEncoder`
 - Uses real `poincare_distance()` from `src.geometry` (proper hyperbolic geometry)
 - **Validated Results**: 270 DENV-4 genomes analyzed with trained checkpoint
 - **Assessment**: ⭐⭐⭐⭐⭐ **RESEARCH-EXCELLENT** - Meaningful biological insights from sophisticated analysis

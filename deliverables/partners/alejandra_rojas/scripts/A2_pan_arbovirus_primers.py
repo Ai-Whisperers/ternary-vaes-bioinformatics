@@ -26,8 +26,8 @@ Output:
 - Multiplex compatibility assessment
 
 Usage:
-    python scripts/A2_pan_arbovirus_primers.py --output_dir results/pan_arbovirus_primers/
-    python scripts/A2_pan_arbovirus_primers.py --use-ncbi  # Use real NCBI sequences
+    python src/scripts/A2_pan_arbovirus_primers.py --output_dir results/pan_arbovirus_primers/
+    python src/scripts/A2_pan_arbovirus_primers.py --use-ncbi  # Use real NCBI sequences
 """
 
 from __future__ import annotations

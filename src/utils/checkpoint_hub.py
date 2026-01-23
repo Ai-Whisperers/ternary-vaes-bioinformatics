@@ -28,7 +28,7 @@ from typing import Optional
 DEFAULT_REPO_ID = "ivanpol/ternary-vae-checkpoints"
 CHECKPOINT_SUBDIRS = [
     "outputs/models",
-    "sandbox-training/checkpoints",
+    "checkpoints",
     "checkpoints",
 ]
 

@@ -76,7 +76,7 @@ Current Best Pipeline (codon+physico):
 |------------|---------|----------|
 | trained_codon_encoder.pt | DDG prediction | research/codon-encoder/training/results/ |
 | esm_aa_embeddings.json | ESM-2 35M AA embeddings | research/codon-encoder/multimodal/data/ |
-| v5_11_structural | Contact prediction | sandbox-training/checkpoints/ |
+| v5_11_structural | Contact prediction | checkpoints/ |
 
 ---
 

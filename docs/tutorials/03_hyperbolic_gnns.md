@@ -299,6 +299,6 @@ class LearnableCurvatureGNN(nn.Module):
 
 ## Next Steps
 
-- See `scripts/examples/hyperbolic_gnn_demo.py` for runnable code
+- See `src/scripts/examples/hyperbolic_gnn_demo.py` for runnable code
 - Explore `src.topology` for topological features
 - Combine with `src.physics` for spin glass analysis

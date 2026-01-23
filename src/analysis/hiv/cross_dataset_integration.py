@@ -13,8 +13,8 @@ Integrates multiple HIV datasets for combined analyses:
 - Geographic correlation analysis
 
 Usage:
-    python scripts/hiv/analysis/cross_dataset_integration.py
-    python scripts/hiv/analysis/cross_dataset_integration.py --output results/integration
+    python src/scripts/hiv/analysis/cross_dataset_integration.py
+    python src/scripts/hiv/analysis/cross_dataset_integration.py --output results/integration
 """
 
 from __future__ import annotations

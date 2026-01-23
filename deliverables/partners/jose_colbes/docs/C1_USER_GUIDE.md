@@ -21,12 +21,12 @@ The Rosetta-Blind Detection tool identifies protein residues where geometric (p-
 
 ### Demo Mode
 ```bash
-python scripts/C1_rosetta_blind_detection.py
+python src/scripts/C1_rosetta_blind_detection.py
 ```
 
 ### With Real Structures
 ```bash
-python scripts/C1_rosetta_blind_detection.py \
+python src/scripts/C1_rosetta_blind_detection.py \
     --pdb_ids "1CRN,1TIM,4LZT" \
     --output_dir results/my_analysis/
 ```

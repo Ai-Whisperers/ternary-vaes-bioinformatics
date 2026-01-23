@@ -50,4 +50,4 @@ Standard energy functions (Rosetta) miss "kinetically trapped" stats. We use alg
 To actuate this:
 
 1.  Point `PDBScanner` to a folder of AlphaFold predictions.
-2.  Run `scripts/rotamer_stability.py` to filter the bad designs before ordering DNA.
+2.  Run `src/scripts/rotamer_stability.py` to filter the bad designs before ordering DNA.

@@ -9,8 +9,8 @@
 **Purpose**: Framework for analyzing TernaryVAE v5.12.4 training results, particularly focusing on emergent phenomena, grokking patterns, and phase transitions.
 
 **Training Session**: V5.12.4 Extended Training with Grokking Detection
-- **Configuration**: `configs/v5_12_4_extended_grokking.yaml`
-- **Script**: `scripts/train_v5_12_4_grokking.py`
+- **Configuration**: `src/configs/v5_12_4_extended_grokking.yaml`
+- **Script**: `src/scripts/train_v5_12_4_grokking.py`
 - **Target Duration**: 50 epochs (~30-60 minutes)
 - **Hardware**: RTX 3050 (6GB VRAM)
 

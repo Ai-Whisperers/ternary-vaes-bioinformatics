@@ -308,6 +308,6 @@ print(f"Invariance error: {(out1 - out2).abs().max():.6f}")
 
 ## Next Steps
 
-- See `scripts/examples/equivariant_networks.py` for runnable code
+- See `src/scripts/examples/equivariant_networks.py` for runnable code
 - Combine with `src.diffusion` for structure-conditioned generation
 - Check `src.graphs` for hyperbolic alternatives

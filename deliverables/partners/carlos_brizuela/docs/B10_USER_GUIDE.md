@@ -21,12 +21,12 @@ The Synthesis Optimization tool balances antimicrobial activity with practical s
 
 ### Demo Mode
 ```bash
-python scripts/B10_synthesis_optimization.py
+python src/scripts/B10_synthesis_optimization.py
 ```
 
 ### Custom Weights
 ```bash
-python scripts/B10_synthesis_optimization.py \
+python src/scripts/B10_synthesis_optimization.py \
     --activity_weight 0.7 \
     --difficulty_weight 0.3 \
     --max_cost 50.0 \
@@ -145,7 +145,7 @@ The output gives multiple solutions representing trade-offs:
 ### For Academic Labs (Limited Budget)
 
 ```bash
-python scripts/B10_synthesis_optimization.py \
+python src/scripts/B10_synthesis_optimization.py \
     --difficulty_weight 0.6 \
     --cost_weight 0.3 \
     --activity_weight 0.1 \
@@ -155,7 +155,7 @@ python scripts/B10_synthesis_optimization.py \
 ### For Industry (Performance Priority)
 
 ```bash
-python scripts/B10_synthesis_optimization.py \
+python src/scripts/B10_synthesis_optimization.py \
     --activity_weight 0.7 \
     --difficulty_weight 0.2 \
     --cost_weight 0.1 \

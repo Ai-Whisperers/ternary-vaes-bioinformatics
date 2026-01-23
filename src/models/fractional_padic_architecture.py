@@ -37,7 +37,7 @@ At p=6, we have algebraic closure because:
 - This is the minimal complete p-adic system
 
 Usage:
-    python scripts/epsilon_vae/fractional_padic_architecture.py --p_values 3.0 3.1 3.5 4.0
+    python src/scripts/epsilon_vae/fractional_padic_architecture.py --p_values 3.0 3.1 3.5 4.0
 """
 
 import argparse

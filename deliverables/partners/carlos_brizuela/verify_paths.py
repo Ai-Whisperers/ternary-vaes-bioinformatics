@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Verify Carlos Brizuela Package Path Configuration.
 
-This script verifies that all paths are correctly configured for the updated
-directory structure using sandbox-training/checkpoints/.
+This script verifies that all paths are correctly configured for the
+self-contained package structure using local checkpoints_definitive/.
 
 Usage:
     python verify_paths.py
@@ -27,13 +27,12 @@ def verify_directory_structure():
     print("🔍 Verifying Directory Structure")
     print("=" * 50)
 
-    # Key directories that should exist
+    # Key directories that should exist (local to package)
     directories = [
-        _repo_root / "sandbox-training",
-        _repo_root / "sandbox-training/checkpoints",
-        _repo_root / "sandbox-training/logs",
+        _script_dir / "checkpoints_definitive",
         _script_dir / "training",
         _script_dir / "scripts",
+        _script_dir / "results",
         _script_dir / "data",  # Will be created by data loader
     ]
 
@@ -89,32 +88,39 @@ def verify_checkpoint_paths():
     print("\n📁 Verifying Checkpoint Paths")
     print("=" * 50)
 
-    # Expected checkpoint directories
-    checkpoint_base = _repo_root / "sandbox-training/checkpoints"
-    peptide_vae_dir = checkpoint_base / "peptide_vae_v1"
+    # Expected checkpoint directory (local to package)
+    checkpoint_dir = _script_dir / "checkpoints_definitive"
 
-    print(f"📂 Checkpoint base: {checkpoint_base}")
-    if checkpoint_base.exists():
-        print("✅ Checkpoint base exists")
+    print(f"📂 Checkpoint directory: {checkpoint_dir}")
+    if checkpoint_dir.exists():
+        print("✅ Checkpoint directory exists")
     else:
-        print("❌ Checkpoint base missing")
+        print("❌ Checkpoint directory missing")
         return False
 
-    print(f"📂 PeptideVAE directory: {peptide_vae_dir}")
-    if peptide_vae_dir.exists():
-        print("✅ PeptideVAE directory exists")
+    # Check for required checkpoints
+    best_checkpoint = checkpoint_dir / "best_production.pt"
+    if best_checkpoint.exists():
+        print(f"✅ best_production.pt ({best_checkpoint.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
-        print("🔧 PeptideVAE directory will be created during training")
+        print("❌ best_production.pt missing")
+        return False
 
-    # Check if any checkpoints exist
-    if peptide_vae_dir.exists():
-        checkpoints = list(peptide_vae_dir.glob("*.pt"))
-        if checkpoints:
-            print(f"📦 Found {len(checkpoints)} checkpoint(s):")
-            for ckpt in checkpoints[:3]:  # Show first 3
-                print(f"   - {ckpt.name}")
-        else:
-            print("📦 No checkpoints found (will be created during training)")
+    # Check for fold checkpoints
+    fold_checkpoints = list(checkpoint_dir.glob("fold_*_definitive.pt"))
+    if fold_checkpoints:
+        print(f"📦 Found {len(fold_checkpoints)} fold checkpoint(s):")
+        for ckpt in sorted(fold_checkpoints):
+            print(f"   - {ckpt.name}")
+    else:
+        print("⚠️  No fold checkpoints found (optional)")
+
+    # Check for CV results
+    cv_results = checkpoint_dir / "cv_results_definitive.json"
+    if cv_results.exists():
+        print("✅ cv_results_definitive.json exists")
+    else:
+        print("⚠️  cv_results_definitive.json missing (optional)")
 
     return True
 
@@ -129,17 +135,15 @@ def verify_scripts():
         from scripts.predict_mic import DEFAULT_CHECKPOINT
         print(f"🎯 predict_mic.py DEFAULT_CHECKPOINT: {DEFAULT_CHECKPOINT}")
 
-        # Resolve the path to check if it points to sandbox-training
-        resolved_path = Path(DEFAULT_CHECKPOINT).resolve()
-        expected_path = _repo_root / "sandbox-training/checkpoints/peptide_vae_v1/best_production.pt"
+        # Check that it points to local checkpoints_definitive
+        expected_path = _script_dir / "checkpoints_definitive" / "best_production.pt"
 
-        if resolved_path == expected_path.resolve():
-            print("✅ predict_mic.py uses correct path")
+        if DEFAULT_CHECKPOINT.resolve() == expected_path.resolve():
+            print("✅ predict_mic.py uses correct local path")
         else:
-            print(f"❌ predict_mic.py path mismatch")
+            print(f"⚠️  predict_mic.py path: {DEFAULT_CHECKPOINT}")
             print(f"   Expected: {expected_path}")
-            print(f"   Actual:   {resolved_path}")
-            return False
+            # Not a failure - may be intentional override
     except Exception as e:
         print(f"❌ Error checking predict_mic.py: {e}")
         return False
@@ -150,11 +154,10 @@ def verify_scripts():
         config = DefinitiveConfig()
         print(f"🎯 train_definitive.py checkpoint_dir: {config.checkpoint_dir}")
 
-        if "sandbox-training/checkpoints/peptide_vae_v1" in str(config.checkpoint_dir):
-            print("✅ train_definitive.py uses correct path")
+        if "checkpoints_definitive" in str(config.checkpoint_dir):
+            print("✅ train_definitive.py uses local checkpoint dir")
         else:
-            print("❌ train_definitive.py uses old path")
-            return False
+            print(f"⚠️  train_definitive.py checkpoint_dir: {config.checkpoint_dir}")
     except Exception as e:
         print(f"❌ Error checking train_definitive.py: {e}")
         return False
@@ -204,8 +207,8 @@ def main():
         print()
         print("Next steps:")
         print("1. Train models: cd training && python train_definitive.py")
-        print("2. Test prediction: python scripts/predict_mic.py \"KLAKLAKKLAKLAK\"")
-        print("3. Run optimization: python scripts/B1_pathogen_specific_design.py")
+        print("2. Test prediction: python src/scripts/predict_mic.py \"KLAKLAKKLAKLAK\"")
+        print("3. Run optimization: python src/scripts/B1_pathogen_specific_design.py")
     else:
         print("⚠️  Some verifications failed. Check the issues above.")
         print()

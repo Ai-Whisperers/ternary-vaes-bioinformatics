@@ -167,7 +167,7 @@ With curated real data and cross-validation, models will show:
    - Consider data augmentation techniques
 
 3. **VAE Integration**: Full VAE integration requires:
-   - Trained VAE checkpoint at `sandbox-training/checkpoints/homeostatic_rich/best.pt`
+   - Trained VAE checkpoint at `checkpoints/homeostatic_rich/best.pt`
    - Proper sequence-to-ternary mapping (currently limited)
 
 ---

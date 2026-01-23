@@ -21,13 +21,13 @@ Risk Factors for LA Failure:
 4. Prior treatment experience
 
 Usage:
-    python scripts/H7_la_injectable_selection.py \
+    python src/scripts/H7_la_injectable_selection.py \
         --sequence patient_sequence.fasta \
         --clinical patient_data.json \
         --output results/la_selection/
 
     # Use Stanford HIVdb for resistance analysis (recommended):
-    python scripts/H7_la_injectable_selection.py --use-stanford --demo
+    python src/scripts/H7_la_injectable_selection.py --use-stanford --demo
 """
 
 from __future__ import annotations

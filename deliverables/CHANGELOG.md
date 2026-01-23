@@ -79,7 +79,7 @@ comprehensive CLI, and enhanced documentation.
   - Amplicon size constraints
   - Cross-reactivity checking
 
-#### Demo System (`scripts/biotools.py`)
+#### Demo System (`src/scripts/biotools.py`)
 - **CLI Commands**:
   - `demo-all` - Run all partner demos
   - `demo-hiv` - HIV TDR and LA selection demo
@@ -91,7 +91,7 @@ comprehensive CLI, and enhanced documentation.
   - `--list` - List all available tools
   - `analyze <SEQUENCE>` - Analyze peptide properties
 
-#### Showcase Figures (`scripts/generate_showcase_figures.py`)
+#### Showcase Figures (`src/scripts/generate_showcase_figures.py`)
 - **6 Publication-Quality Figures**:
   1. `figure_1_padic_hierarchy.png` - P-adic radial hierarchy
   2. `figure_2_hiv_resistance.png` - HIV resistance analysis

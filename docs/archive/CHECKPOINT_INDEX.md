@@ -311,9 +311,9 @@ def select_by_application(application):
 ## 📚 Documentation References
 
 ### Training Scripts
-- `scripts/epsilon_vae/train_homeostatic_rich.py` - Best balance approach
-- `scripts/epsilon_vae/train_hierarchy_focused.py` - Hierarchy-first
-- `scripts/epsilon_vae/analyze_all_checkpoints.py` - Comparative analysis
+- `src/scripts/epsilon_vae/train_homeostatic_rich.py` - Best balance approach
+- `src/scripts/epsilon_vae/train_hierarchy_focused.py` - Hierarchy-first
+- `src/scripts/epsilon_vae/analyze_all_checkpoints.py` - Comparative analysis
 
 ### Research Documentation
 - `research/contact-prediction/docs/VALIDATION_RESULTS.md` - Contact prediction validation
@@ -321,9 +321,9 @@ def select_by_application(application):
 - `docs/audits/CODEBASE_ARCHITECTURE_AUDIT.md` - Architecture analysis
 
 ### Configuration Templates
-- `configs/v5_12_4.yaml` - Production configuration
-- `configs/homeostatic_rich.yaml` - Research configuration
-- `configs/v5_11_homeostasis.yaml` - Adaptive training
+- `src/configs/v5_12_4.yaml` - Production configuration
+- `src/configs/homeostatic_rich.yaml` - Research configuration
+- `src/configs/v5_11_homeostasis.yaml` - Adaptive training
 
 ---
 

@@ -28,13 +28,15 @@ from torch.optim import AdamW
 from torch.optim.lr_scheduler import CosineAnnealingLR, LambdaLR
 
 # Add paths
+# Path: training/ -> carlos_brizuela/ -> partners/ -> deliverables/ -> PROJECT_ROOT
 _script_dir = Path(__file__).resolve().parent
-_package_dir = _script_dir.parent
+_package_dir = _script_dir.parent  # carlos_brizuela/
+BRIZUELA_ROOT = _package_dir  # Alias for consistency
 _deliverables_dir = _package_dir.parent.parent
-_repo_root = _deliverables_dir.parent
+PROJECT_ROOT = _deliverables_dir.parent
 sys.path.insert(0, str(_package_dir))
 sys.path.insert(0, str(_deliverables_dir))
-sys.path.insert(0, str(_repo_root))
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.encoders.peptide_encoder import PeptideVAE
 from src.losses.peptide_losses import PeptideLossManager
@@ -93,9 +95,9 @@ class DefinitiveConfig:
     # FIX 4: Collapse detection
     min_pred_std: float = 0.05  # Minimum prediction std (collapse = predicting constant)
 
-    # I/O - Default to sandbox-training/checkpoints/
-    checkpoint_dir: str = "../../../sandbox-training/checkpoints/peptide_vae_v1"
-    log_dir: str = "../../../sandbox-training/logs/peptide_vae_v1"
+    # I/O - Local checkpoints directory (consolidated)
+    checkpoint_dir: str = "../checkpoints_definitive"
+    log_dir: str = "../logs"
     seed: int = 42
 
 
@@ -395,7 +397,7 @@ def main():
     parser = argparse.ArgumentParser(description="Train Definitive PeptideVAE")
     parser.add_argument('--fold', type=int, default=None)
     parser.add_argument('--epochs', type=int, default=100)
-    parser.add_argument('--checkpoint-dir', type=str, default='../../../sandbox-training/checkpoints/peptide_vae_v1')
+    parser.add_argument('--checkpoint-dir', type=str, default='../checkpoints_definitive')
     args = parser.parse_args()
 
     config = DefinitiveConfig(

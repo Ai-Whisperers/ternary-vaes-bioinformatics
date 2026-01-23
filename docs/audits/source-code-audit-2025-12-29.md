@@ -579,7 +579,7 @@ All scripts properly CONSUME from src/ (correct pattern). Scripts import from:
 
 Verified that src/ does NOT import from scripts/:
 - src/ modules only import from other src/ modules
-- scripts/ are pure consumers, not providers
+- src/scripts/ are pure consumers, not providers
 
 ---
 
@@ -610,7 +610,7 @@ Verified that src/ does NOT import from scripts/:
 
 **ternary.yaml (V5.11 base)**
 - model.name: TernaryVAEV5_11 ✅
-- References: sandbox-training/checkpoints/v5_5/latest.pt
+- References: checkpoints/v5_5/latest.pt
 - Loss config: geodesic, radial, curriculum
 - Training: epochs=100, batch_size=512, lr=1e-3
 
@@ -653,8 +653,8 @@ src/ → does NOT import from → scripts/ or configs/
 
 This follows the proper layered architecture where:
 - src/ is the Single Source of Truth for features
-- scripts/ are consumers that orchestrate training/evaluation
-- configs/ are pure data files with no executable code
+- src/scripts/ are consumers that orchestrate training/evaluation
+- src/configs/ are pure data files with no executable code
 
 ### Recommendations
 
@@ -673,7 +673,7 @@ This follows the proper layered architecture where:
 
 ### Problem
 
-`RichHierarchyLoss` was defined locally in `scripts/experiments/epsilon_vae/train_homeostatic_rich.py`
+`RichHierarchyLoss` was defined locally in `src/scripts/experiments/epsilon_vae/train_homeostatic_rich.py`
 instead of in `src/losses/`. This violated the architecture where src/ should be the Single Source of Truth.
 
 ### Solution
@@ -688,7 +688,7 @@ instead of in `src/losses/`. This violated the architecture where src/ should be
 |------|--------|
 | `src/losses/rich_hierarchy.py` | **NEW** - RichHierarchyLoss implementation |
 | `src/losses/__init__.py` | Added import and export for RichHierarchyLoss |
-| `scripts/.../train_homeostatic_rich.py` | Removed local class, now imports from src.losses |
+| `src/scripts/.../train_homeostatic_rich.py` | Removed local class, now imports from src.losses |
 
 ### RichHierarchyLoss Innovation
 
@@ -726,8 +726,8 @@ $ python -c "from src.losses import RichHierarchyLoss; print(RichHierarchyLoss)"
 
 | File | Purpose | Lines |
 |------|---------|-------|
-| `configs/v5_12.yaml` | V5.12 production configuration | 198 |
-| `scripts/training/train_v5_12.py` | V5.12 training script | ~550 |
+| `src/configs/v5_12.yaml` | V5.12 production configuration | 198 |
+| `src/scripts/training/train_v5_12.py` | V5.12 training script | ~550 |
 | `DOCUMENTATION/01_PROJECT_KNOWLEDGE_BASE/V5_12_DESIGN.md` | Design document | 243 |
 
 ### V5.12 Key Features
@@ -755,13 +755,13 @@ $ python -c "from src.losses import RichHierarchyLoss; print(RichHierarchyLoss)"
 
 ```bash
 # Run V5.12 training
-python scripts/training/train_v5_12.py
+python src/scripts/training/train_v5_12.py
 
 # With custom config
-python scripts/training/train_v5_12.py --config configs/v5_12.yaml
+python src/scripts/training/train_v5_12.py --config src/configs/v5_12.yaml
 
 # Resume from checkpoint
-python scripts/training/train_v5_12.py --resume
+python src/scripts/training/train_v5_12.py --resume
 ```
 
 ### Architecture Verification

@@ -10,12 +10,12 @@ This document catalogs all critical ML artifacts, checkpoints, and data paths fo
 
 | Item | Path | Size | Description |
 |------|------|:----:|-------------|
-| **Best Model** | `../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt` | 1.2 MB | Fold 2, Spearman r=0.7368 |
-| **CV Results** | `../../../sandbox-training/checkpoints/peptide_vae_v1/cv_results_definitive.json` | 10 KB | Full 5-fold metrics |
+| **Best Model** | `checkpoints_definitive/best_production.pt` | 1.2 MB | Fold 2, Spearman r=0.7368 |
+| **CV Results** | `checkpoints_definitive/cv_results_definitive.json` | 10 KB | Full 5-fold metrics |
 
 **Load Example:**
 ```python
-checkpoint = torch.load('../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt')
+checkpoint = torch.load('checkpoints_definitive/best_production.pt')
 model.load_state_dict(checkpoint['model_state_dict'])
 ```
 
@@ -27,11 +27,11 @@ model.load_state_dict(checkpoint['model_state_dict'])
 
 | File | Spearman r | Status |
 |------|:----------:|--------|
-| `../../../sandbox-training/checkpoints/peptide_vae_v1/fold_0_definitive.pt` | 0.6945 | PASSED |
-| `../../../sandbox-training/checkpoints/peptide_vae_v1/fold_1_definitive.pt` | 0.5581 | MARGINAL |
-| `../../../sandbox-training/checkpoints/peptide_vae_v1/fold_2_definitive.pt` | **0.7368** | **BEST** |
-| `../../../sandbox-training/checkpoints/peptide_vae_v1/fold_3_definitive.pt` | 0.6542 | PASSED |
-| `../../../sandbox-training/checkpoints/peptide_vae_v1/fold_4_definitive.pt` | 0.6379 | PASSED |
+| `checkpoints_definitive/fold_0_definitive.pt` | 0.6945 | PASSED |
+| `checkpoints_definitive/fold_1_definitive.pt` | 0.5581 | MARGINAL |
+| `checkpoints_definitive/fold_2_definitive.pt` | **0.7368** | **BEST** |
+| `checkpoints_definitive/fold_3_definitive.pt` | 0.6542 | PASSED |
+| `checkpoints_definitive/fold_4_definitive.pt` | 0.6379 | PASSED |
 
 **Mean:** 0.6563 ± 0.0599 | **Collapse Rate:** 0%
 
@@ -62,7 +62,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 
 | Item | Path | Description |
 |------|------|-------------|
-| **Loader** | `scripts/dramp_activity_loader.py` | Downloads/caches DRAMP data |
+| **Loader** | `src/scripts/dramp_activity_loader.py` | Downloads/caches DRAMP data |
 | **Cache** | `~/.cache/dramp/amp_database.json` | Cached curated AMPs |
 | **URL** | `http://dramp.cpu-bioinfor.org/` | DRAMP official source |
 
@@ -132,10 +132,10 @@ model.load_state_dict(checkpoint['model_state_dict'])
 |------|:-----:|-------------|
 | `training/train_definitive.py` | 499 | Fixed training script |
 | `training/dataset.py` | 421 | PyTorch dataset |
-| `scripts/latent_nsga2.py` | 490 | NSGA-II optimizer |
-| `scripts/B1_pathogen_specific_design.py` | ~400 | B1 tool |
-| `scripts/B8_microbiome_safe_amps.py` | ~400 | B8 tool |
-| `scripts/B10_synthesis_optimization.py` | ~400 | B10 tool |
+| `src/scripts/latent_nsga2.py` | 490 | NSGA-II optimizer |
+| `src/scripts/B1_pathogen_specific_design.py` | ~400 | B1 tool |
+| `src/scripts/B8_microbiome_safe_amps.py` | ~400 | B8 tool |
+| `src/scripts/B10_synthesis_optimization.py` | ~400 | B10 tool |
 | `src/vae_interface.py` | - | VAE wrapper |
 | `src/objectives.py` | - | Objective functions |
 
@@ -155,7 +155,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 ### Must Copy (Critical)
 
 ```
-../../../sandbox-training/checkpoints/peptide_vae_v1/
+checkpoints_definitive/
 ├── best_production.pt          # Production model
 ├── cv_results_definitive.json  # Metrics
 └── README.md                   # Model card
@@ -212,9 +212,9 @@ validation/results/             # Re-run validation
 
 | Component | Status | Performance | Path |
 |-----------|:------:|-------------|------|
-| **PeptideVAE Encoder** | READY | Spearman r=0.7368 | `../../../sandbox-training/checkpoints/peptide_vae_v1/best_production.pt` |
+| **PeptideVAE Encoder** | READY | Spearman r=0.7368 | `checkpoints_definitive/best_production.pt` |
 | **MIC Prediction Head** | READY | 31% better than sklearn | Integrated in checkpoint |
-| **Inference Script** | READY | Single/batch prediction | `scripts/predict_mic.py` |
+| **Inference Script** | READY | Single/batch prediction | `src/scripts/predict_mic.py` |
 
 **Usage:**
 ```python
@@ -246,7 +246,7 @@ mic = loader.predict_activity("KLAKLAKKLAKLAK", pathogen="saureus")
 
 | Component | Status | Records | Path |
 |-----------|:------:|:-------:|------|
-| Data Loader | READY | 425 AMPs | `scripts/dramp_activity_loader.py` |
+| Data Loader | READY | 425 AMPs | `src/scripts/dramp_activity_loader.py` |
 | Feature Extractor | READY | 32 properties | Integrated |
 | Caching System | READY | Auto-download | `~/.cache/dramp/` |
 
@@ -254,7 +254,7 @@ mic = loader.predict_activity("KLAKLAKKLAKLAK", pathogen="saureus")
 
 | Component | Status | Description | Path |
 |-----------|:------:|-------------|------|
-| **SequenceNSGA2** | READY | Multi-objective optimization | `scripts/sequence_nsga2.py` |
+| **SequenceNSGA2** | READY | Multi-objective optimization | `src/scripts/sequence_nsga2.py` |
 | **Mutation Operators** | READY | Substitution, insertion, deletion | Integrated |
 | **Pareto Selection** | READY | NSGA-II with crowding distance | DEAP-based |
 

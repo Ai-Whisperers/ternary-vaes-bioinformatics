@@ -96,13 +96,13 @@ Validation follows a multi-level approach:
 
 ```bash
 # Run full validation suite
-python scripts/experiments/run_full_validation.py
+python src/scripts/experiments/run_full_validation.py
 
 # Run specific benchmark
 pytest tests/integration/test_full_pipeline.py -v
 
 # Generate validation report
-python scripts/eval/generate_validation_report.py
+python src/scripts/eval/generate_validation_report.py
 ```
 
 ---

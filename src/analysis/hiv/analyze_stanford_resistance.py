@@ -13,9 +13,9 @@ Analyzes 7,154 drug resistance records using p-adic hyperbolic geometry:
 - Drug class-specific geometric signatures
 
 Usage:
-    python scripts/hiv/analysis/analyze_stanford_resistance.py
-    python scripts/hiv/analysis/analyze_stanford_resistance.py --drug-class PI
-    python scripts/hiv/analysis/analyze_stanford_resistance.py --output results/stanford_resistance
+    python src/scripts/hiv/analysis/analyze_stanford_resistance.py
+    python src/scripts/hiv/analysis/analyze_stanford_resistance.py --drug-class PI
+    python src/scripts/hiv/analysis/analyze_stanford_resistance.py --output results/stanford_resistance
 """
 
 from __future__ import annotations

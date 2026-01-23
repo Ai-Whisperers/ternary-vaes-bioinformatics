@@ -208,9 +208,9 @@ git push --force-with-lease origin main
 ## File Categories for Decision Making
 
 ### Definitely Keep (Core Research)
-- Model checkpoints (`sandbox-training/checkpoints/`)
+- Model checkpoints (`checkpoints/`)
 - Partner deliverables (`deliverables/partners/`)
-- Source code (`src/`, `configs/`, `scripts/`)
+- Source code (`src/`, `src/configs/`, `src/scripts/`)
 - Documentation (`docs/`)
 
 ### Probably Archive (Large Intermediate)

@@ -13,9 +13,9 @@ Analyzes 189,879 antibody-virus neutralization records:
 - Antibody potency clustering
 
 Usage:
-    python scripts/hiv/analysis/analyze_catnap_neutralization.py
-    python scripts/hiv/analysis/analyze_catnap_neutralization.py --antibody VRC01
-    python scripts/hiv/analysis/analyze_catnap_neutralization.py --top-antibodies 20
+    python src/scripts/hiv/analysis/analyze_catnap_neutralization.py
+    python src/scripts/hiv/analysis/analyze_catnap_neutralization.py --antibody VRC01
+    python src/scripts/hiv/analysis/analyze_catnap_neutralization.py --top-antibodies 20
 """
 
 from __future__ import annotations

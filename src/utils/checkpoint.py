@@ -463,7 +463,7 @@ def list_checkpoints(
         List of CheckpointInfo objects, sorted by path
 
     Example:
-        >>> checkpoints = list_checkpoints("sandbox-training/checkpoints")
+        >>> checkpoints = list_checkpoints("checkpoints")
         >>> for ckpt in checkpoints:
         ...     print(f"{ckpt.path.parent.name}: {ckpt.metrics}")
     """

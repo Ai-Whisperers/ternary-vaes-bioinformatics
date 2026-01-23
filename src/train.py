@@ -15,7 +15,7 @@ This module provides a single entry point for all training modes:
 
 Usage:
     python -m src.train --mode v5.11 --epochs 100
-    python -m src.train --mode v5.11.11 --config configs/v5_11_11_homeostatic_ale_device.yaml
+    python -m src.train --mode v5.11.11 --config src/configs/v5_11_11_homeostatic_ale_device.yaml
     python -m src.train --mode epsilon --checkpoints-dir outputs/models
     python -m src.train --mode hiv --dataset stanford
     python -m src.train --mode predictors --predictor resistance
@@ -43,7 +43,7 @@ Available Training Modes:
               Usage: python -m src.train --mode v5.11 --epochs 100
 
   v5.11.11    Homeostatic control with Q-gated annealing
-              Usage: python -m src.train --mode v5.11.11 --config configs/v5_11_11_homeostatic_ale_device.yaml
+              Usage: python -m src.train --mode v5.11.11 --config src/configs/v5_11_11_homeostatic_ale_device.yaml
 
   epsilon     Epsilon-VAE meta-learning on checkpoints
               Usage: python -m src.train --mode epsilon --checkpoints-dir outputs/
@@ -73,7 +73,7 @@ def train_v5_11(args):
 
     cmd = [
         sys.executable,
-        "scripts/train.py",
+        "src/scripts/train.py",
         "--epochs", str(args.epochs),
         "--device", args.device,
         "--batch_size", str(args.batch_size),
@@ -100,13 +100,13 @@ def train_v5_11_11(args):
     """Train V5.11.11 with homeostatic control."""
     import subprocess
 
-    script_path = Path("scripts/training/train_v5_11_11_homeostatic.py")
+    script_path = Path("src/scripts/training/train_v5_11_11_homeostatic.py")
 
     if not script_path.exists():
         # Fallback to main train.py with homeostasis enabled
         cmd = [
             sys.executable,
-            "scripts/train.py",
+            "src/scripts/train.py",
             "--epochs", str(args.epochs),
             "--device", args.device,
             "--batch_size", str(args.batch_size),
@@ -137,7 +137,7 @@ def train_epsilon(args):
     """Train Epsilon-VAE for checkpoint exploration."""
     import subprocess
 
-    script_path = Path("scripts/epsilon_vae/train_epsilon_vae.py")
+    script_path = Path("src/scripts/epsilon_vae/train_epsilon_vae.py")
 
     cmd = [
         sys.executable,
@@ -161,7 +161,7 @@ def train_hiv(args):
     """Train HIV-specific codon VAE."""
     import subprocess
 
-    script_path = Path("scripts/hiv/train_codon_vae_hiv.py")
+    script_path = Path("src/scripts/hiv/train_codon_vae_hiv.py")
 
     cmd = [
         sys.executable,

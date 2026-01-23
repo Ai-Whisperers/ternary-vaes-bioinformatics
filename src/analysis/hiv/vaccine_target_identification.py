@@ -13,9 +13,9 @@ Multi-constraint optimization for identifying optimal HIV vaccine targets:
 - HLA population coverage optimization
 
 Usage:
-    python scripts/hiv/analysis/vaccine_target_identification.py
-    python scripts/hiv/analysis/vaccine_target_identification.py --output results/vaccine_targets
-    python scripts/hiv/analysis/vaccine_target_identification.py --min-conservation 0.8
+    python src/scripts/hiv/analysis/vaccine_target_identification.py
+    python src/scripts/hiv/analysis/vaccine_target_identification.py --output results/vaccine_targets
+    python src/scripts/hiv/analysis/vaccine_target_identification.py --min-conservation 0.8
 """
 
 from __future__ import annotations

@@ -24,11 +24,11 @@ Objectives:
 4. Cost (minimize)
 
 Usage:
-    python scripts/B10_synthesis_optimization.py --output results/synthesis_optimized/
-    python scripts/B10_synthesis_optimization.py --population 200 --generations 100
+    python src/scripts/B10_synthesis_optimization.py --output results/synthesis_optimized/
+    python src/scripts/B10_synthesis_optimization.py --population 200 --generations 100
 
     # Dry run without VAE model:
-    python scripts/B10_synthesis_optimization.py --dry-run
+    python src/scripts/B10_synthesis_optimization.py --dry-run
 """
 
 from __future__ import annotations

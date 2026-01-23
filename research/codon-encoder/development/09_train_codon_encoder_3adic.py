@@ -132,6 +132,12 @@ def poincare_distance_pairwise(x, y, c=1.0, eps=1e-10):
     return poincare_distance(x, y, c, eps)
 
 
+def hyperbolic_radii_torch(embeddings: torch.Tensor, c: float = 1.0) -> torch.Tensor:
+    """V5.12.2: Compute hyperbolic distance from origin for Poincare ball embeddings."""
+    origin = torch.zeros_like(embeddings)
+    return poincare_distance(embeddings, origin, c=c)
+
+
 # =============================================================================
 # DATA PREPARATION
 # =============================================================================
@@ -409,7 +415,8 @@ def evaluate_mapping(model, data, vae_embeddings):
     separation = mean_between / mean_within if mean_within > 0 else 0
 
     # Check hierarchy correlation (embeddings should inherit V5.11.3 structure)
-    radii = torch.norm(embeddings, dim=1).numpy()
+    # V5.12.2: Use hyperbolic distance from origin
+    radii = hyperbolic_radii_torch(embeddings).numpy()
 
     print("\n  Evaluation Results:")
     print(f"    Cluster accuracy: {cluster_acc*100:.1f}%")

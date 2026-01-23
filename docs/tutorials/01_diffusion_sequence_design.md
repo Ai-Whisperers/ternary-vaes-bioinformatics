@@ -233,6 +233,6 @@ model.denoiser = MyDenoiser(64, 256)
 
 ## Next Steps
 
-- See `scripts/examples/diffusion_sequence_design.py` for runnable examples
+- See `src/scripts/examples/diffusion_sequence_design.py` for runnable examples
 - Check `src/diffusion/structure_gen.py` for structure encoding details
 - Explore `src/equivariant/` for structure-aware neural networks

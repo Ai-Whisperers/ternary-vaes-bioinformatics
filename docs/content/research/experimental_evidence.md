@@ -81,4 +81,4 @@ In late 2024, we integrated Meta's **ESM-2** (650M) protein language model embed
 
 - **Catalog**: `results/experiment_catalog.csv`
 - **Validation Suite**: `tests/validate_all_phases.py`
-- **ESM Integration**: `scripts/api_integration/esm2_embedder.py`
+- **ESM Integration**: `src/scripts/api_integration/esm2_embedder.py`

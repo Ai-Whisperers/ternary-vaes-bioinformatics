@@ -377,7 +377,7 @@ def main():
     # Check for real checkpoint
     checkpoint_paths = [
         project_root / "checkpoints" / "pretrained_final.pt",
-        project_root / "sandbox-training" / "checkpoints" / "v5_11_11_homeostatic_rtx2060s" / "latest.pt",
+        project_root / "checkpoints" / "v5_11_11_homeostatic_rtx2060s" / "latest.pt",
     ]
 
     checkpoint = None

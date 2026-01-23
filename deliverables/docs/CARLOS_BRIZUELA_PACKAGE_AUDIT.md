@@ -59,7 +59,7 @@ min_pred_std: float = 0.05
 
 ### 2. **NSGA-II Framework Assessment**
 
-**File:** `scripts/sequence_nsga2.py` (799 LOC)
+**File:** `src/scripts/sequence_nsga2.py` (799 LOC)
 
 **Quality:** ⭐⭐⭐⭐⭐ **SOPHISTICATED**
 
@@ -84,7 +84,7 @@ AA_GROUPS = {
 
 ### 3. **Pathogen-Specific Optimization Assessment**
 
-**File:** `scripts/B1_pathogen_specific_design.py` (649 LOC)
+**File:** `src/scripts/B1_pathogen_specific_design.py` (649 LOC)
 
 **Quality:** ⭐⭐⭐⭐⭐ **BIOCHEMICALLY ACCURATE**
 
@@ -113,7 +113,7 @@ AA_GROUPS = {
 
 ### 4. **Microbiome Selectivity Assessment**
 
-**File:** `scripts/B8_microbiome_safe_amps.py` (633 LOC)
+**File:** `src/scripts/B8_microbiome_safe_amps.py` (633 LOC)
 
 **Quality:** ⭐⭐⭐⭐⭐ **SCIENTIFICALLY RIGOROUS**
 
@@ -125,7 +125,7 @@ AA_GROUPS = {
 
 ### 5. **Synthesis Optimization Assessment**
 
-**File:** `scripts/B10_synthesis_optimization.py` (852 LOC)
+**File:** `src/scripts/B10_synthesis_optimization.py` (852 LOC)
 
 **Quality:** ⭐⭐⭐⭐⭐ **EMPIRICALLY GROUNDED**
 
@@ -199,7 +199,7 @@ DIFFICULT_DIPEPTIDES = {
 ValueError: selTournamentDCD: k must be divisible by four if k == len(individuals)
 ```
 
-**Location:** `scripts/sequence_nsga2.py:684`
+**Location:** `src/scripts/sequence_nsga2.py:684`
 ```python
 offspring = deap.tools.selTournamentDCD(population, len(population))
 ```
@@ -368,7 +368,7 @@ from shared.peptide_utils import compute_peptide_properties         # ✅ Availa
 ### Immediate Actions (Next 2-4 Hours)
 
 #### Priority 1: Fix DEAP Validation (BLOCKING)
-**File:** `scripts/sequence_nsga2.py`
+**File:** `src/scripts/sequence_nsga2.py`
 **Action:** Add population size validation in `SequenceNSGA2.__init__()`
 **Impact:** Enables all optimization scripts to run
 
@@ -385,12 +385,12 @@ from shared.peptide_utils import compute_peptide_properties         # ✅ Availa
 ### Short-term Actions (Next 1-2 Weeks)
 
 #### Priority 4: DRAMP Model Integration
-**File:** `scripts/B1_pathogen_specific_design.py`
+**File:** `src/scripts/B1_pathogen_specific_design.py`
 **Action:** Implement pathogen-specific model ensemble
 **Impact:** Fixes MIC convergence issue, enables true pathogen differentiation
 
 #### Priority 5: Synthesis Difficulty Recalibration
-**File:** `scripts/B10_synthesis_optimization.py`
+**File:** `src/scripts/B10_synthesis_optimization.py`
 **Action:** Audit and recalibrate synthesis difficulty thresholds
 **Impact:** Provides meaningful synthesis difficulty differentiation
 

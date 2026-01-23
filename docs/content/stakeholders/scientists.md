@@ -106,10 +106,10 @@ cd ternary-vaes-bioinformatics
 pip install -r requirements.txt
 
 # Run HIV validation
-python scripts/experiments/run_full_validation.py
+python src/scripts/experiments/run_full_validation.py
 
 # Generate figures
-python scripts/visualization/generate_figures.py
+python src/scripts/visualization/generate_figures.py
 ```
 
 ---
