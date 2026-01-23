@@ -118,7 +118,7 @@ Outcome:  Correctly identifies damaging variant
 
 ```bash
 # Stage 1: P-adic screen (5-10 minutes)
-python src/scripts/C4_mutation_effect_predictor.py \
+python scripts/C4_mutation_effect_predictor.py \
     --mutation_file all_50000_mutations.txt \
     --output_dir results/screen/
 
@@ -142,7 +142,7 @@ top.to_csv('top_100_candidates.csv')
 
 ```bash
 # Run C1 analysis
-python src/scripts/C1_rosetta_blind_detection.py \
+python scripts/C1_rosetta_blind_detection.py \
     --input structure_embeddings.pt \
     --rosetta_scores rosetta_per_residue.csv \
     --output_dir results/audit/
@@ -277,7 +277,7 @@ def validate_on_family(predictions, experimental_ddg):
 ## Getting Started Checklist
 
 - [ ] Install dependencies: `pip install numpy torch biopython`
-- [ ] Run demo: `python src/scripts/C4_mutation_effect_predictor.py`
+- [ ] Run demo: `python scripts/C4_mutation_effect_predictor.py`
 - [ ] Validate on known mutations in your protein family
 - [ ] Integrate with existing pipeline (FoldX/Rosetta post-filter)
 - [ ] Use C1 to audit Rosetta predictions

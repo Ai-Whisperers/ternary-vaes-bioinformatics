@@ -63,7 +63,7 @@ pip install matplotlib seaborn
 ```bash
 cd deliverables/alejandra_rojas
 python -c "import numpy; print('NumPy OK')"
-python src/scripts/A2_pan_arbovirus_primers.py --help
+python scripts/A2_pan_arbovirus_primers.py --help
 ```
 
 ---
@@ -72,14 +72,14 @@ python src/scripts/A2_pan_arbovirus_primers.py --help
 
 ### Demo Mode (Random Sequences)
 ```bash
-python src/scripts/A2_pan_arbovirus_primers.py
+python scripts/A2_pan_arbovirus_primers.py
 ```
 
 This runs with demo sequences and outputs to `results/pan_arbovirus_primers/`.
 
 ### With Real Sequences (Recommended)
 ```bash
-python src/scripts/A2_pan_arbovirus_primers.py \
+python scripts/A2_pan_arbovirus_primers.py \
     --sequences data/my_sequences.fasta \
     --output_dir results/my_primers/
 ```
@@ -91,7 +91,7 @@ python src/scripts/A2_pan_arbovirus_primers.py \
 ### Command-Line Options
 
 ```bash
-python src/scripts/A2_pan_arbovirus_primers.py [OPTIONS]
+python scripts/A2_pan_arbovirus_primers.py [OPTIONS]
 
 Options:
   --sequences PATH    Input FASTA file with viral sequences
@@ -108,7 +108,7 @@ Options:
 ### Example: Custom Parameters
 ```bash
 # Design 22nt primers with stricter GC range
-python src/scripts/A2_pan_arbovirus_primers.py \
+python scripts/A2_pan_arbovirus_primers.py \
     --primer_length 22 \
     --gc_min 0.45 \
     --gc_max 0.55 \
@@ -118,7 +118,7 @@ python src/scripts/A2_pan_arbovirus_primers.py \
 ### Example: Specific Virus Focus
 ```bash
 # Focus on dengue serotypes only
-python src/scripts/A2_pan_arbovirus_primers.py \
+python scripts/A2_pan_arbovirus_primers.py \
     --sequences data/dengue_only.fasta \
     --output_dir results/dengue_primers/
 ```
@@ -305,7 +305,7 @@ Patient Sample → RNA Extraction → RT-PCR → Result Interpretation
 **Cause:** GC content constraints too strict
 **Solution:**
 ```bash
-python src/scripts/A2_pan_arbovirus_primers.py \
+python scripts/A2_pan_arbovirus_primers.py \
     --gc_min 0.35 \
     --gc_max 0.65 \
     --tm_min 52.0 \

@@ -32,7 +32,7 @@ This would explain WHY E gene has low hyp_var despite non-synonymous changes:
 - Property-preserving substitutions maintain protein fold
 
 Usage:
-    python src/scripts/denv4_revised_conjecture.py
+    python scripts/denv4_revised_conjecture.py
 """
 
 from __future__ import annotations

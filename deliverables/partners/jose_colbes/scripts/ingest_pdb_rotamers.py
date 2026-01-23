@@ -15,7 +15,7 @@ Key Features:
 4. Outputs a tensor for use in hyperbolic embedding analysis
 
 Usage:
-    python src/scripts/ingest/ingest_pdb_rotamers.py \
+    python scripts/ingest/ingest_pdb_rotamers.py \
         --pdb_ids "1CRN,1TIM,4LZT" \
         --output data/processed/rotamers.pt
 """

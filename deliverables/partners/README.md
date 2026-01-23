@@ -55,7 +55,7 @@ This directory contains specialized bioinformatics tools developed for research 
 
 Each partner package is self-contained with:
 - `README.md` - Package documentation
-- `src/scripts/` - Command-line tools
+- `scripts/` - Command-line tools
 - `notebooks/` - Interactive Jupyter notebooks
 - `data/` - Reference datasets
 - `docs/` - User guides

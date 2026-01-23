@@ -17,7 +17,7 @@ Key Features:
 4. Identify "Rosetta-blind" instabilities (low Rosetta score, high hyperbolic distance)
 
 Usage:
-    python src/scripts/analysis/rotamer_stability.py \
+    python scripts/analysis/rotamer_stability.py \
         --input data/processed/rotamers.pt \
         --output results/rotamer_analysis.json
 """

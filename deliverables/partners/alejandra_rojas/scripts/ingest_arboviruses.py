@@ -19,7 +19,7 @@ Key Features:
 4. Output processed FASTA with standardized headers
 
 Usage:
-    python src/scripts/ingest/ingest_arboviruses.py \
+    python scripts/ingest_arboviruses.py \
         --virus dengue \
         --geo_location "Paraguay" \
         --output data/raw/dengue_paraguay.fasta

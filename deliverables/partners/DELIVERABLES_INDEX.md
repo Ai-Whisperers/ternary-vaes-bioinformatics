@@ -42,8 +42,8 @@
 | Bootstrap results | `validation/results/scientific_metrics.json` | EXISTS |
 | Scientific report | `validation/results/SCIENTIFIC_VALIDATION_REPORT.md` | EXISTS |
 | AlphaFold validation | `validation/results/alphafold_validation_report.json` | EXISTS |
-| C1 script | `src/scripts/C1_rosetta_blind_detection.py` | EXISTS |
-| C4 script | `src/scripts/C4_mutation_effect_predictor.py` | EXISTS |
+| C1 script | `scripts/C1_rosetta_blind_detection.py` | EXISTS |
+| C4 script | `scripts/C4_mutation_effect_predictor.py` | EXISTS |
 
 ### Literature Comparison (verified from metrics)
 
@@ -107,8 +107,8 @@ From `results/padic_integration/padic_integration_results.json`:
 
 | Artifact | Path | Status |
 |----------|------|:------:|
-| A2 primer script | `src/scripts/A2_pan_arbovirus_primers.py` | EXISTS |
-| Trajectory script | `src/scripts/arbovirus_hyperbolic_trajectory.py` | EXISTS |
+| A2 primer script | `scripts/A2_pan_arbovirus_primers.py` | EXISTS |
+| Trajectory script | `scripts/arbovirus_hyperbolic_trajectory.py` | EXISTS |
 | Primer CSVs | `results/pan_arbovirus_primers/*.csv` | EXISTS |
 | Primer FASTAs | `results/pan_arbovirus_primers/*.fasta` | EXISTS |
 | P-adic integration | `results/padic_integration/padic_integration_results.json` | EXISTS |
@@ -164,10 +164,10 @@ From `results/padic_integration/padic_integration_results.json`:
 
 | Artifact | Path | Status |
 |----------|------|:------:|
-| B1 script | `src/scripts/B1_pathogen_specific_design.py` | EXISTS |
-| B8 script | `src/scripts/B8_microbiome_safe_amps.py` | EXISTS |
-| B10 script | `src/scripts/B10_synthesis_optimization.py` | EXISTS |
-| predict_mic script | `src/scripts/predict_mic.py` | EXISTS |
+| B1 script | `scripts/B1_pathogen_specific_design.py` | EXISTS |
+| B8 script | `scripts/B8_microbiome_safe_amps.py` | EXISTS |
+| B10 script | `scripts/B10_synthesis_optimization.py` | EXISTS |
+| predict_mic script | `scripts/predict_mic.py` | EXISTS |
 | Pathogen models | `models/activity_*.joblib` | EXISTS (5) |
 | Pareto results | `results/pareto_peptides.csv` | EXISTS |
 | Validation batch | `results/validation_batch/` | EXISTS |

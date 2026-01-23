@@ -30,8 +30,8 @@ Key Features:
 5. Multi-objective optimization (activity, toxicity, stability)
 
 Usage:
-    python src/scripts/B1_pathogen_specific_design.py --pathogen "S_aureus"
-    python src/scripts/B1_pathogen_specific_design.py --all-pathogens --generations 100
+    python scripts/B1_pathogen_specific_design.py --pathogen "S_aureus"
+    python scripts/B1_pathogen_specific_design.py --all-pathogens --generations 100
 """
 
 from __future__ import annotations

@@ -22,7 +22,7 @@ Features:
 4. Generate Rosetta-blind residue reports
 
 Usage:
-    python src/scripts/C1_rosetta_blind_detection.py \
+    python scripts/C1_rosetta_blind_detection.py \
         --input data/rotamers.pt \
         --output results/rosetta_blind/
 

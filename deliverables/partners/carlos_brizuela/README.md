@@ -69,12 +69,12 @@ Design antimicrobial peptides optimized for specific WHO priority pathogens.
 
 ```bash
 # Single pathogen optimization
-python src/scripts/B1_pathogen_specific_design.py \
+python scripts/B1_pathogen_specific_design.py \
     --pathogen A_baumannii \
     --output results/pathogen_specific/
 
 # All WHO priority pathogens
-python src/scripts/B1_pathogen_specific_design.py \
+python scripts/B1_pathogen_specific_design.py \
     --all-pathogens \
     --output results/pathogen_specific/
 ```
@@ -94,12 +94,12 @@ Design peptides with selectivity for pathogens over beneficial commensals.
 
 ```bash
 # Skin microbiome optimization
-python src/scripts/B8_microbiome_safe_amps.py \
+python scripts/B8_microbiome_safe_amps.py \
     --context skin \
     --output results/microbiome_safe/
 
 # Gut microbiome optimization
-python src/scripts/B8_microbiome_safe_amps.py \
+python scripts/B8_microbiome_safe_amps.py \
     --context gut \
     --output results/microbiome_safe/
 ```
@@ -117,16 +117,16 @@ Optimize peptides for both activity AND ease of synthesis.
 
 ```bash
 # Standard synthesis optimization
-python src/scripts/B10_synthesis_optimization.py \
+python scripts/B10_synthesis_optimization.py \
     --output results/synthesis_optimized/
 
 # Shorter peptides (easier to synthesize)
-python src/scripts/B10_synthesis_optimization.py \
+python scripts/B10_synthesis_optimization.py \
     --max-length 20 \
     --output results/synthesis_optimized/
 
 # Dry run (without VAE model)
-python src/scripts/B10_synthesis_optimization.py \
+python scripts/B10_synthesis_optimization.py \
     --dry-run \
     --output results/synthesis_optimized/
 ```
@@ -171,10 +171,10 @@ python src/scripts/B10_synthesis_optimization.py \
 
 | File | Description | Lines |
 |------|-------------|-------|
-| `src/scripts/latent_nsga2.py` | NSGA-II optimizer core | 490 |
-| `src/scripts/B1_pathogen_specific_design.py` | Pathogen-specific design | ~400 |
-| `src/scripts/B8_microbiome_safe_amps.py` | Microbiome-safe design | ~400 |
-| `src/scripts/B10_synthesis_optimization.py` | Synthesis optimization | ~400 |
+| `scripts/latent_nsga2.py` | NSGA-II optimizer core | 490 |
+| `scripts/B1_pathogen_specific_design.py` | Pathogen-specific design | ~400 |
+| `scripts/B8_microbiome_safe_amps.py` | Microbiome-safe design | ~400 |
+| `scripts/B10_synthesis_optimization.py` | Synthesis optimization | ~400 |
 
 ### 2. Interactive Notebook
 
@@ -214,13 +214,13 @@ pip install numpy torch pandas matplotlib seaborn
 
 ```bash
 # B1: Pathogen-Specific
-python src/scripts/B1_pathogen_specific_design.py
+python scripts/B1_pathogen_specific_design.py
 
 # B8: Microbiome-Safe
-python src/scripts/B8_microbiome_safe_amps.py
+python scripts/B8_microbiome_safe_amps.py
 
 # B10: Synthesis-Optimized
-python src/scripts/B10_synthesis_optimization.py
+python scripts/B10_synthesis_optimization.py
 ```
 
 ### Step 3: Explore Results

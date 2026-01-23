@@ -16,7 +16,7 @@ Key Features:
 4. Export primer candidates with stability scores
 
 Usage:
-    python src/scripts/analysis/primer_stability_scanner.py \
+    python scripts/primer_stability_scanner.py \
         --input data/raw/dengue_paraguay.fasta \
         --output results/primer_candidates.csv \
         --window_size 20

@@ -104,7 +104,7 @@ Bypass latent-space optimization entirely. Use PeptideVAE only for scoring.
 ```
 
 **Files to Create:**
-- `src/scripts/sequence_nsga2.py` - Sequence-space optimizer
+- `scripts/sequence_nsga2.py` - Sequence-space optimizer
 - `src/mutators.py` - Peptide mutation operators
 
 ### Option B: PeptideVAE Latent Optimization
@@ -165,9 +165,9 @@ Given the validation findings, Option A (Sequence-Space Evolution) is recommende
 
 | Task | File | Effort | Output |
 |------|------|--------|--------|
-| Create prediction script | `src/scripts/predict_mic.py` | 30 min | CLI tool |
-| Create batch evaluator | `src/scripts/evaluate_candidates.py` | 1 hr | CSV results |
-| Update DRAMP loader | `src/scripts/dramp_activity_loader.py` | 30 min | PeptideVAE integration |
+| Create prediction script | `scripts/predict_mic.py` | 30 min | CLI tool |
+| Create batch evaluator | `scripts/evaluate_candidates.py` | 1 hr | CSV results |
+| Update DRAMP loader | `scripts/dramp_activity_loader.py` | 30 min | PeptideVAE integration |
 
 **Deliverable:** Working MIC prediction for any peptide sequence
 
@@ -176,10 +176,10 @@ Given the validation findings, Option A (Sequence-Space Evolution) is recommende
 | Task | File | Effort | Output |
 |------|------|--------|--------|
 | Create mutation operators | `src/mutators.py` | 2 hr | AA substitution/insertion/deletion |
-| Create sequence NSGA-II | `src/scripts/sequence_nsga2.py` | 3 hr | Pareto-optimal peptides |
-| Update B1 tool | `src/scripts/B1_pathogen_specific_design.py` | 2 hr | Fixed tool |
-| Update B8 tool | `src/scripts/B8_microbiome_safe_amps.py` | 1 hr | Fixed tool |
-| Update B10 tool | `src/scripts/B10_synthesis_optimization.py` | 1 hr | Fixed tool |
+| Create sequence NSGA-II | `scripts/sequence_nsga2.py` | 3 hr | Pareto-optimal peptides |
+| Update B1 tool | `scripts/B1_pathogen_specific_design.py` | 2 hr | Fixed tool |
+| Update B8 tool | `scripts/B8_microbiome_safe_amps.py` | 1 hr | Fixed tool |
+| Update B10 tool | `scripts/B10_synthesis_optimization.py` | 1 hr | Fixed tool |
 
 **Deliverable:** Working NSGA-II optimization producing real AMPs
 

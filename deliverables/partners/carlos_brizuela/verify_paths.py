@@ -207,8 +207,8 @@ def main():
         print()
         print("Next steps:")
         print("1. Train models: cd training && python train_definitive.py")
-        print("2. Test prediction: python src/scripts/predict_mic.py \"KLAKLAKKLAKLAK\"")
-        print("3. Run optimization: python src/scripts/B1_pathogen_specific_design.py")
+        print("2. Test prediction: python scripts/predict_mic.py \"KLAKLAKKLAKLAK\"")
+        print("3. Run optimization: python scripts/B1_pathogen_specific_design.py")
     else:
         print("⚠️  Some verifications failed. Check the issues above.")
         print()

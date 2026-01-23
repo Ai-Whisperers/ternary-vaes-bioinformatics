@@ -94,7 +94,7 @@ git lfs pull
 To train a new checkpoint with similar properties:
 
 ```bash
-cd scripts/epsilon_vae
+cd src/scripts/epsilon_vae
 python train_homeostatic_rich.py
 ```
 

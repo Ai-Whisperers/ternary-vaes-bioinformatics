@@ -22,7 +22,7 @@ TEST METHODOLOGY:
 4. If conjecture holds: design wobble-degenerate primers for E gene
 
 Usage:
-    python src/scripts/denv4_synonymous_conjecture.py
+    python scripts/denv4_synonymous_conjecture.py
 """
 
 from __future__ import annotations

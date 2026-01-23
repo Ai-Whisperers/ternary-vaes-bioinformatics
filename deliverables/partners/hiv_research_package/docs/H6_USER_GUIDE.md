@@ -21,12 +21,12 @@ The TDR (Transmitted Drug Resistance) Screening tool identifies drug resistance 
 
 ### Demo Mode
 ```bash
-python src/scripts/H6_tdr_screening.py
+python scripts/H6_tdr_screening.py
 ```
 
 ### With Patient Sequences
 ```bash
-python src/scripts/H6_tdr_screening.py \
+python scripts/H6_tdr_screening.py \
     --sequences data/patient_pol_sequences.fasta \
     --output_dir results/clinic_screening/
 ```
@@ -187,7 +187,7 @@ The tool screens for the complete WHO 2019 SDRM list:
 
 ### Multiple Patients
 ```bash
-python src/scripts/H6_tdr_screening.py \
+python scripts/H6_tdr_screening.py \
     --sequences data/batch_sequences.fasta \
     --output_dir results/batch_screening/ \
     --format csv
@@ -207,7 +207,7 @@ PATIENT_003,true,Y181C,TDF/3TC/DTG,0.89
 
 ### Comparison Mode
 ```bash
-python src/scripts/H6_tdr_screening.py \
+python scripts/H6_tdr_screening.py \
     --sequences data/patient_sequences.fasta \
     --compare_stanford \
     --output_dir results/validation/

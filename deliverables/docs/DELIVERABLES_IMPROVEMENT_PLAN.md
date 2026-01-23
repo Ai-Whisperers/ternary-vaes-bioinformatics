@@ -69,7 +69,7 @@
 
 ### 1.2 CLI Demo Commands
 
-**Enhance:** `src/scripts/biotools_cli.py`
+**Enhance:** `scripts/biotools.py`
 
 ```bash
 # Add comprehensive demo commands

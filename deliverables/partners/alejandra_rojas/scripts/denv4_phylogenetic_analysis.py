@@ -18,7 +18,7 @@ The goal is to understand DENV-4's cryptic diversity structure and identify
 genotype-specific conserved regions suitable for multiplexed primer design.
 
 Usage:
-    python src/scripts/denv4_phylogenetic_analysis.py
+    python scripts/denv4_phylogenetic_analysis.py
 
 Requirements:
     - Biopython (for sequence handling)

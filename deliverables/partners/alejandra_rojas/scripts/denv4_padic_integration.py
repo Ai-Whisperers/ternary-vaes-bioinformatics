@@ -19,7 +19,7 @@ Key Research Questions:
 - Is hyperbolic variance more predictive than Shannon entropy for primer design?
 
 Usage:
-    python src/scripts/denv4_padic_integration.py
+    python scripts/denv4_padic_integration.py
 """
 
 from __future__ import annotations

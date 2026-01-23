@@ -20,12 +20,12 @@ The Microbiome-Safe AMP Design tool creates antimicrobial peptides that selectiv
 
 ### Demo Mode
 ```bash
-python src/scripts/B8_microbiome_safe_amps.py
+python scripts/B8_microbiome_safe_amps.py
 ```
 
 ### Custom Targets
 ```bash
-python src/scripts/B8_microbiome_safe_amps.py \
+python scripts/B8_microbiome_safe_amps.py \
     --pathogens "S_aureus,MRSA,P_acnes_pathogenic" \
     --commensals "S_epidermidis,C_acnes,Corynebacterium" \
     --output_dir results/my_microbiome_safe/
@@ -129,7 +129,7 @@ The tool optimizes 4 objectives simultaneously:
 ### For Skin Applications
 
 ```bash
-python src/scripts/B8_microbiome_safe_amps.py \
+python scripts/B8_microbiome_safe_amps.py \
     --pathogens "S_aureus,MRSA,C_acnes_pathogenic" \
     --commensals "S_epidermidis,Corynebacterium,Cutibacterium" \
     --niche "skin"
@@ -138,7 +138,7 @@ python src/scripts/B8_microbiome_safe_amps.py \
 ### For Gut Applications
 
 ```bash
-python src/scripts/B8_microbiome_safe_amps.py \
+python scripts/B8_microbiome_safe_amps.py \
     --pathogens "C_difficile,EHEC,Salmonella" \
     --commensals "Lactobacillus,Bacteroides,Bifidobacterium" \
     --niche "gut"

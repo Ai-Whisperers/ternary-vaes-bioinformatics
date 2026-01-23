@@ -34,16 +34,16 @@ This package provides bioinformatics tools built on p-adic (hyperbolic) geometri
 pip install -r requirements.txt
 
 # Run all demos
-python src/scripts/biotools.py demo-all
+python scripts/biotools.py demo-all
 
 # Run specific demos
-python src/scripts/biotools.py demo-hiv          # HIV resistance analysis
-python src/scripts/biotools.py demo-amp          # AMP design
-python src/scripts/biotools.py demo-primers      # Primer design
-python src/scripts/biotools.py demo-stability    # Protein stability
+python scripts/biotools.py demo-hiv          # HIV resistance analysis
+python scripts/biotools.py demo-amp          # AMP design
+python scripts/biotools.py demo-primers      # Primer design
+python scripts/biotools.py demo-stability    # Protein stability
 
 # Generate showcase figures
-python src/scripts/biotools.py showcase
+python scripts/biotools.py showcase
 ```
 
 ### Python Quick Start
@@ -297,13 +297,13 @@ These don't affect core functionality.
 
 ```bash
 # List available tools
-python src/scripts/biotools.py --list
+python scripts/biotools.py --list
 
 # Analyze a peptide
-python src/scripts/biotools.py analyze GIGKFLHSAKKFGKAFVGEIMNS
+python scripts/biotools.py analyze GIGKFLHSAKKFGKAFVGEIMNS
 
 # Run pathogen-specific design
-python src/scripts/biotools.py pathogen --target S_aureus --output results/
+python scripts/biotools.py pathogen --target S_aureus --output results/
 ```
 
 ---

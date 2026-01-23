@@ -22,7 +22,7 @@ This package is actually **two complementary systems**:
 
 ### Layer 1: Production Tools (Laboratory-Ready)
 
-**File:** `src/scripts/A2_pan_arbovirus_primers.py` (677 LOC)
+**File:** `scripts/A2_pan_arbovirus_primers.py` (677 LOC)
 
 **Implementation Assessment:**
 - Uses simplified feature extraction (GC, Tm, diversity, repeats)
@@ -40,7 +40,7 @@ This package is actually **two complementary systems**:
 
 ### Layer 2: Research Analysis (Scientific Discovery)
 
-**File:** `src/scripts/denv4_padic_integration.py` (592 LOC)
+**File:** `scripts/denv4_padic_integration.py` (592 LOC)
 
 **Implementation Assessment:**
 - **Genuine p-adic/hyperbolic methods** via `TrainableCodonEncoder` integration

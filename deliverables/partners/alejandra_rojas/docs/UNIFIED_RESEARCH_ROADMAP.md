@@ -27,7 +27,7 @@ The Rojas package represents a **scientifically successful but implementation-in
 
 **Status:** COMPLETE
 **Files:**
-- `src/scripts/denv4_phylogenetic_analysis.py`
+- `scripts/denv4_phylogenetic_analysis.py`
 - `results/ml_ready/phylogenetic_analysis_results.json`
 - `results/ml_ready/clade_representatives.json`
 
@@ -51,7 +51,7 @@ The Rojas package represents a **scientifically successful but implementation-in
 
 **Status:** COMPLETE
 **Files:**
-- `src/scripts/denv4_padic_integration.py`
+- `scripts/denv4_padic_integration.py`
 - `results/ml_ready/padic_integration_results.json`
 - `results/CONSOLIDATED_FINDINGS.md`
 
@@ -73,10 +73,10 @@ The Rojas package represents a **scientifically successful but implementation-in
 
 **Status:** COMPLETE - ALL REJECTED
 **Files:**
-- `src/scripts/denv4_synonymous_conjecture.py`
-- `src/scripts/denv4_revised_conjecture.py`
-- `src/scripts/denv4_codon_bias_conjecture.py`
-- `src/scripts/denv4_codon_pair_conjecture.py`
+- `scripts/denv4_synonymous_conjecture.py`
+- `scripts/denv4_revised_conjecture.py`
+- `scripts/denv4_codon_bias_conjecture.py`
+- `scripts/denv4_codon_pair_conjecture.py`
 - `results/ml_ready/*_conjecture_results.json`
 
 | Conjecture | Hypothesis | Result | Correlation |
@@ -152,7 +152,7 @@ The Rojas package represents a **scientifically successful but implementation-in
 - Report coverage per clade
 - Generate specificity matrix
 
-**Implementation:** `src/scripts/insilico_pcr_validation.py` (not created)
+**Implementation:** `scripts/insilico_pcr_validation.py` (not created)
 
 ---
 
@@ -278,7 +278,7 @@ encoder = TrainableCodonEncoder(latent_dim=16)
 **Objective:** Validate ALL primer candidates against 270 genomes
 
 **Steps:**
-1. Create `src/scripts/insilico_pcr_validation.py`
+1. Create `scripts/insilico_pcr_validation.py`
 2. Test exact matches, 1mm, 2mm
 3. Generate coverage matrix per clade
 4. Flag primers with <50% coverage
@@ -392,10 +392,10 @@ encoder = TrainableCodonEncoder(latent_dim=16)
 
 | File | Purpose | Priority |
 |------|---------|----------|
-| `src/scripts/design_egene_primers.py` | E gene primer design | CRITICAL |
-| `src/scripts/insilico_pcr_validation.py` | Primer validation | CRITICAL |
-| `src/scripts/clade_specific_primer_design.py` | Per-clade primers | HIGH |
-| `src/scripts/optimize_multiplex.py` | Cocktail optimization | HIGH |
+| `scripts/design_egene_primers.py` | E gene primer design | CRITICAL |
+| `scripts/insilico_pcr_validation.py` | Primer validation | CRITICAL |
+| `scripts/clade_specific_primer_design.py` | Per-clade primers | HIGH |
+| `scripts/optimize_multiplex.py` | Cocktail optimization | HIGH |
 | `results/primers/egene_primer_pair.json` | E gene primers | CRITICAL |
 | `results/validation/insilico_pcr_results.json` | Validation matrix | CRITICAL |
 | `results/multiplex/denv4_cocktail.json` | Multiplex recipe | HIGH |

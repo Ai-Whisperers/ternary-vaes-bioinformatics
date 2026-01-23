@@ -62,7 +62,7 @@ model.load_state_dict(checkpoint['model_state_dict'])
 
 | Item | Path | Description |
 |------|------|-------------|
-| **Loader** | `src/scripts/dramp_activity_loader.py` | Downloads/caches DRAMP data |
+| **Loader** | `scripts/dramp_activity_loader.py` | Downloads/caches DRAMP data |
 | **Cache** | `~/.cache/dramp/amp_database.json` | Cached curated AMPs |
 | **URL** | `http://dramp.cpu-bioinfor.org/` | DRAMP official source |
 
@@ -132,10 +132,10 @@ model.load_state_dict(checkpoint['model_state_dict'])
 |------|:-----:|-------------|
 | `training/train_definitive.py` | 499 | Fixed training script |
 | `training/dataset.py` | 421 | PyTorch dataset |
-| `src/scripts/latent_nsga2.py` | 490 | NSGA-II optimizer |
-| `src/scripts/B1_pathogen_specific_design.py` | ~400 | B1 tool |
-| `src/scripts/B8_microbiome_safe_amps.py` | ~400 | B8 tool |
-| `src/scripts/B10_synthesis_optimization.py` | ~400 | B10 tool |
+| `scripts/latent_nsga2.py` | 490 | NSGA-II optimizer |
+| `scripts/B1_pathogen_specific_design.py` | ~400 | B1 tool |
+| `scripts/B8_microbiome_safe_amps.py` | ~400 | B8 tool |
+| `scripts/B10_synthesis_optimization.py` | ~400 | B10 tool |
 | `src/vae_interface.py` | - | VAE wrapper |
 | `src/objectives.py` | - | Objective functions |
 
@@ -214,7 +214,7 @@ validation/results/             # Re-run validation
 |-----------|:------:|-------------|------|
 | **PeptideVAE Encoder** | READY | Spearman r=0.7368 | `checkpoints_definitive/best_production.pt` |
 | **MIC Prediction Head** | READY | 31% better than sklearn | Integrated in checkpoint |
-| **Inference Script** | READY | Single/batch prediction | `src/scripts/predict_mic.py` |
+| **Inference Script** | READY | Single/batch prediction | `scripts/predict_mic.py` |
 
 **Usage:**
 ```python
@@ -246,7 +246,7 @@ mic = loader.predict_activity("KLAKLAKKLAKLAK", pathogen="saureus")
 
 | Component | Status | Records | Path |
 |-----------|:------:|:-------:|------|
-| Data Loader | READY | 425 AMPs | `src/scripts/dramp_activity_loader.py` |
+| Data Loader | READY | 425 AMPs | `scripts/dramp_activity_loader.py` |
 | Feature Extractor | READY | 32 properties | Integrated |
 | Caching System | READY | Auto-download | `~/.cache/dramp/` |
 
@@ -254,7 +254,7 @@ mic = loader.predict_activity("KLAKLAKKLAKLAK", pathogen="saureus")
 
 | Component | Status | Description | Path |
 |-----------|:------:|-------------|------|
-| **SequenceNSGA2** | READY | Multi-objective optimization | `src/scripts/sequence_nsga2.py` |
+| **SequenceNSGA2** | READY | Multi-objective optimization | `scripts/sequence_nsga2.py` |
 | **Mutation Operators** | READY | Substitution, insertion, deletion | Integrated |
 | **Pareto Selection** | READY | NSGA-II with crowding distance | DEAP-based |
 

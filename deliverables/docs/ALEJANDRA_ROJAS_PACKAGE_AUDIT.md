@@ -68,7 +68,7 @@ Pan-flavivirus cross-reactivity detection: 100% accuracy
 
 ### 1. **A2 Pan-Arbovirus Primer Library**
 
-**File:** `src/scripts/A2_pan_arbovirus_primers.py` (677 LOC)
+**File:** `scripts/A2_pan_arbovirus_primers.py` (677 LOC)
 
 **Quality:** ⭐⭐⭐⭐⭐ **COMPREHENSIVE**
 
@@ -93,12 +93,12 @@ Pan-flavivirus cross-reactivity detection: 100% accuracy
 
 ### 2. **Supporting Research Framework**
 
-**Hyperbolic Trajectory Analysis:** `src/scripts/arbovirus_hyperbolic_trajectory.py` (434 LOC)
+**Hyperbolic Trajectory Analysis:** `scripts/arbovirus_hyperbolic_trajectory.py` (434 LOC)
 - Predicts serotype dominance for surveillance
 - Tracks viral evolution in hyperbolic space
 - Identifies stable genomic regions
 
-**Primer Stability Scanner:** `src/scripts/primer_stability_scanner.py` (391 LOC)
+**Primer Stability Scanner:** `scripts/primer_stability_scanner.py` (391 LOC)
 - P-adic window embedding for conservation analysis
 - Stability scoring with thermodynamic modeling
 - Mutation resistance assessment
@@ -130,7 +130,7 @@ Pan-flavivirus cross-reactivity detection: 100% accuracy
 **Severity:** MEDIUM (prevents direct script execution)
 **Impact:** A2 script fails with "No module named 'deliverables'" error
 
-**Error Location:** `src/scripts/A2_pan_arbovirus_primers.py:52`
+**Error Location:** `scripts/A2_pan_arbovirus_primers.py:52`
 ```python
 from deliverables.partners.alejandra_rojas.src.constants import (
     ARBOVIRUS_TARGETS,

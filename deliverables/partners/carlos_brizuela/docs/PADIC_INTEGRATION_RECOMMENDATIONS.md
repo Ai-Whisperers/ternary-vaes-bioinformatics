@@ -162,7 +162,7 @@ class AdaptivePeptideEncoder(nn.Module):
 
 ### Recommended New Features (14 total from validation)
 
-Add these to `src/scripts/dramp_activity_loader.py`:
+Add these to `scripts/dramp_activity_loader.py`:
 
 ```python
 def compute_padic_features(sequence: str) -> Dict[str, float]:
@@ -240,7 +240,7 @@ python validation/regime_analysis.py --checkpoint <new_checkpoint>
 
 | File | Changes |
 |------|---------|
-| `src/scripts/dramp_activity_loader.py` | Add `compute_padic_features()` |
+| `scripts/dramp_activity_loader.py` | Add `compute_padic_features()` |
 | `src/encoders/peptide_encoder.py` | Add segment encoder option |
 | `training/train_peptide_encoder.py` | Add adaptive routing logic |
 | `validation/regime_analysis.py` | Track p-adic feature impact |

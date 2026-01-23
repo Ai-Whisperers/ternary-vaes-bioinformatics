@@ -19,12 +19,12 @@ Key Features:
 TDR prevalence: 10-15% in some regions (PEPFAR data)
 
 Usage:
-    python src/scripts/H6_tdr_screening.py \
+    python scripts/H6_tdr_screening.py \
         --sequence patient_sequence.fasta \
         --output results/tdr_screening/
 
     # Use Stanford HIVdb for analysis (recommended):
-    python src/scripts/H6_tdr_screening.py --use-stanford --sequence patient_sequence.fasta
+    python scripts/H6_tdr_screening.py --use-stanford --sequence patient_sequence.fasta
 """
 
 from __future__ import annotations

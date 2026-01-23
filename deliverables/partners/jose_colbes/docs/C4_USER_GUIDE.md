@@ -22,19 +22,19 @@ The Mutation Effect Predictor estimates the change in protein stability (DDG) ca
 
 ### Demo Mode (Random Mutations)
 ```bash
-python src/scripts/C4_mutation_effect_predictor.py
+python scripts/C4_mutation_effect_predictor.py
 ```
 
 ### Specific Mutations
 ```bash
-python src/scripts/C4_mutation_effect_predictor.py \
+python scripts/C4_mutation_effect_predictor.py \
     --mutations "G45A,D156K,V78I,K103N" \
     --output_dir results/my_mutations/
 ```
 
 ### From Mutation File
 ```bash
-python src/scripts/C4_mutation_effect_predictor.py \
+python scripts/C4_mutation_effect_predictor.py \
     --mutation_file mutations.txt \
     --output_dir results/batch_predictions/
 ```
@@ -234,7 +234,7 @@ def weighted_ranking(predictions):
 ### Systematic Mutagenesis
 ```bash
 # Generate all single mutants at position 156
-python src/scripts/C4_mutation_effect_predictor.py \
+python scripts/C4_mutation_effect_predictor.py \
     --position 156 \
     --all_substitutions \
     --output_dir results/position_156_scan/
@@ -259,7 +259,7 @@ sns.heatmap(pivot, cmap='RdYlGn_r', center=0)
 
 ### With PDB File
 ```bash
-python src/scripts/C4_mutation_effect_predictor.py \
+python scripts/C4_mutation_effect_predictor.py \
     --pdb 1CRN.pdb \
     --mutations "L5A,K7E,S31N" \
     --output_dir results/1crn_mutations/

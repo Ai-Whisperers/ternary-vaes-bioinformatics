@@ -16,7 +16,7 @@ Key Features:
 5. Detect convergent evolution towards "severe" clusters
 
 Usage:
-    python src/scripts/analysis/arbovirus_hyperbolic_trajectory.py \
+    python scripts/arbovirus_hyperbolic_trajectory.py \
         --input data/processed/dengue_trajectories.pt \
         --output results/dengue_forecast.json
 """

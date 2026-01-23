@@ -196,7 +196,7 @@ The `reproducibility/` folder contains:
 
 ```bash
 # Requires FoldX license
-python src/scripts/benchmark_vs_foldx.py \
+python scripts/benchmark_vs_foldx.py \
     --mutations mutations.txt \
     --pdb structure.pdb
 ```
