@@ -94,6 +94,12 @@ Thumbs.db
 /data/          # Ignore data/ at root level only (not src/data/)
 local/
 deliverables/**/data/
+# Exception: jose_colbes essential data files (small, required for integration tests)
+!deliverables/partners/jose_colbes/reproducibility/data/
+deliverables/partners/jose_colbes/reproducibility/data/*
+!deliverables/partners/jose_colbes/reproducibility/data/s669.csv
+!deliverables/partners/jose_colbes/reproducibility/data/s669.json
+!deliverables/partners/jose_colbes/reproducibility/data/aa_embeddings_v2.json
 
 # Generated metrics (can be regenerated, but keep curated analysis results)
 **/metrics/

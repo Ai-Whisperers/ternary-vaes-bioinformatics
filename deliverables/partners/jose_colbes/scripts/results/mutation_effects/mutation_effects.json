@@ -4,7 +4,7 @@
     "destabilizing": 2,
     "neutral": 1,
     "stabilizing": 0,
-    "mean_ddg": 2.5582622626965907
+    "mean_ddg": 2.404876999160051
   },
   "predictions": [
     {
@@ -12,7 +12,7 @@
       "position": 45,
       "wt_aa": "G",
       "mut_aa": "A",
-      "predicted_ddg": 0.17,
+      "predicted_ddg": 0.08,
       "classification": "neutral",
       "confidence": 0.95,
       "delta_volume": 28.5,
@@ -25,9 +25,9 @@
       "position": 156,
       "wt_aa": "D",
       "mut_aa": "K",
-      "predicted_ddg": 4.42,
+      "predicted_ddg": 4.24,
       "classification": "destabilizing",
-      "confidence": 0.73,
+      "confidence": 0.75,
       "delta_volume": 57.5,
       "delta_hydrophobicity": -0.6,
       "delta_charge": 2,
@@ -38,9 +38,9 @@
       "position": 78,
       "wt_aa": "V",
       "mut_aa": "I",
-      "predicted_ddg": 3.09,
+      "predicted_ddg": 2.89,
       "classification": "destabilizing",
-      "confidence": 0.81,
+      "confidence": 0.83,
       "delta_volume": 26.7,
       "delta_hydrophobicity": 0.3,
       "delta_charge": 0,
