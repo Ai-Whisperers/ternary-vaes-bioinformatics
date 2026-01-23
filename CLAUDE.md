@@ -281,6 +281,23 @@ research/contact-prediction/
 | **v5.11.3** | v5_11_structural | 100% | -0.40 | - | Moderate hierarchy, good richness |
 | **v5.11.8** | v5_11_homeostasis | 99.9% | -0.82 | - | Good hierarchy, moderate richness |
 | **homeostatic_rich** | homeostatic_rich | 100% | -0.8321 | - | Ceiling hierarchy + high richness |
+| **v5.5** | v5_5/best.pt | 97.1% | -0.30 | ~1.5 | **FOUNDATION** - Continuum mesh topology |
+
+### V5.5 - Topological Foundation (Continuum Mesh)
+
+**Path:** `sandbox-training/checkpoints/v5_5/best.pt` | **Size:** 2.0 MB | **Docs:** `sandbox-training/checkpoints/v5_5/V5_5_ANALYSIS.md`
+
+V5.5 provides the **geometric substrate** for the entire Ternary VAE system. Despite pure Euclidean training (no hyperbolic components), it spontaneously develops p-adic-like geometry:
+
+| Emergent Property | Value | Significance |
+|-------------------|-------|--------------|
+| Monotonic radial ordering | 10/10 levels | Perfect v=0 (outer) → v=9 (center) |
+| Ultrametric compliance | 82.8% | p-adic metric signature |
+| Hamming-Euclidean correlation | ρ = 0.55 | Algebraic structure preserved |
+| Neighbor valuation consistency | 89.3% | Continuum mesh property |
+
+**Architecture:** 9→256→128→64→16 (ReLU, Euclidean)
+**Key insight:** The p-adic structure is intrinsic to the ternary operation space and emerges naturally during reconstruction training. Later versions (v5.11+, v5.12.4) freeze this encoder to preserve the topology while adding hyperbolic projection layers for hierarchy refinement.
 
 ### CRITICAL WARNING: v5_11_overnight
 
