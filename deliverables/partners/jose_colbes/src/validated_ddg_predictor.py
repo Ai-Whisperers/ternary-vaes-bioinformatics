@@ -32,9 +32,9 @@ Usage:
     print(f"DDG: {result['ddg']:.2f}, Classification: {result['classification']}")
 
 References:
-- TrainableCodonEncoder: research/codon-encoder/training/
-- Validation: research/codon-encoder/multimodal/multimodal_ddg_predictor.py
-- Full findings: research/codon-encoder/results/PADIC_ENCODER_FINDINGS.md
+- TrainableCodonEncoder: src.encoders.trainable_codon_encoder
+- Checkpoint: models/trained_codon_encoder.pt
+- Full findings: docs/PADIC_ENCODER_FINDINGS.md (copied from research/)
 """
 
 from __future__ import annotations
@@ -49,6 +49,7 @@ import numpy as np
 
 # Add project root
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
+COLBES_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 # Try to import torch and encoder
@@ -168,7 +169,8 @@ class ValidatedDDGPredictor:
     def _load_encoder(self, path: Optional[Path] = None) -> None:
         """Load the TrainableCodonEncoder."""
         if path is None:
-            path = PROJECT_ROOT / "research/codon-encoder/training/results/trained_codon_encoder.pt"
+            # Use local models/ directory (checkpoint copied from research/codon-encoder/)
+            path = COLBES_ROOT / "models/trained_codon_encoder.pt"
 
         if not path.exists():
             print(f"Warning: Encoder not found at {path}")

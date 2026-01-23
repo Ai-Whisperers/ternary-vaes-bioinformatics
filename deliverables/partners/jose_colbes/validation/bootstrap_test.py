@@ -8,6 +8,7 @@ from pathlib import Path
 import csv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
+COLBES_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT_ROOT))
 
 from sklearn.linear_model import Ridge
@@ -65,8 +66,8 @@ def main():
     print("BOOTSTRAP SIGNIFICANCE TEST FOR DDG PREDICTOR")
     print("=" * 60)
 
-    # Load encoder
-    encoder_path = PROJECT_ROOT / "research/codon-encoder/training/results/trained_codon_encoder.pt"
+    # Load encoder (local checkpoint in models/)
+    encoder_path = COLBES_ROOT / "models/trained_codon_encoder.pt"
     checkpoint = torch.load(encoder_path, map_location='cpu', weights_only=True)
     config = checkpoint.get('config', {'latent_dim': 16, 'hidden_dim': 64})
 
@@ -79,8 +80,8 @@ def main():
     aa_embeddings = encoder.get_all_amino_acid_embeddings()
     print(f"Loaded encoder with {len(aa_embeddings)} AA embeddings")
 
-    # Load data
-    data_path = PROJECT_ROOT / "deliverables/partners/jose_colbes/reproducibility/data/s669.csv"
+    # Load data (local to colbes package)
+    data_path = COLBES_ROOT / "reproducibility/data/s669.csv"
     mutations = load_s669(data_path)
     print(f"Loaded {len(mutations)} mutations")
 

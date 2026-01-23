@@ -107,7 +107,7 @@ Independent validation against AlphaFold structural confidence:
 
 ## Mutation-Type Specific Performance
 
-From `research/codon-encoder/results/PADIC_ENCODER_FINDINGS.md`:
+From `docs/PADIC_ENCODER_FINDINGS.md`:
 
 | Mutation Type | N | P-adic Advantage | Recommendation |
 |---------------|---|------------------|----------------|
@@ -173,7 +173,7 @@ python train_padic_ddg_predictor_v2.py
 | Scientific report | `validation/results/SCIENTIFIC_VALIDATION_REPORT.md` |
 | Benchmark report | `reproducibility/results/BENCHMARK_REPORT.md` |
 | Literature comparison | `docs/BENCHMARK_COMPARISON.md` |
-| Research findings | `research/codon-encoder/results/PADIC_ENCODER_FINDINGS.md` |
+| Research findings | `docs/PADIC_ENCODER_FINDINGS.md` |
 
 ---
 
