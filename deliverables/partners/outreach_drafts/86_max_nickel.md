@@ -1,8 +1,8 @@
 # Email Draft: Max Nickel
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via Meta FAIR or @maxsnickel)
+**Email:** Via LinkedIn (linkedin.com/in/maximilian-nickel-ai) - Research Director at Meta FAIR
 
 ---
 
@@ -11,16 +11,18 @@
 | Field | Details |
 |-------|---------|
 | **Name** | Maximilian (Max) Nickel |
-| **Position** | Research Scientist, Meta FAIR |
-| **Key Work** | Poincare embeddings (NeurIPS 2017) |
-| **Recent Focus** | Hyperbolic ML, knowledge graphs |
-| **Lab** | Meta FAIR |
+| **Position** | Research Director, Meta FAIR (NYC) |
+| **Key Work** | Poincare embeddings (NeurIPS 2017, 17K+ citations) |
+| **Recent Focus** | Geometric ML, Moser Flow, Social Foundations of AI |
+| **Website** | maxn.io |
+| **Awards** | Outstanding paper award NeurIPS 2021 (Moser Flow) |
+| **Service** | Program Chair ICLR 2023 (Kigali, Rwanda) |
 
 ---
 
 ## EMAIL
 
-**To:** (via Meta FAIR or Twitter)
+**To:** Via LinkedIn (linkedin.com/in/maximilian-nickel-ai)
 
 **Subject:** Poincare embeddings for codons - biological application of your framework
 
@@ -51,7 +53,8 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 
 - **Word count:** 125
 - **Why this works:** Credits his foundational work, asks about theoretical generalization
-- **Tone:** First name (research scientist)
+- **Tone:** First name (Research Director)
+- **Contact method:** LinkedIn preferred - no public email available
 
 ---
 

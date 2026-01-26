@@ -1,8 +1,8 @@
 # Email Draft: Ines Chami
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via Stanford or publications)
+**Email:** chami@cs.stanford.edu (verified via ines-chami.github.io)
 
 ---
 
@@ -10,17 +10,19 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | Ines Chami |
-| **Position** | Research Scientist, Stanford/Meta |
-| **Key Work** | Hyperbolic GNNs (HGCN) |
-| **Recent Focus** | Hyperbolic learning theory |
-| **Lab** | Stanford / Meta |
+| **Name** | Ines Chami, Ph.D. |
+| **Position** | Ph.D. (ICME Stanford), advised by Christopher Re |
+| **Key Work** | HGCN (Hyperbolic Graph Convolutional Neural Networks, NeurIPS 2019) |
+| **Recent Focus** | Hyperbolic embeddings, graph representation learning |
+| **Website** | ines-chami.github.io |
+| **Awards** | Gene Golub Dissertation Award (2021) |
+| **Co-authors** | Rex Ying, Jure Leskovec, Albert Gu |
 
 ---
 
 ## EMAIL
 
-**To:** (via Stanford or publications)
+**To:** chami@cs.stanford.edu
 
 **Subject:** Hyperbolic VAE vs. hyperbolic GNN - different hierarchy sources?
 
@@ -51,7 +53,8 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 
 - **Word count:** 116
 - **Why this works:** Specific theoretical question about architecture choice, proposes comparison
-- **Tone:** First name (research scientist)
+- **Tone:** First name (recent Ph.D.)
+- **Verified:** Email from personal website
 
 ---
 

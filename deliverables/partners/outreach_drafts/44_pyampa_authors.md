@@ -1,8 +1,8 @@
 # Email Draft: PyAMPA Authors (UAB)
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (check UAB or GitHub for maintainers)
+**Email:** marc.torrent@uab.cat (verified via SYSBIOLAB UAB - corresponding author)
 
 ---
 
@@ -10,23 +10,23 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | PyAMPA Authors |
-| **Position** | Universitat Autonoma de Barcelona |
-| **Key Paper** | PyAMPA - Python AMP prediction library (2024) |
-| **Recent Focus** | High-throughput prediction, open source tools |
-| **Code** | Likely on PyPI/GitHub |
+| **Name** | Marc Torrent Burgas |
+| **Position** | Principal Investigator, SYSBIOLAB, Universitat Autònoma de Barcelona |
+| **Key Paper** | PyAMPA: a high-throughput prediction and optimization tool for AMPs (mSystems 2024) |
+| **Recent Focus** | Systems biology of infection, AMP design, host-pathogen interactions |
+| **Lab** | sites.google.com/site/marctorrentburgas |
 
 ---
 
 ## EMAIL
 
-**To:** (corresponding author or GitHub maintainer)
+**To:** marc.torrent@uab.cat
 
 **Subject:** Contribution offer for PyAMPA - alternative predictor
 
 ---
 
-Hi,
+Dr. Torrent,
 
 PyAMPA is a clean implementation for AMP prediction. We've built an alternative predictor using hyperbolic embeddings that might be worth adding as an optional backend.
 

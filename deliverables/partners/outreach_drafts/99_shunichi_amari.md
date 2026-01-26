@@ -1,8 +1,8 @@
 # Email Draft: Shun-ichi Amari
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via RIKEN Brain Science Institute)
+**Email:** amari@brain.riken.jp (verified via published papers)
 
 ---
 
@@ -12,15 +12,16 @@
 |-------|---------|
 | **Name** | Shun-ichi Amari |
 | **Position** | Senior Advisor, RIKEN Brain Science Institute |
+| **Address** | 2-1 Hirosawa, Wako-shi, Saitama, 351-0198, Japan |
 | **Key Work** | Founded information geometry |
-| **Recent Focus** | Mathematical foundations of neural networks |
-| **Lab** | RIKEN |
+| **Recent Focus** | Optimal transport, Bayesian inference, consciousness studies (integrated information) |
+| **Notable** | Pioneer connecting differential geometry to neural computation |
 
 ---
 
 ## EMAIL
 
-**To:** (via RIKEN)
+**To:** amari@brain.riken.jp
 
 **Subject:** Information geometry perspective on p-adic embeddings - seeking guidance
 
@@ -50,6 +51,7 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 - **Word count:** 126
 - **Why this works:** Humble, seeks theoretical guidance, acknowledges his stature
 - **Tone:** Prof. LastName (founder of field, deeply respectful)
+- **Verified:** Email from published paper (PNAS, info geometry papers)
 
 ---
 

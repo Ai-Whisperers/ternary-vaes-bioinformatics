@@ -1,8 +1,8 @@
 # Email Draft: Insilico Medicine
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via insilico.com contact or BD)
+**Email:** bd@insilicomedicine.com (business development) or info@insilico.com (general)
 
 ---
 
@@ -11,16 +11,19 @@
 | Field | Details |
 |-------|---------|
 | **Name** | Insilico Medicine Team |
-| **Position** | AI Drug Discovery Company |
-| **Key Work** | End-to-end AI drug discovery |
-| **Recent Focus** | Clinical pipeline, generative chemistry |
-| **Lab** | insilico.com |
+| **Position** | Clinical-stage AI Drug Discovery Company |
+| **Founded** | 2014 by Alex Zhavoronkov |
+| **Key Work** | End-to-end AI drug discovery, generative chemistry |
+| **Recent Focus** | Clinical pipeline, inhalable IPF therapy |
+| **Website** | insilico.com |
+| **HQ** | New York, with offices in Boston, Shanghai, Hong Kong, Abu Dhabi |
+| **Contact** | info@insilico.com, bd@insilicomedicine.com |
 
 ---
 
 ## EMAIL
 
-**To:** (via insilico.com)
+**To:** bd@insilicomedicine.com
 
 **Subject:** Target stability assessment - fast sequence-only screening relevant?
 
@@ -50,6 +53,7 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 - **Word count:** 107
 - **Why this works:** Practical industry question, doesn't oversell, asks about their workflow
 - **Tone:** Team (industry company)
+- **Verified:** Contact emails from insilico.com/contact page
 
 ---
 

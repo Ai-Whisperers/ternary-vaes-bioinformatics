@@ -1,8 +1,8 @@
 # Email Draft: Octavian Ganea
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via MIT or publications)
+**Email:** oct@mit.edu (verified via resume) - Note: Now Assistant Professor at NYU (Fall 2022)
 
 ---
 
@@ -11,16 +11,18 @@
 | Field | Details |
 |-------|---------|
 | **Name** | Octavian-Eugen Ganea |
-| **Position** | Research Scientist, MIT |
-| **Key Work** | Hyperbolic neural networks, product manifolds |
-| **Recent Focus** | Geometric deep learning |
-| **Lab** | MIT |
+| **Position** | Assistant Professor, NYU Courant & NYU Tandon (formerly MIT postdoc) |
+| **Key Work** | Hyperbolic Neural Networks (NeurIPS 2018 spotlight), EquiBind, GeoMol |
+| **Recent Focus** | Geometric deep learning for drug discovery, structural biology |
+| **Website** | people.csail.mit.edu/oct |
+| **PhD** | ETH Zurich (Thomas Hofmann) |
+| **Postdoc** | MIT CSAIL (Tommi Jaakkola, Regina Barzilay) |
 
 ---
 
 ## EMAIL
 
-**To:** (via MIT)
+**To:** oct@mit.edu (or NYU email if available)
 
 **Subject:** P-adic structure for hyperbolic embeddings - principled hierarchy?
 
@@ -49,7 +51,8 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 
 - **Word count:** 124
 - **Why this works:** Asks specific theoretical question, admits uncertainty about theory
-- **Tone:** First name (research scientist)
+- **Tone:** First name (assistant professor, similar career stage)
+- **Verified:** Email from MIT CSAIL resume/CV
 
 ---
 

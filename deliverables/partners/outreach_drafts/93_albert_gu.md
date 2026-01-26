@@ -1,8 +1,8 @@
 # Email Draft: Albert Gu
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via CMU or publications)
+**Email:** agu@andrew.cmu.edu (verified via OpenReview - confirmed CMU email domain)
 
 ---
 
@@ -11,16 +11,17 @@
 | Field | Details |
 |-------|---------|
 | **Name** | Albert Gu |
-| **Position** | Assistant Professor, CMU |
-| **Key Work** | S4, Mamba, structured state spaces |
-| **Recent Focus** | Efficient sequence modeling |
-| **Lab** | CMU ML |
+| **Position** | Assistant Professor, Machine Learning Department, Carnegie Mellon University |
+| **Key Work** | S4, Mamba (6,885 citations), structured state spaces |
+| **Recent Focus** | Efficient sequence modeling, deep sequence models |
+| **Lab** | Goomba Lab (goombalab.github.io) |
+| **Also** | Chief Scientist at Cartesia AI |
 
 ---
 
 ## EMAIL
 
-**To:** (via CMU)
+**To:** agu@andrew.cmu.edu
 
 **Subject:** S4 question - p-adic geometry as another mathematical basis for sequences?
 
@@ -52,6 +53,7 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 - **Word count:** 123
 - **Why this works:** Acknowledges his theoretical depth, asks mathematical foundations question
 - **Tone:** First name (younger professor)
+- **Verified:** Email from OpenReview profile (confirmed @andrew.cmu.edu)
 
 ---
 

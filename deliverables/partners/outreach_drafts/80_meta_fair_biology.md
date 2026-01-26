@@ -1,8 +1,8 @@
-# Email Draft: Alexander Rives (ESM/FAIR)
+# Email Draft: Alexander Rives (EvolutionaryScale)
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via Meta FAIR or publications)
+**Email:** Via GitHub Issues (github.com/evolutionaryscale/esm) or LinkedIn (Alex is Chief Scientist at EvolutionaryScale)
 
 ---
 
@@ -10,25 +10,27 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | Alexander Rives |
-| **Position** | Research Scientist, Meta FAIR |
-| **Key Work** | ESM protein language models |
-| **Recent Focus** | ESM-2, ESMFold, foundation models |
-| **Lab** | Meta FAIR Biology |
+| **Name** | Alexander Rives, Ph.D. |
+| **Position** | Chief Scientist, EvolutionaryScale (formerly Meta FAIR) |
+| **Key Work** | ESM protein language models, ESMFold, ESM-3 |
+| **Recent Focus** | ESM-3 (esmGFP), ESM Cambrian, protein foundation models |
+| **Company** | evolutionaryscale.ai |
+| **Background** | Co-founder of Kallyope, Syros Pharmaceuticals, Fate Therapeutics |
+| **Note** | Moved from Meta FAIR to EvolutionaryScale (spinout) in 2023 |
 
 ---
 
 ## EMAIL
 
-**To:** (via Meta FAIR)
+**To:** Via LinkedIn or GitHub Issues (evolutionaryscale/esm)
 
-**Subject:** ESM + hyperbolic geometry - complementary hierarchical signal?
+**Subject:** ESM-3 + hyperbolic geometry - complementary hierarchical signal?
 
 ---
 
-Alexander,
+Alex,
 
-ESM models transformed protein representation learning. We've been exploring whether hyperbolic geometry captures complementary information that Euclidean embeddings miss.
+ESM-3 and ESM Cambrian set the standard for protein representations. We've been exploring whether hyperbolic geometry captures complementary information that Euclidean embeddings miss.
 
 Our approach: embed codon sequences (not amino acids) in Poincare space using p-adic structure. This naturally encodes the hierarchical tree structure of sequence relationships that flat geometry distorts exponentially.
 
@@ -51,7 +53,8 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 
 - **Word count:** 122
 - **Why this works:** Specific technical question about ESM limitations, proposes testable comparison
-- **Tone:** First name (research scientist)
+- **Tone:** First name (Chief Scientist, startup founder)
+- **Contact method:** GitHub Issues or LinkedIn preferred for startup executives
 
 ---
 

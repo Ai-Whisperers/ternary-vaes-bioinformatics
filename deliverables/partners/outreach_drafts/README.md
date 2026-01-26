@@ -11,8 +11,8 @@ Last Updated: 2026-01-26
 | Metric | Value |
 |--------|-------|
 | **Total Drafts** | 100 |
-| **Ready to Send** | 60 |
-| **Needs Email Research** | 39 |
+| **Ready to Send** | 74 |
+| **Needs Email Research** | 25 |
 | **Low Priority** | 1 |
 
 ---
@@ -82,11 +82,11 @@ These are the most important contacts - review first.
 | 37 | APD3 Database | UNMC | ✅ Ready | [37_apd3_database.md](37_apd3_database.md) |
 | 38 | DBAASP Database | Tbilisi | ✅ Ready | [38_dbaasp_database.md](38_dbaasp_database.md) |
 | 39 | HMAMP Authors | Various | 🔍 Research | [39_hmamp_authors.md](39_hmamp_authors.md) |
-| 40 | Glasgow AMP Team | U Glasgow | 🔍 Research | [40_glasgow_amp_team.md](40_glasgow_amp_team.md) |
+| 40 | Glasgow AMP Team | U Glasgow | ✅ Ready | [40_glasgow_amp_team.md](40_glasgow_amp_team.md) |
 | 41 | Nature Reviews AMP | Various | 🔍 Research | [41_nature_reviews_amp_authors.md](41_nature_reviews_amp_authors.md) |
 | 42 | Cell Microbiome AMP | Various | 🔍 Research | [42_cell_microbiome_amp_authors.md](42_cell_microbiome_amp_authors.md) |
-| 43 | AMPGAN Authors | Various | 🔍 Research | [43_ampgan_authors.md](43_ampgan_authors.md) |
-| 44 | PyAMPA Authors | UAB | 🔍 Research | [44_pyampa_authors.md](44_pyampa_authors.md) |
+| 43 | AMPGAN Authors | Purdue | ✅ Ready | [43_ampgan_authors.md](43_ampgan_authors.md) |
+| 44 | PyAMPA Authors | UAB | ✅ Ready | [44_pyampa_authors.md](44_pyampa_authors.md) |
 | 45 | DLFea4AMPGen Authors | Various | 🔍 Research | [45_dlfea4ampgen_authors.md](45_dlfea4ampgen_authors.md) |
 
 ---
@@ -140,15 +140,15 @@ These are the most important contacts - review first.
 | # | Recipient | Institution | Status | Link |
 |:-:|-----------|-------------|:------:|:----:|
 | 76 | Namrata Anand | Stanford | ✅ Ready | [76_namrata_anand.md](76_namrata_anand.md) |
-| 77 | Alex Wiltschko | Asimov | 🔍 Research | [77_alex_wiltschko.md](77_alex_wiltschko.md) |
-| 78 | Rama Ranganathan | U Chicago | 🔍 Research | [78_ranganathan_lab.md](78_ranganathan_lab.md) |
-| 79 | NVIDIA BioNeMo | Industry | 🔍 Research | [79_nvidia_bionemo.md](79_nvidia_bionemo.md) |
-| 80 | Alexander Rives (ESM) | Meta FAIR | 🔍 Research | [80_meta_fair_biology.md](80_meta_fair_biology.md) |
+| 77 | Alex Wiltschko | Osmo | ✅ Ready | [77_alex_wiltschko.md](77_alex_wiltschko.md) |
+| 78 | Rama Ranganathan | U Chicago | ✅ Ready | [78_ranganathan_lab.md](78_ranganathan_lab.md) |
+| 79 | NVIDIA BioNeMo | Industry | ✅ Ready | [79_nvidia_bionemo.md](79_nvidia_bionemo.md) |
+| 80 | Alexander Rives (ESM) | EvolutionaryScale | ✅ Ready | [80_meta_fair_biology.md](80_meta_fair_biology.md) |
 | 81 | ProT-VAE Authors | Various | 🔍 Research | [81_prot_vae_authors.md](81_prot_vae_authors.md) |
 | 82 | PCF-VAE Authors | Various | 🔍 Research | [82_pcf_vae_authors.md](82_pcf_vae_authors.md) |
 | 83 | PREVENT Authors | Various | 🔍 Research | [83_prevent_authors.md](83_prevent_authors.md) |
-| 84 | EvolutionaryScale | Industry | 🔍 Research | [84_evolutionaryscale.md](84_evolutionaryscale.md) |
-| 85 | Insilico Medicine | Industry | 🔍 Research | [85_insilico_medicine.md](85_insilico_medicine.md) |
+| 84 | EvolutionaryScale | Industry | ✅ Ready | [84_evolutionaryscale.md](84_evolutionaryscale.md) |
+| 85 | Insilico Medicine | Industry | ✅ Ready | [85_insilico_medicine.md](85_insilico_medicine.md) |
 
 ---
 
@@ -156,11 +156,11 @@ These are the most important contacts - review first.
 
 | # | Recipient | Institution | Status | Link |
 |:-:|-----------|-------------|:------:|:----:|
-| 86 | Max Nickel | Meta FAIR | 🔍 Research | [86_max_nickel.md](86_max_nickel.md) |
+| 86 | Max Nickel | Meta FAIR | ✅ Ready | [86_max_nickel.md](86_max_nickel.md) |
 | 87 | Frederic Sala | UW-Madison | ✅ Ready | [87_frederic_sala.md](87_frederic_sala.md) |
-| 88 | Ines Chami | Stanford/Meta | 🔍 Research | [88_ines_chami.md](88_ines_chami.md) |
-| 89 | Octavian Ganea | MIT | 🔍 Research | [89_octavian_ganea.md](89_octavian_ganea.md) |
-| 90 | Michael Bronstein | Oxford | 🔍 Research | [90_michael_bronstein.md](90_michael_bronstein.md) |
+| 88 | Ines Chami | Stanford | ✅ Ready | [88_ines_chami.md](88_ines_chami.md) |
+| 89 | Octavian Ganea | NYU (formerly MIT) | ✅ Ready | [89_octavian_ganea.md](89_octavian_ganea.md) |
+| 90 | Michael Bronstein | Oxford | ✅ Ready | [90_michael_bronstein.md](90_michael_bronstein.md) |
 
 ---
 
@@ -170,13 +170,13 @@ These are the most important contacts - review first.
 |:-:|-----------|-------------|:------:|:----:|
 | 91 | Jure Leskovec | Stanford | ✅ Ready | [91_jure_leskovec.md](91_jure_leskovec.md) |
 | 92 | Chris Re | Stanford | ✅ Ready | [92_chris_re.md](92_chris_re.md) |
-| 93 | Albert Gu | CMU | 🔍 Research | [93_albert_gu.md](93_albert_gu.md) |
+| 93 | Albert Gu | CMU | ✅ Ready | [93_albert_gu.md](93_albert_gu.md) |
 | 94 | p-ClustVal Authors | Various | 🔍 Research | [94_p_clustval_authors.md](94_p_clustval_authors.md) |
-| 95 | v-PuNNs Author (N'guessan) | Various | 🔍 Research | [95_v_punns_author.md](95_v_punns_author.md) |
+| 95 | v-PuNNs Author (N'guessan) | NM-AIST/AIMS | ✅ Ready | [95_v_punns_author.md](95_v_punns_author.md) |
 | 96 | HypSeek Authors | Various | 🔍 Research | [96_hypseek_authors.md](96_hypseek_authors.md) |
 | 97 | Geomstats Maintainers | Open Source | ✅ Ready (GitHub) | [97_geomstats_maintainers.md](97_geomstats_maintainers.md) |
 | 98 | Geoopt Maintainers | Open Source | ✅ Ready (GitHub) | [98_geoopt_maintainers.md](98_geoopt_maintainers.md) |
-| 99 | Shun-ichi Amari | RIKEN | 🔍 Research | [99_shunichi_amari.md](99_shunichi_amari.md) |
+| 99 | Shun-ichi Amari | RIKEN | ✅ Ready | [99_shunichi_amari.md](99_shunichi_amari.md) |
 | 100 | Eugene Koonin | NIH/NCBI | ✅ Ready | [100_eugene_koonin.md](100_eugene_koonin.md) |
 
 ---

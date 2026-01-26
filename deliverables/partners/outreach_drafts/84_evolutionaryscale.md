@@ -1,8 +1,8 @@
 # Email Draft: EvolutionaryScale
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via evolutionaryscale.ai contact)
+**Email:** Via GitHub Issues (github.com/evolutionaryscale/esm) or general contact through website
 
 ---
 
@@ -11,16 +11,19 @@
 | Field | Details |
 |-------|---------|
 | **Name** | EvolutionaryScale Team |
-| **Position** | AI Startup (Meta ESM spinout) |
-| **Key Work** | ESM-3, protein foundation models |
-| **Recent Focus** | Scaling protein AI |
-| **Lab** | evolutionaryscale.ai |
+| **Position** | AI Startup (Meta ESM spinout, founded 2023) |
+| **Key Work** | ESM-3, ESM Cambrian, esmGFP (novel fluorescent protein) |
+| **Recent Focus** | Scaling protein AI, generative design |
+| **Company** | evolutionaryscale.ai |
+| **Funding** | $142M seed from Amazon and NVIDIA |
+| **Size** | ~26 employees, New York |
+| **Chief Scientist** | Alexander Rives |
 
 ---
 
 ## EMAIL
 
-**To:** (via evolutionaryscale.ai)
+**To:** Via GitHub Issues (github.com/evolutionaryscale/esm)
 
 **Subject:** Lightweight complementary features for ESM-3?
 
@@ -50,6 +53,7 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 - **Word count:** 117
 - **Why this works:** Acknowledges their dominance, asks practical integration question
 - **Tone:** Team (industry startup)
+- **Contact method:** GitHub Issues preferred for technical inquiries
 
 ---
 

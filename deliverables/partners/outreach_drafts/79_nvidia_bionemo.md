@@ -1,8 +1,8 @@
 # Email Draft: NVIDIA BioNeMo
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via nvidia.com/bionemo or developer relations)
+**Email:** Use NVIDIA Developer Contact Form (developer.nvidia.com/contact) - select "Technical" inquiry type
 
 ---
 
@@ -10,17 +10,18 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | BioNeMo Team |
-| **Position** | AI Platform, NVIDIA |
-| **Key Work** | Biomolecular AI platform |
-| **Recent Focus** | Protein language models, drug discovery |
-| **Lab** | nvidia.com/bionemo |
+| **Name** | BioNeMo Team / NVIDIA Clara |
+| **Position** | AI Platform, NVIDIA Healthcare & Life Sciences |
+| **Key Work** | Biomolecular AI platform, Clara foundation models |
+| **Recent Focus** | Protein language models, drug discovery, omics |
+| **Website** | nvidia.com/bionemo |
+| **Contact** | developer.nvidia.com/contact |
 
 ---
 
 ## EMAIL
 
-**To:** (via BioNeMo contact)
+**To:** Submit via developer.nvidia.com/contact (Technical inquiry)
 
 **Subject:** Hyperbolic protein embeddings - potential BioNeMo integration?
 
@@ -50,6 +51,7 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 - **Word count:** 116
 - **Why this works:** Technical question about platform integration, offers value proposition
 - **Tone:** Team (industry platform)
+- **Contact method:** NVIDIA Developer Contact Form - select appropriate category
 
 ---
 

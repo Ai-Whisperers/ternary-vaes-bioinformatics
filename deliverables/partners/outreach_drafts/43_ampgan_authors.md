@@ -1,8 +1,8 @@
 # Email Draft: AMPGAN v2 Authors
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (via ACS correspondence - check paper for corresponding author)
+**Email:** jianing-li@purdue.edu (verified via Purdue MCMP faculty page - formerly at UVM when AMPGAN v2 was published)
 
 ---
 
@@ -10,23 +10,23 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | AMPGAN v2 Authors |
-| **Position** | Various institutions |
-| **Key Paper** | AMPGAN v2 - GAN for AMP generation (ACS 2021) |
-| **Recent Focus** | Generative adversarial networks for peptides |
-| **Code** | Check if GitHub available |
+| **Name** | Jianing Li |
+| **Position** | Associate Professor, Purdue University (formerly UVM) |
+| **Key Paper** | AMPGAN v2 - GAN for AMP generation (J. Chem. Inf. Model. 2021) |
+| **Recent Focus** | Computational chemistry, drug design, ML for peptides |
+| **Lab** | mcmp.purdue.edu/faculty/li4578 |
 
 ---
 
 ## EMAIL
 
-**To:** (corresponding author from paper)
+**To:** jianing-li@purdue.edu
 
 **Subject:** GAN vs. VAE for AMP generation - different failure modes?
 
 ---
 
-Hi,
+Prof. Li,
 
 Your AMPGAN v2 work is one of the cleaner GAN applications to peptide generation. We've been doing similar work with VAEs (hyperbolic latent space) and wondered about failure mode differences.
 

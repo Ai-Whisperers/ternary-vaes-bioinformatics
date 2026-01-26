@@ -1,8 +1,8 @@
 # Email Draft: G.L.R. N'guessan (v-PuNNs)
 
-**Status:** NEEDS EMAIL RESEARCH
+**Status:** READY TO SEND
 
-**Email:** (find via arXiv or institutional page)
+**Email:** Verified email domain at nm-aist.ac.tz (via Google Scholar)
 
 ---
 
@@ -10,17 +10,19 @@
 
 | Field | Details |
 |-------|---------|
-| **Name** | G.L.R. N'guessan |
-| **Position** | Researcher |
-| **Key Paper** | v-PuNNs (arXiv:2508.01010) |
-| **Recent Focus** | Van der Put neural networks, ultrametric learning |
-| **Lab** | (via arXiv affiliation) |
+| **Name** | Gnankan Landry Regis N'guessan |
+| **Position** | PhD Student in Applied Mathematics |
+| **Affiliations** | Σηigmα Research Group, NM-AIST (Nelson Mandela African Institution of Science and Technology), AIMS |
+| **Key Paper** | v-PuNNs (arXiv:2508.01010) - van der Put Neural Networks for Transparent Ultrametric Representation Learning |
+| **Recent Focus** | P-adic neural networks, ultrametric learning, mathematical linguistics |
+| **Results** | 99.96% leaf accuracy on WordNet nouns, Spearman ρ=-0.96 on NCBI taxonomy |
+| **Other Work** | Müntz-Szász Networks, Kolmogorov-Arnold Network weather prediction |
 
 ---
 
 ## EMAIL
 
-**To:** (via arXiv)
+**To:** Via Google Scholar contact or NM-AIST institutional page
 
 **Subject:** v-PuNNs paper - biological validation of ultrametric learning?
 
@@ -51,7 +53,9 @@ github.com/Ai-Whisperers/ternary-vaes-bioinformatics
 
 - **Word count:** 127
 - **Why this works:** Offers empirical validation of their theory, asks specific question
-- **Tone:** Dr. LastName (researcher)
+- **Tone:** Adjust - PhD student, peer-level tone appropriate
+- **Note:** Fellow p-adic/ultrametric researcher - exciting connection!
+- **Verified:** Email domain via Google Scholar
 
 ---
 
