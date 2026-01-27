@@ -809,6 +809,74 @@ Foundation Encoder should be revisited when:
 
 ---
 
+## DDG Prediction Validation Summary (protein_stability_ddg)
+
+**Status:** Comprehensive validation complete | **Last Verified:** 2026-01-27
+
+### Multiple Validation Streams (VERIFIED)
+
+| Validation | N | Spearman ρ | Source File |
+|------------|--:|:----------:|-------------|
+| S669 curated (alanine-scanning) | 52 | 0.58 | `trained_codon_encoder.json` |
+| S669 full dataset | 669 | 0.37-0.40 | `full_analysis_results.json` |
+| Multimodal (8 features) | 52 | 0.60 | `multimodal_ddg_results.json` |
+| Scientific metrics | 52 | 0.52 | `scientific_metrics.json` |
+
+**Critical Distinction:** N=52 results are NOT comparable to N=669 literature benchmarks. ESM-1v (0.51), FoldX (0.48) are benchmarked on N=669. Our N=669 performance (0.37-0.40) does NOT outperform these methods.
+
+### Mutation-Type Heterogeneity (KEY FINDING)
+
+The method shows dramatic performance variation by mutation type:
+
+| Mutation Type | Performance vs Baseline | Interpretation |
+|--------------|:-----------------------:|----------------|
+| neutral → charged | **+159%** | **Strong signal** |
+| hydrophobic → polar | +52% | Good signal |
+| size_change | +28% | Moderate signal |
+| charge_reversal | **-737%** | **Method fails** |
+| proline_mutations | -89% | Method fails |
+
+**Implication:** Method should be used with mutation-type-aware routing, not as universal predictor.
+
+### What's Actually Strong (VERIFIED)
+
+| Capability | Evidence | Practical Value |
+|------------|----------|-----------------|
+| **Rosetta-blind detection** | 23.6% of cases Rosetta misses, we catch | Complementary to structure methods |
+| **Neutral→charged mutations** | +159% improvement | Clear use case |
+| **Honest N=669 disclosure** | 0.37-0.40 documented in code | Scientific integrity |
+| **Adaptive routing potential** | Mutation-type stratification | Production deployment strategy |
+
+### Source of 0.58 Claim (VERIFIED)
+
+The 0.58 Spearman correlation comes from `TrainableCodonEncoder` with hyperbolic embeddings:
+- File: `research/codon-encoder/training/results/trained_codon_encoder.json`
+- Method: LOO cross-validation with Pipeline (data leakage FIXED)
+- Features: 4 hyperbolic + 4 physicochemical = 8 total
+
+### Data Leakage Status
+
+**FIXED** in `validation/bootstrap_test.py`:
+```python
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('ridge', Ridge(alpha=100))
+])
+y_pred = cross_val_predict(pipeline, X, y, cv=len(y))  # Correct: scaler inside CV
+```
+
+**Note:** `BIAS_ANALYSIS.md` is outdated and claims leakage exists - this has been corrected in code.
+
+### Recommendation for Outreach
+
+When discussing DDG prediction:
+1. Lead with Rosetta-blind detection (23.6% unique capability)
+2. Emphasize mutation-type stratification as novel contribution
+3. Use "N=52 curated alanine-scanning subset" not just "S669"
+4. Acknowledge N=669 performance honestly (0.37-0.40)
+
+---
+
 ## Remaining Tasks (Next Dev Session)
 
 **V5.12.5 Implementation Plan:** `docs/plans/V5_12_5_IMPLEMENTATION_PLAN.md` (1,700+ lines) - Framework unification (~1,500 LOC savings) + controller fix + homeostasis enhancements
@@ -836,6 +904,7 @@ Foundation Encoder should be revisited when:
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-27 | 2.8 | DDG Validation Summary - comprehensive verification of N=52 vs N=669, mutation-type heterogeneity, Rosetta-blind detection, data leakage fix confirmed |
 | 2026-01-14 | 2.7 | **PARADIGM SHIFT**: Dual Manifold Framework - positive hierarchy recognized as valid frequency-optimal organization (Shannon-optimal), eliminated "inverted" classification bias, updated v5_11_progressive status |
 | 2026-01-13 | 2.6 | V5.12.5 Production Training Pipeline Optimizations - 3-4x speedup (torch.compile, mixed precision, per-parameter LR, grokking detection), default paths for consumption |
 | 2026-01-10 | 2.5 | Alejandra Rojas: added comprehensive dual-layer architecture assessment with validated research findings |
