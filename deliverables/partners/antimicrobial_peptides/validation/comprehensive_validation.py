@@ -168,10 +168,6 @@ def validate_model_comprehensive(
         print(f"Not enough data for {target}: {len(X)} samples")
         return None
 
-    # Scale features
-    scaler = StandardScaler()
-    X_scaled = scaler.fit_transform(X)
-
     # Choose CV method based on sample size
     if len(X) < 30:
         cv_method = "LOO"
@@ -180,14 +176,20 @@ def validate_model_comprehensive(
         cv_method = "5-fold"
         cv = KFold(n_splits=5, shuffle=True, random_state=42)
 
-    # Train model
-    model = GradientBoostingRegressor(
-        n_estimators=100, max_depth=3, learning_rate=0.1,
-        min_samples_leaf=2, random_state=42
-    )
+    # FIXED: Use Pipeline to avoid scaler data leakage
+    # Previously: scaler.fit_transform(X) was done on ALL data before CV
+    # Now: scaler is fit only on training folds within each CV iteration
+    from sklearn.pipeline import Pipeline
+    pipeline = Pipeline([
+        ('scaler', StandardScaler()),
+        ('model', GradientBoostingRegressor(
+            n_estimators=100, max_depth=3, learning_rate=0.1,
+            min_samples_leaf=2, random_state=42
+        ))
+    ])
 
-    # Cross-validation predictions
-    y_pred = cross_val_predict(model, X_scaled, y, cv=cv)
+    # Cross-validation predictions (scaler fits per-fold, no leakage)
+    y_pred = cross_val_predict(pipeline, X, y, cv=cv)
 
     # Compute metrics
     pearson_r, pearson_p = pearsonr(y, y_pred)
@@ -195,17 +197,18 @@ def validate_model_comprehensive(
     rmse = np.sqrt(mean_squared_error(y, y_pred))
     mae = mean_absolute_error(y, y_pred)
 
-    # Permutation test for significance
+    # Permutation test for significance (using pipeline to avoid leakage)
     perm_score, perm_scores, perm_p = permutation_test_score(
-        model, X_scaled, y, cv=cv,
+        pipeline, X, y, cv=cv,  # FIXED: Use pipeline and raw X (not pre-scaled)
         n_permutations=n_permutations,
         random_state=42,
         scoring='neg_mean_squared_error'
     )
 
-    # Feature importance
-    model.fit(X_scaled, y)
-    top_features = compute_feature_importance(X_scaled, y)
+    # Feature importance (scale for this analysis only)
+    scaler_for_importance = StandardScaler()
+    X_scaled_importance = scaler_for_importance.fit_transform(X)
+    top_features = compute_feature_importance(X_scaled_importance, y)
 
     # Determine primary predictor
     if top_features:

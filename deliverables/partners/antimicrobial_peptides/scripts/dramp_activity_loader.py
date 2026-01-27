@@ -1259,11 +1259,12 @@ class DRAMPLoader:
 
         print(f"Training on {len(X)} samples with {n_cv_folds}-fold CV...")
 
-        # Scale features
-        scaler = StandardScaler()
-        X_scaled = scaler.fit_transform(X)
+        # FIXED: Use Pipeline to avoid scaler data leakage in CV
+        # Previously: scaler.fit_transform(X) on ALL data, then CV on pre-scaled data
+        # Now: Pipeline ensures scaler fits only on training folds
+        from sklearn.pipeline import Pipeline
 
-        # Define model
+        # Define model pipeline
         model = GradientBoostingRegressor(
             n_estimators=100,  # Reduced to avoid overfitting on small datasets
             max_depth=3,
@@ -1272,16 +1273,23 @@ class DRAMPLoader:
             random_state=42,
         )
 
-        # Cross-validation
+        pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('model', model)
+        ])
+
+        # Cross-validation with pipeline (no leakage)
         n_folds = min(n_cv_folds, len(X))  # Can't have more folds than samples
         cv_scores = cross_val_score(
-            model, X_scaled, y,
+            pipeline, X, y,  # FIXED: Use raw X, not pre-scaled
             cv=n_folds,
             scoring="neg_mean_squared_error"
         )
         cv_rmse = np.sqrt(-cv_scores)
 
-        # Train final model on all data
+        # Train final model on all data (for deployment)
+        scaler = StandardScaler()
+        X_scaled = scaler.fit_transform(X)
         model.fit(X_scaled, y)
         y_pred = model.predict(X_scaled)
 
@@ -1289,9 +1297,9 @@ class DRAMPLoader:
         from scipy.stats import pearsonr
         r_train, _ = pearsonr(y, y_pred)
 
-        # Leave-one-out predictions for honest correlation estimate
+        # CV predictions for honest correlation estimate (using pipeline, no leakage)
         from sklearn.model_selection import cross_val_predict
-        y_cv_pred = cross_val_predict(model, X_scaled, y, cv=n_folds)
+        y_cv_pred = cross_val_predict(pipeline, X, y, cv=n_folds)  # FIXED: Pipeline + raw X
         r_cv, p_cv = pearsonr(y, y_cv_pred)
 
         metrics = {
