@@ -92,7 +92,8 @@ Input: 12-dim one-hot (4 bases × 3 positions)
 The following script generates SHA-256 hashes for all key files:
 
 ```bash
-# Run: python scripts/generate_ip_hashes.py
+# Run from project root:
+python docs/ip-protection/generate_hashes.py --project-root .
 ```
 
 ### Critical Algorithm Files

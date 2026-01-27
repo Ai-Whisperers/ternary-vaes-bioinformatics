@@ -13,9 +13,9 @@ The output can be:
 - Archived on archive.org
 
 Usage:
-    python scripts/generate_ip_hashes.py
-    python scripts/generate_ip_hashes.py --output hashes.json
-    python scripts/generate_ip_hashes.py --ots  # Create OpenTimestamps proof
+    python docs/ip-protection/generate_hashes.py --project-root ../..
+    python docs/ip-protection/generate_hashes.py --output HASHES.json --project-root ../..
+    python docs/ip-protection/generate_hashes.py --ots --project-root ../..
 """
 
 from __future__ import annotations
@@ -268,9 +268,9 @@ def create_ots_proof(manifest_path: Path):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate IP protection hashes")
-    parser.add_argument("--output", "-o", type=str, default="IP_HASH_MANIFEST.json",
+    parser.add_argument("--output", "-o", type=str, default="HASHES.json",
                         help="Output JSON file")
-    parser.add_argument("--summary", "-s", type=str, default="IP_HASH_MANIFEST.txt",
+    parser.add_argument("--summary", "-s", type=str, default="HASHES.txt",
                         help="Output summary text file")
     parser.add_argument("--ots", action="store_true",
                         help="Create OpenTimestamps proof")
