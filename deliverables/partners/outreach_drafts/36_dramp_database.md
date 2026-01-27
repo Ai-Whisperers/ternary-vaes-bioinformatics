@@ -28,7 +28,7 @@
 
 Dear DRAMP Team,
 
-DRAMP has been invaluable for our antimicrobial peptide research. We trained a MIC predictor on publicly available data including DRAMP and achieved Spearman 0.66 on held-out E. coli data.
+DRAMP has been invaluable for our antimicrobial peptide research. We trained a MIC predictor on publicly available data including DRAMP and achieved r=0.39 (p<0.001) on held-out E. coli data (N=105). Performance varies by pathogen - E. coli and Acinetobacter work best.
 
 We could contribute predicted MIC values for DRAMP entries that currently lack experimental activity data. This might help users prioritize candidates for experimental validation.
 

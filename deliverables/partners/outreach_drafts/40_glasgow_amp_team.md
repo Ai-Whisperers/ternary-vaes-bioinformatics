@@ -30,7 +30,7 @@ Prof. Jamieson,
 
 I came across your work on teixobactin-derived lipopeptidomimetics and conotoxin peptidomimetics. We've been using NSGA-II (multi-objective) in a hyperbolic latent space for AMP optimization rather than direct sequence evolution.
 
-Our approach optimizes activity, toxicity, and synthesis feasibility simultaneously, achieving MIC predictions around Spearman 0.66. The Pareto fronts give nice tradeoff visualizations.
+Our approach optimizes activity, toxicity, and synthesis feasibility simultaneously, with MIC predictions achieving r=0.39-0.52 depending on the pathogen (E. coli, Acinetobacter). The Pareto fronts give nice tradeoff visualizations.
 
 Curious whether you've compared evolutionary strategies operating in sequence space vs. latent space. We've wondered if the smoother latent landscape makes optimization easier, or if direct sequence evolution captures something we miss.
 

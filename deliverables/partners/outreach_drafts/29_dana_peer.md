@@ -32,7 +32,7 @@ PHATE preserves continuous structure in single-cell data beautifully. I'm curiou
 
 We've been using Poincaré ball embeddings for codon sequences. The radial dimension encodes hierarchy naturally - no need to discover it, it's built into the geometry.
 
-Results on proteins: stability prediction ρ=0.58, ultrametric compliance 82.8%.
+Results on proteins: stability prediction ρ=0.58 (N=52), ultrametric compliance 82.8%.
 
 Have you considered hyperbolic variants of your manifold learning methods? The math is messier, but the inductive bias for tree-like structure is stronger.
 

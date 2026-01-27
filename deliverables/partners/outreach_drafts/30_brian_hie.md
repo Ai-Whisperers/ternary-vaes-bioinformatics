@@ -32,7 +32,7 @@ Your viral escape prediction work captures evolutionary information through prot
 
 We embed sequences in Poincaré space using p-adic structure. The geometry enforces ultrametric-like distances (82.8% compliance) - which should match phylogenetic relationships.
 
-Results: stability prediction ρ=0.58. Haven't tried viral escape yet.
+Results: stability prediction ρ=0.58 (N=52). Haven't tried viral escape yet.
 
 Question: Do you think hyperbolic inductive bias would help for evolutionary prediction, or does the PLM attention already capture hierarchical relationships implicitly?
 

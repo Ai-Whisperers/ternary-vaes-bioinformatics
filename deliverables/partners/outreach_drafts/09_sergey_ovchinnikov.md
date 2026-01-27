@@ -30,7 +30,7 @@ Sergey,
 
 Your work democratizing structure prediction (ColabFold!) and understanding coevolution signals is exactly what I want to ask about.
 
-We're embedding sequences in hyperbolic space using p-adic structure and getting stability predictions (ρ=0.58) without alignments. The question: is this capturing something related to coevolution, or something orthogonal?
+We're embedding sequences in hyperbolic space using p-adic structure and getting stability predictions (ρ=0.58 (N=52), N=52) without alignments. The question: is this capturing something related to coevolution, or something orthogonal?
 
 The hyperbolic geometry enforces ultrametric-like distances (82.8% compliance), which feels related to phylogenetic relationships, but I'm not sure if that connects to the coevolution signal you've characterized.
 

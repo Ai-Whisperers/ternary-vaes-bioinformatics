@@ -180,7 +180,7 @@ class StanfordHIVdbClient:
     GRAPHQL_URL = "https://hivdb.stanford.edu/graphql"
 
     SEQUENCE_ANALYSIS_QUERY = """
-    mutation AnalyzeSequences($sequences: [UnalignedSequenceInput]!) {
+    query SequenceAnalysis($sequences: [UnalignedSequenceInput]!) {
       viewer {
         sequenceAnalysis(sequences: $sequences) {
           inputSequence {

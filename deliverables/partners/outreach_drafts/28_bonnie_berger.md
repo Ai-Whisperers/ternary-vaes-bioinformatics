@@ -32,7 +32,7 @@ Your work on mathematical foundations of computational biology made me want to a
 
 We embed biological sequences in hyperbolic space using p-adic number theory - specifically, 3-adic valuation gives natural hierarchy for codon sequences. The Poincaré ball then represents this hierarchy geometrically.
 
-Results: ρ=-0.83 correlation between radial position and p-adic valuation, 82.8% ultrametric compliance. Downstream: stability prediction (ρ=0.58), contact prediction (AUC=0.67).
+Results: ρ=-0.83 correlation between radial position and p-adic valuation, 82.8% ultrametric compliance. Downstream: stability prediction (ρ=0.58 (N=52), N=52), contact prediction (AUC=0.67).
 
 Is there mathematical theory on when this p-adic → hyperbolic mapping should preserve structure? Trying to understand if our results are theoretically expected or just empirically lucky.
 

@@ -323,19 +323,19 @@ def screen_patient_with_stanford(
                 "prevalence": 1.0,
             })
 
-        # Build susceptibility from drug scores
+        # Build susceptibility from drug scores (drug_scores is a list, not dict)
         susceptibility = {}
-        for drug, score in report.drug_scores.items():
+        for drug_score in report.drug_scores:
             status = "susceptible"
-            if score.level.value >= 3:  # High-level resistance
+            if drug_score.level.value >= 3:  # High-level resistance
                 status = "resistant"
-            elif score.level.value >= 2:  # Intermediate
+            elif drug_score.level.value >= 2:  # Intermediate
                 status = "possible_resistance"
 
-            susceptibility[drug] = {
+            susceptibility[drug_score.drug_abbr] = {
                 "status": status,
-                "score": score.score / 100.0,
-                "class": str(score.drug_class),
+                "score": drug_score.score / 100.0,
+                "class": drug_score.drug_class,
             }
 
         # Use Stanford's recommended regimens
@@ -414,11 +414,41 @@ def screen_patient(
 
 
 def generate_demo_sequence() -> str:
-    """Generate demo HIV sequence for testing."""
-    # Partial RT/IN sequence (for demo)
-    np.random.seed(42)
-    aa = "ACDEFGHIKLMNPQRSTVWY"
-    return "".join(np.random.choice(list(aa), size=500))
+    """Generate demo HIV nucleotide sequence for testing.
+
+    Returns a fragment of HIV-1 pol gene (RT region) from HXB2 reference
+    with optional mutations introduced based on seed.
+    """
+    # Real HIV-1 HXB2 pol gene fragment (nucleotide) - RT region
+    # This is from positions ~2550-3300 of HXB2 reference
+    hxb2_rt_fragment = (
+        "ATGTTTTTAGATGGAATAGATAAGGCCCAAGAAGAACATGAGAAATATCACAGTAATTGG"
+        "AGAGCAATGGCTAGTGATTTTAACCTGCCACCTGTAGTAGCAAAAGAAATAGTAGCCAGC"
+        "TGTGATAAATGTCAGCTAAAAGGAGAAGCCATGCATGGACAAGTAGACTGTAGTCCAGGA"
+        "ATATGGCAACTAGATTGTACACATTTAGAAGGAAAAATTATCCTGGTAGCAGTTCATGTA"
+        "GCCAGTGGATATATAGAAGCAGAAGTTATTCCAGCAGAAACAGGGCAGGAAACAGCATAC"
+        "TTTCTCTTAAAATTAGCAGGAAGATGGCCAGTAAAAACAATACATACAGACAATGGCAGC"
+        "AATTTCACCAGTAGTACAGTTAAGGCCGCCTGTTGGTGGGCGGGGATCAAGCAGGAATTT"
+        "GGAATTCCCTACAATCCCCAAAGTCAAGGAGTAGTAGAATCTATGAATAAAGAATTAAAG"
+        "AAAATTATAGGACAGGTAAGAGATCAGGCTGAACATCTTAAGACAGCAGTACAAATGGCA"
+        "GTATTCATCCACAATTTTAAAAGAAAAGGGGGGATTGGGGGGTACAGTGCAGGGGAAAGA"
+        "ATAGTAGACATAATAGCAACAGACATACAAACTAAAGAATTACAAAAACAAATTACAAAA"
+        "ATTCAAAATTTTCGGGTTTATTACAGGGACAGCAGAGATCCACTTTGGAAAGGACCAGCA"
+        "AAGCTCCTCTGGAAAGGTGAAGGGGCAGTAGTAATACAAGATAATAGTGACATAAAAGTA"
+    )
+
+    # Add slight variation based on random seed to simulate different patients
+    np.random.seed(hash(str(np.random.random())) % 2**32)
+    seq_list = list(hxb2_rt_fragment)
+
+    # Introduce 0-3 random mutations (realistic for patient samples)
+    n_mutations = np.random.randint(0, 4)
+    for _ in range(n_mutations):
+        pos = np.random.randint(0, len(seq_list))
+        bases = "ACGT"
+        seq_list[pos] = np.random.choice([b for b in bases if b != seq_list[pos]])
+
+    return "".join(seq_list)
 
 
 def export_results(results: list[TDRResult], output_dir: Path) -> None:

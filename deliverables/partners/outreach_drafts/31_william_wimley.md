@@ -30,7 +30,7 @@ Bill,
 
 Your work on peptide-membrane interactions and the distinction between pore-forming mechanisms and actual antimicrobial activity has been eye-opening.
 
-We've built an MIC predictor using hyperbolic embeddings (Spearman 0.66 on E. coli) but noticed it sometimes ranks peptides differently than hydrophobicity/amphipathicity would suggest. Made me wonder if we're capturing something beyond simple membrane disruption.
+We've built an MIC predictor using hyperbolic embeddings (r=0.39 on E. coli, N=105) but noticed it sometimes ranks peptides differently than hydrophobicity/amphipathicity would suggest. Made me wonder if we're capturing something beyond simple membrane disruption.
 
 Have you observed cases where strong membrane activity didn't translate to good MIC, or vice versa? Trying to understand what our model might be learning.
 
