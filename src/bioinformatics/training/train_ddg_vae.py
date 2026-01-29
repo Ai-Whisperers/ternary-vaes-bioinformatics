@@ -106,7 +106,8 @@ class DDGVAETrainer(DeterministicTrainer):
         self.model = model.to(device)
         self.train_dataset = train_dataset
         self.val_dataset = val_dataset
-        self.config = config
+        # Store training config separately to avoid overwriting parent's self.config
+        self.training_config = config
         self.device = device
 
         if output_dir is None:
@@ -130,19 +131,19 @@ class DDGVAETrainer(DeterministicTrainer):
 
         # Create data loaders
         self.train_loader = self.create_dataloader(
-            train_dataset, config.batch_size, shuffle=True
+            train_dataset, self.training_config.batch_size, shuffle=True
         )
         self.val_loader = None
         if val_dataset is not None:
             self.val_loader = self.create_dataloader(
-                val_dataset, config.batch_size, shuffle=False
+                val_dataset, self.training_config.batch_size, shuffle=False
             )
 
         # Optimizer
         self.optimizer = AdamW(
             model.parameters(),
-            lr=config.learning_rate,
-            weight_decay=config.weight_decay,
+            lr=self.training_config.learning_rate,
+            weight_decay=self.training_config.weight_decay,
         )
 
         # Scheduler
@@ -150,19 +151,19 @@ class DDGVAETrainer(DeterministicTrainer):
 
     def _create_scheduler(self) -> Optional[object]:
         """Create learning rate scheduler."""
-        if self.config.scheduler == "cosine":
+        if self.training_config.scheduler == "cosine":
             return CosineAnnealingLR(
                 self.optimizer,
-                T_max=self.config.epochs,
-                eta_min=self.config.min_lr,
+                T_max=self.training_config.epochs,
+                eta_min=self.training_config.min_lr,
             )
-        elif self.config.scheduler == "plateau":
+        elif self.training_config.scheduler == "plateau":
             return ReduceLROnPlateau(
                 self.optimizer,
                 mode="max",
                 factor=0.5,
-                patience=self.config.scheduler_patience,
-                min_lr=self.config.min_lr,
+                patience=self.training_config.scheduler_patience,
+                min_lr=self.training_config.min_lr,
             )
         return None
 
@@ -170,14 +171,14 @@ class DDGVAETrainer(DeterministicTrainer):
         """Get KL weight for current epoch."""
         base_beta = self.model.config.beta
 
-        if self.config.beta_schedule == "constant":
+        if self.training_config.beta_schedule == "constant":
             return base_beta
-        elif self.config.beta_schedule == "warmup":
-            warmup = self.config.beta_warmup_epochs
+        elif self.training_config.beta_schedule == "warmup":
+            warmup = self.training_config.beta_warmup_epochs
             if epoch < warmup:
                 return base_beta * (epoch + 1) / warmup
             return base_beta
-        elif self.config.beta_schedule == "cyclic":
+        elif self.training_config.beta_schedule == "cyclic":
             cycle_length = 20
             phase = epoch % cycle_length
             return base_beta * (0.5 + 0.5 * np.cos(np.pi * phase / cycle_length))
@@ -210,9 +211,9 @@ class DDGVAETrainer(DeterministicTrainer):
 
             loss.backward()
 
-            if self.config.grad_clip > 0:
+            if self.training_config.grad_clip > 0:
                 nn.utils.clip_grad_norm_(
-                    self.model.parameters(), self.config.grad_clip
+                    self.model.parameters(), self.training_config.grad_clip
                 )
 
             self.optimizer.step()
@@ -257,8 +258,9 @@ class DDGVAETrainer(DeterministicTrainer):
             preds = self.model.predict(x)
 
             total_loss += loss_dict["loss"].item()
-            all_preds.extend(preds.squeeze().cpu().numpy())
-            all_targets.extend(y.cpu().numpy())
+            # Ensure both preds and targets are flattened to 1D
+            all_preds.extend(preds.squeeze(-1).cpu().numpy().flatten())
+            all_targets.extend(y.cpu().numpy().flatten())
             n_batches += 1
 
         all_preds = np.array(all_preds)
@@ -291,7 +293,7 @@ class DDGVAETrainer(DeterministicTrainer):
         Returns:
             Final metrics dictionary
         """
-        for epoch in range(self.config.epochs):
+        for epoch in range(self.training_config.epochs):
             self.epoch = epoch
 
             # Train
@@ -299,7 +301,7 @@ class DDGVAETrainer(DeterministicTrainer):
 
             # Validate
             val_metrics = {}
-            if epoch % self.config.val_every == 0 and self.val_loader is not None:
+            if epoch % self.training_config.val_every == 0 and self.val_loader is not None:
                 val_metrics = self.validate()
 
             # Update history
@@ -317,7 +319,7 @@ class DDGVAETrainer(DeterministicTrainer):
                     self.scheduler.step()
 
             # Log
-            if self.config.verbose and epoch % self.config.log_every == 0:
+            if self.training_config.verbose and epoch % self.training_config.log_every == 0:
                 self._log_epoch(epoch, train_metrics, val_metrics)
 
             # Callback
@@ -325,21 +327,21 @@ class DDGVAETrainer(DeterministicTrainer):
                 callback(epoch, {**train_metrics, **val_metrics})
 
             # Checkpointing
-            if (epoch + 1) % self.config.save_every == 0:
+            if (epoch + 1) % self.training_config.save_every == 0:
                 self._save_checkpoint(epoch, train_metrics, val_metrics)
 
             # Early stopping
-            current_metric = val_metrics.get(self.config.early_stopping_metric, 0)
+            current_metric = val_metrics.get(self.training_config.early_stopping_metric, 0)
             if current_metric > self.best_metric:
                 self.best_metric = current_metric
                 self.epochs_without_improvement = 0
-                if self.config.save_best:
+                if self.training_config.save_best:
                     self._save_best(epoch, train_metrics, val_metrics)
             else:
                 self.epochs_without_improvement += 1
 
-            if self.epochs_without_improvement >= self.config.early_stopping_patience:
-                if self.config.verbose:
+            if self.epochs_without_improvement >= self.training_config.early_stopping_patience:
+                if self.training_config.verbose:
                     print(f"Early stopping at epoch {epoch}")
                 break
 
@@ -400,10 +402,14 @@ class DDGVAETrainer(DeterministicTrainer):
 
     def _save_final(self) -> None:
         """Save final training state."""
-        # Save history
+        # Save history (convert numpy floats to Python floats for JSON)
         history_path = self.output_dir / "training_history.json"
+        serializable_history = {
+            k: [float(v) for v in vals]
+            for k, vals in self.history.items()
+        }
         with open(history_path, "w") as f:
-            json.dump(self.history, f, indent=2)
+            json.dump(serializable_history, f, indent=2)
 
         # Save final checkpoint
         path = self.output_dir / "final.pt"
