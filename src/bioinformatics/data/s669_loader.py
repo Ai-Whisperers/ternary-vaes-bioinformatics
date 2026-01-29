@@ -147,7 +147,8 @@ class S669Loader:
         self.data_dir.mkdir(parents=True, exist_ok=True)
 
         # Check for existing S669 file in partner package
-        self._partner_path = Path(__file__).parents[4] / "deliverables" / "partners" / "protein_stability_ddg" / "reproducibility" / "data" / "s669.csv"
+        # Go up from src/bioinformatics/data/s669_loader.py to repo root
+        self._partner_path = Path(__file__).parents[3] / "deliverables" / "partners" / "protein_stability_ddg" / "reproducibility" / "data" / "s669.csv"
 
     def load_from_csv(self, csv_path: Optional[Path] = None) -> list[S669Record]:
         """Load S669 records from CSV file.
