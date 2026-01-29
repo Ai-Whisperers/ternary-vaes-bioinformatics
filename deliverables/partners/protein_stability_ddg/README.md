@@ -1,12 +1,29 @@
 # Protein Stability Prediction Package
 
-**Doc-Type:** Research Tool Package · Version 2.3 · 2026-01-28 · AI Whisperers
+**Doc-Type:** Research Tool Package · Version 2.4 · 2026-01-29 · AI Whisperers
 
 ## P-adic Geometric Protein Stability Analysis Suite
 
 **Status:** PRODUCTION READY - Scientifically Validated
 **Best Research Result:** Spearman rho = 0.94 (N=176, structural validation)
 **Shipped Predictor:** Spearman rho = 0.52 (N=52, LOO CV)
+
+### 🚀 Path Forward: Multimodal Architecture
+
+To bridge the gap between ProTherm (0.94) and S669 (0.37), we are developing a **multimodal architecture** that combines:
+
+1. **Three Specialist VAEs** trained on different data regimes:
+   - VAE-S669: Benchmark calibration (N=669)
+   - VAE-ProTherm: High-quality curated data (N=2,000+)
+   - VAE-Wide: Large-scale diverse data (N=500K+)
+
+2. **Multimodal Fusion** via attention-based cross-modal alignment
+
+3. **Dual Outputs**: Fuzzy VAE (uncertainty) + Transformer (precise)
+
+**Target:** Spearman 0.68+ on S669, matching/exceeding Rosetta (0.69)
+
+See `src/bioinformatics/` for the implementation.
 
 ---
 
