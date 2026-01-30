@@ -1,7 +1,7 @@
 # DDG Multimodal VAE - Training Results
 
-**Doc-Type:** Training Report · Version 1.1 · 2026-01-29
-**Status:** Phase 4 Complete - Gradient Discovery Reveals 94.7% DDG Variance Explained
+**Doc-Type:** Training Report · Version 1.2 · 2026-01-30
+**Status:** Complete - MLP Refiner Best (0.78), Multimodal Fusion Negative Result
 
 ---
 
@@ -329,17 +329,108 @@ Mutations with strongest local DDG gradients (sensitive positions):
 
 ---
 
-## Next Steps
+## Phase 3: Multimodal Fusion Experiments
 
-### Phase 3: Multimodal Fusion (PENDING)
-- Combine three specialist VAE embeddings
-- Train cross-modal attention fusion layer
-- Target: Spearman > 0.80 on combined data
+### Cross-VAE Fusion (Negative Result)
 
-### Phase 5: Production Pipeline
-- Use gradient direction for rapid DDG estimation
-- Deploy clustering for mutation prioritization
-- Cross-protein transfer via unexpected neighbors
+Attempted to combine embeddings from VAE-S669, VAE-ProTherm, and VAE-Wide using:
+1. Cross-modal attention fusion
+2. Simple concatenation with gating
+3. Learned modality weights
+
+**Results:**
+| Approach | Best Spearman | vs VAE Baseline |
+|----------|:-------------:|:---------------:|
+| Cross-Modal Attention | 0.48 | -25% |
+| Simple Gated Fusion | 0.45 | -30% |
+| Gradient-Enhanced | 0.44 | -31% |
+
+**Why it failed:**
+- **Negative transfer**: VAEs trained on different data distributions (S669 DDG, ProTherm DDG, ProteinGym fitness)
+- **Loss of baseline**: Fusion approaches tried to predict DDG from scratch instead of refining VAE predictions
+- **Small dataset**: 177 samples insufficient for complex cross-modal attention
+
+### Key Insight: Residual Learning is Essential
+
+The MLP Refiner works (0.78) because it uses **residual learning**:
+
+```python
+# Working approach (MLP Refiner)
+ddg_pred = vae_pred + weight * mlp_delta  # Delta correction on baseline
+
+# Failed approaches (Multimodal Fusion)
+ddg_pred = fusion_network(concat_embeddings)  # No baseline
+```
+
+The VAE's prediction serves as a strong prior. The MLP only needs to learn corrections, not the full mapping.
+
+### Recommendation for Future Work
+
+1. **Keep single-VAE approach**: VAE-ProTherm + MLP Refiner achieves Spearman 0.78
+2. **Use gradient discovery for analysis**: 0.947 correlation reveals latent structure
+3. **Cross-protein transfer**: Use cluster-based routing, not fusion
+
+---
+
+## Combined Results Summary (All Phases)
+
+| Phase | Model/Analysis | Best Metric | Key Achievement |
+|:-----:|----------------|:-----------:|-----------------|
+| 1 | VAE-S669 | ρ=-0.83 | Benchmark specialist |
+| 1 | VAE-ProTherm | ρ=0.64 | High-quality baseline |
+| 1 | VAE-Wide | ρ=0.15 | Diversity learning |
+| 2 | **MLP Refiner** | **ρ=0.78** | **+22% improvement (BEST)** |
+| 2 | Embedding Transformer | ρ=0.66 | Attention on embeddings |
+| 3 | Multimodal Fusion | ρ=0.48 | Negative transfer |
+| 4 | Gradient Discovery | 0.947 | Single direction explains DDG |
+
+**Production Model:** VAE-ProTherm + MLP Refiner (Spearman 0.78)
+
+---
+
+## Production Pipeline
+
+### Recommended Architecture
+
+```
+Input Features (14-dim)
+    ↓
+[Frozen] VAE-ProTherm Encoder → mu (32-dim embedding)
+                               → ddg_pred (baseline)
+    ↓
+[Trained] MLP Refiner → delta correction
+    ↓
+Final DDG = ddg_pred + weight × delta
+```
+
+### Loading Production Model
+
+```python
+import torch
+from src.bioinformatics.models.ddg_vae import DDGVAE
+from src.bioinformatics.models.ddg_mlp_refiner import DDGMLPRefiner, RefinerConfig
+
+# Load VAE
+vae = DDGVAE.create_protherm_variant(use_hyperbolic=False)
+ckpt = torch.load("outputs/ddg_vae_training_20260129_212316/vae_protherm/best.pt")
+vae.load_state_dict(ckpt["model_state_dict"])
+
+# Load MLP Refiner
+config = RefinerConfig(latent_dim=32, hidden_dims=[64, 64, 32])
+refiner = DDGMLPRefiner(config=config)
+ckpt = torch.load("outputs/refiners_20260129_230857/mlp_refiner/best.pt")
+refiner.load_state_dict(ckpt["model_state_dict"])
+
+# Inference
+vae.eval()
+refiner.eval()
+with torch.no_grad():
+    vae_out = vae(features)
+    mu = vae_out["mu"]
+    vae_pred = vae_out["ddg_pred"]
+    refined = refiner(mu, vae_pred)
+    ddg = refined["ddg_pred"]
+```
 
 ---
 
@@ -367,6 +458,7 @@ python src/bioinformatics/scripts/train_all_vaes.py --quick --skip-wide
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-30 | 1.2 | Multimodal fusion experiments - negative transfer documented |
 | 2026-01-29 | 1.1 | Phase 4 gradient discovery complete - 94.7% variance explained |
 | 2026-01-29 | 1.0 | Initial training complete, ProteinGym filter fix |
 
