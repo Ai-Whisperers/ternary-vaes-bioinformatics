@@ -453,22 +453,28 @@ The MLP Refiner already extracts most useful information from VAE latent space.
 
 Single transformer trained on combined S669 + ProTherm data:
 
-| Metric | Quick | Full Training |
-|--------|:-----:|:-------------:|
-| Overall Spearman | 0.63 | **0.72** |
-| ProTherm subset | 0.83 | **0.87** |
-| S669 subset | 0.30 | **0.40** |
+| Metric | S669 curated (N=52) | S669 full (N=669) |
+|--------|:-------------------:|:-----------------:|
+| Total samples | 229 | **846** |
+| Overall Spearman | 0.72 | **0.34** |
+| ProTherm subset | 0.87 | 0.57 |
+| S669 subset | 0.40 | 0.30 |
 
-**Full Training Results:**
+**Full S669 Training Results:**
 ```
-Best epoch: 10 (early stopped at 40)
-Best Spearman: 0.724
+Best epoch: 26 (early stopped at 56)
+Best Spearman: 0.340
 d_model: 128, n_layers: 6
-Source embedding: enabled (learns dataset-specific biases)
+Train/Val: 720/126
 ```
 
-**Finding:** Cross-dataset transfer improved with full training (S669: 0.30→0.40).
-The model achieves 0.87 on ProTherm while maintaining reasonable S669 performance.
+**Critical Finding:** Mixing full S669 (669) + ProTherm (177) causes **negative transfer**:
+- Combined (N=846): 0.34
+- Transformer-S669 alone (N=669): **0.47** (+38% better)
+- Transformer-ProTherm alone (N=177): **0.86** (+153% better)
+
+**Recommendation:** Train separate models for each dataset. The datasets have different
+characteristics (curation level, DDG measurement methods) that conflict when combined.
 
 ### Transformer Architecture
 
@@ -542,7 +548,7 @@ Final Metrics:
 | 5 | **Transformer-ProTherm** | **ρ=0.86** | **NEW BEST - Direct transformer** |
 | 5 | Transformer-S669 (N=669) | ρ=0.47 | Benchmark-competitive (vs FoldX 0.48) |
 | 5 | Stochastic Transformer | ρ=0.79 | VAE+Refiner embeddings |
-| 5 | Combined Transformer | ρ=0.72 | Cross-dataset (0.87 ProTherm, 0.40 S669) |
+| 5 | Combined Transformer (N=846) | ρ=0.34 | Negative transfer - use separate models |
 
 **Production Model:** Transformer-ProTherm (Spearman 0.86) - NEW BEST
 
