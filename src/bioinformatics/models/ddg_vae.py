@@ -393,10 +393,10 @@ class DDGVAE(nn.Module):
         This variant has larger capacity for cleaner data:
         - Larger capacity (hidden_dim=128)
         - Larger latent (32-dim)
-        - Input: 18 features (with structural hints)
+        - Input: 20 features (14 base + 6 structural hints)
         """
         config = DDGVAEConfig(
-            input_dim=18,  # Include structural features
+            input_dim=20,  # Include structural features (ss, rsa, etc.)
             hidden_dim=128,
             latent_dim=32,
             n_layers=2,
