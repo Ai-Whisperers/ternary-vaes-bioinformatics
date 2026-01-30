@@ -1,7 +1,7 @@
 # DDG Multimodal VAE - Training Results
 
-**Doc-Type:** Training Report · Version 1.2 · 2026-01-30
-**Status:** Complete - MLP Refiner Best (0.78), Multimodal Fusion Negative Result
+**Doc-Type:** Training Report · Version 1.3 · 2026-01-30
+**Status:** Complete - Systematic Multimodal Investigation (Step 3 achieves 0.68)
 
 ---
 
@@ -329,46 +329,67 @@ Mutations with strongest local DDG gradients (sensitive positions):
 
 ---
 
-## Phase 3: Multimodal Fusion Experiments
+## Phase 3: Systematic Multimodal Fusion Experiments
 
-### Cross-VAE Fusion (Negative Result)
+### Three-Step Multimodal Investigation
 
-Attempted to combine embeddings from VAE-S669, VAE-ProTherm, and VAE-Wide using:
-1. Cross-modal attention fusion
-2. Simple concatenation with gating
-3. Learned modality weights
+**Step 1: Meta-VAE over Specialist Embeddings**
+- Concatenate frozen embeddings from 3 VAEs (112-dim total)
+- Train a new VAE on this combined representation
+- Apply MLP refiner on Meta-VAE embeddings
 
-**Results:**
-| Approach | Best Spearman | vs VAE Baseline |
-|----------|:-------------:|:---------------:|
-| Cross-Modal Attention | 0.48 | -25% |
-| Simple Gated Fusion | 0.45 | -30% |
-| Gradient-Enhanced | 0.44 | -31% |
+| Component | Spearman |
+|-----------|:--------:|
+| Meta-VAE alone | 0.58 |
+| Meta-VAE + MLP Refiner | **0.63** |
 
-**Why it failed:**
-- **Negative transfer**: VAEs trained on different data distributions (S669 DDG, ProTherm DDG, ProteinGym fitness)
-- **Loss of baseline**: Fusion approaches tried to predict DDG from scratch instead of refining VAE predictions
-- **Small dataset**: 177 samples insufficient for complex cross-modal attention
+**Step 2: Single VAE on Combined Raw Datasets**
+- Train single VAE on S669 + ProTherm + ProteinGym raw data
+- Multi-task learning with source-specific heads
 
-### Key Insight: Residual Learning is Essential
+| Component | Spearman |
+|-----------|:--------:|
+| Combined VAE | 0.39 |
+| Combined + MLP Refiner | **0.46** |
 
-The MLP Refiner works (0.78) because it uses **residual learning**:
+**Step 3: Optimized Multimodal Architecture**
+- Use pretrained specialist VAE embeddings (from Step 1 insight)
+- Attention-based fusion with ProTherm as anchor
+- Residual delta learning from ProTherm VAE baseline
 
-```python
-# Working approach (MLP Refiner)
-ddg_pred = vae_pred + weight * mlp_delta  # Delta correction on baseline
+| Component | Spearman |
+|-----------|:--------:|
+| Optimized Multimodal | **0.68** ✓ |
+| + MLP Refiner | 0.53 |
 
-# Failed approaches (Multimodal Fusion)
-ddg_pred = fusion_network(concat_embeddings)  # No baseline
-```
+### Results Summary
 
-The VAE's prediction serves as a strong prior. The MLP only needs to learn corrections, not the full mapping.
+| Approach | Best Spearman | vs Baseline (0.64) |
+|----------|:-------------:|:------------------:|
+| Step 1: Meta-VAE + Refiner | 0.63 | -2% |
+| Step 2: Combined + Refiner | 0.46 | -28% |
+| **Step 3: Optimized Multimodal** | **0.68** | **+6%** ✓ |
+| Baseline VAE-ProTherm + MLP Refiner | **0.78** | **+22%** |
 
-### Recommendation for Future Work
+### Key Findings
 
-1. **Keep single-VAE approach**: VAE-ProTherm + MLP Refiner achieves Spearman 0.78
-2. **Use gradient discovery for analysis**: 0.947 correlation reveals latent structure
-3. **Cross-protein transfer**: Use cluster-based routing, not fusion
+1. **True multimodality achieved in Step 3** (0.68 > 0.64 baseline)
+2. **But single VAE + MLP Refiner (0.78) remains best** - multimodal doesn't beat it
+3. **Pretrained embeddings > training from scratch** (Step 1 > Step 2)
+4. **Residual learning is essential** - approaches without baseline prior fail
+
+### Why Multimodal Underperforms Single-Model
+
+The three specialist VAEs were trained on different tasks:
+- **VAE-S669**: Trained on S669 DDG (negative correlation learned)
+- **VAE-ProTherm**: Trained on ProTherm DDG (positive correlation)
+- **VAE-Wide**: Trained on ProteinGym fitness (different biological quantity)
+
+When combined, the conflicting learned representations create noise rather than synergy. The ProTherm VAE alone, with its direct DDG training, provides the cleanest signal.
+
+### Recommendation
+
+**Use single-model approach**: VAE-ProTherm + MLP Refiner (Spearman 0.78)
 
 ---
 
@@ -458,6 +479,7 @@ python src/bioinformatics/scripts/train_all_vaes.py --quick --skip-wide
 
 | Date | Version | Changes |
 |------|---------|---------|
+| 2026-01-30 | 1.3 | Systematic 3-step multimodal investigation - Step 3 achieves 0.68 |
 | 2026-01-30 | 1.2 | Multimodal fusion experiments - negative transfer documented |
 | 2026-01-29 | 1.1 | Phase 4 gradient discovery complete - 94.7% variance explained |
 | 2026-01-29 | 1.0 | Initial training complete, ProteinGym filter fix |
